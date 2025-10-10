@@ -3,17 +3,18 @@
   "private": true,
   "type": "module",
   "scripts": {
-    "dev": "vite dev --port 3000",
+    "dev": "vite dev",
     "build": "vite build",
     "serve": "vite preview",
     "test": "vitest run",
-    "format": "biome format",
-    "lint": "biome lint",
+    "format": "biome format --write",
+    "lint": "biome lint --write",
     "check": "biome check",
     "deploy": "wrangler deploy"
   },
   "dependencies": {
     "@cloudflare/vite-plugin": "^1.13.8",
+    "@convex-dev/auth": "^0.0.90",
     "@convex-dev/react-query": "0.0.0-alpha.11",
     "@faker-js/faker": "^10.0.0",
     "@radix-ui/react-label": "^2.1.7",
