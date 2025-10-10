@@ -25,7 +25,9 @@ import {
 	useRef,
 	useState,
 } from "react";
-import ConnectorNode, { type ConnectorNodeData } from "@/components/goalmap/ConnectorNode";
+import ConnectorNode, {
+	type ConnectorNodeData,
+} from "@/components/goalmap/ConnectorNode";
 import EditorToolbar from "@/components/goalmap/EditorToolbar";
 import { SaveDialog, WarningsPanel } from "@/components/goalmap/SaveDialog";
 import ImageNode, {
@@ -39,7 +41,6 @@ import { Label } from "@/components/ui/label";
 export const Route = createFileRoute("/dashboard/goal/$goalMapId")({
 	component: TeacherGoalMapEditor,
 });
-
 
 type AnyNode = Node<TextNodeData | ImageNodeData | ConnectorNodeData>;
 
@@ -501,7 +502,10 @@ function TeacherGoalMapEditor() {
 				</div>
 			</div>
 
-			<WarningsPanel warnings={saveWarnings} onClear={() => setSaveWarnings([])} />
+			<WarningsPanel
+				warnings={saveWarnings}
+				onClear={() => setSaveWarnings([])}
+			/>
 			{saveError ? (
 				<WarningsPanel
 					warnings={[saveError]}
