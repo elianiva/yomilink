@@ -4,13 +4,15 @@ import { authTables } from '@convex-dev/auth/server'
 
 export default defineSchema({
   ...authTables,
-  products: defineTable({
+  goal_maps: defineTable({
+    goalMapId: v.string(),
+    teacherId: v.string(),
     title: v.string(),
-    imageId: v.string(),
-    price: v.number(),
-  }),
-  todos: defineTable({
-    text: v.string(),
-    completed: v.boolean(),
-  }),
+    description: v.optional(v.string()),
+    nodes: v.any(), // ReactFlow nodes JSON
+    edges: v.any(), // ReactFlow edges JSON
+    updatedAt: v.number(), // epoch ms
+  })
+    .index("by_goalMapId", ["goalMapId"])
+    .index("by_teacher", ["teacherId"]),
 })

@@ -17,6 +17,8 @@ import { Route as DashboardRoomsRouteImport } from './routes/dashboard/rooms'
 import { Route as DashboardResultsRouteImport } from './routes/dashboard/results'
 import { Route as DashboardAnalyticsRouteImport } from './routes/dashboard/analytics'
 import { Route as DashboardAssignmentsIndexRouteImport } from './routes/dashboard/assignments/index'
+import { Route as DashboardKitKitIdRouteImport } from './routes/dashboard/kit.$kitId'
+import { Route as DashboardGoalGoalMapIdRouteImport } from './routes/dashboard/goal.$goalMapId'
 import { Route as DashboardAssignmentsArchivedRouteImport } from './routes/dashboard/assignments/archived'
 
 const LoginRoute = LoginRouteImport.update({
@@ -60,6 +62,16 @@ const DashboardAssignmentsIndexRoute =
     path: '/assignments/',
     getParentRoute: () => DashboardRoute,
   } as any)
+const DashboardKitKitIdRoute = DashboardKitKitIdRouteImport.update({
+  id: '/kit/$kitId',
+  path: '/kit/$kitId',
+  getParentRoute: () => DashboardRoute,
+} as any)
+const DashboardGoalGoalMapIdRoute = DashboardGoalGoalMapIdRouteImport.update({
+  id: '/goal/$goalMapId',
+  path: '/goal/$goalMapId',
+  getParentRoute: () => DashboardRoute,
+} as any)
 const DashboardAssignmentsArchivedRoute =
   DashboardAssignmentsArchivedRouteImport.update({
     id: '/assignments/archived',
@@ -76,6 +88,8 @@ export interface FileRoutesByFullPath {
   '/dashboard/rooms': typeof DashboardRoomsRoute
   '/dashboard/': typeof DashboardIndexRoute
   '/dashboard/assignments/archived': typeof DashboardAssignmentsArchivedRoute
+  '/dashboard/goal/$goalMapId': typeof DashboardGoalGoalMapIdRoute
+  '/dashboard/kit/$kitId': typeof DashboardKitKitIdRoute
   '/dashboard/assignments': typeof DashboardAssignmentsIndexRoute
 }
 export interface FileRoutesByTo {
@@ -86,6 +100,8 @@ export interface FileRoutesByTo {
   '/dashboard/rooms': typeof DashboardRoomsRoute
   '/dashboard': typeof DashboardIndexRoute
   '/dashboard/assignments/archived': typeof DashboardAssignmentsArchivedRoute
+  '/dashboard/goal/$goalMapId': typeof DashboardGoalGoalMapIdRoute
+  '/dashboard/kit/$kitId': typeof DashboardKitKitIdRoute
   '/dashboard/assignments': typeof DashboardAssignmentsIndexRoute
 }
 export interface FileRoutesById {
@@ -98,6 +114,8 @@ export interface FileRoutesById {
   '/dashboard/rooms': typeof DashboardRoomsRoute
   '/dashboard/': typeof DashboardIndexRoute
   '/dashboard/assignments/archived': typeof DashboardAssignmentsArchivedRoute
+  '/dashboard/goal/$goalMapId': typeof DashboardGoalGoalMapIdRoute
+  '/dashboard/kit/$kitId': typeof DashboardKitKitIdRoute
   '/dashboard/assignments/': typeof DashboardAssignmentsIndexRoute
 }
 export interface FileRouteTypes {
@@ -111,6 +129,8 @@ export interface FileRouteTypes {
     | '/dashboard/rooms'
     | '/dashboard/'
     | '/dashboard/assignments/archived'
+    | '/dashboard/goal/$goalMapId'
+    | '/dashboard/kit/$kitId'
     | '/dashboard/assignments'
   fileRoutesByTo: FileRoutesByTo
   to:
@@ -121,6 +141,8 @@ export interface FileRouteTypes {
     | '/dashboard/rooms'
     | '/dashboard'
     | '/dashboard/assignments/archived'
+    | '/dashboard/goal/$goalMapId'
+    | '/dashboard/kit/$kitId'
     | '/dashboard/assignments'
   id:
     | '__root__'
@@ -132,6 +154,8 @@ export interface FileRouteTypes {
     | '/dashboard/rooms'
     | '/dashboard/'
     | '/dashboard/assignments/archived'
+    | '/dashboard/goal/$goalMapId'
+    | '/dashboard/kit/$kitId'
     | '/dashboard/assignments/'
   fileRoutesById: FileRoutesById
 }
@@ -199,6 +223,20 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof DashboardAssignmentsIndexRouteImport
       parentRoute: typeof DashboardRoute
     }
+    '/dashboard/kit/$kitId': {
+      id: '/dashboard/kit/$kitId'
+      path: '/kit/$kitId'
+      fullPath: '/dashboard/kit/$kitId'
+      preLoaderRoute: typeof DashboardKitKitIdRouteImport
+      parentRoute: typeof DashboardRoute
+    }
+    '/dashboard/goal/$goalMapId': {
+      id: '/dashboard/goal/$goalMapId'
+      path: '/goal/$goalMapId'
+      fullPath: '/dashboard/goal/$goalMapId'
+      preLoaderRoute: typeof DashboardGoalGoalMapIdRouteImport
+      parentRoute: typeof DashboardRoute
+    }
     '/dashboard/assignments/archived': {
       id: '/dashboard/assignments/archived'
       path: '/assignments/archived'
@@ -215,6 +253,8 @@ interface DashboardRouteChildren {
   DashboardRoomsRoute: typeof DashboardRoomsRoute
   DashboardIndexRoute: typeof DashboardIndexRoute
   DashboardAssignmentsArchivedRoute: typeof DashboardAssignmentsArchivedRoute
+  DashboardGoalGoalMapIdRoute: typeof DashboardGoalGoalMapIdRoute
+  DashboardKitKitIdRoute: typeof DashboardKitKitIdRoute
   DashboardAssignmentsIndexRoute: typeof DashboardAssignmentsIndexRoute
 }
 
@@ -224,6 +264,8 @@ const DashboardRouteChildren: DashboardRouteChildren = {
   DashboardRoomsRoute: DashboardRoomsRoute,
   DashboardIndexRoute: DashboardIndexRoute,
   DashboardAssignmentsArchivedRoute: DashboardAssignmentsArchivedRoute,
+  DashboardGoalGoalMapIdRoute: DashboardGoalGoalMapIdRoute,
+  DashboardKitKitIdRoute: DashboardKitKitIdRoute,
   DashboardAssignmentsIndexRoute: DashboardAssignmentsIndexRoute,
 }
 
