@@ -1,81 +1,47 @@
+import { useConvexQuery } from "@convex-dev/react-query";
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
+import { api } from "convex/_generated/api";
 import { BarChart3, Box, Check, Map as MapIcon } from "lucide-react";
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useState } from "react";
 import { Button } from "@/components/ui/button";
 
 export const Route = createFileRoute("/dashboard/")({
 	component: DashboardHome,
 });
 
-type Topic = { id: string; name: string };
-type Kit = { id: string; name: string; topicId: string; tags: string[] };
 
-const demoTopics: Topic[] = [
-	{ id: "t1", name: "General" },
-	{ id: "t2", name: "Biology" },
-	{ id: "t3", name: "Astronomy" },
-	{ id: "t4", name: "Geography" },
-];
 
-const demoKits: Kit[] = [
-	{
-		id: "k1",
-		name: "Intro Kit",
-		topicId: "t1",
-		tags: ["basics", "orientation"],
-	},
-	{
-		id: "k2",
-		name: "Ecosystems",
-		topicId: "t2",
-		tags: ["food chain", "habitats"],
-	},
-	{
-		id: "k3",
-		name: "Stars and Planets",
-		topicId: "t3",
-		tags: ["planets", "constellation"],
-	},
-	{ id: "k4", name: "Maps 101", topicId: "t4", tags: ["cartography", "gps"] },
-	{
-		id: "k5",
-		name: "Cell Biology",
-		topicId: "t2",
-		tags: ["cells", "microscope"],
-	},
-];
+
+type StudentKit = {
+	goalMapId: string;
+	title: string;
+	description?: string;
+	updatedAt: number;
+	teacherId: string;
+};
 
 function JoinKitDialog({
 	open,
 	onClose,
 	onConfirm,
+	kits,
 }: {
 	open: boolean;
 	onClose: () => void;
 	onConfirm: (kitId: string) => void;
+	kits: StudentKit[];
 }) {
-	const [selectedTopicId, setSelectedTopicId] = useState<string | null>(null);
 	const [selectedKitId, setSelectedKitId] = useState<string | null>(null);
 
 	useEffect(() => {
-		if (open) {
-			setSelectedTopicId((prev) => prev ?? demoTopics[0]?.id ?? null);
-			setSelectedKitId(null);
-			const onKey = (e: KeyboardEvent) => {
-				if (e.key === "Escape") onClose();
-			};
-			window.addEventListener("keydown", onKey);
-			return () => window.removeEventListener("keydown", onKey);
-		}
-	}, [open, onClose]);
-
-	const kitsForTopic = useMemo(
-		() =>
-			demoKits.filter((k) =>
-				!selectedTopicId ? true : k.topicId === selectedTopicId,
-			),
-		[selectedTopicId],
-	);
+		if (!open) return;
+		setSelectedKitId((prev) => prev ?? kits[0]?.goalMapId ?? null);
+		const onKey = (e: KeyboardEvent) => {
+			if (e.key === "Escape") onClose();
+		};
+		window.addEventListener("keydown", onKey);
+		return () => window.removeEventListener("keydown", onKey);
+	}, [open, onClose, kits]);
 
 	if (!open) return null;
 
@@ -90,53 +56,25 @@ function JoinKitDialog({
 			<div
 				role="dialog"
 				aria-modal="true"
-				className="relative z-10 w-full max-w-3xl rounded-xl border bg-background shadow-xl"
+				className="relative z-10 w-full max-w-2xl rounded-xl border bg-background shadow-xl"
 			>
 				<div className="flex items-center justify-between border-b p-4">
-					<h3 className="text-lg font-semibold">Select Topic and Kit</h3>
+					<h3 className="text-lg font-semibold">Select a Kit</h3>
 					<Button variant="ghost" size="sm" onClick={onClose}>
 						Close
 					</Button>
 				</div>
 
-				<div className="grid gap-4 p-4 md:grid-cols-2">
+				<div className="p-4">
 					<div className="rounded-lg border">
 						<div className="border-b px-3 py-2 text-sm font-medium text-muted-foreground">
-							Topic
+							Available Kits
 						</div>
 						<ul className="max-h-[360px] overflow-auto p-2">
-							{demoTopics.map((t) => {
-								const active = t.id === selectedTopicId;
+							{(kits ?? []).map((k) => {
+								const active = k.goalMapId === selectedKitId;
 								return (
-									<li key={t.id}>
-										<button
-											type="button"
-											className={[
-												"flex w-full items-center justify-between rounded-md px-3 py-2 text-left text-sm",
-												active
-													? "bg-accent text-accent-foreground ring-1 ring-border"
-													: "hover:bg-muted/50",
-											].join(" ")}
-											onClick={() => setSelectedTopicId(t.id)}
-										>
-											<span>{t.name}</span>
-											{active ? <Check className="size-4" /> : null}
-										</button>
-									</li>
-								);
-							})}
-						</ul>
-					</div>
-
-					<div className="rounded-lg border">
-						<div className="border-b px-3 py-2 text-sm font-medium text-muted-foreground">
-							Kit
-						</div>
-						<ul className="max-h-[360px] overflow-auto p-2">
-							{kitsForTopic.map((k) => {
-								const active = k.id === selectedKitId;
-								return (
-									<li key={k.id}>
+									<li key={k.goalMapId}>
 										<button
 											type="button"
 											className={[
@@ -145,21 +83,16 @@ function JoinKitDialog({
 													? "bg-accent text-accent-foreground ring-1 ring-border"
 													: "hover:bg-muted/50",
 											].join(" ")}
-											onClick={() => setSelectedKitId(k.id)}
+											onClick={() => setSelectedKitId(k.goalMapId)}
 										>
 											<div className="flex items-start justify-between gap-3">
 												<div className="space-y-1">
-													<div className="font-medium">{k.name}</div>
-													<div className="flex flex-wrap gap-1">
-														{k.tags.map((tag) => (
-															<span
-																key={tag}
-																className="inline-flex items-center rounded-full bg-amber-200/70 px-2 py-0.5 text-xs font-medium text-amber-900 ring-1 ring-amber-300/70"
-															>
-																{tag}
-															</span>
-														))}
-													</div>
+													<div className="font-medium">{k.title}</div>
+													{typeof k.description === "string" && k.description ? (
+														<div className="text-xs text-muted-foreground line-clamp-2">
+															{k.description}
+														</div>
+													) : null}
 												</div>
 												{active ? (
 													<Check className="mt-1 size-4 shrink-0" />
@@ -169,9 +102,9 @@ function JoinKitDialog({
 									</li>
 								);
 							})}
-							{kitsForTopic.length === 0 ? (
+							{(kits ?? []).length === 0 ? (
 								<li className="px-3 py-6 text-center text-sm text-muted-foreground">
-									No kits in this topic yet.
+									No kits available yet.
 								</li>
 							) : null}
 						</ul>
@@ -202,6 +135,7 @@ function JoinKitDialog({
 function DashboardHome() {
 	const [isJoinOpen, setIsJoinOpen] = useState(false);
 	const navigate = useNavigate();
+	const kits = useConvexQuery(api.goalMaps.listForStudent);
 
 	return (
 		<div className="space-y-6">
@@ -275,6 +209,7 @@ function DashboardHome() {
 			<JoinKitDialog
 				open={isJoinOpen}
 				onClose={() => setIsJoinOpen(false)}
+				kits={kits ?? []}
 				onConfirm={(kitId) => {
 					navigate({
 						to: "/dashboard/kit/$kitId",

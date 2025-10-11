@@ -1,4 +1,4 @@
-import { useAuthToken } from "@convex-dev/auth/react";
+import { useConvexQuery } from "@convex-dev/react-query";
 import {
 	createFileRoute,
 	Link,
@@ -6,6 +6,8 @@ import {
 	Outlet,
 	useLocation,
 } from "@tanstack/react-router";
+import { api } from "convex/_generated/api";
+import { Authenticated, AuthLoading, Unauthenticated } from "convex/react";
 import { Activity, Map as MapIcon, ScanSearch, Settings } from "lucide-react";
 import { useMemo } from "react";
 import {
@@ -30,17 +32,45 @@ export const Route = createFileRoute("/dashboard")({
 	component: DashboardLayout,
 });
 
-const DISABLE_AUTH_GUARD = true;
+const DISABLE_AUTH_GUARD = false;
+
+type Me = {
+	id: string;
+	role: "teacher" | "admin" | "student";
+	email: string | null;
+	name: string | null;
+};
 
 function DashboardLayout() {
-	const token = useAuthToken();
-	void token; // keep hook call for future guard enablement
-	const location = useLocation();
+	if (DISABLE_AUTH_GUARD) {
+		// In dev mode, render content without auth gates
+		return <DashboardContent />;
+	}
+	return (
+		<>
+			<AuthLoading>
+				<div className="p-4 text-sm text-muted-foreground">Loading...</div>
+			</AuthLoading>
+			<Unauthenticated>
+				<Navigate to="/login" />
+			</Unauthenticated>
+			<Authenticated>
+				<DashboardContent />
+			</Authenticated>
+		</>
+	);
+}
 
-	const shouldRedirect = !DISABLE_AUTH_GUARD && !token;
+function DashboardContent() {
+	const location = useLocation();
+	const me = useConvexQuery(api.users.me) as Me | undefined | null;
+
 	const isEditorRoute =
 		location.pathname.startsWith("/dashboard/kit/") ||
 		location.pathname.startsWith("/dashboard/goal/");
+	const isStudentAllowedRoute =
+		location.pathname === "/dashboard" ||
+		location.pathname.startsWith("/dashboard/kit/");
 
 	const isActive = (to: string, exact = false) => {
 		if (exact) return location.pathname === to;
@@ -77,8 +107,32 @@ function DashboardLayout() {
 		[],
 	);
 
-	if (shouldRedirect) {
-		return <Navigate to="/login" />;
+	// Wait for user profile to load after authentication
+	if (typeof me === "undefined") {
+		return (
+			<div className="p-4 text-sm text-muted-foreground">Loading...</div>
+		);
+	}
+
+	// Role-based guard:
+	// - Teachers/Admins: full access
+	// - Students: only allowed to access student kit workspace route
+	const role = me?.role ?? null;
+	const allowed =
+		role === "teacher" ||
+		role === "admin" ||
+		(isStudentAllowedRoute && role === "student");
+
+	if (!allowed) {
+		// Avoid looping via "/" (which redirects to /dashboard when authed)
+		if (location.pathname !== "/dashboard") {
+			return <Navigate to="/dashboard" />;
+		}
+		return (
+			<div className="p-4 text-sm text-muted-foreground">
+				Access restricted.
+			</div>
+		);
 	}
 
 	return (

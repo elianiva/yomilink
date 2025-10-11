@@ -1,14 +1,7 @@
 import { mutation, query } from "./_generated/server";
 import { v } from "convex/values";
+import { requireRole } from "./authz";
 
-/** Require authenticated user for all goal map operations */
-const requireIdentity = async (ctx: any) => {
-  const identity = await ctx.auth.getUserIdentity();
-  if (!identity) {
-    throw new Error("unauthorized");
-  }
-  return identity;
-};
 
 /**
  * Minimal server-side validation mirroring PLAN.md
@@ -100,7 +93,7 @@ export const save = mutation({
     updatedAt: v.number(),
   },
   handler: async (ctx, args) => {
-    const identity = await requireIdentity(ctx);
+    const { userId } = await requireRole(ctx, ["teacher", "admin"]);
 
     const errors = validateGoalMap(args.nodes as any[], args.edges as any[]);
     // Guard: we still allow save but return errors to the client for UX surfacing
@@ -111,7 +104,7 @@ export const save = mutation({
 
     const toStore = {
       goalMapId: args.goalMapId,
-      teacherId: identity.subject,
+      teacherId: userId,
       title: args.title,
       description: args.description,
       nodes: args.nodes,
@@ -122,7 +115,7 @@ export const save = mutation({
     let id: any;
     if (existing?._id) {
       // Optional: ownership check
-      if (existing.teacherId && existing.teacherId !== identity.subject) {
+      if (existing.teacherId && existing.teacherId !== userId) {
         throw new Error("forbidden");
       }
       await ctx.db.patch(existing._id, toStore);
@@ -145,7 +138,7 @@ export const save = mutation({
 export const get = query({
   args: { goalMapId: v.string() },
   handler: async (ctx, args) => {
-    await requireIdentity(ctx);
+    await requireRole(ctx, ["teacher", "admin"]);
     const doc = await ctx.db
       .query("goal_maps")
       .withIndex("by_goalMapId", (q) => q.eq("goalMapId", args.goalMapId))
@@ -158,12 +151,59 @@ export const get = query({
 export const getKit = query({
   args: { goalMapId: v.string() },
   handler: async (ctx, args) => {
-    await requireIdentity(ctx);
+    await requireRole(ctx, ["teacher", "admin"]);
     const doc = await ctx.db
       .query("goal_maps")
       .withIndex("by_goalMapId", (q) => q.eq("goalMapId", args.goalMapId))
       .first();
     if (!doc) return null;
     return toKit(doc);
+  },
+});
+
+/**
+ * Student-accessible fetch of the raw teacher graph.
+ * Returns the stored ReactFlow nodes/edges so the student workspace
+ * can render concept (text/image) nodes directly.
+ */
+export const getForStudent = query({
+  args: { goalMapId: v.string() },
+  handler: async (ctx, args) => {
+    // Any authenticated role including students can read
+    await requireRole(ctx, ["student", "teacher", "admin"]);
+    const doc = await ctx.db
+      .query("goal_maps")
+      .withIndex("by_goalMapId", (q) => q.eq("goalMapId", args.goalMapId))
+      .first();
+    if (!doc) return null;
+    return {
+      goalMapId: doc.goalMapId,
+      title: doc.title,
+      description: doc.description,
+      nodes: doc.nodes,
+      edges: doc.edges,
+      updatedAt: doc.updatedAt,
+    };
+  },
+});
+
+
+/**
+ * List kits (goal maps) for student selection.
+ * Returns a lightweight list of available goal maps.
+ */
+export const listForStudent = query({
+  args: {},
+  handler: async (ctx) => {
+    await requireRole(ctx, ["student", "teacher", "admin"]);
+    const docs = await ctx.db.query("goal_maps").collect();
+    docs.sort((a: any, b: any) => (b?.updatedAt ?? 0) - (a?.updatedAt ?? 0));
+    return docs.map((d: any) => ({
+      goalMapId: d.goalMapId as string,
+      title: d.title as string,
+      description: (d as any).description as string | undefined,
+      updatedAt: d.updatedAt as number,
+      teacherId: d.teacherId as string,
+    }));
   },
 });

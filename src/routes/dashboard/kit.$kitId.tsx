@@ -12,6 +12,8 @@ import {
 	useNodesState,
 } from "@xyflow/react";
 import "@xyflow/react/dist/style.css";
+import { useConvexQuery } from "@convex-dev/react-query";
+import { api } from "convex/_generated/api";
 
 import { Maximize2, RotateCcw, RotateCw, ZoomIn, ZoomOut } from "lucide-react";
 import { useCallback, useEffect, useMemo, useRef } from "react";
@@ -36,64 +38,9 @@ type KitDocument = {
 	version: number;
 };
 
-const initialNodes: AnyNode[] = [
-	{
-		id: "n1",
-		type: "text",
-		position: { x: 120, y: 80 },
-		data: { label: "(1-1) use", variant: "green" },
-	},
-	{
-		id: "n2",
-		type: "text",
-		position: { x: 380, y: 200 },
-		data: { label: "(2-2) move", variant: "green" },
-	},
-	{
-		id: "n3",
-		type: "text",
-		position: { x: 680, y: 120 },
-		data: { label: "(5-1) is called", variant: "green" },
-	},
-	{
-		id: "n4",
-		type: "text",
-		position: { x: 220, y: 320 },
-		data: { label: "subject" },
-	},
-	{
-		id: "n5",
-		type: "image",
-		position: { x: 620, y: 300 },
-		data: {
-			url: "/logo512.png",
-			caption: "Sample image node",
-			width: 160,
-			height: 110,
-		},
-	},
-];
+/* Nodes will be loaded from Convex at runtime for student view */
 
-const initialEdges: Edge[] = [
-	{
-		id: "e1-2",
-		source: "n1",
-		target: "n2",
-		style: { stroke: "#16a34a", strokeWidth: 1.5 },
-	},
-	{
-		id: "e2-3",
-		source: "n2",
-		target: "n3",
-		style: { stroke: "#16a34a", strokeWidth: 1.5 },
-	},
-	{
-		id: "e2-4",
-		source: "n2",
-		target: "n4",
-		style: { stroke: "#16a34a", strokeWidth: 1.5 },
-	},
-];
+/* Edges will be loaded from Convex at runtime for student view */
 
 function KitWorkspace() {
 	const nodeTypes = useMemo(
@@ -104,17 +51,43 @@ function KitWorkspace() {
 		[],
 	);
 
-	const [nodes, setNodes, onNodesChange] = useNodesState<AnyNode>(initialNodes);
-	const [edges, setEdges, onEdgesChange] = useEdgesState(initialEdges);
+	const [nodes, setNodes, onNodesChange] = useNodesState<AnyNode>([]);
+	const [edges, setEdges, onEdgesChange] = useEdgesState<Edge>([] as Edge[]);
 
 	const rfRef = useRef<ReactFlowInstance<AnyNode, Edge> | null>(null);
 	const { kitId } = Route.useParams();
+	const kit = useConvexQuery(api.goalMaps.getForStudent, { goalMapId: kitId });
 
 	const historyRef = useRef<Array<{ nodes: AnyNode[]; edges: Edge[] }>>([
-		{ nodes: initialNodes, edges: initialEdges },
+		{ nodes: [], edges: [] },
 	]);
 	const pointerRef = useRef(0);
 	const isApplyingRef = useRef(false);
+
+	// Hydrate nodes/edges from Convex for student view.
+	// Only keep concept nodes (text/image) and drop connector nodes.
+	useEffect(() => {
+		if (!kit) return;
+		try {
+			const conceptNodes = ((kit as any).nodes ?? []).filter(
+				(n: any) => n?.type === "text" || n?.type === "image",
+			) as AnyNode[];
+			const conceptIds = new Set(conceptNodes.map((n) => n.id));
+			const filteredEdges = (((kit as any).edges ?? []) as Edge[]).filter(
+				(e: any) => conceptIds.has(e?.source) && conceptIds.has(e?.target),
+			) as Edge[];
+
+			setNodes(conceptNodes);
+			setEdges(filteredEdges);
+
+			// Reset local history baseline after loading
+			historyRef.current = [{ nodes: conceptNodes, edges: filteredEdges }];
+			pointerRef.current = 0;
+		} catch (e) {
+			console.error("kit.load error", e);
+		}
+	}, [kit, setNodes, setEdges]);
+
 
 	useEffect(() => {
 		if (isApplyingRef.current) return;

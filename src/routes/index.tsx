@@ -7,7 +7,11 @@ export const Route = createFileRoute("/")({
 
 function IndexPage() {
 	const token = useAuthToken();
-	if (!token) {
+	// Wait for auth token to resolve to avoid redirect loops
+	if (typeof token === "undefined") {
+		return null;
+	}
+	if (token === null) {
 		return <Navigate to="/login" />;
 	}
 	return <Navigate to="/dashboard" />;

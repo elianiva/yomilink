@@ -4,6 +4,23 @@ import { authTables } from '@convex-dev/auth/server'
 
 export default defineSchema({
   ...authTables,
+  // Extend users table to allow custom profile fields including "role"
+  users: defineTable({
+    name: v.optional(v.string()),
+    image: v.optional(v.string()),
+    email: v.optional(v.string()),
+    emailVerificationTime: v.optional(v.number()),
+    phone: v.optional(v.string()),
+    phoneVerificationTime: v.optional(v.number()),
+    isAnonymous: v.optional(v.boolean()),
+    role: v.optional(
+      v.union(v.literal("admin"), v.literal("teacher"), v.literal("student"))
+    ),
+  }).index("email", ["email"]),
+  user_roles: defineTable({
+    userId: v.id("users"),
+    role: v.union(v.literal("admin"), v.literal("teacher"), v.literal("student")),
+  }).index("by_user", ["userId"]),
   goal_maps: defineTable({
     goalMapId: v.string(),
     teacherId: v.string(),
