@@ -9,9 +9,6 @@ export const Route = createFileRoute("/dashboard/")({
 	component: DashboardHome,
 });
 
-
-
-
 type StudentKit = {
 	goalMapId: string;
 	title: string;
@@ -88,7 +85,8 @@ function JoinKitDialog({
 											<div className="flex items-start justify-between gap-3">
 												<div className="space-y-1">
 													<div className="font-medium">{k.title}</div>
-													{typeof k.description === "string" && k.description ? (
+													{typeof k.description === "string" &&
+													k.description ? (
 														<div className="text-xs text-muted-foreground line-clamp-2">
 															{k.description}
 														</div>

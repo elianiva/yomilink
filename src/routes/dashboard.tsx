@@ -1,12 +1,18 @@
 import { useConvexQuery } from "@convex-dev/react-query";
 import {
 	createFileRoute,
+	Navigate,
 	Outlet,
 	useLocation,
 } from "@tanstack/react-router";
 import { api } from "convex/_generated/api";
+import { Authenticated, Unauthenticated } from "convex/react";
 import DashboardSidebar from "@/components/dashboard/SidebarNav";
-import { SidebarInset, SidebarProvider, SidebarTrigger } from "@/components/ui/sidebar";
+import {
+	SidebarInset,
+	SidebarProvider,
+	SidebarTrigger,
+} from "@/components/ui/sidebar";
 
 export const Route = createFileRoute("/dashboard")({
 	component: DashboardLayout,
@@ -20,7 +26,16 @@ type Me = {
 };
 
 function DashboardLayout() {
-	return <DashboardContent />;
+	return (
+		<>
+			<Unauthenticated>
+				<Navigate to="/login" />
+			</Unauthenticated>
+			<Authenticated>
+				<DashboardContent />
+			</Authenticated>
+		</>
+	);
 }
 
 function DashboardContent() {
@@ -35,16 +50,16 @@ function DashboardContent() {
 
 	// Wait for user profile to load after authentication
 	if (typeof me === "undefined") {
-		return (
-			<div className="p-4 text-sm text-muted-foreground">Loading...</div>
-		);
+		return <div className="p-4 text-sm text-muted-foreground">Loading...</div>;
 	}
-
 
 	return (
 		<SidebarProvider>
 			{!isEditorRoute && (
-				<DashboardSidebar pathname={location.pathname} role={me?.role ?? null} />
+				<DashboardSidebar
+					pathname={location.pathname}
+					role={me?.role ?? null}
+				/>
 			)}
 
 			<SidebarInset>

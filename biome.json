@@ -8,6 +8,7 @@
 	"files": {
 		"ignoreUnknown": false,
 		"includes": [
+			"**/convex/**",
 			"**/src/**/*",
 			"**/.vscode/**/*",
 			"**/index.html",

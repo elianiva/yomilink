@@ -93,7 +93,6 @@ function KitWorkspace() {
 		}
 	}, [kit, setNodes, setEdges]);
 
-
 	useEffect(() => {
 		if (isApplyingRef.current) return;
 		const current = { nodes, edges };

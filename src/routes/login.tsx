@@ -58,21 +58,30 @@ export const Route = createFileRoute("/login")({
 	component: LoginPage,
 });
 
+function LoginPage() {
+	return (
+		<>
+			<Unauthenticated>
+				<LoginPageContent />
+			</Unauthenticated>
+			<Authenticated>
+				<Navigate to="/dashboard" />
+			</Authenticated>
+		</>
+	);
+}
+
 const schema = z.object({
 	email: z.email("Invalid email address"),
 	password: z.string().min(6, "Password must be at least 6 characters"),
 });
 
-function LoginPage() {
+function LoginPageContent() {
 	const { signIn } = useAuthActions();
 	const [step, setStep] = useState<"signIn" | "signUp">("signIn");
 	const [error, setError] = useState<string | null>(null);
 	const idEmail = useId();
 	const idPassword = useId();
-
-	// No profile fetch here; guards handle redirect and we render the form only when unauthenticated
-
-	// Removed stale-session side effects; convex/react Authenticated/Unauthenticated will gate rendering
 
 	const form = useForm({
 		defaultValues: {
