@@ -1,20 +1,15 @@
-import { query } from "./_generated/server";
+import { internalQuery } from "./_generated/server";
 import type { Id } from "./_generated/dataModel";
+import type { Role } from "./roles";
 
-/**
- * Current authenticated user profile (minimal) with role.
- * Returns null if not authenticated.
- */
-export const me = query({
+export const currentPrincipal = internalQuery({
   args: {},
   handler: async (ctx) => {
     const identity = await ctx.auth.getUserIdentity();
     if (!identity) {
-      return null;
+      throw new Error("unauthorized");
     }
-
     const tokenIdentifier = (identity as { tokenIdentifier?: string }).tokenIdentifier;
-
     const user =
       tokenIdentifier
         ? await ctx.db
@@ -24,23 +19,15 @@ export const me = query({
         : null;
 
     if (!user) {
-      return null;
+      throw new Error("user_not_found");
     }
-
-    const userId: Id<"users"> = user._id;
 
     const roleDoc = await ctx.db
       .query("user_roles")
-      .withIndex("by_user", (q) => q.eq("userId", userId))
+      .withIndex("by_user", (q) => q.eq("userId", user._id))
       .first();
-
-    const role = roleDoc?.role ?? "student";
-
-    return {
-      id: userId,
-      role,
-      email: user.email ?? tokenIdentifier ?? null,
-      name: user.name ?? null,
-    };
+    const role: Role = roleDoc?.role ?? "student";
+    const userId: Id<"users"> = user._id;
+    return { userId, role };
   },
 });

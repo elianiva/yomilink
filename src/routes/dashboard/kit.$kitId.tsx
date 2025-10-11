@@ -11,6 +11,7 @@ import {
 	useEdgesState,
 	useNodesState,
 } from "@xyflow/react";
+import Guard from "@/components/auth/Guard";
 import "@xyflow/react/dist/style.css";
 import { useConvexQuery } from "@convex-dev/react-query";
 import { api } from "convex/_generated/api";
@@ -24,7 +25,11 @@ import TextNode, { type TextNodeData } from "@/components/kit/nodes/TextNode";
 import { Button } from "@/components/ui/button";
 
 export const Route = createFileRoute("/dashboard/kit/$kitId")({
-	component: KitWorkspace,
+	component: () => (
+		<Guard roles={["student", "teacher", "admin"]}>
+			<KitWorkspace />
+		</Guard>
+	),
 });
 
 type AnyNode = Node<TextNodeData | ImageNodeData>;

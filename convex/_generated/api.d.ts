@@ -14,7 +14,7 @@ import type {
   FunctionReference,
 } from "convex/server";
 import type * as auth from "../auth.js";
-import type * as authz from "../authz.js";
+import type * as authzInternal from "../authzInternal.js";
 import type * as goalMaps from "../goalMaps.js";
 import type * as http from "../http.js";
 import type * as roles from "../roles.js";
@@ -31,7 +31,7 @@ import type * as users from "../users.js";
  */
 declare const fullApi: ApiFromModules<{
   auth: typeof auth;
-  authz: typeof authz;
+  authzInternal: typeof authzInternal;
   goalMaps: typeof goalMaps;
   http: typeof http;
   roles: typeof roles;

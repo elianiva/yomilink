@@ -10,13 +10,18 @@ import {
 	ZoomOut,
 } from "lucide-react";
 import { useId, useMemo, useState } from "react";
+import Guard from "@/components/auth/Guard";
 import { Button } from "@/components/ui/button";
 import { Separator } from "@/components/ui/separator";
 import { Slider } from "@/components/ui/slider";
 import { Switch } from "@/components/ui/switch";
 
 export const Route = createFileRoute("/dashboard/results")({
-	component: DynamicAnalyzerPage,
+	component: () => (
+		<Guard roles={["teacher", "admin"]}>
+			<DynamicAnalyzerPage />
+		</Guard>
+	),
 });
 
 type Session = {

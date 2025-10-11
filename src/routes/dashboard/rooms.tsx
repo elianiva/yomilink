@@ -18,11 +18,16 @@ import {
 	UserPlus,
 	Users,
 } from "lucide-react";
+import Guard from "@/components/auth/Guard";
 import { Button } from "@/components/ui/button";
 import { Separator } from "@/components/ui/separator";
 
 export const Route = createFileRoute("/dashboard/rooms")({
-	component: SystemAdministrationPage,
+	component: () => (
+		<Guard roles={["teacher", "admin"]}>
+			<SystemAdministrationPage />
+		</Guard>
+	),
 });
 
 /** Small pill used throughout */

@@ -11,6 +11,7 @@ import {
 	ZoomOut,
 } from "lucide-react";
 import { useId, useMemo, useState } from "react";
+import Guard from "@/components/auth/Guard";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import {
@@ -25,7 +26,11 @@ import { Slider } from "@/components/ui/slider";
 import { Switch } from "@/components/ui/switch";
 
 export const Route = createFileRoute("/dashboard/analytics")({
-	component: StaticAnalyzerPage,
+	component: () => (
+		<Guard roles={["teacher", "admin"]}>
+			<StaticAnalyzerPage />
+		</Guard>
+	),
 });
 
 type Learner = {

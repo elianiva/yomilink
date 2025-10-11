@@ -40,12 +40,9 @@ export const { auth, signIn, signOut, store, isAuthenticated } = convexAuth({
         .first();
 
       if (!existing) {
-        // Fetch the freshly created/updated user to read role (from users table)
-        const user = await (ctx as any).db.get(args.userId as any);
-        const role: Role = isRole(user?.role) ? (user.role as Role) : "student";
-        await (ctx as any).db.insert("user_roles", {
+        await ctx.db.insert("user_roles", {
           userId: args.userId as any,
-          role,
+          role: "student",
         });
       }
     },

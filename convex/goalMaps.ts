@@ -1,42 +1,48 @@
 import { mutation, query } from "./_generated/server";
 import { v } from "convex/values";
-import { requireRole } from "./authz";
+import { requireRoleFrom } from "./roles";
+import type { Id, Doc } from "./_generated/dataModel";
+import { internal } from "./_generated/api";
 
 
 /**
  * Minimal server-side validation mirroring PLAN.md
  */
-function validateGoalMap(nodes: any[], edges: any[]): string[] {
+type NodeType = "text" | "image" | "connector";
+export type NodeJson = { id: string; type: NodeType; data?: { label?: string; caption?: string; url?: string } };
+export type EdgeJson = { id?: string; source: string; target: string };
+
+function validateGoalMap(nodes: NodeJson[], edges: EdgeJson[]): string[] {
   const errs: string[] = [];
-  const ids = new Set<string>(nodes?.map((n: any) => n?.id).filter(Boolean) ?? []);
+  const ids = new Set<string>(nodes.map((n) => n.id).filter(Boolean));
 
   // Edge endpoints must exist
-  for (const e of edges ?? []) {
-    if (!ids.has(e?.source) || !ids.has(e?.target)) {
-      errs.push(`Edge ${e?.id ?? `${e?.source}-${e?.target}`} references missing nodes`);
+  for (const e of edges) {
+    if (!ids.has(e.source) || !ids.has(e.target)) {
+      errs.push(`Edge ${e.id ?? `${e.source}-${e.target}`} references missing nodes`);
     }
   }
 
   // Connector in/out degree checks
   const inCount: Record<string, number> = {};
   const outCount: Record<string, number> = {};
-  for (const e of edges ?? []) {
-    if (e?.source) outCount[e.source] = (outCount[e.source] ?? 0) + 1;
-    if (e?.target) inCount[e.target] = (inCount[e.target] ?? 0) + 1;
+  for (const e of edges) {
+    outCount[e.source] = (outCount[e.source] ?? 0) + 1;
+    inCount[e.target] = (inCount[e.target] ?? 0) + 1;
   }
-  for (const n of nodes ?? []) {
-    if (n?.type === "connector") {
+  for (const n of nodes) {
+    if (n.type === "connector") {
       if (!inCount[n.id]) errs.push(`Connector ${n.id} has no inbound edge`);
       if (!outCount[n.id]) errs.push(`Connector ${n.id} has no outbound edge`);
     }
   }
 
   // Minimum requirements
-  const conceptCount = (nodes ?? []).filter((n: any) => n?.type === "text" || n?.type === "image").length;
-  const connectorCount = (nodes ?? []).filter((n: any) => n?.type === "connector").length;
+  const conceptCount = nodes.filter((n) => n.type === "text" || n.type === "image").length;
+  const connectorCount = nodes.filter((n) => n.type === "connector").length;
   if (conceptCount < 2) errs.push("At least 2 concept nodes (text/image) required");
   if (connectorCount < 1) errs.push("At least 1 connector node required");
-  if ((edges ?? []).length < 2) errs.push("At least 2 edges required");
+  if (edges.length < 2) errs.push("At least 2 edges required");
 
   return errs;
 }
@@ -51,32 +57,39 @@ function validateGoalMap(nodes: any[], edges: any[]): string[] {
  *   goal_map_id: string;
  * }
  */
-function toKit(doc: any) {
-  const nodes = (doc?.nodes ?? []).map((n: any) => {
-    if (n?.type === "text") {
-      return { id: n.id, type: "text", label: n?.data?.label ?? "" };
+type KitNode = { id: string; type: "text" | "image" | "connector"; label?: string; image_url?: string };
+type KitEdge = { source: string; target: string };
+type KitPayload = { kit_id: string; nodes: KitNode[]; edges: KitEdge[]; goal_map_id: string };
+
+function toKit(doc: Doc<"goal_maps">): KitPayload {
+  const nodeJson: NodeJson[] = (doc.nodes as unknown) as NodeJson[];
+  const edgeJson: EdgeJson[] = (doc.edges as unknown) as EdgeJson[];
+
+  const nodes: KitNode[] = nodeJson.map((n) => {
+    if (n.type === "text") {
+      return { id: n.id, type: "text", label: n.data?.label ?? "" };
     }
-    if (n?.type === "image") {
+    if (n.type === "image") {
       return {
         id: n.id,
         type: "image",
-        label: n?.data?.caption,
-        image_url: n?.data?.url,
+        label: n.data?.caption,
+        image_url: n.data?.url,
       };
     }
-    return { id: n?.id, type: "connector", label: n?.data?.label ?? "" };
+    return { id: n.id, type: "connector", label: n.data?.label ?? "" };
   });
 
-  const edges = (doc?.edges ?? []).map((e: any) => ({
-    source: e?.source,
-    target: e?.target,
+  const edges: KitEdge[] = edgeJson.map((e) => ({
+    source: e.source,
+    target: e.target,
   }));
 
   return {
     kit_id: crypto.randomUUID(),
     nodes,
     edges,
-    goal_map_id: doc?.goalMapId,
+    goal_map_id: doc.goalMapId,
   };
 }
 
@@ -93,9 +106,11 @@ export const save = mutation({
     updatedAt: v.number(),
   },
   handler: async (ctx, args) => {
-    const { userId } = await requireRole(ctx, ["teacher", "admin"]);
+    const { userId } = await requireRoleFrom(["teacher", "admin"], () =>
+      ctx.runQuery(internal.authzInternal.currentPrincipal, {}),
+    );
 
-    const errors = validateGoalMap(args.nodes as any[], args.edges as any[]);
+    const errors = validateGoalMap(args.nodes as NodeJson[], args.edges as EdgeJson[]);
     // Guard: we still allow save but return errors to the client for UX surfacing
     const existing = await ctx.db
       .query("goal_maps")
@@ -112,7 +127,7 @@ export const save = mutation({
       updatedAt: args.updatedAt,
     };
 
-    let id: any;
+    let id: Id<"goal_maps">;
     if (existing?._id) {
       // Optional: ownership check
       if (existing.teacherId && existing.teacherId !== userId) {
@@ -138,7 +153,9 @@ export const save = mutation({
 export const get = query({
   args: { goalMapId: v.string() },
   handler: async (ctx, args) => {
-    await requireRole(ctx, ["teacher", "admin"]);
+    await requireRoleFrom(["teacher", "admin"], () =>
+      ctx.runQuery(internal.authzInternal.currentPrincipal, {}),
+    );
     const doc = await ctx.db
       .query("goal_maps")
       .withIndex("by_goalMapId", (q) => q.eq("goalMapId", args.goalMapId))
@@ -151,7 +168,9 @@ export const get = query({
 export const getKit = query({
   args: { goalMapId: v.string() },
   handler: async (ctx, args) => {
-    await requireRole(ctx, ["teacher", "admin"]);
+    await requireRoleFrom(["teacher", "admin"], () =>
+      ctx.runQuery(internal.authzInternal.currentPrincipal, {}),
+    );
     const doc = await ctx.db
       .query("goal_maps")
       .withIndex("by_goalMapId", (q) => q.eq("goalMapId", args.goalMapId))
@@ -170,7 +189,9 @@ export const getForStudent = query({
   args: { goalMapId: v.string() },
   handler: async (ctx, args) => {
     // Any authenticated role including students can read
-    await requireRole(ctx, ["student", "teacher", "admin"]);
+    await requireRoleFrom(["student", "teacher", "admin"], () =>
+      ctx.runQuery(internal.authzInternal.currentPrincipal, {}),
+    );
     const doc = await ctx.db
       .query("goal_maps")
       .withIndex("by_goalMapId", (q) => q.eq("goalMapId", args.goalMapId))
@@ -195,15 +216,23 @@ export const getForStudent = query({
 export const listForStudent = query({
   args: {},
   handler: async (ctx) => {
-    await requireRole(ctx, ["student", "teacher", "admin"]);
+    // Allow public dashboard shell: return empty list when unauthenticated
+    const identity = await ctx.auth.getUserIdentity();
+    if (!identity) {
+      return [];
+    }
+    // Authenticated roles may read the list
+    await requireRoleFrom(["student", "teacher", "admin"], () =>
+      ctx.runQuery(internal.authzInternal.currentPrincipal, {}),
+    );
     const docs = await ctx.db.query("goal_maps").collect();
-    docs.sort((a: any, b: any) => (b?.updatedAt ?? 0) - (a?.updatedAt ?? 0));
-    return docs.map((d: any) => ({
-      goalMapId: d.goalMapId as string,
-      title: d.title as string,
-      description: (d as any).description as string | undefined,
-      updatedAt: d.updatedAt as number,
-      teacherId: d.teacherId as string,
+    docs.sort((a, b) => b.updatedAt - a.updatedAt);
+    return docs.map((d) => ({
+      goalMapId: d.goalMapId,
+      title: d.title,
+      description: d.description,
+      updatedAt: d.updatedAt,
+      teacherId: d.teacherId,
     }));
   },
 });

@@ -14,6 +14,7 @@ import {
 	useNodesState,
 } from "@xyflow/react";
 import { api } from "convex/_generated/api";
+import Guard from "@/components/auth/Guard";
 import "@xyflow/react/dist/style.css";
 
 import { Plus } from "lucide-react";
@@ -39,7 +40,11 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 
 export const Route = createFileRoute("/dashboard/goal/$goalMapId")({
-	component: TeacherGoalMapEditor,
+	component: () => (
+		<Guard roles={["teacher", "admin"]}>
+			<TeacherGoalMapEditor />
+		</Guard>
+	),
 });
 
 type AnyNode = Node<TextNodeData | ImageNodeData | ConnectorNodeData>;
