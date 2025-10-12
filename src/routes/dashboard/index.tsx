@@ -4,6 +4,7 @@ import { api } from "convex/_generated/api";
 import { BarChart3, Box, Check, Map as MapIcon } from "lucide-react";
 import { useEffect, useState } from "react";
 import { Button } from "@/components/ui/button";
+import { useAuth } from "@/hooks/use-auth";
 
 export const Route = createFileRoute("/dashboard/")({
 	component: DashboardHome,
@@ -134,6 +135,7 @@ function DashboardHome() {
 	const [isJoinOpen, setIsJoinOpen] = useState(false);
 	const navigate = useNavigate();
 	const kits = useConvexQuery(api.goalMaps.listForStudent);
+	const { user: me } = useAuth();
 
 	return (
 		<div className="space-y-6">
@@ -160,26 +162,28 @@ function DashboardHome() {
 					</div>
 				</div>
 
-				<div className="rounded-lg border p-4 space-y-2">
-					<div className="flex items-center gap-2">
-						<MapIcon className="size-4 text-muted-foreground" />
-						<div className="font-medium">Goal Map Editor</div>
+				{me?.role === "teacher" || me?.role === "admin" ? (
+					<div className="rounded-lg border p-4 space-y-2">
+						<div className="flex items-center gap-2">
+							<MapIcon className="size-4 text-muted-foreground" />
+							<div className="font-medium">Goal Map Editor</div>
+						</div>
+						<p className="text-sm text-muted-foreground">
+							Create a teacher goal map and generate a student kit.
+						</p>
+						<div className="flex gap-2">
+							<Button asChild className="mt-1">
+								<Link
+									to="/dashboard/goal/$goalMapId"
+									params={{ goalMapId: "new" }}
+									preload="intent"
+								>
+									New Goal Map
+								</Link>
+							</Button>
+						</div>
 					</div>
-					<p className="text-sm text-muted-foreground">
-						Create a teacher goal map and generate a student kit.
-					</p>
-					<div className="flex gap-2">
-						<Button asChild className="mt-1">
-							<Link
-								to="/dashboard/goal/$goalMapId"
-								params={{ goalMapId: "new" }}
-								preload="intent"
-							>
-								New Goal Map
-							</Link>
-						</Button>
-					</div>
-				</div>
+				) : null}
 
 				<div className="rounded-lg border p-4 space-y-2">
 					<div className="flex items-center gap-2">

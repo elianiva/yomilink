@@ -13,7 +13,7 @@ type SeedUser = {
   email: string;
   password: string;
   name?: string;
-  role?: "admin" | "teacher" | "student";
+  roles?: ("admin" | "teacher" | "student")[];
 };
 
 type SeedResult =
@@ -40,19 +40,19 @@ const DEFAULT_USERS: SeedUser[] = [
     email: "admin@yomilink.local",
     password: "admin123",
     name: "Admin",
-    role: "admin",
+    roles: ["admin"],
   },
   {
     email: "teacher@yomilink.local",
     password: "teacher123",
     name: "Teacher One",
-    role: "teacher",
+    roles: ["teacher"],
   },
   {
     email: "student@yomilink.local",
     password: "student123",
     name: "Student One",
-    role: "student",
+    roles: ["student"],
   },
 ];
 

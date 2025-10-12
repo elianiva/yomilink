@@ -1,277 +1,230 @@
-## 🧩 Product Requirements Document (PRD)
-
-### Module: **Teacher – Multimodal Goal Map Editor**
-
-*(Part of Multimodal Kit-Build System)*
+here’s the **migration plan rewritten as a developer-friendly TODO list**, ready for handoff to GPT-5 or Cursor.
 
 ---
 
-### 1. Purpose
-
-The **Teacher Module** is the **authoring environment** where educators build the canonical “goal map” for a learning activity.
-It serves as the **entry point of the entire Kit-Build ecosystem** because:
-
-* It defines the **ground truth** graph structure used to generate the **kit** that students reconstruct.
-* The goal map’s data (nodes, edges, and metadata) must be stored in a **format compatible with the Student Builder**, so learners can rebuild identical parts and allow **automatic diagnosis** via the Analyzer.
-
-If the goal map’s structure or node types are inconsistent, the learner module cannot reconstruct it — hence the Teacher Module must **enforce consistent node and link models** across the system.
+# ✅ TODO — migrate from `convex-auth` → `better-auth` (with Convex)
 
 ---
 
-### 2. Conceptual Model
+## 🔹 Phase 0 — prep & audit
 
-#### Node Types
+* [x] Freeze current convex functions (`convex/functions/**`) and schema.
+* [x] Identify every `convex-auth` usage:
 
-| Type                | Description                                                                   | Example                               |
-| ------------------- | ----------------------------------------------------------------------------- | ------------------------------------- |
-| **Text Node**       | Represents a concept or term extracted from text                              | “Solid”, “Evaporation”, “Parliament”  |
-| **Connecting Node** | Represents the relation **between** concepts; replaces textual link labels    | “causes”, “consists of”, “is part of” |
-| **Image Node**      | Represents a visual concept (cropped figure, diagram component, object photo) | An image of ice, diagram label, etc.  |
-
-#### Map Structure
-
-Each proposition is represented as a **triple**:
-
-```
-[Text/Image Node] → [Connecting Node] → [Text/Image Node]
-```
-
-Connections are **directed edges** between nodes.
-There are **no link labels**; all semantics are encapsulated within connecting nodes.
+  * [x] Auth hooks (`useAuth`, `ensureAuthData`, etc.)
+  * [x] Convex queries using `ctx.auth`
+  * [x] Route guards / loaders
+  * [x] Session handling or cookies
+* [x] Export sample `users` docs to map old → new fields. (skipped: legacy data removed)
+* [x] Note what’s stored: `email`, `name`, `image`, `provider_id`, `roles`.
 
 ---
 
-### 3. Core Features & Functional Requirements
+## 🔹 Phase 1 — install dependencies
 
-#### **A. Learning Material Importer**
-
-Purpose: provide source text or images for teachers to extract nodes from.
-
-* [ ] Input types: `.txt`, `.pdf`, or image uploads (≤10 MB, PNG/JPEG).
-* [ ] Display in a left-side viewer for easy reference.
-* [ ] Teachers can highlight or crop to select candidate content for nodes.
+* [x] `pnpm remove convex-auth`
+* [x] `pnpm add better-auth @convex-dev/better-auth`
+* [ ] (optional) install providers you need (e.g. `better-auth-google`)
 
 ---
 
-#### **B. Node Creation Tools**
+## 🔹 Phase 2 — set up Better Auth (server)
 
-Purpose: enable construction of multimodal nodes.
+* [x] Create `/auth/server.ts` (or `/server/auth.ts`). (implemented as convex/auth.ts)
+* [x] Initialise Better Auth instance with Convex adapter:
 
-* **Text Node Creation**
+  ```ts
+  import { createBetterAuth } from "better-auth";
+  import { convex } from "@convex-dev/better-auth";
 
-  * Manual text entry or auto-extract from highlighted text.
-  * Fields: `{ id, type: "text", label }`.
+  export const api = createBetterAuth({
+    database: convex(),
+    baseUrl: import.meta.env.VITE_APP_URL,
+  });
+  ```
+* [x] Export `api` for server-side session reads. (implemented via getServerSession() using Convex query)
+* [x] Ensure `.env` has:
 
-* **Image Node Creation**
-
-  * Upload or crop from material.
-  * Fields: `{ id, type: "image", label?, image_url }`.
-
-* **Connecting Node Creation**
-
-  * Acts as a relation bridge.
-  * Teachers can choose from presets (“is”, “causes”, “belongs to”) or enter custom text.
-  * Fields: `{ id, type: "connector", label }`.
-
-* **UI**
-
-  * Palette or toolbar with buttons:
-    `+ Text Node`, `+ Image Node`, `+ Connector Node`.
+  ```
+  VITE_APP_URL=https://yourdomain.com
+  VITE_BETTER_AUTH_SECRET=...
+  ```
+* [ ] (optional) add providers config (GitHub, Google, etc.)
 
 ---
 
-#### **C. Map Editor Canvas**
+## 🔹 Phase 3 — integrate Convex backend
 
-Purpose: visually construct the goal map.
+* [x] Install Better Auth Convex component:
 
-* Interactive graph canvas (React Flow or similar).
+  ```bash
+  npx convex components add @convex-dev/better-auth
+  ```
+* [x] Add `getSession()` helper in Convex:
 
-* Drag-and-drop placement of nodes.
+  ```ts
+  import { getSession } from "@convex-dev/better-auth/convex";
 
-* Edge creation: click-and-drag from one node to another.
-
-* Auto-snap arrows only between **valid node types**, e.g.:
-
-  ✅ Text → Connector
-  ✅ Image → Connector
-  ✅ Connector → Text/Image
-  🚫 Connector → Connector (disallowed)
-
-* Visual hints (colour or icon per node type):
-
-  * 🟩 Text
-  * 🟦 Connector
-  * 🟨 Image
-
-* Delete / move / group nodes.
-
-* Undo / redo.
+  export const protectedQuery = query({
+    args: {},
+    handler: async (ctx) => {
+      const session = await getSession(ctx);
+      if (!session?.user) throw new Error("Unauthorized");
+      return session.user;
+    },
+  });
+  ```
+* [x] Update Convex schema to include `users` if not generated.
+* [ ] Manually verify session resolution via /debug/session (see convex/session.ts).
 
 ---
 
-#### **D. Kit Generation**
+## 🔹 Phase 4 — migrate user data
 
-Purpose: produce the exact set of reusable parts for students.
+* [x] Create a one-off Convex migration script: (skipped: legacy data removed)
 
-* Auto-decompose the goal map into:
+  * [x] Read users from old `convex-auth` table. (skipped)
+  * [x] Upsert into Better Auth’s user table. (skipped)
+  * [x] Copy safe fields (`email`, `name`, `image`). (skipped)
+* [x] If password hashes differ → flag users for reset. (skipped)
+* [x] Keep old table read-only for rollback. (skipped)
 
-  ```json
-  {
-    "goal_map_id": "uuid",
-    "nodes": [
-      { "id": "n1", "type": "text", "label": "Solid" },
-      { "id": "n2", "type": "connector", "label": "melts into" },
-      { "id": "n3", "type": "image", "label": "Liquid", "image_url": "/liquid.png" }
-    ],
-    "edges": [
-      { "source": "n1", "target": "n2" },
-      { "source": "n2", "target": "n3" }
-    ]
+---
+
+## 🔹 Phase 5 — integrate with TanStack Start (frontend)
+
+* [x] Remove old `convex-auth` hooks/imports.
+* [x] Create new helpers:
+
+  **`src/auth/session.ts`**
+
+  ```ts
+  import { api } from "@/auth/server";
+
+  export async function getServerSession(request: Request) {
+    return api.sessions.get({ request });
   }
   ```
-* Validate:
 
-  * All edges connect existing nodes.
-  * Every connector node is linked both inbound and outbound.
-  * No duplicate IDs or orphan nodes.
-* Save both the `goal_map` and the `kit` to DB.
+  **`src/hooks/useAuth.ts`**
 
----
+  ```ts
+  import { useQuery } from "@tanstack/react-query";
 
-#### **E. Goal Map Management**
-
-Purpose: store and manage goal maps for assignments.
-
-* Create, edit, duplicate, and delete goal maps.
-* Metadata stored:
-
-  ```json
-  {
-    "teacher_id": "uuid",
-    "title": "Change of State",
-    "description": "Science module - solid/liquid/gas",
-    "created_at": "timestamp"
+  export function useAuth() {
+    const { data } = useQuery({ queryKey: ["session"] });
+    return { user: data?.user ?? null, isAuthenticated: Boolean(data?.user) };
   }
   ```
-* Versioning support:
-  Each edit creates a new `goal_map_version` record.
+
+  **route loader example**
+
+  ```ts
+  export const Route = createFileRoute("/dashboard")({
+    loader: async (ctx) => {
+      const session = await getServerSession(ctx.request);
+      if (!session) throw redirect({ to: "/login" });
+      await ctx.context.queryClient.ensureQueryData(["session"], () => session);
+      return null;
+    },
+    component: DashboardPage,
+  });
+  ```
 
 ---
 
-#### **F. Publishing & Integration with Student Module**
+## 🔹 Phase 6 — replace convex-auth references
 
-Purpose: connect teacher-created kits with the student learning workflow.
+* [x] Replace all `ctx.auth.userId` with:
 
-1. **Publish Goal Map**
+  ```ts
+  const session = await getSession(ctx);
+  const userId = session?.user.id;
+  ```
+* [x] Replace client calls:
 
-   * Teachers assign a unique `room_id` or `assignment_id`.
-   * Students join this assignment from their dashboard.
-
-2. **Data Contract (shared with Student Module)**
-
-   * Exported JSON defines identical structure used by student canvas:
-
-     ```json
-     {
-       "kit_id": "uuid",
-       "nodes": [...],
-       "edges": [...],
-       "goal_map_id": "uuid"
-     }
-     ```
-   * The Student Module fetches this via API:
-
-     ```
-     GET /api/kit/:goal_map_id
-     ```
-
-3. **Why Integration Matters**
-
-   * The Student Builder reconstructs **exact node instances** (including image URLs and connector nodes) provided here.
-   * Ensures Analyzer can compare learner maps directly by node ID and edge structure.
-   * If Teacher and Student models mismatch, automatic diagnosis becomes impossible.
+  * [x] `signIn`, `signOut`, `signUp` → Better Auth endpoints.
+  * [x] Update login page to use new API routes.
+* [x] Remove `convex-auth` middleware or wrappers.
 
 ---
 
-#### **G. Validation & Upload Guard**
+## 🔹 Phase 7 — validate session flow
 
-Purpose: prevent invalid or oversized data that would break the learner workflow.
-
-* Validate image format (PNG/JPEG only, ≤ 10 MB).
-* Ensure every goal map contains:
-
-  * ≥ 2 concept nodes (text/image)
-  * ≥ 1 connector node
-  * ≥ 2 edges
-* Auto-compress uploaded images.
-* Log events via **Sentry** (`VITE_SENTRY_DSN`).
+* [ ] Confirm browser cookie (`better-auth.session`) is set.
+* [ ] Verify server loaders detect session on first load (SSR).
+* [ ] Check Convex queries see the same user ID.
+* [ ] Test both email/password and OAuth.
 
 ---
 
-### 4. Database Schema (Drizzle/Convex Example)
+## 🔹 Phase 8 — route protection & loaders
 
-```ts
-goal_maps = {
-  id: string;
-  teacherId: string;
-  title: string;
-  description?: string;
-  nodes: Json<Node[]>;
-  edges: Json<Edge[]>;
-  createdAt: string;
-}
+* [x] Add route guards:
 
-nodes = {
-  id: string;
-  type: "text" | "connector" | "image";
-  label?: string;
-  imageUrl?: string;
-}
-
-edges = {
-  source: string;
-  target: string;
-}
-```
+  * [x] `/login` redirects to `/dashboard` if already authed.
+  * [x] Private routes redirect to `/login` if not authed.
+* [x] Ensure `ensureAuthData` replaced with loader prefetch using Better Auth.
 
 ---
 
-### 5. Implementation To-Do (for GPT-5 / Codex)
+## 🔹 Phase 9 — test + deploy
 
-* [ ] **Frontend**
+* [ ] Test user creation → session persistence → logout → re-login.
+* [ ] Test social providers (if used).
+* [ ] Test Convex query access control.
+* [x] Stage rollout: (skipped per instruction)
 
-  * [ ] Build editor UI (left: material viewer, center: canvas, right: node list).
-  * [ ] Implement node creation modal (text/image/connector).
-  * [ ] Canvas interactions (drag, connect, delete, validate).
-  * [ ] Preview images in-canvas.
-* [ ] **Backend**
-
-  * [ ] API routes:
-
-    * `POST /api/goal-map` → save map
-    * `GET /api/kit/:id` → fetch kit for learners
-  * [ ] Drizzle schema as above.
-* [ ] **Validation**
-
-  * [ ] File upload guard (type/size).
-  * [ ] Edge integrity check.
-* [ ] **Integration**
-
-  * [ ] Link published goal map → `assignment_id` for student joining.
-  * [ ] Ensure `kit_id` consistency for Analyzer comparison.
-* [ ] **Sentry Integration**
-
-  * [ ] Capture editor errors, upload issues, DB write failures.
+  * [x] Enable Better Auth for new users only.
+  * [x] Keep old auth as backup flag for 48h.
+* [ ] Once stable, delete all `convex-auth` code.
 
 ---
 
-### 6. Summary of Role in System
+## 🔹 Phase 10 — observability & cleanup
 
-The **Teacher Module** defines the **canonical multimodal goal map** and generates the **kit**.
-This kit is the only data source the **Student Builder** and **Analyzer** can rely on — hence this module ensures:
+* [ ] Add Sentry instrumentation:
 
-* Structural integrity of node types and IDs.
-* Availability of media resources (image nodes).
-* Compatibility of the saved graph schema with the learner workspace.
+  * [ ] Catch auth errors, upload issues.
+* [ ] Remove legacy `auth/convex-auth.ts` files.
+* [x] Update README and `.env.example`.
+* [x] Commit migration script for reproducibility. (skipped)
 
-Without it, students would lack a coherent set of nodes and the Analyzer couldn’t automatically compute recall, precision, or F1.
+---
+
+## 🔹 Optional — feature parity checks
+
+* [ ] Re-enable providers (Google, GitHub, etc.)
+* [ ] Add roles/claims logic if needed.
+* [ ] Add email verification or passkey plugin later.
+
+---
+
+## ⚠️ Common pitfalls
+
+* [ ] Missing `VITE_APP_URL` → “baseURL undefined” error.
+* [ ] SSR not passing cookies → session always null.
+* [ ] Forgot to update Convex function imports.
+* [ ] Mixed session states after hot reload → clear cookies before test.
+
+---
+
+## 📁 File structure guide (scaffold reference)
+
+- convex/convex.config.ts — Registers Better Auth component
+- convex/auth.ts — Better Auth server integration (createAuth, authComponent)
+- convex/http.ts — Mounts Better Auth HTTP routes
+- convex/users.ts — Session-resolved me query
+- convex/authzInternal.ts — currentPrincipal internal query
+- convex/roles.ts — requireRoleFrom helper and upsertRole internal mutation
+- convex/schema.ts — user_roles and goal_maps tables (userId/teacherId as string)
+- src/auth/session.ts — getServerSession helper for SSR
+- src/auth/fetch-client.ts — SSR-safe fetch wrappers for Convex better-auth
+- src/lib/auth-client.ts — Better Auth client (convexClient plugin)
+- src/router.tsx — ConvexBetterAuthProvider + React Query integration
+- src/routes/login.tsx — Email/password sign in/up
+- src/routes/dashboard.tsx — Guarded dashboard route, seeds session
+- src/routes/index.tsx — Root redirect based on session
+- src/hooks/use-auth.ts — Client auth hook consuming session
+- convex/session.ts — Simple session query to validate auth
+- src/routes/debug.session.tsx — Route to visualize session and useAuth state

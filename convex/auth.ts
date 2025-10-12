@@ -1,55 +1,88 @@
-import { Password } from "@convex-dev/auth/providers/Password";
-import { convexAuth } from "@convex-dev/auth/server";
+import { createClient, type GenericCtx } from "@convex-dev/better-auth";
+import { convex } from "@convex-dev/better-auth/plugins";
+import { betterAuth } from "better-auth";
+import { admin } from "better-auth/plugins";
+import { components } from "./_generated/api";
 import type { DataModel } from "./_generated/dataModel";
 
-type Role = "admin" | "teacher" | "student";
-function isRole(val: unknown): val is Role {
-	return val === "admin" || val === "teacher" || val === "student";
-}
+export const authComponent = createClient<DataModel>(components.betterAuth);
 
-// Map extra profile fields (like role) into users documents when present.
-// Password provider requires `email` to be a string (not undefined).
-const PasswordProvider = Password<DataModel>({
-	profile(params) {
-		const rawEmail = (params as any)?.email;
-		const email =
-			typeof rawEmail === "string" && rawEmail.length > 0
-				? rawEmail
-				: undefined;
-		if (!email) {
-			throw new Error("email is required for Password provider");
-		}
-
-		const name = (params as any)?.name as string | undefined;
-		const maybeRole = (params as any)?.role;
-		const role = isRole(maybeRole) ? maybeRole : undefined;
-
-		return {
-			email, // required
-			...(name ? { name } : {}),
-			...(role ? { role } : {}),
-		};
-	},
-});
-
-export const { auth, signIn, signOut, store, isAuthenticated } = convexAuth({
-	providers: [PasswordProvider],
-	callbacks: {
-		async afterUserCreatedOrUpdated(ctx, args) {
-			// Ensure a role row exists for this user; use user's profile role if present, else "student"
-			const existing = await (ctx as any).db
-				.query("user_roles")
-				.withIndex("by_user" as any, (q: any) =>
-					q.eq("userId", args.userId as any),
-				)
-				.first();
-
-			if (!existing) {
-				await ctx.db.insert("user_roles", {
-					userId: args.userId as any,
-					role: "student",
-				});
-			}
+export const createAuth = (
+	ctx: GenericCtx<DataModel>,
+	{ optionsOnly } = { optionsOnly: false },
+) => {
+	return betterAuth({
+		logger: {
+			disabled: optionsOnly,
 		},
-	},
-});
+		baseURL: process.env.SITE_URL,
+		database: authComponent.adapter(ctx),
+		emailAndPassword: {
+			enabled: true,
+			requireEmailVerification: false,
+		},
+		plugins: [
+			convex(),
+			admin({
+				defaultRole: "student",
+				adminRoles: ["admin"],
+			}),
+		],
+	});
+};
+
+
+// Typed auth subject wrapper to avoid leaking raw Better Auth user shape
+export type Role = "student" | "teacher" | "admin";
+
+export type AuthSubject = {
+  id: string;
+  name: string | null;
+  email: string | null;
+  image: string | null;
+  roles: Role[];
+};
+
+/**
+ * getAuthSubject()
+ * Wraps authComponent.getAuthUser and returns a safe, typed subset with roles as an array.
+ * Returns null when unauthenticated.
+ */
+export async function getAuthSubject(
+  ctx: GenericCtx<DataModel>,
+): Promise<AuthSubject | null> {
+  try {
+    const u = await authComponent.getAuthUser(ctx);
+    if (!u) return null;
+
+    // Map and narrow values into our guaranteed subset
+    // Keep the assertion inside this single utility to avoid `as any` anywhere else.
+    const raw: {
+      _id?: string;
+      id?: string;
+      name?: string | null;
+      email?: string | null;
+      image?: string | null;
+      roles?: unknown;
+    } = u as unknown as Record<string, unknown>;
+
+    const id = (typeof raw._id === "string" ? raw._id : undefined) ??
+      (typeof raw.id === "string" ? raw.id : undefined);
+    if (!id) return null;
+
+    const allowed: readonly Role[] = ["student", "teacher", "admin"] as const;
+    const rolesRaw = Array.isArray(raw.roles) ? raw.roles : [];
+    const roles = rolesRaw
+      .filter((r): r is Role => typeof r === "string" && (allowed as readonly string[]).includes(r));
+
+    return {
+      id,
+      name: typeof raw.name === "string" ? raw.name : null,
+      email: typeof raw.email === "string" ? raw.email : null,
+      image: typeof raw.image === "string" ? raw.image : null,
+      roles,
+    };
+  } catch {
+    return null;
+  }
+}

@@ -1,19 +1,9 @@
-import { useConvexQuery } from "@convex-dev/react-query";
 import { Navigate, useLocation } from "@tanstack/react-router";
-import { api } from "convex/_generated/api";
 import type { ReactNode } from "react";
+import { useAuth } from "@/hooks/use-auth";
 
 export type Role = "teacher" | "admin" | "student";
 
-type Me =
-	| {
-			id: string;
-			role: Role;
-			email: string | null;
-			name: string | null;
-	  }
-	| null
-	| undefined;
 
 type GuardProps = {
 	roles?: Role[];
@@ -37,19 +27,15 @@ export function Guard({
 	redirectTo = "/dashboard",
 }: GuardProps) {
 	const location = useLocation();
-	const me = useConvexQuery(api.users.me) as Me;
+	const { user } = useAuth();
 
 	// No roles means allow-through (useful when Dashboard layout already handles auth)
 	if (!roles || roles.length === 0) {
 		return <>{children}</>;
 	}
 
-	// Wait for "me" to load (when auth is enabled)
-	if (typeof me === "undefined") {
-		return <div className="p-4 text-sm text-muted-foreground">Loading...</div>;
-	}
 
-	const role = (me?.role ?? null) as Role | null;
+	const role = ((user as { role?: Role } | null)?.role ?? null) as Role | null;
 
 	if (role && roles.includes(role)) {
 		return <>{children}</>;

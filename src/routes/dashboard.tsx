@@ -1,78 +1,93 @@
-import { useConvexQuery } from "@convex-dev/react-query";
 import {
 	createFileRoute,
+	Link,
 	Navigate,
 	Outlet,
 	useLocation,
 } from "@tanstack/react-router";
-import { api } from "convex/_generated/api";
-import { Authenticated, Unauthenticated } from "convex/react";
-import DashboardSidebar from "@/components/dashboard/SidebarNav";
+import { AppSidebar } from "@/components/app-sidebar";
+import {
+	Breadcrumb,
+	BreadcrumbItem,
+	BreadcrumbLink,
+	BreadcrumbList,
+	BreadcrumbPage,
+	BreadcrumbSeparator,
+} from "@/components/ui/breadcrumb";
+import { Separator } from "@/components/ui/separator";
 import {
 	SidebarInset,
 	SidebarProvider,
 	SidebarTrigger,
 } from "@/components/ui/sidebar";
+import { useAuth } from "@/hooks/use-auth";
 
 export const Route = createFileRoute("/dashboard")({
+	beforeLoad: async (opts) => {
+		return null;
+	},
 	component: DashboardLayout,
 });
 
-type Me = {
-	id: string;
-	role: "teacher" | "admin" | "student";
-	email: string | null;
-	name: string | null;
-};
-
 function DashboardLayout() {
-	return (
-		<>
-			<Unauthenticated>
-				<Navigate to="/login" />
-			</Unauthenticated>
-			<Authenticated>
-				<DashboardContent />
-			</Authenticated>
-		</>
-	);
+	const { user } = useAuth();
+
+	if (user === null) {
+		return <Navigate to="/login" />;
+	}
+
+	return <DashboardContent />;
 }
 
 function DashboardContent() {
 	const location = useLocation();
-	const me = useConvexQuery(api.users.me) as Me | undefined | null;
 
-	const isEditorRoute =
-		location.pathname.startsWith("/dashboard/kit/") ||
-		location.pathname.startsWith("/dashboard/goal/");
-
-	// Sidebar items moved to dedicated component and global route access handled via src/lib/routeAccess.ts
-
-	// Wait for user profile to load after authentication
-	if (typeof me === "undefined") {
-		return <div className="p-4 text-sm text-muted-foreground">Loading...</div>;
-	}
+	const segments = location.pathname.split("/").filter(Boolean);
+	const crumbs = segments.map((seg, idx) => {
+		const href = `/${segments.slice(0, idx + 1).join("/")}`;
+		const label = decodeURIComponent(seg)
+			.replace(/[-_]/g, " ")
+			.split(" ")
+			.filter(Boolean)
+			.map((w) => w.charAt(0).toUpperCase() + w.slice(1))
+			.join(" ");
+		return { href, label };
+	});
 
 	return (
 		<SidebarProvider>
-			{!isEditorRoute && (
-				<DashboardSidebar
-					pathname={location.pathname}
-					role={me?.role ?? null}
-				/>
-			)}
-
+			<AppSidebar />
 			<SidebarInset>
-				<div className="sticky top-0 z-10 bg-background/70 backdrop-blur supports-[backdrop-filter]:bg-background/50 border-b">
-					<div className="h-14 px-4 flex items-center gap-3">
-						{!isEditorRoute && <SidebarTrigger />}
-						<div className="font-semibold">Dashboard</div>
-
-						<div className="ml-auto" />
+				<header className="flex h-16 shrink-0 items-center gap-2 transition-[width,height] ease-linear group-has-data-[collapsible=icon]/sidebar-wrapper:h-12">
+					<div className="flex items-center gap-2 px-4">
+						<SidebarTrigger className="-ml-1" />
+						<Separator
+							orientation="vertical"
+							className="mr-2 data-[orientation=vertical]:h-4"
+						/>
+						<Breadcrumb>
+							<BreadcrumbList>
+								{crumbs.flatMap((c, i) => {
+									const item = (
+										<BreadcrumbItem key={c.href}>
+											{i < crumbs.length - 1 ? (
+												<BreadcrumbLink asChild>
+													<Link to={c.href}>{c.label}</Link>
+												</BreadcrumbLink>
+											) : (
+												<BreadcrumbPage>{c.label}</BreadcrumbPage>
+											)}
+										</BreadcrumbItem>
+									);
+									return i < crumbs.length - 1
+										? [item, <BreadcrumbSeparator key={`sep-${c.href}`} />]
+										: [item];
+								})}
+							</BreadcrumbList>
+						</Breadcrumb>
 					</div>
-				</div>
+				</header>
 
-				{/* Nested routes will render here */}
 				<div className="p-4">
 					<Outlet />
 				</div>

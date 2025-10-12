@@ -1,9 +1,8 @@
 import { httpRouter } from "convex/server";
-import { auth } from "./auth";
+import { authComponent, createAuth } from "./auth";
 
 const http = httpRouter();
 
-// Expose @convex-dev/auth routes (sign-in, callbacks, etc.)
-auth.addHttpRoutes(http);
+authComponent.registerRoutes(http, createAuth);
 
 export default http;

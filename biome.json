@@ -13,8 +13,10 @@
 			"**/.vscode/**/*",
 			"**/index.html",
 			"**/vite.config.js",
-			"!**/src/routeTree.gen.ts"
-		]
+			"!**/src/routeTree.gen.ts",
+			"!**/convex/_generated"
+		],
+		"experimentalScannerIgnores": ["**/convex/_generated/**"]
 	},
 	"formatter": {
 		"enabled": true,
@@ -26,7 +28,11 @@
 		"rules": {
 			"recommended": true,
 			"suspicious": {
-				"noUnknownAtRules": "off"
+				"noUnknownAtRules": "off",
+				"noExplicitAny": "off"
+			},
+			"style": {
+				"useImportType": "warn"
 			}
 		}
 	},

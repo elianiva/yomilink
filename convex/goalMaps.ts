@@ -1,12 +1,10 @@
-import { mutation, query } from "./_generated/server";
 import { v } from "convex/values";
-import { requireRoleFrom } from "./roles";
-import type { Id, Doc } from "./_generated/dataModel";
 import { internal } from "./_generated/api";
+import type { Doc, Id } from "./_generated/dataModel";
+import { mutation, query } from "./_generated/server";
+import { getAuthSubject } from "./auth";
+import { requireRoleFrom } from "./rbac";
 
-/**
- * Minimal server-side validation mirroring PLAN.md
- */
 type NodeType = "text" | "image" | "connector";
 export type NodeJson = {
 	id: string;
@@ -237,8 +235,8 @@ export const listForStudent = query({
 	args: {},
 	handler: async (ctx) => {
 		// Allow public dashboard shell: return empty list when unauthenticated
-		const identity = await ctx.auth.getUserIdentity();
-		if (!identity) {
+		const subject = await getAuthSubject(ctx);
+		if (!subject) {
 			return [];
 		}
 		// Authenticated roles may read the list

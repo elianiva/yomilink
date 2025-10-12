@@ -1,4 +1,4 @@
-import { useConvexMutation } from "@convex-dev/react-query";
+import { useConvexMutation, useConvexQuery } from "@convex-dev/react-query";
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import type { ReactFlowInstance } from "@xyflow/react";
 import {
@@ -94,6 +94,7 @@ function TeacherGoalMapEditor() {
 	const { goalMapId } = Route.useParams();
 	const navigate = useNavigate();
 	const saveGoalMap = useConvexMutation(api.goalMaps.save);
+	const existing = useConvexQuery(api.goalMaps.get, { goalMapId }) as any;
 
 	useEffect(() => {
 		if (goalMapId === "new") {
@@ -112,6 +113,7 @@ function TeacherGoalMapEditor() {
 	]);
 	const pointerRef = useRef(0);
 	const isApplyingRef = useRef(false);
+	const isHydratedRef = useRef(false);
 
 	useEffect(() => {
 		if (isApplyingRef.current) return;
@@ -177,6 +179,27 @@ function TeacherGoalMapEditor() {
 	const [saveTopic, setSaveTopic] = useState("");
 	const [saveName, setSaveName] = useState("");
 
+	// hydrate editor from backend when editing an existing map
+	useEffect(() => {
+		if (existing && !isHydratedRef.current) {
+			try {
+				const loadedNodes = Array.isArray(existing.nodes) ? existing.nodes : [];
+				const loadedEdges = Array.isArray(existing.edges) ? existing.edges : [];
+				setNodes(loadedNodes);
+				setEdges(loadedEdges);
+				setSaveTopic(
+					typeof existing.description === "string" ? existing.description : "",
+				);
+				setSaveName(typeof existing.title === "string" ? existing.title : "");
+				setLastSavedSnapshot(
+					JSON.stringify({ nodes: loadedNodes, edges: loadedEdges }),
+				);
+			} finally {
+				isHydratedRef.current = true;
+			}
+		}
+	}, [existing, setNodes, setEdges]);
+
 	const onImportFiles = async (files: FileList | null) => {
 		if (!files) return;
 		for (const file of Array.from(files)) {
@@ -187,7 +210,7 @@ function TeacherGoalMapEditor() {
 			}
 			if (file.type === "text/plain") {
 				const text = await file.text();
-				setMaterialText((t) => (t ? t + "\n\n" : "") + text);
+				setMaterialText((t) => (t ? `${t}\n\n` : "") + text);
 			} else if (/(png|jpg|jpeg)/i.test(file.type)) {
 				const url = URL.createObjectURL(file);
 				setImages((arr) => [

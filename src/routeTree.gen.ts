@@ -15,11 +15,13 @@ import { Route as IndexRouteImport } from './routes/index'
 import { Route as DashboardIndexRouteImport } from './routes/dashboard/index'
 import { Route as DashboardRoomsRouteImport } from './routes/dashboard/rooms'
 import { Route as DashboardResultsRouteImport } from './routes/dashboard/results'
+import { Route as DashboardProfileRouteImport } from './routes/dashboard/profile'
 import { Route as DashboardAnalyticsRouteImport } from './routes/dashboard/analytics'
 import { Route as DashboardAssignmentsIndexRouteImport } from './routes/dashboard/assignments/index'
 import { Route as DashboardKitKitIdRouteImport } from './routes/dashboard/kit.$kitId'
 import { Route as DashboardGoalGoalMapIdRouteImport } from './routes/dashboard/goal.$goalMapId'
 import { Route as DashboardAssignmentsArchivedRouteImport } from './routes/dashboard/assignments/archived'
+import { Route as ApiAuthSplatRouteImport } from './routes/api/auth/$'
 
 const LoginRoute = LoginRouteImport.update({
   id: '/login',
@@ -51,6 +53,11 @@ const DashboardResultsRoute = DashboardResultsRouteImport.update({
   path: '/results',
   getParentRoute: () => DashboardRoute,
 } as any)
+const DashboardProfileRoute = DashboardProfileRouteImport.update({
+  id: '/profile',
+  path: '/profile',
+  getParentRoute: () => DashboardRoute,
+} as any)
 const DashboardAnalyticsRoute = DashboardAnalyticsRouteImport.update({
   id: '/analytics',
   path: '/analytics',
@@ -78,15 +85,22 @@ const DashboardAssignmentsArchivedRoute =
     path: '/assignments/archived',
     getParentRoute: () => DashboardRoute,
   } as any)
+const ApiAuthSplatRoute = ApiAuthSplatRouteImport.update({
+  id: '/api/auth/$',
+  path: '/api/auth/$',
+  getParentRoute: () => rootRouteImport,
+} as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/dashboard': typeof DashboardRouteWithChildren
   '/login': typeof LoginRoute
   '/dashboard/analytics': typeof DashboardAnalyticsRoute
+  '/dashboard/profile': typeof DashboardProfileRoute
   '/dashboard/results': typeof DashboardResultsRoute
   '/dashboard/rooms': typeof DashboardRoomsRoute
   '/dashboard/': typeof DashboardIndexRoute
+  '/api/auth/$': typeof ApiAuthSplatRoute
   '/dashboard/assignments/archived': typeof DashboardAssignmentsArchivedRoute
   '/dashboard/goal/$goalMapId': typeof DashboardGoalGoalMapIdRoute
   '/dashboard/kit/$kitId': typeof DashboardKitKitIdRoute
@@ -96,9 +110,11 @@ export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/login': typeof LoginRoute
   '/dashboard/analytics': typeof DashboardAnalyticsRoute
+  '/dashboard/profile': typeof DashboardProfileRoute
   '/dashboard/results': typeof DashboardResultsRoute
   '/dashboard/rooms': typeof DashboardRoomsRoute
   '/dashboard': typeof DashboardIndexRoute
+  '/api/auth/$': typeof ApiAuthSplatRoute
   '/dashboard/assignments/archived': typeof DashboardAssignmentsArchivedRoute
   '/dashboard/goal/$goalMapId': typeof DashboardGoalGoalMapIdRoute
   '/dashboard/kit/$kitId': typeof DashboardKitKitIdRoute
@@ -110,9 +126,11 @@ export interface FileRoutesById {
   '/dashboard': typeof DashboardRouteWithChildren
   '/login': typeof LoginRoute
   '/dashboard/analytics': typeof DashboardAnalyticsRoute
+  '/dashboard/profile': typeof DashboardProfileRoute
   '/dashboard/results': typeof DashboardResultsRoute
   '/dashboard/rooms': typeof DashboardRoomsRoute
   '/dashboard/': typeof DashboardIndexRoute
+  '/api/auth/$': typeof ApiAuthSplatRoute
   '/dashboard/assignments/archived': typeof DashboardAssignmentsArchivedRoute
   '/dashboard/goal/$goalMapId': typeof DashboardGoalGoalMapIdRoute
   '/dashboard/kit/$kitId': typeof DashboardKitKitIdRoute
@@ -125,9 +143,11 @@ export interface FileRouteTypes {
     | '/dashboard'
     | '/login'
     | '/dashboard/analytics'
+    | '/dashboard/profile'
     | '/dashboard/results'
     | '/dashboard/rooms'
     | '/dashboard/'
+    | '/api/auth/$'
     | '/dashboard/assignments/archived'
     | '/dashboard/goal/$goalMapId'
     | '/dashboard/kit/$kitId'
@@ -137,9 +157,11 @@ export interface FileRouteTypes {
     | '/'
     | '/login'
     | '/dashboard/analytics'
+    | '/dashboard/profile'
     | '/dashboard/results'
     | '/dashboard/rooms'
     | '/dashboard'
+    | '/api/auth/$'
     | '/dashboard/assignments/archived'
     | '/dashboard/goal/$goalMapId'
     | '/dashboard/kit/$kitId'
@@ -150,9 +172,11 @@ export interface FileRouteTypes {
     | '/dashboard'
     | '/login'
     | '/dashboard/analytics'
+    | '/dashboard/profile'
     | '/dashboard/results'
     | '/dashboard/rooms'
     | '/dashboard/'
+    | '/api/auth/$'
     | '/dashboard/assignments/archived'
     | '/dashboard/goal/$goalMapId'
     | '/dashboard/kit/$kitId'
@@ -163,6 +187,7 @@ export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   DashboardRoute: typeof DashboardRouteWithChildren
   LoginRoute: typeof LoginRoute
+  ApiAuthSplatRoute: typeof ApiAuthSplatRoute
 }
 
 declare module '@tanstack/react-router' {
@@ -209,6 +234,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof DashboardResultsRouteImport
       parentRoute: typeof DashboardRoute
     }
+    '/dashboard/profile': {
+      id: '/dashboard/profile'
+      path: '/profile'
+      fullPath: '/dashboard/profile'
+      preLoaderRoute: typeof DashboardProfileRouteImport
+      parentRoute: typeof DashboardRoute
+    }
     '/dashboard/analytics': {
       id: '/dashboard/analytics'
       path: '/analytics'
@@ -244,11 +276,19 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof DashboardAssignmentsArchivedRouteImport
       parentRoute: typeof DashboardRoute
     }
+    '/api/auth/$': {
+      id: '/api/auth/$'
+      path: '/api/auth/$'
+      fullPath: '/api/auth/$'
+      preLoaderRoute: typeof ApiAuthSplatRouteImport
+      parentRoute: typeof rootRouteImport
+    }
   }
 }
 
 interface DashboardRouteChildren {
   DashboardAnalyticsRoute: typeof DashboardAnalyticsRoute
+  DashboardProfileRoute: typeof DashboardProfileRoute
   DashboardResultsRoute: typeof DashboardResultsRoute
   DashboardRoomsRoute: typeof DashboardRoomsRoute
   DashboardIndexRoute: typeof DashboardIndexRoute
@@ -260,6 +300,7 @@ interface DashboardRouteChildren {
 
 const DashboardRouteChildren: DashboardRouteChildren = {
   DashboardAnalyticsRoute: DashboardAnalyticsRoute,
+  DashboardProfileRoute: DashboardProfileRoute,
   DashboardResultsRoute: DashboardResultsRoute,
   DashboardRoomsRoute: DashboardRoomsRoute,
   DashboardIndexRoute: DashboardIndexRoute,
@@ -277,6 +318,7 @@ const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   DashboardRoute: DashboardRouteWithChildren,
   LoginRoute: LoginRoute,
+  ApiAuthSplatRoute: ApiAuthSplatRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)

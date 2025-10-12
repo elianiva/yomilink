@@ -1,3 +1,5 @@
+import { ProgressProvider } from "@bprogress/react";
+import type { ConvexQueryClient } from "@convex-dev/react-query";
 import { TanStackDevtools } from "@tanstack/react-devtools";
 import type { QueryClient } from "@tanstack/react-query";
 import {
@@ -6,13 +8,20 @@ import {
 	Scripts,
 } from "@tanstack/react-router";
 import { TanStackRouterDevtoolsPanel } from "@tanstack/react-router-devtools";
-import ConvexProvider from "../integrations/convex/provider";
+import type { ConvexReactClient } from "convex/react";
+import { fetchAuth } from "@/auth/fetch-auth";
+import NotFound from "../components/not-found";
+import RouteProgress from "../components/progress/route-progress";
 import TanStackQueryDevtools from "../integrations/tanstack-query/devtools";
 import appCss from "../styles.css?url";
 
 interface MyRouterContext {
 	queryClient: QueryClient;
+	convexClient: ConvexReactClient;
+	convexQueryClient: ConvexQueryClient;
 }
+
+// Get auth information for SSR using available cookies
 
 export const Route = createRootRouteWithContext<MyRouterContext>()({
 	head: () => ({
@@ -35,7 +44,14 @@ export const Route = createRootRouteWithContext<MyRouterContext>()({
 			},
 		],
 	}),
-
+	beforeLoad: async (ctx) => {
+		const { userId, token } = await fetchAuth();
+		if (token) {
+			ctx.context.convexQueryClient.serverHttpClient?.setAuth(token);
+		}
+		return { userId, token };
+	},
+	notFoundComponent: NotFound,
 	shellComponent: RootDocument,
 });
 
@@ -46,7 +62,12 @@ function RootDocument({ children }: { children: React.ReactNode }) {
 				<HeadContent />
 			</head>
 			<body>
-				<ConvexProvider>
+				<ProgressProvider
+					height="3px"
+					color="hsl(var(--primary))"
+					options={{ showSpinner: true }}
+				>
+					<RouteProgress />
 					{children}
 					<TanStackDevtools
 						config={{
@@ -60,7 +81,7 @@ function RootDocument({ children }: { children: React.ReactNode }) {
 							TanStackQueryDevtools,
 						]}
 					/>
-				</ConvexProvider>
+				</ProgressProvider>
 				<Scripts />
 			</body>
 		</html>

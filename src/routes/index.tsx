@@ -1,17 +1,16 @@
-import { useAuthToken } from "@convex-dev/auth/react";
 import { createFileRoute, Navigate } from "@tanstack/react-router";
+import { useAuth } from "@/hooks/use-auth";
 
 export const Route = createFileRoute("/")({
+	beforeLoad: async (opts) => {
+		return null;
+	},
 	component: IndexPage,
 });
 
 function IndexPage() {
-	const token = useAuthToken();
-	// Wait for auth token to resolve to avoid redirect loops
-	if (typeof token === "undefined") {
-		return null;
-	}
-	if (token === null) {
+	const { user } = useAuth();
+	if (user === null) {
 		return <Navigate to="/login" />;
 	}
 	return <Navigate to="/dashboard" />;

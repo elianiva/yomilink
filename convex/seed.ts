@@ -1,6 +1,9 @@
-import { mutation } from "./_generated/server";
 import { v } from "convex/values";
-import { createAccount } from "@convex-dev/auth/server";
+import { components } from "./_generated/api";
+import { mutation } from "./_generated/server";
+import { createAuth } from "./auth";
+
+type SeedRole = "admin" | "teacher" | "student";
 
 export const seedUsers = mutation({
 	args: {
@@ -10,21 +13,36 @@ export const seedUsers = mutation({
 				email: v.string(),
 				password: v.string(),
 				name: v.optional(v.string()),
-				role: v.optional(
-					v.union(
-						v.literal("admin"),
-						v.literal("teacher"),
-						v.literal("student"),
+				roles: v.optional(
+					v.array(
+						v.union(
+							v.literal("admin"),
+							v.literal("teacher"),
+							v.literal("student"),
+						),
 					),
 				),
 			}),
 		),
 	},
 	handler: async (ctx, args) => {
-		const requiredKey = process.env.SEED_SECRET;
-		if (requiredKey && args.key !== requiredKey) {
-			throw new Error("forbidden: invalid seed key");
+		// Optional seeding guard: require matching secret when provided in env
+		const secret = process.env.SEED_SECRET;
+		if (secret && args.key !== secret) {
+			throw new Error("forbidden");
 		}
+
+		// Use Better Auth instance so we call the Admin plugin APIs programmatically
+		const auth = createAuth(ctx);
+		type AdminAPI = {
+			createUser: (args: {
+				email: string;
+				password: string;
+				name?: string;
+				role?: SeedRole[];
+			}) => Promise<{ id?: string; user?: { id?: string } }>;
+		};
+		const adminAPI = (auth as unknown as { admin: AdminAPI }).admin;
 
 		const results: Array<
 			| { email: string; created: true; userId: string }
@@ -32,62 +50,126 @@ export const seedUsers = mutation({
 		> = [];
 
 		for (const u of args.users) {
-			if (!u?.email || !u?.password) {
-				results.push({
-					email: u?.email ?? "",
-					created: false,
-					error: "missing email or password",
-				});
-				continue;
-			}
-
 			try {
-				const res = await createAccount(ctx as any, {
-					provider: "password",
-					account: {
-						id: u.email,
-						secret: u.password,
-					},
-					profile: {
-						email: u.email,
-						name: u.name ?? u.email.split("@")[0],
-						role: u.role ?? "student",
-					},
-					shouldLinkViaEmail: true,
+				// Prefer provided display name; fallback to prefix of email
+				const displayName = u.name ?? u.email.split("@")[0];
+
+				// Call Better Auth Admin plugin: create-user (role applied server-side)
+				// The admin plugin response includes user id as "id" (mirrors HTTP API)
+				const res = await adminAPI.createUser({
+					email: u.email,
+					password: u.password,
+					name: displayName,
+					// Always use array-based roles; omit if none provided
+					role:
+						u.roles && u.roles.length > 0 ? (u.roles as SeedRole[]) : undefined,
 				});
 
-				const userId = (res.user as any)._id as string;
+				const userId: string = res?.id ?? res?.user?.id ?? "unknown";
 
-				// Upsert role into user_roles
-				const existing = await (ctx as any).db
-					.query("user_roles")
-					.withIndex("by_user" as any, (q: any) =>
-						q.eq("userId", userId as any),
-					)
-					.first();
-
-				if (existing) {
-					await ctx.db.patch(existing._id, {
-						role: (u.role ?? "student") as any,
-					});
-				} else {
-					await ctx.db.insert("user_roles", {
-						userId: userId as any,
-						role: (u.role ?? "student") as any,
-					});
-				}
-
+				results.push({ email: u.email, created: true, userId });
+			} catch (e: any) {
+				// Gracefully capture error per user to continue the batch
 				results.push({
 					email: u.email,
-					created: true,
-					userId,
+					created: false,
+					error: e?.message ?? "unknown error",
 				});
-			} catch (e: any) {
-				const msg = typeof e?.message === "string" ? e.message : String(e);
-				results.push({ email: u.email, created: false, error: msg });
 			}
 		}
 
 		return { ok: true, results };
+	},
+});
+
+/**
+ * Clean all Better Auth users and related records (sessions, accounts, passkeys, etc).
+ * Does not touch application tables.
+ */
+export const cleanUsers = mutation({
+	args: {
+		key: v.optional(v.string()),
+	},
+	handler: async (ctx, args) => {
+		const secret = process.env.SEED_SECRET;
+		if (secret && args.key !== secret) {
+			throw new Error("forbidden");
+		}
+
+		// Wipe Better Auth user-related models
+		const models = [
+			"session",
+			"account",
+			"verification",
+			"twoFactor",
+			"passkey",
+			"oauthAccessToken",
+			"oauthConsent",
+			"oauthApplication",
+			"user",
+		] as const;
+
+		for (const model of models) {
+			try {
+				await ctx.runMutation(components.betterAuth.adapter.deleteMany, {
+					input: { model },
+					paginationOpts: { cursor: null, numItems: 100_000 },
+				});
+			} catch {
+				// ignore to keep idempotent
+			}
+		}
+
+		return { ok: true };
+	},
+});
+
+/**
+ * Nuke the database: truncate all application data and Better Auth data.
+ */
+export const nukeDb = mutation({
+	args: {
+		key: v.optional(v.string()),
+	},
+	handler: async (ctx, args) => {
+		const secret = process.env.SEED_SECRET;
+		if (secret && args.key !== secret) {
+			throw new Error("forbidden");
+		}
+
+		// 1) Delete application tables (extend this if you add more tables)
+		const goalMaps = await ctx.db.query("goal_maps").collect();
+		for (const g of goalMaps) {
+			await ctx.db.delete(g._id);
+		}
+
+		// 2) Delete Better Auth models (full set)
+		const authModels = [
+			"session",
+			"account",
+			"verification",
+			"twoFactor",
+			"passkey",
+			"oauthAccessToken",
+			"oauthConsent",
+			"oauthApplication",
+			"user",
+			"jwks",
+			"rateLimit",
+			"ratelimit",
+		] as const;
+
+		for (const model of authModels) {
+			try {
+				await ctx.runMutation(components.betterAuth.adapter.deleteMany, {
+					input: { model },
+					paginationOpts: { cursor: null, numItems: 100_000 },
+				});
+			} catch {
+				// ignore
+			}
+		}
+
+		return { ok: true, appDeleted: goalMaps.length };
 	},
 });
