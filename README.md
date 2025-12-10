@@ -333,33 +333,32 @@ Files prefixed with `demo` can be safely deleted. They are there to provide a st
 
 You can learn more about all of the offerings from TanStack in the [TanStack documentation](https://tanstack.com).
 
-## Authentication (Better Auth + Convex)
+## Authentication (Better Auth + Drizzle/Turso)
 
-This app uses Better Auth integrated with Convex.
+This app uses Better Auth with the Drizzle/SQLite adapter on Turso (libSQL).
 
 Key files:
-- Server config: [convex.createAuth()](convex/auth.ts:20)
-- HTTP routes mount: [convex/http.ts](convex/http.ts:1)
-- Component registration: [convex/convex.config.ts](convex/convex.config.ts:1)
-- Current user query: [convex/users.me](convex/users.ts:4)
-- Client provider: [src/router.tsx](src/router.tsx:1) via ConvexBetterAuthProvider
+- Server config: [auth config](src/server/auth/config.ts:1)
+- Auth HTTP handler: [src/routes/api/auth/$.ts](src/routes/api/auth/$.ts:1)
+- Database client: [src/server/db/client.ts](src/server/db/client.ts:1)
+- Current user RPC: [src/server/rpc/auth.ts](src/server/rpc/auth.ts:1)
+- Client provider: [src/router.tsx](src/router.tsx:1) uses TanStack Query only
 - Sentry user bridge: [src/app/AuthSentryBridge.tsx](src/app/AuthSentryBridge.tsx:1) (wired in router)
 - Client auth client: [src/lib/auth-client.ts](src/lib/auth-client.ts:1)
-- SSR fetch helpers: [src/auth/fetch-client.ts](src/auth/fetch-client.ts:1)
-- SSR session helper: [src/auth/session.getServerSession()](src/auth/session.ts:18)
+- SSR auth helper: [src/auth/fetch-auth.ts](src/auth/fetch-auth.ts:1)
+- Server functions (TanStack Start): [src/server/rpc/*](src/server/rpc)
 - Loaders with session prefetch:
-  - [/dashboard loader](src/routes/dashboard.tsx:25)
+  - [/dashboard loader] uses standard loader (no Convex)
   - [/ loader](src/routes/index.tsx:1)
   - [/login loader](src/routes/login.tsx:49)
 - Client hook: [src/hooks/use-auth.useAuth()](src/hooks/use-auth.ts:1)
 
 Environment variables:
 Copy .env.example to .env.local and set:
-- VITE_CONVEX_URL: Convex dev url (e.g., http://127.0.0.1:3210)
-- VITE_CONVEX_SITE_URL: Convex Site URL (auth HTTP router), usually one port above Convex url (e.g., http://127.0.0.1:3211)
 - VITE_APP_URL: Frontend base url (e.g., http://localhost:5173)
-- VITE_BETTER_AUTH_SECRET: Long random string for session integrity
-- SITE_URL: Server-side Better Auth base (set to VITE_CONVEX_SITE_URL)
+- SITE_URL: Server-side Better Auth base url
+- TURSO_DATABASE_URL: Turso/libSQL database URL
+- TURSO_AUTH_TOKEN: Turso token (if required)
 
 Sign-in / sign-up (email/password):
 - See [src/routes/login.tsx](src/routes/login.tsx:1) using [authClient.signIn.email](src/routes/login.tsx:1) and [authClient.signUp.email](src/routes/login.tsx:1)

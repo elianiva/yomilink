@@ -1,6 +1,6 @@
 import * as Sentry from "@sentry/tanstackstart-react";
 import { useForm } from "@tanstack/react-form";
-import { createFileRoute, Link, Navigate } from "@tanstack/react-router";
+import { createFileRoute, Navigate } from "@tanstack/react-router";
 import { useId, useState } from "react";
 import { z } from "zod";
 import { Button } from "@/components/ui/button";
@@ -50,7 +50,7 @@ const getFriendlyAuthErrorMessage = (
 };
 
 export const Route = createFileRoute("/login")({
-	beforeLoad: async (opts) => {
+	beforeLoad: async (_opts) => {
 		return null;
 	},
 	component: LoginPage,

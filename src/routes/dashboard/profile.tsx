@@ -1,6 +1,5 @@
-import { useConvexQuery } from "@convex-dev/react-query";
+import { useQuery } from "@tanstack/react-query";
 import { createFileRoute, Link } from "@tanstack/react-router";
-import { api } from "convex/_generated/api";
 import { useId } from "react";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
@@ -12,15 +11,10 @@ export const Route = createFileRoute("/dashboard/profile")({
 	component: ProfilePage,
 });
 
-type Me = {
-	name: string | null;
-	email: string | null;
-	image?: string | null;
-	role: "teacher" | "admin" | "student";
-};
+import { getMe } from "@/server/rpc/auth";
 
 function ProfilePage() {
-	const me = useConvexQuery(api.users.me) as Me | undefined | null;
+	const { data: me } = useQuery({ queryKey: ["me"], queryFn: () => getMe() });
 
 	const nameId = useId();
 	const emailId = useId();

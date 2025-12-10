@@ -1,4 +1,3 @@
-import { useConvexMutation, useConvexQuery } from "@convex-dev/react-query";
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import type { ReactFlowInstance } from "@xyflow/react";
 import {
@@ -13,7 +12,7 @@ import {
 	useEdgesState,
 	useNodesState,
 } from "@xyflow/react";
-import { api } from "convex/_generated/api";
+
 import Guard from "@/components/auth/Guard";
 import "@xyflow/react/dist/style.css";
 
@@ -38,6 +37,8 @@ import TextNode, { type TextNodeData } from "@/components/kit/nodes/TextNode";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { saveGoalMap } from "@/server/rpc/goalMaps";
+import { generateKit } from "@/server/rpc/kits";
 
 export const Route = createFileRoute("/dashboard/goal/$goalMapId")({
 	component: () => (
@@ -93,8 +94,17 @@ function TeacherGoalMapEditor() {
 	const rfRef = useRef<ReactFlowInstance<AnyNode, Edge> | null>(null);
 	const { goalMapId } = Route.useParams();
 	const navigate = useNavigate();
-	const saveGoalMap = useConvexMutation(api.goalMaps.save);
-	const existing = useConvexQuery(api.goalMaps.get, { goalMapId }) as any;
+	const [existing, setExisting] = useState<any>(null);
+	useEffect(() => {
+		let cancelled = false;
+		(async () => {
+			const res = await fetch(`/api/goal-maps/${goalMapId}`);
+			if (!cancelled && res.ok) setExisting(await res.json());
+		})();
+		return () => {
+			cancelled = true;
+		};
+	}, [goalMapId]);
 
 	useEffect(() => {
 		if (goalMapId === "new") {
@@ -397,28 +407,22 @@ function TeacherGoalMapEditor() {
 			};
 
 			try {
-				const res = await saveGoalMap({
-					goalMapId,
-					title: meta.name,
-					description: meta.topic,
-					nodes,
-					edges,
-					updatedAt: Date.now(),
+				await saveGoalMap({
+					data: {
+						goalMapId,
+						title: meta.name,
+						description: meta.topic,
+						nodes,
+						edges,
+						updatedAt: Date.now(),
+					},
 				});
-
-				// Merge any server-side warnings
-				if (res?.errors?.length) {
-					setSaveWarnings((prev) => {
-						const next = new Set([...(prev ?? []), ...res.errors]);
-						return Array.from(next);
-					});
-				}
 
 				// Mark snapshot as saved
 				setLastSavedSnapshot(JSON.stringify({ nodes, edges }));
 
 				// Optional: console tracing
-				console.log("goalmap.save", { payload, res, clientWarnings });
+				console.log("goalmap.save", { payload, clientWarnings });
 			} catch (err: unknown) {
 				const message =
 					err instanceof Error ? err.message : "Save failed. Please try again.";
@@ -458,7 +462,7 @@ function TeacherGoalMapEditor() {
 				setSaving(false);
 			}
 		},
-		[goalMapId, nodes, edges, saveGoalMap, validate],
+		[goalMapId, nodes, edges, validate],
 	);
 
 	const handleExportKit = () => {
@@ -527,6 +531,30 @@ function TeacherGoalMapEditor() {
 						saving={saving}
 						isDirty={isDirty}
 					/>
+					<Button
+						variant="default"
+						size="sm"
+						onClick={async () => {
+							try {
+								await saveGoalMap({
+									data: {
+										goalMapId,
+										title: saveName || "Untitled",
+										description: saveTopic,
+										nodes,
+										edges,
+										updatedAt: Date.now(),
+									},
+								});
+								const gen = await generateKit({ data: { goalMapId } });
+								console.log("kit.generate", gen);
+							} catch (e) {
+								console.error("kit.generate error", e);
+							}
+						}}
+					>
+						Generate Kit
+					</Button>
 				</div>
 			</div>
 

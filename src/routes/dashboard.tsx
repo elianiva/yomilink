@@ -23,7 +23,7 @@ import {
 import { useAuth } from "@/hooks/use-auth";
 
 export const Route = createFileRoute("/dashboard")({
-	beforeLoad: async (opts) => {
+	beforeLoad: async (_opts) => {
 		return null;
 	},
 	component: DashboardLayout,

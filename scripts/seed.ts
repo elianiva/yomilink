@@ -3,11 +3,12 @@
 //   tsx --env-file=.env.local scripts/seed.ts
 //   tsx --env-file=.env.local scripts/seed.ts ./seed-users.json
 //
-// Calls a Convex mutation directly (no HTTP action route).
+// Seeds initial data directly via Drizzle (Turso libSQL)
 
 import { readFile } from "node:fs/promises";
-import { ConvexHttpClient } from "convex/browser";
-import { api } from "../convex/_generated/api";
+import { createDb } from "@/server/db/client";
+import { env } from "@/env";
+import { goalMaps, kits } from "@/server/db/schema";
 
 type SeedUser = {
   email: string;
@@ -16,111 +17,91 @@ type SeedUser = {
   roles?: ("admin" | "teacher" | "student")[];
 };
 
-type SeedResult =
-  | { email: string; created: true; userId: string }
-  | { email: string; created: false; error: string };
-
-const BASE_URL =
-  process.env.VITE_CONVEX_URL ||
-  process.env.CONVEX_SITE_URL ||
-  process.env.CONVEX_URL;
-
-if (!BASE_URL) {
-  console.error(
-    "Missing Convex URL. Set VITE_CONVEX_URL or CONVEX_SITE_URL in .env.local",
-  );
-  process.exit(1);
-}
-
-const SEED_SECRET = process.env.SEED_SECRET;
-
-// Default users if no file provided
 const DEFAULT_USERS: SeedUser[] = [
-  {
-    email: "admin@yomilink.local",
-    password: "admin123",
-    name: "Admin",
-    roles: ["admin"],
-  },
-  {
-    email: "teacher@yomilink.local",
-    password: "teacher123",
-    name: "Teacher One",
-    roles: ["teacher"],
-  },
-  {
-    email: "student@yomilink.local",
-    password: "student123",
-    name: "Student One",
-    roles: ["student"],
-  },
+  { email: "admin@yomilink.local", password: "admin123", name: "Admin", roles: ["admin"] },
+  { email: "teacher@yomilink.local", password: "teacher123", name: "Teacher One", roles: ["teacher"] },
+  { email: "student@yomilink.local", password: "student123", name: "Student One", roles: ["student"] },
 ];
 
 async function loadUsersFromArg(): Promise<SeedUser[] | null> {
   const fileArg = process.argv[2];
   if (!fileArg) return null;
-  try {
-    const raw = await readFile(fileArg, "utf8");
-    const json = JSON.parse(raw);
-    if (!Array.isArray(json)) {
-      throw new Error("Expected an array of users");
-    }
-    return json as SeedUser[];
-  } catch (err) {
-    console.error(`Failed to read seed file "${fileArg}":`, err);
-    process.exit(1);
-  }
+  const raw = await readFile(fileArg, "utf8");
+  const json = JSON.parse(raw);
+  if (!Array.isArray(json)) throw new Error("Expected an array of users");
+  return json as SeedUser[];
 }
 
 async function main() {
+  const db = createDb(env.TURSO_DATABASE_URL, env.TURSO_AUTH_TOKEN);
+
+  // Seed a demo goal map and kit
+  const goalMapId = "demo-goalmap";
+  const demoNodes = [
+    { id: "t1", type: "text", position: { x: 100, y: 100 }, data: { label: "Photosynthesis" } },
+    { id: "c1", type: "connector", position: { x: 300, y: 100 }, data: { label: "is" } },
+    { id: "t2", type: "text", position: { x: 500, y: 100 }, data: { label: "Chemical Process" } },
+  ];
+  const demoEdges = [
+    { id: "e1", source: "t1", target: "c1" },
+    { id: "e2", source: "c1", target: "t2" },
+  ];
+
+  await db
+    .insert(goalMaps)
+    .values({
+      id: goalMapId,
+      goalMapId,
+      teacherId: "seed-teacher",
+      title: "Demo Goal Map",
+      description: "Seeded goal map",
+      nodes: JSON.stringify(demoNodes),
+      edges: JSON.stringify(demoEdges),
+      updatedAt: Date.now(),
+    })
+    .onConflictDoUpdate({
+      target: goalMaps.goalMapId,
+      set: {
+        title: "Demo Goal Map",
+        description: "Seeded goal map",
+        nodes: JSON.stringify(demoNodes),
+        edges: JSON.stringify(demoEdges),
+        updatedAt: Date.now(),
+      },
+    })
+    .run();
+
+  const conceptIds = new Set(["t1", "t2"]);
+  const kitNodes = demoNodes.filter((n) => n.type === "text");
+  const kitEdges = demoEdges.filter((e) => conceptIds.has(e.source) && conceptIds.has(e.target));
+
+  await db
+    .insert(kits)
+    .values({
+      id: goalMapId,
+      goalMapId,
+      createdBy: "seed-teacher",
+      nodes: JSON.stringify(kitNodes),
+      edges: JSON.stringify(kitEdges),
+      constraints: null,
+      version: 1,
+      createdAt: Date.now(),
+    })
+    .onConflictDoUpdate({
+      target: kits.goalMapId,
+      set: {
+        nodes: JSON.stringify(kitNodes),
+        edges: JSON.stringify(kitEdges),
+        updatedAt: Date.now(),
+      } as any,
+    })
+    .run();
+
+  // Users are Better Auth-managed; keep placeholder for future adapter seeding.
   const users = (await loadUsersFromArg()) ?? DEFAULT_USERS;
+  console.log(`Loaded ${users.length} seed users (auth adapter seeding not implemented).`);
 
-  try {
-    const client = new ConvexHttpClient(BASE_URL!);
-    const data = (await client.mutation(api.seed.seedUsers, {
-      key: SEED_SECRET,
-      users,
-    })) as {
-      ok: boolean;
-      results: SeedResult[];
-    };
-
-    if (!data.ok) {
-      console.error("Seeding did not complete successfully:", data);
-      process.exit(1);
-    }
-
-    // Pretty print results
-    const created = data.results.filter((r) => r.created) as Extract<
-      SeedResult,
-      { created: true }
-    >[];
-    const failed = data.results.filter((r) => !r.created) as Extract<
-      SeedResult,
-      { created: false }
-    >[];
-
-    console.log("Seed completed.");
-    console.log(
-      `Created: ${created.length}, Failed: ${failed.length}, Total: ${data.results.length}`,
-    );
-
-    if (created.length) {
-      console.log("Created users:");
-      for (const c of created) {
-        console.log(` - ${c.email} (userId: ${c.userId})`);
-      }
-    }
-    if (failed.length) {
-      console.log("Failed users:");
-      for (const f of failed) {
-        console.log(` - ${f.email}: ${f.error}`);
-      }
-    }
-  } catch (e) {
-    console.error("Seed mutation failed:", e);
-    process.exit(1);
-  }
+  console.log("Seed completed.");
 }
 
 void main();

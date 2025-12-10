@@ -1,8 +1,7 @@
 "use client";
 
-import { useConvexQuery } from "@convex-dev/react-query";
-import { api } from "convex/_generated/api";
 import { Activity, Map as MapIcon, ScanSearch, Settings } from "lucide-react";
+import { useAuth } from "@/hooks/use-auth";
 
 import { NavMain } from "@/components/nav-main";
 import { NavUser } from "@/components/nav-user";
@@ -50,10 +49,10 @@ type AppSidebarProps = {
 } & React.ComponentProps<typeof Sidebar>;
 
 export function AppSidebar(props: AppSidebarProps) {
-	const me = useConvexQuery(api.users.me);
-	const displayName = me?.name;
-	const displayEmail = me?.email;
-	const displayAvatar = me?.image;
+	const { user: me } = useAuth();
+	const displayName = me?.name ?? null;
+	const displayEmail = me?.email ?? null;
+	const displayAvatar = me?.image ?? null;
 
 	return (
 		<Sidebar collapsible="icon" {...props}>

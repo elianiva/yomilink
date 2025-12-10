@@ -13,16 +13,15 @@ import {
 } from "@xyflow/react";
 import Guard from "@/components/auth/Guard";
 import "@xyflow/react/dist/style.css";
-import { useConvexQuery } from "@convex-dev/react-query";
-import { api } from "convex/_generated/api";
 
 import { Maximize2, RotateCcw, RotateCw, ZoomIn, ZoomOut } from "lucide-react";
-import { useCallback, useEffect, useMemo, useRef } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import ImageNode, {
 	type ImageNodeData,
 } from "@/components/kit/nodes/ImageNode";
 import TextNode, { type TextNodeData } from "@/components/kit/nodes/TextNode";
 import { Button } from "@/components/ui/button";
+import { getKit } from "@/server/rpc/kits";
 
 export const Route = createFileRoute("/dashboard/kit/$kitId")({
 	component: () => (
@@ -61,7 +60,19 @@ function KitWorkspace() {
 
 	const rfRef = useRef<ReactFlowInstance<AnyNode, Edge> | null>(null);
 	const { kitId } = Route.useParams();
-	const kit = useConvexQuery(api.goalMaps.getForStudent, { goalMapId: kitId });
+	// For MVP we store kit under goalMapId-compatible id
+	const [kit, setKit] = useState<any>(null);
+
+	useEffect(() => {
+		let cancelled = false;
+		(async () => {
+			const data = await getKit({ data: { kitId } });
+			if (!cancelled) setKit(data);
+		})();
+		return () => {
+			cancelled = true;
+		};
+	}, [kitId]);
 
 	const historyRef = useRef<Array<{ nodes: AnyNode[]; edges: Edge[] }>>([
 		{ nodes: [], edges: [] },
@@ -143,8 +154,7 @@ function KitWorkspace() {
 			updatedAt: Date.now(),
 			version: 1,
 		};
-		// TODO: integrate Convex mutation to persist payload
-		console.log("kit.save", payload);
+		console.log("kit.save (draft)", payload);
 	};
 
 	const zoomIn = () => rfRef.current?.zoomIn?.();
@@ -210,9 +220,9 @@ function KitWorkspace() {
 						</Button>
 					</div>
 					<Button variant="outline" onClick={handleSave}>
-						Save
+						Save Draft
 					</Button>
-					<Button>Publish</Button>
+					<Button>Submit</Button>
 				</div>
 			</div>
 

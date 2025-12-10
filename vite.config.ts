@@ -3,28 +3,18 @@ import { tanstackStart } from '@tanstack/react-start/plugin/vite'
 import viteReact from '@vitejs/plugin-react'
 import viteTsConfigPaths from 'vite-tsconfig-paths'
 import tailwindcss from '@tailwindcss/vite'
-
-import { wrapVinxiConfigWithSentry } from '@sentry/tanstackstart-react'
 import { cloudflare } from '@cloudflare/vite-plugin'
 
-const config = defineConfig({
-  plugins: [
-    cloudflare({ viteEnvironment: { name: 'ssr' } }),
-    // this is the plugin that enables path aliases
-    viteTsConfigPaths({
-      projects: ['./tsconfig.json'],
-    }),
-    tailwindcss(),
-    tanstackStart(),
-    viteReact(),
-  ],
-})
-
-export default wrapVinxiConfigWithSentry(config, {
-  org: process.env.VITE_SENTRY_ORG,
-  project: process.env.VITE_SENTRY_PROJECT,
-  authToken: process.env.SENTRY_AUTH_TOKEN,
-  // Only print logs for uploading source maps in CI
-  // Set to `true` to suppress logs
-  silent: !process.env.CI,
+export default defineConfig(({ mode }) => {
+  const isTest = mode === 'test' || process.env.VITEST;
+  return {
+    plugins: [
+      // Disable Cloudflare plugin during tests to avoid incompatible options
+      !isTest && cloudflare({ viteEnvironment: { name: 'ssr' } }),
+      viteTsConfigPaths({ projects: ['./tsconfig.json'] }),
+      tailwindcss(),
+      tanstackStart(),
+      viteReact(),
+    ].filter(Boolean) as any,
+  }
 })

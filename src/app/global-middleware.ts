@@ -1,11 +1,3 @@
-import * as Sentry from "@sentry/tanstackstart-react";
-import {
-	createMiddleware,
-	registerGlobalMiddleware,
-} from "@tanstack/react-start";
-
-registerGlobalMiddleware({
-	middleware: [
-		createMiddleware().server(Sentry.sentryGlobalServerMiddlewareHandler()),
-	],
-});
+// Intentionally left empty.
+// Sentry is initialized via `instrument.server.mjs` (server)
+// and `src/router.tsx` (client) in this project.

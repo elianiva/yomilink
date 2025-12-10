@@ -1,6 +1,5 @@
-import { convexQuery } from "@convex-dev/react-query";
 import { useQuery } from "@tanstack/react-query";
-import { api } from "convex/_generated/api";
+import { getMe } from "@/server/rpc/auth";
 
 export type Role = "teacher" | "admin" | "student";
 
@@ -13,9 +12,6 @@ export type AuthUser = {
 } | null;
 
 export function useAuth() {
-	const { data } = useQuery(convexQuery(api.users.me, {}));
-	return {
-		user: data as AuthUser,
-		isAuthenticated: Boolean(data),
-	};
+	const { data } = useQuery({ queryKey: ["me"], queryFn: () => getMe() });
+	return { user: data ?? null, isAuthenticated: Boolean(data) };
 }

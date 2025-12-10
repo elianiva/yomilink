@@ -1,22 +1,14 @@
-import { useConvexQuery } from "@convex-dev/react-query";
+import { useQuery } from "@tanstack/react-query";
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
-import { api } from "convex/_generated/api";
 import { BarChart3, Box, Check, Map as MapIcon } from "lucide-react";
 import { useEffect, useState } from "react";
 import { Button } from "@/components/ui/button";
 import { useAuth } from "@/hooks/use-auth";
+import { listStudentKits, type StudentKit } from "@/server/rpc/kits";
 
 export const Route = createFileRoute("/dashboard/")({
 	component: DashboardHome,
 });
-
-type StudentKit = {
-	goalMapId: string;
-	title: string;
-	description?: string;
-	updatedAt: number;
-	teacherId: string;
-};
 
 function JoinKitDialog({
 	open,
@@ -134,7 +126,10 @@ function JoinKitDialog({
 function DashboardHome() {
 	const [isJoinOpen, setIsJoinOpen] = useState(false);
 	const navigate = useNavigate();
-	const kits = useConvexQuery(api.goalMaps.listForStudent);
+	const { data: kits } = useQuery({
+		queryKey: ["student-kits"],
+		queryFn: () => listStudentKits(),
+	});
 	const { user: me } = useAuth();
 
 	return (
