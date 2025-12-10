@@ -63,8 +63,10 @@ export function AppSidebar(props: AppSidebarProps) {
 						Y
 					</div>
 					<div>
-						<h1 className="text-base font-semibold">Yomilink</h1>
-						<p className="text-xs text-muted-foreground">Kit-Build Concept</p>
+						<h1 className="text-base font-semibold">KitBuild</h1>
+						<p className="text-xs text-muted-foreground">
+							Kit-Build Concept Map
+						</p>
 					</div>
 				</div>
 			</SidebarHeader>

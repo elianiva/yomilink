@@ -151,10 +151,10 @@ here’s the **migration plan rewritten as a developer-friendly TODO list**, rea
 
 ## 🔹 Phase 7 — validate session flow
 
-* [ ] Confirm browser cookie (`better-auth.session`) is set.
-* [ ] Verify server loaders detect session on first load (SSR).
-* [ ] Check Convex queries see the same user ID.
-* [ ] Test both email/password and OAuth.
+* [x] Confirm browser cookie (`better-auth.session`) is set.
+* [x] Verify server loaders detect session on first load (SSR).
+* [x] Check Convex queries see the same user ID.
+* [x] Test both email/password and OAuth.
 
 ---
 
@@ -170,14 +170,14 @@ here’s the **migration plan rewritten as a developer-friendly TODO list**, rea
 
 ## 🔹 Phase 9 — test + deploy
 
-* [ ] Test user creation → session persistence → logout → re-login.
-* [ ] Test social providers (if used).
-* [ ] Test Convex query access control.
+* [x] Test user creation → session persistence → logout → re-login.
+* [x] Test social providers (if used).
+* [x] Test Convex query access control.
 * [x] Stage rollout: (skipped per instruction)
 
   * [x] Enable Better Auth for new users only.
   * [x] Keep old auth as backup flag for 48h.
-* [ ] Once stable, delete all `convex-auth` code.
+* [x] Once stable, delete all `convex-auth` code.
 
 ---
 

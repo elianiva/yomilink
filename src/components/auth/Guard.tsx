@@ -4,7 +4,6 @@ import { useAuth } from "@/hooks/use-auth";
 
 export type Role = "teacher" | "admin" | "student";
 
-
 type GuardProps = {
 	roles?: Role[];
 	children: ReactNode;
@@ -33,7 +32,6 @@ export function Guard({
 	if (!roles || roles.length === 0) {
 		return <>{children}</>;
 	}
-
 
 	const role = ((user as { role?: Role } | null)?.role ?? null) as Role | null;
 

@@ -15,8 +15,7 @@
 			"**/vite.config.js",
 			"!**/src/routeTree.gen.ts",
 			"!**/convex/_generated"
-		],
-		"experimentalScannerIgnores": ["**/convex/_generated/**"]
+		]
 	},
 	"formatter": {
 		"enabled": true,
@@ -34,6 +33,13 @@
 			"style": {
 				"useImportType": "warn"
 			}
+		}
+	},
+	"css": {
+		"parser": {
+			"allowWrongLineComments": false,
+			"cssModules": false,
+			"tailwindDirectives": true
 		}
 	},
 	"javascript": {

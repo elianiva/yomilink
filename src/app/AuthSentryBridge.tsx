@@ -8,23 +8,23 @@ import { useAuth } from "@/hooks/use-auth";
  * - Clears Sentry user on logout
  */
 export function AuthSentryBridge() {
-  const { user } = useAuth();
+	const { user } = useAuth();
 
-  useEffect(() => {
-    try {
-      if (user) {
-        Sentry.setUser({
-          id: user.id,
-          email: user.email ?? undefined,
-          username: user.name ?? undefined,
-        });
-      } else {
-        Sentry.setUser(null);
-      }
-    } catch {
-      // ignore Sentry errors in dev
-    }
-  }, [user]);
+	useEffect(() => {
+		try {
+			if (user) {
+				Sentry.setUser({
+					id: user.id,
+					email: user.email ?? undefined,
+					username: user.name ?? undefined,
+				});
+			} else {
+				Sentry.setUser(null);
+			}
+		} catch {
+			// ignore Sentry errors in dev
+		}
+	}, [user]);
 
-  return null;
+	return null;
 }

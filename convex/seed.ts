@@ -3,8 +3,6 @@ import { components } from "./_generated/api";
 import { mutation } from "./_generated/server";
 import { createAuth } from "./auth";
 
-type SeedRole = "admin" | "teacher" | "student";
-
 export const seedUsers = mutation({
 	args: {
 		key: v.optional(v.string()),
@@ -34,15 +32,6 @@ export const seedUsers = mutation({
 
 		// Use Better Auth instance so we call the Admin plugin APIs programmatically
 		const auth = createAuth(ctx);
-		type AdminAPI = {
-			createUser: (args: {
-				email: string;
-				password: string;
-				name?: string;
-				role?: SeedRole[];
-			}) => Promise<{ id?: string; user?: { id?: string } }>;
-		};
-		const adminAPI = (auth as unknown as { admin: AdminAPI }).admin;
 
 		const results: Array<
 			| { email: string; created: true; userId: string }
@@ -54,18 +43,21 @@ export const seedUsers = mutation({
 				// Prefer provided display name; fallback to prefix of email
 				const displayName = u.name ?? u.email.split("@")[0];
 
+				// Use the roles array as provided, default to ["student"] if none
+				const roles = u.roles || ["student"];
+
 				// Call Better Auth Admin plugin: create-user (role applied server-side)
 				// The admin plugin response includes user id as "id" (mirrors HTTP API)
-				const res = await adminAPI.createUser({
-					email: u.email,
-					password: u.password,
-					name: displayName,
-					// Always use array-based roles; omit if none provided
-					role:
-						u.roles && u.roles.length > 0 ? (u.roles as SeedRole[]) : undefined,
+				const res = await auth.api.createUser({
+					body: {
+						email: u.email,
+						password: u.password,
+						name: displayName,
+						role: roles as any,
+					},
 				});
 
-				const userId: string = res?.id ?? res?.user?.id ?? "unknown";
+				const userId: string = res?.user?.id ?? "unknown";
 
 				results.push({ email: u.email, created: true, userId });
 			} catch (e: any) {

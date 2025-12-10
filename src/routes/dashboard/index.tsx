@@ -140,7 +140,7 @@ function DashboardHome() {
 	return (
 		<div className="space-y-6">
 			<div className="rounded-xl border p-4">
-				<h2 className="text-lg font-semibold">Welcome to Yomilink</h2>
+				<h2 className="text-lg font-semibold">Welcome!</h2>
 				<p className="text-sm text-muted-foreground">
 					Choose a section to get started.
 				</p>
