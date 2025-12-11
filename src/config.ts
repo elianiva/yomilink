@@ -15,4 +15,6 @@ export const ServerConfig = Config.all({
 	databaseUrl: Config.string("TURSO_DATABASE_URL"),
 	dbAuthToken: Config.redacted("TURSO_AUTH_TOKEN"),
 	nodeEnv: Config.string("NODE_ENV"),
+	authSecret: Config.redacted("BETTER_AUTH_SECRET"),
+	authUrl: Config.string("BETTER_AUTH_URL"),
 }).pipe(Effect.withConfigProvider(ConfigProvider.fromJson(env)));

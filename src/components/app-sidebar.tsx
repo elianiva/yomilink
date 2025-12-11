@@ -1,7 +1,4 @@
-"use client";
-
 import { Activity, Map as MapIcon, ScanSearch, Settings } from "lucide-react";
-import { useAuth } from "@/hooks/use-auth";
 
 import { NavMain } from "@/components/nav-main";
 import { NavUser } from "@/components/nav-user";
@@ -12,6 +9,7 @@ import {
 	SidebarHeader,
 	SidebarRail,
 } from "@/components/ui/sidebar";
+import { useSession } from "@/lib/auth-client";
 
 const NAVBAR_ITEMS = [
 	{
@@ -49,10 +47,10 @@ type AppSidebarProps = {
 } & React.ComponentProps<typeof Sidebar>;
 
 export function AppSidebar(props: AppSidebarProps) {
-	const { user: me } = useAuth();
-	const displayName = me?.name ?? null;
-	const displayEmail = me?.email ?? null;
-	const displayAvatar = me?.image ?? null;
+	const { data: me } = useSession();
+	const displayName = me?.user.name ?? null;
+	const displayEmail = me?.user.email ?? null;
+	const displayAvatar = me?.user.image ?? null;
 
 	return (
 		<Sidebar collapsible="icon" {...props}>

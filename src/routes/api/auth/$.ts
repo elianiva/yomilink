@@ -1,6 +1,6 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { Effect } from "effect";
-import { Auth } from "@/server/auth/config";
+import { Auth } from "@/lib/auth";
 
 const authHandler = (request: Request) =>
 	Effect.gen(function* () {
@@ -10,7 +10,7 @@ const authHandler = (request: Request) =>
 	}).pipe(
 		Effect.provide(Auth.Default),
 		Effect.catchTag("UnknownException", (exception) => {
-      // TODO: better logging with sentry
+			// TODO: better logging with sentry
 			Effect.log(exception);
 			return Effect.succeed(
 				Response.json({ message: "Internal Server Error" }, { status: 500 }),

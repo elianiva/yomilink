@@ -12,7 +12,7 @@
     "lint": "biome lint --write",
     "check": "biome check",
     "deploy": "wrangler deploy",
-    "seed": "tsx --env-file=.env.local scripts/seed.ts"
+    "seed": "bun run --env-file=.env scripts/seed.ts"
   },
   "dependencies": {
     "@bprogress/react": "^1.2.7",

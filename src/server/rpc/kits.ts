@@ -2,7 +2,7 @@ import { createServerFn } from "@tanstack/react-start";
 import { desc, eq } from "drizzle-orm";
 import { Effect, Schema } from "effect";
 import { authMiddleware } from "@/middlewares/auth";
-import { goalMaps, kits } from "@/server/db/schema";
+import { goalMaps, kits } from "@/server/db/schema/app-schema";
 import { Database } from "../db/client";
 
 const StudentKitSchema = Schema.Struct({

@@ -1,9 +1,9 @@
 import { createServerFn } from "@tanstack/react-start";
 import { eq } from "drizzle-orm";
 import { Effect, Schema } from "effect";
-import { goalMaps } from "@/server/db/schema";
-import { Database } from "../db/client";
 import { authMiddleware } from "@/middlewares/auth";
+import { goalMaps } from "@/server/db/schema/app-schema";
+import { Database } from "../db/client";
 
 const GetGoalMapSchema = Schema.Struct({
 	id: Schema.NonEmptyString,

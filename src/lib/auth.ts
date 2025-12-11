@@ -5,18 +5,24 @@ import { tanstackStartCookies } from "better-auth/tanstack-start";
 import { Effect, Schema } from "effect";
 import { ServerConfig } from "@/config";
 import { ac, roles } from "@/lib/auth-permissions";
-import { Database } from "../db/client";
-import { Telemetry } from "../telemetry";
+import { Database } from "@/server/db/client";
+import { Telemetry } from "@/server/telemetry";
+import * as appSchema from "@/server/db/schema/app-schema";
+import * as authSchema from "@/server/db/schema/auth-schema";
 
 export class Auth extends Effect.Service<Auth>()("Auth", {
 	effect: Effect.gen(function* () {
 		const config = yield* ServerConfig;
 		const db = yield* Database;
+
 		return betterAuth({
 			baseURL: config.siteUrl,
 			database: drizzleAdapter(db, {
 				provider: "sqlite",
-				transaction: false,
+				schema: {
+					...authSchema,
+					...appSchema,
+				},
 			}),
 			plugins: [
 				admin({
@@ -26,12 +32,20 @@ export class Auth extends Effect.Service<Auth>()("Auth", {
 				}),
 				tanstackStartCookies(), // needs to be last
 			],
-			emailAndPassword: { enabled: true, requireEmailVerification: false },
+			emailAndPassword: {
+				enabled: true,
+				requireEmailVerification: false,
+			},
 			logger: { disabled: false },
 		});
 	}),
 	dependencies: [Database.Default],
 }) {}
+
+// dummy function just for better-auth, do not use directly
+export const auth = Effect.gen(function* () {
+	return yield* Auth;
+}).pipe(Effect.provide(Auth.Default), Effect.runSync);
 
 export const Role = Schema.Literal("teacher", "admin", "student").annotations({
 	message: (issue) => ({ message: `Invalid role: ${issue}`, override: true }),

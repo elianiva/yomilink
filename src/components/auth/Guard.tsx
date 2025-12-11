@@ -1,6 +1,6 @@
 import { Navigate, useLocation } from "@tanstack/react-router";
 import type { ReactNode } from "react";
-import { useAuth } from "@/hooks/use-auth";
+import { useSession } from "@/lib/auth-client";
 
 export type Role = "teacher" | "admin" | "student";
 
@@ -26,14 +26,14 @@ export function Guard({
 	redirectTo = "/dashboard",
 }: GuardProps) {
 	const location = useLocation();
-	const { user } = useAuth();
+	const { data: session } = useSession();
 
 	// No roles means allow-through (useful when Dashboard layout already handles auth)
 	if (!roles || roles.length === 0) {
 		return <>{children}</>;
 	}
 
-	const role = ((user as { role?: Role } | null)?.role ?? null) as Role | null;
+	const role = (session?.user.role ?? null) as Role | null;
 
 	if (role && roles.includes(role)) {
 		return <>{children}</>;

@@ -1,107 +1,76 @@
-// scripts/seed.ts
-// Usage:
-//   tsx --env-file=.env.local scripts/seed.ts
-//   tsx --env-file=.env.local scripts/seed.ts ./seed-users.json
-//
-// Seeds initial data directly via Drizzle (Turso libSQL)
+import { Effect, Schema } from "effect";
+import { Auth } from "@/lib/auth";
+import { Database } from "@/server/db/client";
 
-import { readFile } from "node:fs/promises";
-import { createDb } from "@/server/db/client";
-import { env } from "@/env";
-import { goalMaps, kits } from "@/server/db/schema";
+const SeedUserSchema = Schema.Struct({
+	email: Schema.NonEmptyString,
+	password: Schema.NonEmptyString,
+	name: Schema.optionalWith(Schema.NonEmptyString, { nullable: true }),
+	roles: Schema.optionalWith(
+		Schema.Array(
+			Schema.Union(
+				Schema.Literal("admin"),
+				Schema.Literal("teacher"),
+				Schema.Literal("student"),
+			),
+		),
+		{ nullable: true },
+	),
+});
 
-type SeedUser = {
-  email: string;
-  password: string;
-  name?: string;
-  roles?: ("admin" | "teacher" | "student")[];
-};
+type SeedUser = Schema.Schema.Type<typeof SeedUserSchema>;
 
-const DEFAULT_USERS: SeedUser[] = [
-  { email: "admin@yomilink.local", password: "admin123", name: "Admin", roles: ["admin"] },
-  { email: "teacher@yomilink.local", password: "teacher123", name: "Teacher One", roles: ["teacher"] },
-  { email: "student@yomilink.local", password: "student123", name: "Student One", roles: ["student"] },
+const DEFAULT_USERS: readonly SeedUser[] = [
+	{
+		email: "admin@yomilink.local",
+		password: "admin123",
+		name: "Admin",
+		roles: ["admin"],
+	},
+	{
+		email: "teacher@yomilink.local",
+		password: "teacher123",
+		name: "Teacher One",
+		roles: ["teacher"],
+	},
+	{
+		email: "student@yomilink.local",
+		password: "student123",
+		name: "Student One",
+		roles: ["student"],
+	},
 ];
 
-async function loadUsersFromArg(): Promise<SeedUser[] | null> {
-  const fileArg = process.argv[2];
-  if (!fileArg) return null;
-  const raw = await readFile(fileArg, "utf8");
-  const json = JSON.parse(raw);
-  if (!Array.isArray(json)) throw new Error("Expected an array of users");
-  return json as SeedUser[];
-}
+const program = Effect.gen(function* () {
+	const authService = yield* Auth;
 
-async function main() {
-  const db = createDb(env.TURSO_DATABASE_URL, env.TURSO_AUTH_TOKEN);
+	console.log("Seeding database...");
 
-  // Seed a demo goal map and kit
-  const goalMapId = "demo-goalmap";
-  const demoNodes = [
-    { id: "t1", type: "text", position: { x: 100, y: 100 }, data: { label: "Photosynthesis" } },
-    { id: "c1", type: "connector", position: { x: 300, y: 100 }, data: { label: "is" } },
-    { id: "t2", type: "text", position: { x: 500, y: 100 }, data: { label: "Chemical Process" } },
-  ];
-  const demoEdges = [
-    { id: "e1", source: "t1", target: "c1" },
-    { id: "e2", source: "c1", target: "t2" },
-  ];
+	console.log(`Seeding ${DEFAULT_USERS.length} users...`);
 
-  await db
-    .insert(goalMaps)
-    .values({
-      id: goalMapId,
-      goalMapId,
-      teacherId: "seed-teacher",
-      title: "Demo Goal Map",
-      description: "Seeded goal map",
-      nodes: JSON.stringify(demoNodes),
-      edges: JSON.stringify(demoEdges),
-      updatedAt: Date.now(),
-    })
-    .onConflictDoUpdate({
-      target: goalMaps.goalMapId,
-      set: {
-        title: "Demo Goal Map",
-        description: "Seeded goal map",
-        nodes: JSON.stringify(demoNodes),
-        edges: JSON.stringify(demoEdges),
-        updatedAt: Date.now(),
-      },
-    })
-    .run();
+	for (const user of DEFAULT_USERS) {
+		yield* Effect.tryPromise({
+			try: async () => {
+				const result = await authService.api.signUpEmail({
+					body: {
+						email: user.email,
+						password: user.password,
+						name: user.name as string,
+					},
+				});
 
-  const conceptIds = new Set(["t1", "t2"]);
-  const kitNodes = demoNodes.filter((n) => n.type === "text");
-  const kitEdges = demoEdges.filter((e) => conceptIds.has(e.source) && conceptIds.has(e.target));
+				if (result.user) {
+					console.log(`Created user: ${user.email}`);
+				} else {
+					console.log(`User ${user.email} already exists`);
+				}
+			},
+			catch: (error) =>
+				new Error(`Failed to seed user ${user.email}: ${error}`),
+		});
+	}
 
-  await db
-    .insert(kits)
-    .values({
-      id: goalMapId,
-      goalMapId,
-      createdBy: "seed-teacher",
-      nodes: JSON.stringify(kitNodes),
-      edges: JSON.stringify(kitEdges),
-      constraints: null,
-      version: 1,
-      createdAt: Date.now(),
-    })
-    .onConflictDoUpdate({
-      target: kits.goalMapId,
-      set: {
-        nodes: JSON.stringify(kitNodes),
-        edges: JSON.stringify(kitEdges),
-        updatedAt: Date.now(),
-      } as any,
-    })
-    .run();
+	console.log("Seed completed.");
+}).pipe(Effect.provide(Database.Default), Effect.provide(Auth.Default));
 
-  // Users are Better Auth-managed; keep placeholder for future adapter seeding.
-  const users = (await loadUsersFromArg()) ?? DEFAULT_USERS;
-  console.log(`Loaded ${users.length} seed users (auth adapter seeding not implemented).`);
-
-  console.log("Seed completed.");
-}
-
-void main();
+Effect.runPromise(program);

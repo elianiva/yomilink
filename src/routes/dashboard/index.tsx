@@ -3,8 +3,8 @@ import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { BarChart3, Box, Check, Map as MapIcon } from "lucide-react";
 import { useEffect, useState } from "react";
 import { Button } from "@/components/ui/button";
-import { useAuth } from "@/hooks/use-auth";
 import { listStudentKits, type StudentKit } from "@/server/rpc/kits";
+import { useSession } from "@/lib/auth-client";
 
 export const Route = createFileRoute("/dashboard/")({
 	component: DashboardHome,
@@ -130,7 +130,7 @@ function DashboardHome() {
 		queryKey: ["student-kits"],
 		queryFn: () => listStudentKits(),
 	});
-	const { user: me } = useAuth();
+	const { data: me } = useSession();
 
 	return (
 		<div className="space-y-6">

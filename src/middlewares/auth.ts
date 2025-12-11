@@ -1,7 +1,7 @@
 import { redirect } from "@tanstack/react-router";
 import { createMiddleware } from "@tanstack/react-start";
 import { Schema } from "effect";
-import { getServerUser } from "@/server/auth/config";
+import { getServerUser } from "@/lib/auth";
 
 const Role = Schema.Literal("teacher", "admin", "student").annotations({
 	message: (issue) => ({ message: `Invalid role: ${issue}`, override: true }),
