@@ -1,4 +1,3 @@
-import { useQuery } from "@tanstack/react-query";
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useId } from "react";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
@@ -6,31 +5,24 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { authClient } from "@/lib/auth-client";
+import { getMe } from "@/server/rpc/me";
 
 export const Route = createFileRoute("/dashboard/profile")({
 	component: ProfilePage,
+	loader: () => getMe(),
 });
 
-import { getMe } from "@/server/rpc/auth";
-
 function ProfilePage() {
-	const { data: me } = useQuery({ queryKey: ["me"], queryFn: () => getMe() });
-
+	const me = Route.useLoaderData();
 	const nameId = useId();
 	const emailId = useId();
 	const roleId = useId();
 	const imageId = useId();
 
-	if (typeof me === "undefined") {
-		return (
-			<div className="flex h-[60vh] items-center justify-center">
-				<div className="h-6 w-6 animate-spin rounded-full border-2 border-muted-foreground border-t-transparent" />
-			</div>
-		);
-	}
 	if (me === null) {
 		return <div className="p-4 text-sm">No profile found.</div>;
 	}
+
 	return (
 		<div className="flex w-full justify-center p-4">
 			<form className="w-full max-w-md space-y-6">

@@ -1,12 +1,12 @@
-import { createFileRoute, Navigate } from "@tanstack/react-router";
-import { useAuth } from "@/hooks/use-auth";
+import { createFileRoute, redirect } from "@tanstack/react-router";
+import { getMe } from "@/server/rpc/me";
 
 export const Route = createFileRoute("/")({
-	component: function IndexRedirect() {
-		const { user } = useAuth();
-		if (user === null) {
-			return <Navigate to="/login" />;
-		}
-		return <Navigate to="/dashboard" />;
+  ssr: true,
+	component: () => null,
+	beforeLoad: async () => {
+		const me = await getMe();
+		if (me) throw redirect({ to: "/dashboard" });
+		throw redirect({ to: "/login" });
 	},
 });

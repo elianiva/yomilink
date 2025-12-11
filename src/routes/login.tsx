@@ -1,21 +1,16 @@
-import * as Sentry from "@sentry/tanstackstart-react";
 import { useForm } from "@tanstack/react-form";
-import { createFileRoute, Navigate } from "@tanstack/react-router";
-import { useId, useState } from "react";
-import { z } from "zod";
+import { createFileRoute, redirect } from "@tanstack/react-router";
+import { Schema } from "effect";
+import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { useAuth } from "@/hooks/use-auth";
+import { getMe } from "@/server/rpc/me";
 import { authClient } from "../lib/auth-client";
 
-const getFriendlyAuthErrorMessage = (
-	err: unknown,
-	flow: "signIn" | "signUp",
-): string => {
+function getFriendlyAuthErrorMessage(err: unknown) {
 	const raw = err instanceof Error ? err.message : String(err ?? "");
 	const msg = raw.toLowerCase();
-
 	if (msg.includes("invalidsecret") || msg.includes("invalid secret")) {
 		return "Incorrect email or password.";
 	}
@@ -24,14 +19,7 @@ const getFriendlyAuthErrorMessage = (
 		msg.includes("no account") ||
 		msg.includes("unknown identifier")
 	) {
-		return "Account not found. Check your email or create a new account.";
-	}
-	if (
-		msg.includes("useralreadyexists") ||
-		msg.includes("account already") ||
-		msg.includes("duplicate")
-	) {
-		return "An account with this email already exists. Try signing in instead.";
+		return "Account not found. Check your email.";
 	}
 	if (msg.includes("rate") && msg.includes("limit")) {
 		return "Too many attempts. Please wait a moment and try again.";
@@ -44,36 +32,26 @@ const getFriendlyAuthErrorMessage = (
 		return "Network error. Check your connection and try again.";
 	}
 
-	return flow === "signIn"
-		? "Unable to sign in. Please verify your email and password."
-		: "Unable to create account. Please try again.";
-};
+	return "Unable to sign in. Please verify your email and password.";
+}
 
 export const Route = createFileRoute("/login")({
-	beforeLoad: async (_opts) => {
+	ssr: true,
+	beforeLoad: async () => {
+		const me = await getMe();
+		if (me) throw redirect({ to: "/dashboard" });
 		return null;
 	},
 	component: LoginPage,
 });
 
-function LoginPage() {
-	const { user } = useAuth();
-	if (user) {
-		return <Navigate to="/dashboard" />;
-	}
-	return <LoginPageContent />;
-}
-
-const schema = z.object({
-	email: z.email("Invalid email address"),
-	password: z.string().min(6, "Password must be at least 6 characters"),
+const LoginSchema = Schema.Struct({
+	email: Schema.String,
+	password: Schema.String.pipe(Schema.length(6)),
 });
 
-function LoginPageContent() {
-	const [step, setStep] = useState<"signIn" | "signUp">("signIn");
+function LoginPage() {
 	const [error, setError] = useState<string | null>(null);
-	const idEmail = useId();
-	const idPassword = useId();
 
 	const form = useForm({
 		defaultValues: {
@@ -81,33 +59,19 @@ function LoginPageContent() {
 			password: "",
 		},
 		validators: {
-			onChange: schema,
-			onSubmit: schema,
+			onChange: (raw) => Schema.decodeUnknownSync(LoginSchema)(raw),
+			onSubmit: (raw) => Schema.decodeUnknownSync(LoginSchema)(raw),
 		},
 		onSubmit: async ({ value }) => {
 			setError(null);
 			try {
-				if (step === "signIn") {
-					const { error } = await authClient.signIn.email({
-						email: value.email,
-						password: value.password,
-					});
-					if (error) throw new Error(error.message ?? "Sign in failed");
-				} else {
-					const { error } = await authClient.signUp.email({
-						email: value.email,
-						password: value.password,
-						name: value.email.split("@")[0] ?? "User",
-					});
-					if (error) throw new Error(error.message ?? "Sign up failed");
-				}
+				const { error } = await authClient.signIn.email({
+					email: value.email,
+					password: value.password,
+				});
+				if (error) throw new Error(error.message ?? "Sign in failed");
 			} catch (e: unknown) {
-				try {
-					Sentry.captureException(e, {
-						tags: { area: "auth", flow: step },
-					});
-				} catch {}
-				setError(getFriendlyAuthErrorMessage(e, step));
+				setError(getFriendlyAuthErrorMessage(e));
 			}
 		},
 	});
@@ -123,9 +87,7 @@ function LoginPageContent() {
 						<div>
 							<h1 className="text-2xl font-semibold">KitBuild</h1>
 							<p className="text-sm text-muted-foreground">
-								{step === "signIn"
-									? "Sign in to your account"
-									: "Create your account"}
+								Sign in to your account
 							</p>
 						</div>
 					</div>
@@ -147,9 +109,9 @@ function LoginPageContent() {
 						<form.Field name="email">
 							{(field) => (
 								<div className="space-y-1.5">
-									<Label htmlFor={idEmail}>Email</Label>
+									<Label htmlFor="email">Email</Label>
 									<Input
-										id={idEmail}
+										id="email"
 										placeholder="you@example.com"
 										value={field.state.value}
 										onChange={(e) => field.handleChange(e.target.value)}
@@ -176,17 +138,15 @@ function LoginPageContent() {
 						<form.Field name="password">
 							{(field) => (
 								<div className="space-y-1.5">
-									<Label htmlFor={idPassword}>Password</Label>
+									<Label htmlFor="password">Password</Label>
 									<Input
-										id={idPassword}
+										id="password"
 										type="password"
 										placeholder="********"
 										value={field.state.value}
 										onChange={(e) => field.handleChange(e.target.value)}
 										onBlur={field.handleBlur}
-										autoComplete={
-											step === "signIn" ? "current-password" : "new-password"
-										}
+										autoComplete="current-password"
 									/>
 									{field.state.meta.isTouched &&
 									field.state.meta.errors.length ? (
@@ -204,21 +164,6 @@ function LoginPageContent() {
 							)}
 						</form.Field>
 
-						<div className="flex items-center justify-between pt-1">
-							<button
-								type="button"
-								onClick={() => {
-									setStep(step === "signIn" ? "signUp" : "signIn");
-									setError(null);
-								}}
-								className="text-sm underline underline-offset-4 hover:opacity-90 transition-opacity text-primary"
-							>
-								{step === "signIn"
-									? "Create an account"
-									: "Have an account? Sign in"}
-							</button>
-						</div>
-
 						<form.Subscribe
 							selector={(s) => [s.canSubmit, s.isSubmitting] as const}
 						>
@@ -228,13 +173,7 @@ function LoginPageContent() {
 									disabled={!canSubmit || isSubmitting}
 									className="w-full"
 								>
-									{isSubmitting
-										? step === "signIn"
-											? "Signing in..."
-											: "Creating account..."
-										: step === "signIn"
-											? "Sign in"
-											: "Create account"}
+									{isSubmitting ? "Signing in..." : "Sign in"}
 								</Button>
 							)}
 						</form.Subscribe>

@@ -1,77 +1,85 @@
 import { createServerFn } from "@tanstack/react-start";
-import { z } from "zod";
 import { eq } from "drizzle-orm";
-import { createDb } from "@/server/db/client";
-import { env } from "@/env";
+import { Effect, Schema } from "effect";
 import { goalMaps } from "@/server/db/schema";
+import { Database } from "../db/client";
+import { authMiddleware } from "@/middlewares/auth";
 
-const GetGoalMapSchema = z.object({ goalMapId: z.string().min(1) });
-export const getGoalMap = createServerFn({ method: "POST" })
-	.inputValidator(GetGoalMapSchema)
-	.handler(async ({ data }) => {
-		const { goalMapId } = data;
-		const db = createDb(env.TURSO_DATABASE_URL, env.TURSO_AUTH_TOKEN);
-		const row = await db
-			.select()
-			.from(goalMaps)
-			.where(eq(goalMaps.goalMapId, goalMapId))
-			.get();
-		if (!row) return null;
-		return {
-			goalMapId: row.goalMapId,
-			title: row.title,
-			description: row.description,
-			nodes: safeParseJson(row.nodes) ?? [],
-			edges: safeParseJson(row.edges) ?? [],
-			updatedAt: row.updatedAt,
-			teacherId: row.teacherId,
-		};
-	});
-
-const SaveGoalMapSchema = z.object({
-	goalMapId: z.string().min(1),
-	title: z.string().min(1),
-	description: z.string().optional().nullable(),
-	nodes: z.any(),
-	edges: z.any(),
-	updatedAt: z.number().optional(),
-	teacherId: z.string().optional(),
+const GetGoalMapSchema = Schema.Struct({
+	id: Schema.NonEmptyString,
 });
-export const saveGoalMap = createServerFn({ method: "POST" })
-	.inputValidator(SaveGoalMapSchema)
-	.handler(async ({ data }) => {
-		const db = createDb(env.TURSO_DATABASE_URL, env.TURSO_AUTH_TOKEN);
-		const payload = {
-			id: data.goalMapId,
-			goalMapId: data.goalMapId,
-			title: data.title,
-			description: data.description ?? null,
-			nodes: JSON.stringify(data.nodes ?? []),
-			edges: JSON.stringify(data.edges ?? []),
-			updatedAt: data.updatedAt ?? Date.now(),
-			teacherId: data.teacherId ?? "",
-		};
-		const existing = await db
-			.select({ id: goalMaps.id })
-			.from(goalMaps)
-			.where(eq(goalMaps.goalMapId, data.goalMapId))
-			.get();
-		if (existing) {
-			await db
-				.update(goalMaps)
-				.set(payload)
-				.where(eq(goalMaps.goalMapId, data.goalMapId))
-				.run();
-		} else {
-			await db.insert(goalMaps).values(payload).run();
-		}
-		return { ok: true } as const;
-	});
 
-function safeParseJson(s?: string | null) {
-	try {
-		return s ? JSON.parse(s) : null;
-	} catch {
-		return null;
-	}
-}
+const GoalMapResultSchema = Schema.Struct({
+	goalMapId: Schema.NonEmptyString,
+	title: Schema.NonEmptyString,
+	description: Schema.optionalWith(Schema.NonEmptyString, { nullable: true }),
+	nodes: Schema.Array(Schema.Any),
+	edges: Schema.Array(Schema.Any),
+	teacherId: Schema.optionalWith(Schema.NonEmptyString, { nullable: true }),
+});
+
+export const getGoalMap = createServerFn({ method: "POST" })
+	.middleware([authMiddleware])
+	.inputValidator((raw) => Schema.decodeUnknownSync(GetGoalMapSchema)(raw))
+	.handler(({ data }) =>
+		Effect.gen(function* () {
+			const db = yield* Database;
+			const row = yield* Effect.tryPromise(() =>
+				db.select().from(goalMaps).where(eq(goalMaps.goalMapId, data.id)).get(),
+			);
+			if (!row) return null;
+
+			const result = yield* Schema.decodeUnknown(GoalMapResultSchema)(row);
+			return result;
+		}).pipe(
+			Effect.provide(Database.Default),
+			Effect.withSpan("getGoalMap"),
+			Effect.runPromise,
+		),
+	);
+
+const SaveGoalMapSchema = Schema.Struct({
+	goalMapId: Schema.NonEmptyString,
+	title: Schema.NonEmptyString,
+	description: Schema.optionalWith(Schema.NonEmptyString, { nullable: true }),
+	nodes: Schema.Array(Schema.Any),
+	edges: Schema.Array(Schema.Any),
+	updatedAt: Schema.optionalWith(Schema.Number, { nullable: true }),
+	teacherId: Schema.optionalWith(Schema.NonEmptyString, { nullable: true }),
+});
+
+export const saveGoalMap = createServerFn({ method: "POST" })
+	.middleware([authMiddleware])
+	.inputValidator((raw) => Schema.decodeUnknownSync(SaveGoalMapSchema)(raw))
+	.handler(async ({ data }) =>
+		Effect.gen(function* () {
+			const db = yield* Database;
+
+			const payload = {
+				id: data.goalMapId,
+				goalMapId: data.goalMapId,
+				title: data.title,
+				description: data.description ?? null,
+				nodes: JSON.stringify(data.nodes ?? []),
+				edges: JSON.stringify(data.edges ?? []),
+				updatedAt: data.updatedAt ?? Date.now(),
+				teacherId: data.teacherId ?? "",
+			};
+
+			yield* Effect.tryPromise(() =>
+				db
+					.insert(goalMaps)
+					.values(payload)
+					.onConflictDoUpdate({
+						where: eq(goalMaps.goalMapId, data.goalMapId),
+						target: goalMaps.id,
+						set: payload,
+					})
+					.run(),
+			);
+		}).pipe(
+			Effect.withSpan("saveGoalMap"),
+			Effect.provide(Database.Default),
+			Effect.runPromise,
+		),
+	);

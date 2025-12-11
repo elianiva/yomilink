@@ -1,8 +1,8 @@
 import {
 	createFileRoute,
 	Link,
-	Navigate,
 	Outlet,
+	redirect,
 	useLocation,
 } from "@tanstack/react-router";
 import { AppSidebar } from "@/components/app-sidebar";
@@ -20,26 +20,18 @@ import {
 	SidebarProvider,
 	SidebarTrigger,
 } from "@/components/ui/sidebar";
-import { useAuth } from "@/hooks/use-auth";
+import { getMe } from "@/server/rpc/me";
 
 export const Route = createFileRoute("/dashboard")({
-	beforeLoad: async (_opts) => {
-		return null;
+	beforeLoad: async () => {
+		const me = await getMe();
+		if (!me) throw redirect({ to: "/login" });
+		return me;
 	},
 	component: DashboardLayout,
 });
 
 function DashboardLayout() {
-	const { user } = useAuth();
-
-	if (user === null) {
-		return <Navigate to="/login" />;
-	}
-
-	return <DashboardContent />;
-}
-
-function DashboardContent() {
 	const location = useLocation();
 
 	const segments = location.pathname.split("/").filter(Boolean);
@@ -95,3 +87,5 @@ function DashboardContent() {
 		</SidebarProvider>
 	);
 }
+
+function DashboardContent() {}
