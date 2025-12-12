@@ -131,7 +131,7 @@ function DashboardHome() {
 								.fill(0)
 								.map((_, i) => (
 									<Skeleton
-										// biome-ignore lint/suspicious/noArrayIndexKey: idc
+										// biome-ignore lint/suspicious/noArrayIndexKey: don't care
 										key={i}
 										className="w-full h-20"
 										style={{

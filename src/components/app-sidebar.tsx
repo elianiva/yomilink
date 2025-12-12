@@ -59,13 +59,15 @@ export function AppSidebar(props: AppSidebarProps) {
 	return (
 		<Sidebar collapsible="icon" {...props}>
 			<SidebarHeader>
-				<div className="flex items-center gap-3 px-2 py-2">
-					<div className="h-9 w-9 rounded-lg bg-primary/90 ring-4 ring-primary/10 flex items-center justify-center text-primary-foreground font-bold">
+				<div className="flex items-center transition-all duration-200 ease-linear">
+					<div className="size-8 transition-all duration-200 ease-linear rounded-lg bg-primary/90 ring-4 ring-primary/10 flex items-center justify-center text-primary-foreground font-bold">
 						K
 					</div>
-					<div>
-						<h1 className="text-base font-medium">KitBuild</h1>
-						<p className="text-xs text-muted-foreground">
+					<div className="transition-all ml-2 duration-200 ease-linear group-data-[collapsible=icon]:ml-0 group-data-[collapsible=icon]:opacity-0 group-data-[collapsible=icon]:w-0 overflow-hidden">
+						<h1 className="text-base font-medium whitespace-nowrap">
+							KitBuild
+						</h1>
+						<p className="text-xs text-muted-foreground whitespace-nowrap">
 							Kit-Build Concept Map
 						</p>
 					</div>
