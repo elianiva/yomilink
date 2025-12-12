@@ -70,8 +70,8 @@ function DashboardHome() {
 	};
 
 	return (
-		<main className="w-full h-full overflow-hidden flex flex-col">
-			<div className="flex items-center gap-4 pb-4 border-b mb-4">
+		<main className="w-full h-full flex flex-col">
+			<div className="flex items-center gap-4 mb-4">
 				<div className="flex-1">
 					<Label htmlFor="search" className="sr-only">
 						Search goal maps
@@ -81,7 +81,7 @@ function DashboardHome() {
 						placeholder="Search goal maps..."
 						value={searchTerm}
 						onChange={(e) => setSearchTerm(e.target.value)}
-						className="max-w-sm"
+						className="max-w-sm border-none shadow-none bg-white"
 					/>
 				</div>
 				<Button asChild>
@@ -92,7 +92,7 @@ function DashboardHome() {
 				</Button>
 			</div>
 			<div className="flex-1 overflow-hidden flex items-stretch gap-4">
-				<div className="w-1/3 border rounded-lg p-4 overflow-y-auto">
+				<div className="w-1/3 bg-white rounded-lg p-4 overflow-y-auto">
 					<div className="flex items-center justify-between mb-3">
 						<h3 className="font-medium">Topics</h3>
 						<Button size="sm" variant="outline">
@@ -117,7 +117,7 @@ function DashboardHome() {
 						))}
 					</div>
 				</div>
-				<div className="flex-1 border rounded-lg p-4 overflow-y-auto">
+				<div className="flex-1 bg-white rounded-lg p-4 overflow-y-auto">
 					<div className="flex items-center justify-between mb-3">
 						<h3 className="font-semibold">
 							{selectedTopic
@@ -157,7 +157,7 @@ function DashboardHome() {
 							{goalMaps.map((goalMap) => (
 								<div
 									key={goalMap.goalMapId}
-									className="flex items-center justify-between p-4 border rounded-lg hover:bg-accent/50 transition-colors"
+									className="flex items-center justify-between p-4 bg-primary/10 rounded-lg hover:bg-accent/50 transition-colors"
 								>
 									<div className="flex-1 min-w-0">
 										<h3 className="font-semibold truncate">{goalMap.title}</h3>

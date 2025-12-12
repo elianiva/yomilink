@@ -38,7 +38,7 @@ body {
   --chart-3: oklch(0.8773 0.0763 54.9314);
   --chart-4: oklch(0.8200 0.1054 40.8859);
   --chart-5: oklch(0.6368 0.1306 32.0721);
-  --sidebar: oklch(0.9656 0.0176 39.4009);
+  --sidebar: oklch(0.92 0.06 33.23);
   --sidebar-foreground: oklch(0.3353 0.0132 2.7676);
   --sidebar-primary: oklch(0.7357 0.1641 34.7091);
   --sidebar-primary-foreground: oklch(1.0000 0 0);
@@ -176,7 +176,7 @@ body {
 
 @layer base {
   * {
-    @apply border-border outline-ring/50;
+    @apply border-border outline-ring/25;
   }
 
   body {

@@ -50,7 +50,7 @@ function DashboardLayout() {
 		<SidebarProvider>
 			<AppSidebar className="border-none" />
 			<SidebarInset className="p-2 pl-0 bg-sidebar">
-				<main className="bg-white h-full rounded-xl flex flex-col">
+				<main className="bg-[oklch(97.30%_0.013_28.8)] h-full rounded-xl flex flex-col">
 					<header className="flex h-14 shrink-0 items-center gap-2 transition-[width,height] ease-linear group-has-data-[collapsible=icon]/sidebar-wrapper:h-12">
 						<div className="flex items-center gap-2 px-4">
 							<SidebarTrigger className="-ml-1" />
