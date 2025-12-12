@@ -18,7 +18,7 @@ import {
 	UserPlus,
 	Users,
 } from "lucide-react";
-import Guard from "@/components/auth/Guard";
+import { Guard } from "@/components/auth/Guard";
 import { Button } from "@/components/ui/button";
 import { Separator } from "@/components/ui/separator";
 

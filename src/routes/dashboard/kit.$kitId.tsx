@@ -11,7 +11,7 @@ import {
 	useEdgesState,
 	useNodesState,
 } from "@xyflow/react";
-import Guard from "@/components/auth/Guard";
+import { Guard } from "@/components/auth/Guard";
 import "@xyflow/react/dist/style.css";
 
 import { Maximize2, RotateCcw, RotateCw, ZoomIn, ZoomOut } from "lucide-react";
@@ -21,7 +21,7 @@ import ImageNode, {
 } from "@/components/kit/nodes/ImageNode";
 import TextNode, { type TextNodeData } from "@/components/kit/nodes/TextNode";
 import { Button } from "@/components/ui/button";
-import { getKit } from "@/server/rpc/kits";
+import { getKit } from "@/server/rpc/kit";
 
 export const Route = createFileRoute("/dashboard/kit/$kitId")({
 	component: () => (

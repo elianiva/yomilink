@@ -1,13 +1,14 @@
 # Agent Guidelines for Yomilink
 
 ## Commands
-- `npm run dev` - Start development server
-- `npm run build` - Build for production  
-- `npm run test` - Run all tests with vitest
-- `npm run test <filename>` - Run single test file (e.g., `npm run test saveDialog.test.tsx`)
-- `npm run lint` - Run biome linter with auto-fix
-- `npm run format` - Format code with biome
-- `npm run check` - Run all biome checks (lint + format)
+- `bun run dev` - Start development server
+- `bun run build` - Build for production
+- `bun run test` - Run all tests with vitest
+- `bun run test <filename>` - Run single test file (e.g., `npm run test saveDialog.test.tsx`)
+- `bun run lint` - Run biome linter with auto-fix
+- `bun run format` - Format code with biome
+- `bun run check` - Run all biome checks (lint + format)
+- `bun ui add` - Add component from shadcn ui, can only do one at a time
 
 ## Code Style
 - Use Biome for formatting/linting (tab indentation, double quotes)

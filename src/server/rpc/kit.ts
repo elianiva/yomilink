@@ -4,7 +4,7 @@ import { Effect, Schema } from "effect";
 import { authMiddleware } from "@/middlewares/auth";
 import { goalMaps, kits } from "@/server/db/schema/app-schema";
 import { Database } from "../db/client";
-import { queryOptions } from "@tanstack/react-query";
+import { mutationOptions, queryOptions } from "@tanstack/react-query";
 
 export const StudentKitSchema = Schema.Struct({
 	goalMapId: Schema.NonEmptyString,
@@ -168,20 +168,21 @@ function safeParseJson(s?: string | null) {
 	}
 }
 
-export const KitsRpc = {
+export const KitRpc = {
+	studentKits: () => ["student-kits"],
 	listStudentKits: () =>
 		queryOptions({
-			queryKey: ["student-kits"],
+			queryKey: [...KitRpc.studentKits()],
 			queryFn: () => listStudentKits(),
 		}),
 	getKit: () =>
 		queryOptions({
-			queryKey: ["student-kits"],
+			queryKey: [...KitRpc.studentKits()],
 			queryFn: () => getKit(),
 		}),
-	generateKit: () =>
-		queryOptions({
-			queryKey: ["student-kits"],
-			queryFn: () => generateKit(),
+	generateKit: (data: typeof GenerateKitSchema.Type) =>
+		mutationOptions({
+			mutationKey: [...KitRpc.studentKits()],
+			mutationFn: () => generateKit({ data }),
 		}),
 };

@@ -11,7 +11,7 @@ import {
 	ZoomOut,
 } from "lucide-react";
 import { useId, useMemo, useState } from "react";
-import Guard from "@/components/auth/Guard";
+import { Guard } from "@/components/auth/Guard";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import {

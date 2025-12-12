@@ -1,5 +1,9 @@
-import { Activity, Map as MapIcon, ScanSearch, Settings } from "lucide-react";
-
+import {
+	ActivityIcon,
+	LayoutPanelLeftIcon,
+	ScanSearchIcon,
+	SettingsIcon,
+} from "lucide-react";
 import { NavMain } from "@/components/nav-main";
 import { NavUser } from "@/components/nav-user";
 import {
@@ -13,25 +17,25 @@ import { useSession } from "@/lib/auth-client";
 
 const NAVBAR_ITEMS = [
 	{
-		title: "Concept Mapping",
+		title: "Dashboard",
 		url: "/dashboard",
-		icon: MapIcon,
+		icon: LayoutPanelLeftIcon,
 		isActive: true,
 	},
 	{
 		title: "Static Analyzer",
 		url: "/dashboard/analytics",
-		icon: ScanSearch,
+		icon: ScanSearchIcon,
 	},
 	{
 		title: "Dynamic Analyzer",
 		url: "/dashboard/results",
-		icon: Activity,
+		icon: ActivityIcon,
 	},
 	{
 		title: "System Administration",
 		url: "/dashboard/rooms",
-		icon: Settings,
+		icon: SettingsIcon,
 	},
 ];
 
@@ -57,10 +61,10 @@ export function AppSidebar(props: AppSidebarProps) {
 			<SidebarHeader>
 				<div className="flex items-center gap-3 px-2 py-2">
 					<div className="h-9 w-9 rounded-lg bg-primary/90 ring-4 ring-primary/10 flex items-center justify-center text-primary-foreground font-bold">
-						Y
+						K
 					</div>
 					<div>
-						<h1 className="text-base font-semibold">KitBuild</h1>
+						<h1 className="text-base font-medium">KitBuild</h1>
 						<p className="text-xs text-muted-foreground">
 							Kit-Build Concept Map
 						</p>

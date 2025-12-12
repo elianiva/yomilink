@@ -1,6 +1,6 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { BookOpen, ChevronRight } from "lucide-react";
-import Guard from "@/components/auth/Guard";
+import { Guard } from "@/components/auth/Guard";
 import { Button } from "@/components/ui/button";
 
 export const Route = createFileRoute("/dashboard/assignments/")({

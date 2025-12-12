@@ -1,4 +1,5 @@
 import { ProgressProvider } from "@bprogress/react";
+import fredokaFont from "@fontsource-variable/fredoka/index.css?url";
 import { TanStackDevtools } from "@tanstack/react-devtools";
 import type { QueryClient } from "@tanstack/react-query";
 import { ReactQueryDevtoolsPanel } from "@tanstack/react-query-devtools";
@@ -23,7 +24,10 @@ export const Route = createRootRouteWithContext<MyRouterContext>()({
 			{ name: "viewport", content: "width=device-width, initial-scale=1" },
 			{ title: "Yomilink" },
 		],
-		links: [{ rel: "stylesheet", href: appCss }],
+		links: [
+			{ rel: "stylesheet", href: appCss },
+			{ rel: "stylesheet", href: fredokaFont },
+		],
 	}),
 	notFoundComponent: NotFound,
 	shellComponent: RootDocument,

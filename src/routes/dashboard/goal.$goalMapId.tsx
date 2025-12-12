@@ -13,7 +13,7 @@ import {
 	useNodesState,
 } from "@xyflow/react";
 
-import Guard from "@/components/auth/Guard";
+import { Guard } from "@/components/auth/Guard";
 import "@xyflow/react/dist/style.css";
 
 import { Plus } from "lucide-react";
@@ -37,8 +37,9 @@ import TextNode, { type TextNodeData } from "@/components/kit/nodes/TextNode";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { saveGoalMap } from "@/server/rpc/goalMaps";
-import { generateKit } from "@/server/rpc/kits";
+import { GoalMapValidator } from "@/lib/goalmap-validator";
+import { saveGoalMap } from "@/server/rpc/goal-map";
+import { generateKit } from "@/server/rpc/kit";
 
 export const Route = createFileRoute("/dashboard/goal/$goalMapId")({
 	component: () => (
@@ -176,6 +177,7 @@ function TeacherGoalMapEditor() {
 	const [saving, setSaving] = useState(false);
 	const [saveError, setSaveError] = useState<string | null>(null);
 	const [saveWarnings, setSaveWarnings] = useState<string[]>([]);
+	const [validationWarnings, setValidationWarnings] = useState<string[]>([]);
 	const [lastSavedSnapshot, setLastSavedSnapshot] = useState<string | null>(
 		null,
 	);
@@ -325,39 +327,11 @@ function TeacherGoalMapEditor() {
 	const fit = () => rfRef.current?.fitView?.({ padding: 0.2 });
 
 	const validate = useCallback(() => {
-		const errs: string[] = [];
-		const idSet = new Set(nodes.map((n) => n.id));
-		// edges connect existing nodes
-		edges.forEach((e) => {
-			if (!idSet.has(e.source) || !idSet.has(e.target)) {
-				errs.push(
-					`Edge ${e.id ?? `${e.source}-${e.target}`} references missing nodes`,
-				);
-			}
-		});
-		// connector in/out
-		const inCount: Record<string, number> = {};
-		const outCount: Record<string, number> = {};
-		edges.forEach((e) => {
-			outCount[e.source] = (outCount[e.source] ?? 0) + 1;
-			inCount[e.target] = (inCount[e.target] ?? 0) + 1;
-		});
-		nodes
-			.filter((n) => n.type === "connector")
-			.forEach((n) => {
-				if (!inCount[n.id]) errs.push(`Connector ${n.id} has no inbound edge`);
-				if (!outCount[n.id])
-					errs.push(`Connector ${n.id} has no outbound edge`);
-			});
-		const conceptCount = nodes.filter(
-			(n) => n.type === "text" || n.type === "image",
-		).length;
-		const connectorCount = nodes.filter((n) => n.type === "connector").length;
-		if (conceptCount < 2)
-			errs.push("At least 2 concept nodes (text/image) required");
-		if (connectorCount < 1) errs.push("At least 1 connector node required");
-		if (edges.length < 2) errs.push("At least 2 edges required");
-		return errs;
+		// Use enhanced KBFIRA validation
+		const validationResult = GoalMapValidator.validateNodes(nodes, edges).pipe(
+			Effect.runSync,
+		);
+		return validationResult.errors;
 	}, [nodes, edges]);
 
 	const buildKit = (): KitExport => {
@@ -392,8 +366,17 @@ function TeacherGoalMapEditor() {
 				y: 0,
 				zoom: 1,
 			};
-			const clientWarnings = validate();
+
+			// Enhanced KBFIRA validation
+			const validationResult = GoalMapValidator.validateNodes(
+				nodes,
+				edges,
+			).pipe(Effect.runSync);
+			const clientWarnings = validationResult.errors;
+			const enhancedWarnings = validationResult.warnings;
+
 			setSaveWarnings(clientWarnings);
+			setValidationWarnings(enhancedWarnings);
 
 			const payload: GoalMapDoc = {
 				goalMapId,
@@ -422,7 +405,12 @@ function TeacherGoalMapEditor() {
 				setLastSavedSnapshot(JSON.stringify({ nodes, edges }));
 
 				// Optional: console tracing
-				console.log("goalmap.save", { payload, clientWarnings });
+				console.log("goalmap.save", {
+					payload,
+					clientWarnings,
+					enhancedWarnings,
+					propositions: validationResult.propositions,
+				});
 			} catch (err: unknown) {
 				const message =
 					err instanceof Error ? err.message : "Save failed. Please try again.";
@@ -462,7 +450,7 @@ function TeacherGoalMapEditor() {
 				setSaving(false);
 			}
 		},
-		[goalMapId, nodes, edges, validate],
+		[goalMapId, nodes, edges],
 	);
 
 	const handleExportKit = () => {
@@ -562,6 +550,14 @@ function TeacherGoalMapEditor() {
 				warnings={saveWarnings}
 				onClear={() => setSaveWarnings([])}
 			/>
+			{validationWarnings.length > 0 ? (
+				<WarningsPanel
+					warnings={validationWarnings}
+					variant="warning"
+					onClear={() => setValidationWarnings([])}
+					className="mt-2"
+				/>
+			) : null}
 			{saveError ? (
 				<WarningsPanel
 					warnings={[saveError]}

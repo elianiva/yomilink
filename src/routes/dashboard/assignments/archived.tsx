@@ -1,6 +1,6 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { BookOpen } from "lucide-react";
-import Guard from "@/components/auth/Guard";
+import { Guard } from "@/components/auth/Guard";
 
 export const Route = createFileRoute("/dashboard/assignments/archived")({
 	component: () => (

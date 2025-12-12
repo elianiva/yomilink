@@ -33,9 +33,9 @@ export function Guard({
 		return <>{children}</>;
 	}
 
-	const role = (session?.user.role ?? null) as Role | null;
+	const role = session?.user.role ?? "";
 
-	if (role && roles.includes(role)) {
+	if (role && roles.includes(role as Role)) {
 		return <>{children}</>;
 	}
 
@@ -52,5 +52,3 @@ export function Guard({
 		<div className="p-4 text-sm text-muted-foreground">Access restricted.</div>
 	);
 }
-
-export default Guard;
