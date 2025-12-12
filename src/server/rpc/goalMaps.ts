@@ -4,6 +4,7 @@ import { Effect, Schema } from "effect";
 import { authMiddleware } from "@/middlewares/auth";
 import { goalMaps } from "@/server/db/schema/app-schema";
 import { Database } from "../db/client";
+import { queryOptions } from "@tanstack/react-query";
 
 const GetGoalMapSchema = Schema.Struct({
 	id: Schema.NonEmptyString,
@@ -83,3 +84,16 @@ export const saveGoalMap = createServerFn({ method: "POST" })
 			Effect.runPromise,
 		),
 	);
+
+export const GoalMapsRpc = {
+	getGoalMap: (data: typeof GetGoalMapSchema.Type) =>
+		queryOptions({
+			queryKey: ["goal-map", data.id],
+			queryFn: () => getGoalMap({ data }),
+		}),
+	saveGoalMap: (data: typeof SaveGoalMapSchema.Type) =>
+		queryOptions({
+			queryKey: ["goal-map"],
+			queryFn: () => saveGoalMap({ data }),
+		}),
+};

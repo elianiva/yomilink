@@ -4,8 +4,9 @@ import { Effect, Schema } from "effect";
 import { authMiddleware } from "@/middlewares/auth";
 import { goalMaps, kits } from "@/server/db/schema/app-schema";
 import { Database } from "../db/client";
+import { queryOptions } from "@tanstack/react-query";
 
-const StudentKitSchema = Schema.Struct({
+export const StudentKitSchema = Schema.Struct({
 	goalMapId: Schema.NonEmptyString,
 	title: Schema.NonEmptyString,
 	description: Schema.optionalWith(Schema.NonEmptyString, { nullable: true }),
@@ -44,7 +45,7 @@ const GetKitSchema = Schema.Struct({
 	kitId: Schema.NonEmptyString,
 });
 
-const KitResultSchema = Schema.Struct({
+export const KitResultSchema = Schema.Struct({
 	goalMapId: Schema.NonEmptyString,
 	nodes: Schema.Array(Schema.Any),
 	edges: Schema.Array(Schema.Any),
@@ -166,3 +167,21 @@ function safeParseJson(s?: string | null) {
 		return null;
 	}
 }
+
+export const KitsRpc = {
+	listStudentKits: () =>
+		queryOptions({
+			queryKey: ["student-kits"],
+			queryFn: () => listStudentKits(),
+		}),
+	getKit: () =>
+		queryOptions({
+			queryKey: ["student-kits"],
+			queryFn: () => getKit(),
+		}),
+	generateKit: () =>
+		queryOptions({
+			queryKey: ["student-kits"],
+			queryFn: () => generateKit(),
+		}),
+};

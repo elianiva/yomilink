@@ -5,7 +5,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { authClient } from "@/lib/auth-client";
-import { getMe } from "@/server/rpc/me";
+import { getMe } from "@/server/rpc/profile";
 
 export const Route = createFileRoute("/dashboard/profile")({
 	component: ProfilePage,

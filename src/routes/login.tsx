@@ -1,12 +1,13 @@
 import { useForm } from "@tanstack/react-form";
-import { createFileRoute, redirect } from "@tanstack/react-router";
+import { createFileRoute, redirect, useNavigate } from "@tanstack/react-router";
 import { Schema } from "effect";
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { getMe } from "@/server/rpc/me";
+import { getMe } from "@/server/rpc/profile";
 import { authClient } from "../lib/auth-client";
+import { FieldInfo } from "@/components/ui/field-info";
 
 function getFriendlyAuthErrorMessage(err: unknown) {
 	const raw = err instanceof Error ? err.message : String(err ?? "");
@@ -46,11 +47,12 @@ export const Route = createFileRoute("/login")({
 });
 
 const LoginSchema = Schema.Struct({
-	email: Schema.String,
-	password: Schema.String.pipe(Schema.length(6)),
+	email: Schema.NonEmptyString,
+	password: Schema.String.pipe(Schema.minLength(8)),
 });
 
 function LoginPage() {
+	const navigate = useNavigate();
 	const [error, setError] = useState<string | null>(null);
 
 	const form = useForm({
@@ -59,8 +61,8 @@ function LoginPage() {
 			password: "",
 		},
 		validators: {
-			onChange: (raw) => Schema.decodeUnknownSync(LoginSchema)(raw),
-			onSubmit: (raw) => Schema.decodeUnknownSync(LoginSchema)(raw),
+			onChange: Schema.standardSchemaV1(LoginSchema),
+			onSubmit: Schema.standardSchemaV1(LoginSchema),
 		},
 		onSubmit: async ({ value }) => {
 			setError(null);
@@ -69,7 +71,10 @@ function LoginPage() {
 					email: value.email,
 					password: value.password,
 				});
-				if (error) throw new Error(error.message ?? "Sign in failed");
+				if (error) {
+					throw new Error(error.message ?? "Sign in failed");
+				}
+				navigate({ to: "/dashboard" });
 			} catch (e: unknown) {
 				setError(getFriendlyAuthErrorMessage(e));
 			}
@@ -119,18 +124,7 @@ function LoginPage() {
 										inputMode="email"
 										autoComplete="email"
 									/>
-									{field.state.meta.isTouched &&
-									field.state.meta.errors.length ? (
-										<p className="text-sm text-destructive">
-											{field.state.meta.errors
-												.map((e) =>
-													typeof e === "string"
-														? e
-														: ((e as any)?.message ?? String(e)),
-												)
-												.join(", ")}
-										</p>
-									) : null}
+									<FieldInfo field={field} />
 								</div>
 							)}
 						</form.Field>
@@ -148,18 +142,7 @@ function LoginPage() {
 										onBlur={field.handleBlur}
 										autoComplete="current-password"
 									/>
-									{field.state.meta.isTouched &&
-									field.state.meta.errors.length ? (
-										<p className="text-sm text-destructive">
-											{field.state.meta.errors
-												.map((e) =>
-													typeof e === "string"
-														? e
-														: ((e as any)?.message ?? String(e)),
-												)
-												.join(", ")}
-										</p>
-									) : null}
+									<FieldInfo field={field} />
 								</div>
 							)}
 						</form.Field>

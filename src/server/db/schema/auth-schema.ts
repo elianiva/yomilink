@@ -92,9 +92,46 @@ export const verification = sqliteTable(
 	(table) => [index("verification_identifier_idx").on(table.identifier)],
 );
 
+export const cohorts = sqliteTable("cohorts", {
+	id: text("id").primaryKey(),
+	name: text("name").notNull(),
+	description: text("description"),
+	createdAt: integer("created_at", { mode: "timestamp_ms" })
+		.default(sql`(cast(unixepoch('subsecond') * 1000 as integer))`)
+		.notNull(),
+	updatedAt: integer("updated_at", { mode: "timestamp_ms" })
+		.default(sql`(cast(unixepoch('subsecond') * 1000 as integer))`)
+		.$onUpdate(() => /* @__PURE__ */ new Date())
+		.notNull(),
+});
+
+export const cohortMembers = sqliteTable(
+	"cohort_members",
+	{
+		id: text("id").primaryKey(),
+		cohortId: text("cohort_id")
+			.notNull()
+			.references(() => cohorts.id, { onDelete: "cascade" }),
+		userId: text("user_id")
+			.notNull()
+			.references(() => user.id, { onDelete: "cascade" }),
+		role: text("role", { enum: ["member", "admin"] })
+			.notNull()
+			.default("member"),
+		joinedAt: integer("joined_at", { mode: "timestamp_ms" })
+			.default(sql`(cast(unixepoch('subsecond') * 1000 as integer))`)
+			.notNull(),
+	},
+	(table) => [
+		index("cohort_members_cohortId_idx").on(table.cohortId),
+		index("cohort_members_userId_idx").on(table.userId),
+	],
+);
+
 export const userRelations = relations(user, ({ many }) => ({
 	sessions: many(session),
 	accounts: many(account),
+	cohortMemberships: many(cohortMembers),
 }));
 
 export const sessionRelations = relations(session, ({ one }) => ({
@@ -107,6 +144,21 @@ export const sessionRelations = relations(session, ({ one }) => ({
 export const accountRelations = relations(account, ({ one }) => ({
 	user: one(user, {
 		fields: [account.userId],
+		references: [user.id],
+	}),
+}));
+
+export const cohortsRelations = relations(cohorts, ({ many }) => ({
+	members: many(cohortMembers),
+}));
+
+export const cohortMembersRelations = relations(cohortMembers, ({ one }) => ({
+	cohort: one(cohorts, {
+		fields: [cohortMembers.cohortId],
+		references: [cohorts.id],
+	}),
+	user: one(user, {
+		fields: [cohortMembers.userId],
 		references: [user.id],
 	}),
 }));

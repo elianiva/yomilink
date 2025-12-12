@@ -1,5 +1,5 @@
 import { createFileRoute, redirect } from "@tanstack/react-router";
-import { getMe } from "@/server/rpc/me";
+import { getMe } from "@/server/rpc/profile";
 
 export const Route = createFileRoute("/")({
 	ssr: true,

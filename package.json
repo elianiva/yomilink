@@ -12,7 +12,8 @@
     "lint": "biome lint --write",
     "check": "biome check",
     "deploy": "wrangler deploy",
-    "seed": "bun run --env-file=.env scripts/seed.ts"
+    "seed": "bun run --env-file=.env scripts/seed.ts",
+    "ui": "bunx shadcn@canary"
   },
   "dependencies": {
     "@bprogress/react": "^1.2.7",
@@ -70,7 +71,6 @@
     "@biomejs/biome": "2.3.8",
     "@testing-library/dom": "^10.4.0",
     "@testing-library/react": "^16.2.0",
-    "@types/node": "^22.19.2",
     "@types/react": "^19.2.7",
     "@types/react-dom": "^19.2.3",
     "@vitejs/plugin-react": "^5.1.2",

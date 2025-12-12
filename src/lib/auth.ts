@@ -51,7 +51,7 @@ export const Role = Schema.Literal("teacher", "admin", "student").annotations({
 	message: (issue) => ({ message: `Invalid role: ${issue}`, override: true }),
 });
 
-export const AuthUser = Schema.TaggedStruct("AuthUser", {
+export const AuthUser = Schema.Struct({
 	id: Schema.String,
 	role: Schema.optionalWith(Role, { default: () => "student" }),
 	email: Schema.optionalWith(Schema.NonEmptyString, { nullable: true }),

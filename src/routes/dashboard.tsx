@@ -20,7 +20,7 @@ import {
 	SidebarProvider,
 	SidebarTrigger,
 } from "@/components/ui/sidebar";
-import { getMe } from "@/server/rpc/me";
+import { getMe } from "@/server/rpc/profile";
 
 export const Route = createFileRoute("/dashboard")({
 	beforeLoad: async () => {
