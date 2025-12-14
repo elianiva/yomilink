@@ -1,7 +1,7 @@
 {
   "version": "6",
   "dialect": "sqlite",
-  "id": "88ca161e-4f01-46a2-8e6b-009aa5205bad",
+  "id": "a0201160-7a87-44e4-b4e4-0094263e78fd",
   "prevId": "00000000-0000-0000-0000-000000000000",
   "tables": {
     "assignments": {
@@ -49,13 +49,6 @@
           "notNull": false,
           "autoincrement": false
         },
-        "cohort_id": {
-          "name": "cohort_id",
-          "type": "text",
-          "primaryKey": false,
-          "notNull": true,
-          "autoincrement": false
-        },
         "created_by": {
           "name": "created_by",
           "type": "text",
@@ -92,13 +85,6 @@
           "name": "assignments_kitId_idx",
           "columns": [
             "kit_id"
-          ],
-          "isUnique": false
-        },
-        "assignments_cohortId_idx": {
-          "name": "assignments_cohortId_idx",
-          "columns": [
-            "cohort_id"
           ],
           "isUnique": false
         }
@@ -168,7 +154,7 @@
         },
         "per_link": {
           "name": "per_link",
-          "type": "text(1000000)",
+          "type": "text",
           "primaryKey": false,
           "notNull": false,
           "autoincrement": false
@@ -189,6 +175,14 @@
         },
         "created_at": {
           "name": "created_at",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false,
+          "default": "(cast(unixepoch('subsecond') * 1000 as integer))"
+        },
+        "updated_at": {
+          "name": "updated_at",
           "type": "integer",
           "primaryKey": false,
           "notNull": true,
@@ -244,60 +238,6 @@
       "uniqueConstraints": {},
       "checkConstraints": {}
     },
-    "events": {
-      "name": "events",
-      "columns": {
-        "id": {
-          "name": "id",
-          "type": "text",
-          "primaryKey": true,
-          "notNull": true,
-          "autoincrement": false
-        },
-        "user_id": {
-          "name": "user_id",
-          "type": "text",
-          "primaryKey": false,
-          "notNull": false,
-          "autoincrement": false
-        },
-        "event": {
-          "name": "event",
-          "type": "text",
-          "primaryKey": false,
-          "notNull": true,
-          "autoincrement": false
-        },
-        "payload": {
-          "name": "payload",
-          "type": "text(1000000)",
-          "primaryKey": false,
-          "notNull": false,
-          "autoincrement": false
-        },
-        "created_at": {
-          "name": "created_at",
-          "type": "integer",
-          "primaryKey": false,
-          "notNull": true,
-          "autoincrement": false,
-          "default": "(cast(unixepoch('subsecond') * 1000 as integer))"
-        }
-      },
-      "indexes": {
-        "events_userId_idx": {
-          "name": "events_userId_idx",
-          "columns": [
-            "user_id"
-          ],
-          "isUnique": false
-        }
-      },
-      "foreignKeys": {},
-      "compositePrimaryKeys": {},
-      "uniqueConstraints": {},
-      "checkConstraints": {}
-    },
     "feedback": {
       "name": "feedback",
       "columns": {
@@ -324,7 +264,7 @@
         },
         "items": {
           "name": "items",
-          "type": "text(1000000)",
+          "type": "text",
           "primaryKey": false,
           "notNull": true,
           "autoincrement": false
@@ -346,6 +286,14 @@
         },
         "created_at": {
           "name": "created_at",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false,
+          "default": "(cast(unixepoch('subsecond') * 1000 as integer))"
+        },
+        "updated_at": {
+          "name": "updated_at",
           "type": "integer",
           "primaryKey": false,
           "notNull": true,
@@ -411,13 +359,6 @@
           "notNull": true,
           "autoincrement": false
         },
-        "goal_map_id": {
-          "name": "goal_map_id",
-          "type": "text",
-          "primaryKey": false,
-          "notNull": true,
-          "autoincrement": false
-        },
         "teacher_id": {
           "name": "teacher_id",
           "type": "text",
@@ -441,14 +382,14 @@
         },
         "nodes": {
           "name": "nodes",
-          "type": "text(1000000)",
+          "type": "text",
           "primaryKey": false,
           "notNull": true,
           "autoincrement": false
         },
         "edges": {
           "name": "edges",
-          "type": "text(1000000)",
+          "type": "text",
           "primaryKey": false,
           "notNull": true,
           "autoincrement": false
@@ -483,13 +424,6 @@
           "notNull": false,
           "autoincrement": false
         },
-        "ref_map_id": {
-          "name": "ref_map_id",
-          "type": "text",
-          "primaryKey": false,
-          "notNull": false,
-          "autoincrement": false
-        },
         "created_at": {
           "name": "created_at",
           "type": "integer",
@@ -508,13 +442,6 @@
         }
       },
       "indexes": {
-        "goal_maps_goal_map_id_unique": {
-          "name": "goal_maps_goal_map_id_unique",
-          "columns": [
-            "goal_map_id"
-          ],
-          "isUnique": true
-        },
         "goal_maps_teacherId_idx": {
           "name": "goal_maps_teacherId_idx",
           "columns": [
@@ -557,81 +484,6 @@
           "tableTo": "topics",
           "columnsFrom": [
             "topic_id"
-          ],
-          "columnsTo": [
-            "id"
-          ],
-          "onDelete": "no action",
-          "onUpdate": "no action"
-        }
-      },
-      "compositePrimaryKeys": {},
-      "uniqueConstraints": {},
-      "checkConstraints": {}
-    },
-    "group_maps": {
-      "name": "group_maps",
-      "columns": {
-        "id": {
-          "name": "id",
-          "type": "text",
-          "primaryKey": true,
-          "notNull": true,
-          "autoincrement": false
-        },
-        "goal_map_id": {
-          "name": "goal_map_id",
-          "type": "text",
-          "primaryKey": false,
-          "notNull": true,
-          "autoincrement": false
-        },
-        "aggregation": {
-          "name": "aggregation",
-          "type": "text(1000000)",
-          "primaryKey": false,
-          "notNull": true,
-          "autoincrement": false
-        },
-        "cohort_id": {
-          "name": "cohort_id",
-          "type": "text",
-          "primaryKey": false,
-          "notNull": true,
-          "autoincrement": false
-        },
-        "created_at": {
-          "name": "created_at",
-          "type": "integer",
-          "primaryKey": false,
-          "notNull": true,
-          "autoincrement": false,
-          "default": "(cast(unixepoch('subsecond') * 1000 as integer))"
-        }
-      },
-      "indexes": {
-        "group_maps_goalMapId_idx": {
-          "name": "group_maps_goalMapId_idx",
-          "columns": [
-            "goal_map_id"
-          ],
-          "isUnique": false
-        },
-        "group_maps_cohortId_idx": {
-          "name": "group_maps_cohortId_idx",
-          "columns": [
-            "cohort_id"
-          ],
-          "isUnique": false
-        }
-      },
-      "foreignKeys": {
-        "group_maps_goal_map_id_goal_maps_id_fk": {
-          "name": "group_maps_goal_map_id_goal_maps_id_fk",
-          "tableFrom": "group_maps",
-          "tableTo": "goal_maps",
-          "columnsFrom": [
-            "goal_map_id"
           ],
           "columnsTo": [
             "id"
@@ -1058,17 +910,9 @@
           "notNull": true,
           "autoincrement": false
         },
-        "type": {
-          "name": "type",
-          "type": "text",
-          "primaryKey": false,
-          "notNull": true,
-          "autoincrement": false,
-          "default": "'plain'"
-        },
         "content": {
           "name": "content",
-          "type": "text",
+          "type": "text(1000000)",
           "primaryKey": false,
           "notNull": true,
           "autoincrement": false
@@ -1127,21 +971,6 @@
           "notNull": false,
           "autoincrement": false
         },
-        "text_id": {
-          "name": "text_id",
-          "type": "text",
-          "primaryKey": false,
-          "notNull": false,
-          "autoincrement": false
-        },
-        "enabled": {
-          "name": "enabled",
-          "type": "integer",
-          "primaryKey": false,
-          "notNull": true,
-          "autoincrement": false,
-          "default": true
-        },
         "created_at": {
           "name": "created_at",
           "type": "integer",
@@ -1159,30 +988,8 @@
           "default": "(cast(unixepoch('subsecond') * 1000 as integer))"
         }
       },
-      "indexes": {
-        "topics_textId_idx": {
-          "name": "topics_textId_idx",
-          "columns": [
-            "text_id"
-          ],
-          "isUnique": false
-        }
-      },
-      "foreignKeys": {
-        "topics_text_id_texts_id_fk": {
-          "name": "topics_text_id_texts_id_fk",
-          "tableFrom": "topics",
-          "tableTo": "texts",
-          "columnsFrom": [
-            "text_id"
-          ],
-          "columnsTo": [
-            "id"
-          ],
-          "onDelete": "no action",
-          "onUpdate": "no action"
-        }
-      },
+      "indexes": {},
+      "foreignKeys": {},
       "compositePrimaryKeys": {},
       "uniqueConstraints": {},
       "checkConstraints": {}

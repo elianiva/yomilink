@@ -1,6 +1,7 @@
 import { eq } from "drizzle-orm";
 import { Effect, Schema } from "effect";
 import { Auth } from "@/lib/auth";
+import { randomString } from "@/lib/utils";
 import { Database } from "@/server/db/client";
 import { goalMaps, topics } from "@/server/db/schema/app-schema";
 import { user } from "@/server/db/schema/auth-schema";
@@ -47,130 +48,120 @@ const DEFAULT_USERS: readonly SeedUser[] = [
 // Japanese language learning topics data
 const JAPANESE_TOPICS = [
 	{
-		id: "basic-greetings",
 		title: "Basic Greetings & Introductions",
 		description:
 			"Essential Japanese greetings, self-introductions, and basic polite expressions",
 		goalMaps: [
-			{ id: "greetings-basics", title: "Basic Greetings" },
-			{ id: "self-introduction", title: "Self Introduction" },
-			{ id: "polite-expressions", title: "Polite Expressions" },
-			{ id: "time-greetings", title: "Time-based Greetings" },
-			{ id: "farewells", title: "Farewells & Goodbyes" },
+			{ title: "Basic Greetings" },
+			{ title: "Self Introduction" },
+			{ title: "Polite Expressions" },
+			{ title: "Time-based Greetings" },
+			{ title: "Farewells & Goodbyes" },
 		],
 	},
 	{
-		id: "hiragana-katakana",
 		title: "Hiragana & Katakana",
 		description:
 			"Master the Japanese phonetic alphabets - hiragana and katakana",
 		goalMaps: [
-			{ id: "hiragana-basics", title: "Hiragana Basics" },
-			{ id: "katakana-basics", title: "Katakana Basics" },
-			{ id: "voiced-sounds", title: "Voiced Sounds (Dakuon)" },
-			{ id: "contracted-sounds", title: "Contracted Sounds (Yōon)" },
-			{ id: "practice-words", title: "Practice Words" },
+			{ title: "Hiragana Basics" },
+			{ title: "Katakana Basics" },
+			{ title: "Voiced Sounds (Dakuon)" },
+			{ title: "Contracted Sounds (Yoon)" },
+			{ title: "Practice Words" },
 		],
 	},
 	{
-		id: "basic-grammar",
 		title: "Basic Grammar Patterns",
 		description:
 			"Fundamental Japanese grammar structures and sentence patterns",
 		goalMaps: [
-			{ id: "desu-masu", title: "です/ます Forms" },
-			{ id: "particles-wa-ga", title: "Particles は/が" },
-			{ id: "particles-no-o", title: "Particles の/を" },
-			{ id: "particles-ni-de", title: "Particles に/で" },
-			{ id: "basic-questions", title: "Basic Questions" },
+			{ title: "desu/masu Forms" },
+			{ title: "Particles wa/ga" },
+			{ title: "Particles no/o" },
+			{ title: "Particles ni/de" },
+			{ title: "Basic Questions" },
 		],
 	},
 	{
-		id: "numbers-counting",
 		title: "Numbers & Counting",
 		description: "Japanese number systems, counters, and time expressions",
 		goalMaps: [
-			{ id: "basic-numbers", title: "Basic Numbers 1-10" },
-			{ id: "teen-numbers", title: "Numbers 11-99" },
-			{ id: "counters-general", title: "General Counters" },
-			{ id: "time-expressions", title: "Time Expressions" },
-			{ id: "date-expressions", title: "Date Expressions" },
+			{ title: "Basic Numbers 1-10" },
+			{ title: "Numbers 11-99" },
+			{ title: "General Counters" },
+			{ title: "Time Expressions" },
+			{ title: "Date Expressions" },
 		],
 	},
 	{
-		id: "daily-life",
 		title: "Daily Life & Activities",
 		description:
 			"Vocabulary and expressions for everyday activities and routines",
 		goalMaps: [
-			{ id: "morning-routine", title: "Morning Routine" },
-			{ id: "daily-activities", title: "Daily Activities" },
-			{ id: "hobbies-interests", title: "Hobbies & Interests" },
-			{ id: "weather-seasons", title: "Weather & Seasons" },
-			{ id: "shopping", title: "Shopping" },
+			{ title: "Morning Routine" },
+			{ title: "Daily Activities" },
+			{ title: "Hobbies & Interests" },
+			{ title: "Weather & Seasons" },
+			{ title: "Shopping" },
 		],
 	},
 	{
-		id: "food-dining",
 		title: "Food & Dining",
 		description:
 			"Japanese food vocabulary, dining etiquette, and restaurant expressions",
 		goalMaps: [
-			{ id: "basic-foods", title: "Basic Foods" },
-			{ id: "restaurant-phrases", title: "Restaurant Phrases" },
-			{ id: "dining-etiquette", title: "Dining Etiquette" },
-			{ id: "japanese-cuisine", title: "Japanese Cuisine" },
-			{ id: "drinks-beverages", title: "Drinks & Beverages" },
+			{ title: "Basic Foods" },
+			{ title: "Restaurant Phrases" },
+			{ title: "Dining Etiquette" },
+			{ title: "Japanese Cuisine" },
+			{ title: "Drinks & Beverages" },
 		],
 	},
 	{
-		id: "travel-transportation",
 		title: "Travel & Transportation",
 		description:
 			"Essential phrases for traveling in Japan and using public transportation",
 		goalMaps: [
-			{ id: "airport-travel", title: "Airport Travel" },
-			{ id: "train-transport", title: "Train Transportation" },
-			{ id: "asking-directions", title: "Asking for Directions" },
-			{ id: "hotel-accommodation", title: "Hotel & Accommodation" },
-			{ id: "sightseeing", title: "Sightseeing" },
+			{ title: "Airport Travel" },
+			{ title: "Train Transportation" },
+			{ title: "Asking for Directions" },
+			{ title: "Hotel & Accommodation" },
+			{ title: "Sightseeing" },
 		],
 	},
 	{
-		id: "family-relationships",
 		title: "Family & Relationships",
 		description: "Family vocabulary and relationship terms in Japanese culture",
 		goalMaps: [
-			{ id: "immediate-family", title: "Immediate Family" },
-			{ id: "extended-family", title: "Extended Family" },
-			{ id: "relationship-terms", title: "Relationship Terms" },
-			{ id: "honorific-family", title: "Honorific Family Terms" },
-			{ id: "describing-people", title: "Describing People" },
+			{ title: "Immediate Family" },
+			{ title: "Extended Family" },
+			{ title: "Relationship Terms" },
+			{ title: "Honorific Family Terms" },
+			{ title: "Describing People" },
 		],
 	},
 	{
-		id: "work-school",
 		title: "Work & School",
 		description:
 			"Vocabulary and expressions for professional and academic environments",
 		goalMaps: [
-			{ id: "school-life", title: "School Life" },
-			{ id: "workplace-basics", title: "Workplace Basics" },
-			{ id: "business-meetings", title: "Business Meetings" },
-			{ id: "academic-subjects", title: "Academic Subjects" },
-			{ id: "career-professions", title: "Career & Professions" },
+			{ title: "School Life" },
+			{ title: "Workplace Basics" },
+			{ title: "Business Meetings" },
+			{ title: "Academic Subjects" },
+			{ title: "Career & Professions" },
 		],
 	},
 	{
-		id: "culture-customs",
 		title: "Culture & Customs",
 		description: "Japanese cultural concepts, customs, and social etiquette",
 		goalMaps: [
-			{ id: "social-etiquette", title: "Social Etiquette" },
-			{ id: "festivals-holidays", title: "Festivals & Holidays" },
-			{ id: "traditional-culture", title: "Traditional Culture" },
-			{ id: "modern-culture", title: "Modern Culture" },
-			{ id: "cultural-concepts", title: "Cultural Concepts" },
+			{ title: "Social Etiquette" },
+			{ title: "Festivals & Holidays" },
+			{ title: "Traditional Culture" },
+			{ title: "Modern Culture" },
+			{ title: "Cultural Concepts" },
 		],
 	},
 ];
@@ -238,47 +229,49 @@ const program = Effect.gen(function* () {
 	console.log(`Seeding ${JAPANESE_TOPICS.length} topics with goal maps...`);
 
 	for (const topicData of JAPANESE_TOPICS) {
+		const topicId = randomString();
+
 		// Insert topic
 		yield* Effect.tryPromise({
 			try: async () => {
 				await db
 					.insert(topics)
 					.values({
-						id: topicData.id,
+						id: topicId,
 						title: topicData.title,
 						description: topicData.description,
-						enabled: true,
 					})
 					.onConflictDoNothing();
 
 				console.log(`Created topic: ${topicData.title}`);
 			},
 			catch: (error) =>
-				new Error(`Failed to seed topic ${topicData.id}: ${error}`),
+				new Error(`Failed to seed topic ${topicData.title}: ${error}`),
 		});
 
 		// Insert goal maps for this topic
 		for (const mapData of topicData.goalMaps) {
+			const goalMapId = randomString();
+
 			yield* Effect.tryPromise({
 				try: async () => {
 					await db
 						.insert(goalMaps)
 						.values({
-							id: mapData.id,
-							goalMapId: mapData.id,
+							id: goalMapId,
 							teacherId: teacherId,
 							title: mapData.title,
 							description: `Goal map for ${mapData.title} in ${topicData.title}`,
-							nodes: "[]",
-							edges: "[]",
-							topicId: topicData.id,
+							edges: [],
+							nodes: [],
+							topicId: topicId,
 						})
 						.onConflictDoNothing();
 
 					console.log(`  Created goal map: ${mapData.title}`);
 				},
 				catch: (error) =>
-					new Error(`Failed to seed goal map ${mapData.id}: ${error}`),
+					new Error(`Failed to seed goal map ${mapData.title}: ${error}`),
 			});
 		}
 	}

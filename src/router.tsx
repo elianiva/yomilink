@@ -1,11 +1,17 @@
 import * as Sentry from "@sentry/tanstackstart-react";
-import { QueryClient } from "@tanstack/react-query";
+import { MutationCache, QueryClient } from "@tanstack/react-query";
 import { createRouter } from "@tanstack/react-router";
 import { setupRouterSsrQueryIntegration } from "@tanstack/react-router-ssr-query";
 import { ErrorPage } from "./components/error-page";
 import { routeTree } from "./routeTree.gen";
 
-const queryClient = new QueryClient();
+const queryClient = new QueryClient({
+	mutationCache: new MutationCache({
+		onSuccess: () => {
+			queryClient.invalidateQueries();
+		},
+	}),
+});
 
 export const getRouter = () => {
 	const router = createRouter({

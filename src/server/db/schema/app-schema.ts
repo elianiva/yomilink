@@ -8,17 +8,7 @@ import {
 } from "drizzle-orm/sqlite-core";
 import { user } from "./auth-schema";
 
-// Content Management
-export const texts = sqliteTable("texts", {
-	id: text("id").primaryKey(),
-	title: text("title").notNull(),
-	type: text("type", {
-		enum: ["plain", "html", "markdown", "url", "video", "pdf"],
-	})
-		.notNull()
-		.default("plain"),
-	content: text("content").notNull(),
-	metadata: text("metadata"), // JSON
+const timestamps = {
 	createdAt: integer("created_at", { mode: "timestamp_ms" })
 		.default(sql`(cast(unixepoch('subsecond') * 1000 as integer))`)
 		.notNull(),
@@ -26,38 +16,32 @@ export const texts = sqliteTable("texts", {
 		.default(sql`(cast(unixepoch('subsecond') * 1000 as integer))`)
 		.$onUpdate(() => new Date())
 		.notNull(),
+};
+
+export const texts = sqliteTable("texts", {
+	id: text("id").primaryKey(),
+	title: text("title").notNull(),
+	content: text("content", { length: 1_000_000 }).notNull(),
+	metadata: text("metadata", { mode: "json" }),
+	...timestamps,
 });
 
-export const topics = sqliteTable(
-	"topics",
-	{
-		id: text("id").primaryKey(),
-		title: text("title").notNull(),
-		description: text("description"),
-		textId: text("text_id").references(() => texts.id),
-		enabled: integer("enabled", { mode: "boolean" }).notNull().default(true),
-		createdAt: integer("created_at", { mode: "timestamp_ms" })
-			.default(sql`(cast(unixepoch('subsecond') * 1000 as integer))`)
-			.notNull(),
-		updatedAt: integer("updated_at", { mode: "timestamp_ms" })
-			.default(sql`(cast(unixepoch('subsecond') * 1000 as integer))`)
-			.$onUpdate(() => new Date())
-			.notNull(),
-	},
-	(table) => [index("topics_textId_idx").on(table.textId)],
-);
+export const topics = sqliteTable("topics", {
+	id: text("id").primaryKey(),
+	title: text("title").notNull(),
+	description: text("description"),
+	...timestamps,
+});
 
-// Concept Mapping
 export const goalMaps = sqliteTable(
 	"goal_maps",
 	{
 		id: text("id").primaryKey(),
-		goalMapId: text("goal_map_id").notNull().unique(),
 		teacherId: text("teacher_id").notNull(),
 		title: text("title").notNull(),
 		description: text("description"),
-		nodes: text("nodes", { length: 1_000_000 }).notNull(),
-		edges: text("edges", { length: 1_000_000 }).notNull(),
+		nodes: text("nodes", { mode: "json" }).notNull(),
+		edges: text("edges", { mode: "json" }).notNull(),
 		direction: text("direction", { enum: ["bi", "uni", "multi"] })
 			.notNull()
 			.default("bi"),
@@ -66,14 +50,7 @@ export const goalMaps = sqliteTable(
 			.default("teacher"),
 		textId: text("text_id").references(() => texts.id),
 		topicId: text("topic_id").references(() => topics.id),
-		refMapId: text("ref_map_id"),
-		createdAt: integer("created_at", { mode: "timestamp_ms" })
-			.default(sql`(cast(unixepoch('subsecond') * 1000 as integer))`)
-			.notNull(),
-		updatedAt: integer("updated_at", { mode: "timestamp_ms" })
-			.default(sql`(cast(unixepoch('subsecond') * 1000 as integer))`)
-			.$onUpdate(() => new Date())
-			.notNull(),
+		...timestamps,
 	},
 	(table) => [
 		index("goal_maps_teacherId_idx").on(table.teacherId),
@@ -82,7 +59,6 @@ export const goalMaps = sqliteTable(
 	],
 );
 
-// Kit System
 export const kits = sqliteTable(
 	"kits",
 	{
@@ -92,20 +68,14 @@ export const kits = sqliteTable(
 		layout: text("layout", { enum: ["preset", "random"] })
 			.notNull()
 			.default("preset"),
-		options: text("options"), // JSON with kit options
+		options: text("options", { mode: "json" }),
 		enabled: integer("enabled", { mode: "boolean" }).notNull().default(true),
 		goalMapId: text("goal_map_id")
 			.notNull()
 			.references(() => goalMaps.id),
 		teacherId: text("teacher_id").notNull(),
 		textId: text("text_id").references(() => texts.id),
-		createdAt: integer("created_at", { mode: "timestamp_ms" })
-			.default(sql`(cast(unixepoch('subsecond') * 1000 as integer))`)
-			.notNull(),
-		updatedAt: integer("updated_at", { mode: "timestamp_ms" })
-			.default(sql`(cast(unixepoch('subsecond') * 1000 as integer))`)
-			.$onUpdate(() => new Date())
-			.notNull(),
+		...timestamps,
 	},
 	(table) => [
 		index("kits_goalMapId_idx").on(table.goalMapId),
@@ -125,13 +95,7 @@ export const kitSets = sqliteTable(
 		order: integer("order").notNull(),
 		textId: text("text_id").references(() => texts.id),
 		instructions: text("instructions"),
-		createdAt: integer("created_at", { mode: "timestamp_ms" })
-			.default(sql`(cast(unixepoch('subsecond') * 1000 as integer))`)
-			.notNull(),
-		updatedAt: integer("updated_at", { mode: "timestamp_ms" })
-			.default(sql`(cast(unixepoch('subsecond') * 1000 as integer))`)
-			.$onUpdate(() => new Date())
-			.notNull(),
+		...timestamps,
 	},
 	(table) => [
 		index("kit_sets_kitId_idx").on(table.kitId),
@@ -153,24 +117,15 @@ export const assignments = sqliteTable(
 		title: text("title").notNull(),
 		description: text("description"),
 		dueAt: integer("due_at", { mode: "timestamp_ms" }),
-		cohortId: text("cohort_id").notNull(),
 		createdBy: text("created_by").notNull(),
-		createdAt: integer("created_at", { mode: "timestamp_ms" })
-			.default(sql`(cast(unixepoch('subsecond') * 1000 as integer))`)
-			.notNull(),
-		updatedAt: integer("updated_at", { mode: "timestamp_ms" })
-			.default(sql`(cast(unixepoch('subsecond') * 1000 as integer))`)
-			.$onUpdate(() => new Date())
-			.notNull(),
+		...timestamps,
 	},
 	(table) => [
 		index("assignments_goalMapId_idx").on(table.goalMapId),
 		index("assignments_kitId_idx").on(table.kitId),
-		index("assignments_cohortId_idx").on(table.cohortId),
 	],
 );
 
-// Learner Progress
 export const learnerMaps = sqliteTable(
 	"learner_maps",
 	{
@@ -189,13 +144,7 @@ export const learnerMaps = sqliteTable(
 			.default("draft"),
 		attempt: integer("attempt").notNull().default(1),
 		submittedAt: integer("submitted_at", { mode: "timestamp_ms" }),
-		createdAt: integer("created_at", { mode: "timestamp_ms" })
-			.default(sql`(cast(unixepoch('subsecond') * 1000 as integer))`)
-			.notNull(),
-		updatedAt: integer("updated_at", { mode: "timestamp_ms" })
-			.default(sql`(cast(unixepoch('subsecond') * 1000 as integer))`)
-			.$onUpdate(() => new Date())
-			.notNull(),
+		...timestamps,
 	},
 	(table) => [
 		index("learner_maps_goalMapId_idx").on(table.goalMapId),
@@ -215,12 +164,10 @@ export const diagnoses = sqliteTable(
 			.notNull()
 			.references(() => learnerMaps.id),
 		summary: text("summary"),
-		perLink: text("per_link", { length: 1_000_000 }), // JSON
+		perLink: text("per_link", { mode: "json" }),
 		score: real("score"),
 		rubricVersion: text("rubric_version"),
-		createdAt: integer("created_at", { mode: "timestamp_ms" })
-			.default(sql`(cast(unixepoch('subsecond') * 1000 as integer))`)
-			.notNull(),
+		...timestamps,
 	},
 	(table) => [
 		index("diagnoses_goalMapId_idx").on(table.goalMapId),
@@ -238,14 +185,12 @@ export const feedback = sqliteTable(
 		goalMapId: text("goal_map_id")
 			.notNull()
 			.references(() => goalMaps.id),
-		items: text("items", { length: 1_000_000 }).notNull(), // JSON
+		items: text("items", { mode: "json" }).notNull(),
 		visibility: text("visibility", { enum: ["private", "public"] })
 			.notNull()
 			.default("private"),
 		createdBy: text("created_by").notNull(),
-		createdAt: integer("created_at", { mode: "timestamp_ms" })
-			.default(sql`(cast(unixepoch('subsecond') * 1000 as integer))`)
-			.notNull(),
+		...timestamps,
 	},
 	(table) => [
 		index("feedback_learnerMapId_idx").on(table.learnerMapId),
@@ -253,41 +198,6 @@ export const feedback = sqliteTable(
 	],
 );
 
-export const groupMaps = sqliteTable(
-	"group_maps",
-	{
-		id: text("id").primaryKey(),
-		goalMapId: text("goal_map_id")
-			.notNull()
-			.references(() => goalMaps.id),
-		aggregation: text("aggregation", { length: 1_000_000 }).notNull(), // JSON
-		cohortId: text("cohort_id").notNull(),
-		createdAt: integer("created_at", { mode: "timestamp_ms" })
-			.default(sql`(cast(unixepoch('subsecond') * 1000 as integer))`)
-			.notNull(),
-	},
-	(table) => [
-		index("group_maps_goalMapId_idx").on(table.goalMapId),
-		index("group_maps_cohortId_idx").on(table.cohortId),
-	],
-);
-
-// Analytics
-export const events = sqliteTable(
-	"events",
-	{
-		id: text("id").primaryKey(),
-		userId: text("user_id"),
-		event: text("event").notNull(),
-		payload: text("payload", { length: 1_000_000 }), // JSON
-		createdAt: integer("created_at", { mode: "timestamp_ms" })
-			.default(sql`(cast(unixepoch('subsecond') * 1000 as integer))`)
-			.notNull(),
-	},
-	(table) => [index("events_userId_idx").on(table.userId)],
-);
-
-// Relations
 export const textsRelations = relations(texts, ({ many }) => ({
 	topics: many(topics),
 	goalMaps: many(goalMaps),
@@ -295,11 +205,8 @@ export const textsRelations = relations(texts, ({ many }) => ({
 	kitSets: many(kitSets),
 }));
 
-export const topicsRelations = relations(topics, ({ one, many }) => ({
-	text: one(texts, {
-		fields: [topics.textId],
-		references: [texts.id],
-	}),
+export const topicsRelations = relations(topics, ({ many }) => ({
+	text: many(texts),
 	goalMaps: many(goalMaps),
 }));
 
@@ -321,7 +228,6 @@ export const goalMapsRelations = relations(goalMaps, ({ one, many }) => ({
 	learnerMaps: many(learnerMaps),
 	diagnoses: many(diagnoses),
 	feedback: many(feedback),
-	groupMaps: many(groupMaps),
 }));
 
 export const kitsRelations = relations(kits, ({ one, many }) => ({
@@ -400,19 +306,5 @@ export const feedbackRelations = relations(feedback, ({ one }) => ({
 	goalMap: one(goalMaps, {
 		fields: [feedback.goalMapId],
 		references: [goalMaps.id],
-	}),
-}));
-
-export const groupMapsRelations = relations(groupMaps, ({ one }) => ({
-	goalMap: one(goalMaps, {
-		fields: [groupMaps.goalMapId],
-		references: [goalMaps.id],
-	}),
-}));
-
-export const eventsRelations = relations(events, ({ one }) => ({
-	user: one(user, {
-		fields: [events.userId],
-		references: [user.id],
 	}),
 }));

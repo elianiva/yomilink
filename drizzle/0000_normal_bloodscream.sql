@@ -5,7 +5,6 @@ CREATE TABLE `assignments` (
 	`title` text NOT NULL,
 	`description` text,
 	`due_at` integer,
-	`cohort_id` text NOT NULL,
 	`created_by` text NOT NULL,
 	`created_at` integer DEFAULT (cast(unixepoch('subsecond') * 1000 as integer)) NOT NULL,
 	`updated_at` integer DEFAULT (cast(unixepoch('subsecond') * 1000 as integer)) NOT NULL,
@@ -15,39 +14,31 @@ CREATE TABLE `assignments` (
 --> statement-breakpoint
 CREATE INDEX `assignments_goalMapId_idx` ON `assignments` (`goal_map_id`);--> statement-breakpoint
 CREATE INDEX `assignments_kitId_idx` ON `assignments` (`kit_id`);--> statement-breakpoint
-CREATE INDEX `assignments_cohortId_idx` ON `assignments` (`cohort_id`);--> statement-breakpoint
 CREATE TABLE `diagnoses` (
 	`id` text PRIMARY KEY NOT NULL,
 	`goal_map_id` text NOT NULL,
 	`learner_map_id` text NOT NULL,
 	`summary` text,
-	`per_link` text(1000000),
+	`per_link` text,
 	`score` real,
 	`rubric_version` text,
 	`created_at` integer DEFAULT (cast(unixepoch('subsecond') * 1000 as integer)) NOT NULL,
+	`updated_at` integer DEFAULT (cast(unixepoch('subsecond') * 1000 as integer)) NOT NULL,
 	FOREIGN KEY (`goal_map_id`) REFERENCES `goal_maps`(`id`) ON UPDATE no action ON DELETE no action,
 	FOREIGN KEY (`learner_map_id`) REFERENCES `learner_maps`(`id`) ON UPDATE no action ON DELETE no action
 );
 --> statement-breakpoint
 CREATE INDEX `diagnoses_goalMapId_idx` ON `diagnoses` (`goal_map_id`);--> statement-breakpoint
 CREATE INDEX `diagnoses_learnerMapId_idx` ON `diagnoses` (`learner_map_id`);--> statement-breakpoint
-CREATE TABLE `events` (
-	`id` text PRIMARY KEY NOT NULL,
-	`user_id` text,
-	`event` text NOT NULL,
-	`payload` text(1000000),
-	`created_at` integer DEFAULT (cast(unixepoch('subsecond') * 1000 as integer)) NOT NULL
-);
---> statement-breakpoint
-CREATE INDEX `events_userId_idx` ON `events` (`user_id`);--> statement-breakpoint
 CREATE TABLE `feedback` (
 	`id` text PRIMARY KEY NOT NULL,
 	`learner_map_id` text NOT NULL,
 	`goal_map_id` text NOT NULL,
-	`items` text(1000000) NOT NULL,
+	`items` text NOT NULL,
 	`visibility` text DEFAULT 'private' NOT NULL,
 	`created_by` text NOT NULL,
 	`created_at` integer DEFAULT (cast(unixepoch('subsecond') * 1000 as integer)) NOT NULL,
+	`updated_at` integer DEFAULT (cast(unixepoch('subsecond') * 1000 as integer)) NOT NULL,
 	FOREIGN KEY (`learner_map_id`) REFERENCES `learner_maps`(`id`) ON UPDATE no action ON DELETE no action,
 	FOREIGN KEY (`goal_map_id`) REFERENCES `goal_maps`(`id`) ON UPDATE no action ON DELETE no action
 );
@@ -56,38 +47,24 @@ CREATE INDEX `feedback_learnerMapId_idx` ON `feedback` (`learner_map_id`);--> st
 CREATE INDEX `feedback_goalMapId_idx` ON `feedback` (`goal_map_id`);--> statement-breakpoint
 CREATE TABLE `goal_maps` (
 	`id` text PRIMARY KEY NOT NULL,
-	`goal_map_id` text NOT NULL,
 	`teacher_id` text NOT NULL,
 	`title` text NOT NULL,
 	`description` text,
-	`nodes` text(1000000) NOT NULL,
-	`edges` text(1000000) NOT NULL,
+	`nodes` text NOT NULL,
+	`edges` text NOT NULL,
 	`direction` text DEFAULT 'bi' NOT NULL,
 	`type` text DEFAULT 'teacher' NOT NULL,
 	`text_id` text,
 	`topic_id` text,
-	`ref_map_id` text,
 	`created_at` integer DEFAULT (cast(unixepoch('subsecond') * 1000 as integer)) NOT NULL,
 	`updated_at` integer DEFAULT (cast(unixepoch('subsecond') * 1000 as integer)) NOT NULL,
 	FOREIGN KEY (`text_id`) REFERENCES `texts`(`id`) ON UPDATE no action ON DELETE no action,
 	FOREIGN KEY (`topic_id`) REFERENCES `topics`(`id`) ON UPDATE no action ON DELETE no action
 );
 --> statement-breakpoint
-CREATE UNIQUE INDEX `goal_maps_goal_map_id_unique` ON `goal_maps` (`goal_map_id`);--> statement-breakpoint
 CREATE INDEX `goal_maps_teacherId_idx` ON `goal_maps` (`teacher_id`);--> statement-breakpoint
 CREATE INDEX `goal_maps_textId_idx` ON `goal_maps` (`text_id`);--> statement-breakpoint
 CREATE INDEX `goal_maps_topicId_idx` ON `goal_maps` (`topic_id`);--> statement-breakpoint
-CREATE TABLE `group_maps` (
-	`id` text PRIMARY KEY NOT NULL,
-	`goal_map_id` text NOT NULL,
-	`aggregation` text(1000000) NOT NULL,
-	`cohort_id` text NOT NULL,
-	`created_at` integer DEFAULT (cast(unixepoch('subsecond') * 1000 as integer)) NOT NULL,
-	FOREIGN KEY (`goal_map_id`) REFERENCES `goal_maps`(`id`) ON UPDATE no action ON DELETE no action
-);
---> statement-breakpoint
-CREATE INDEX `group_maps_goalMapId_idx` ON `group_maps` (`goal_map_id`);--> statement-breakpoint
-CREATE INDEX `group_maps_cohortId_idx` ON `group_maps` (`cohort_id`);--> statement-breakpoint
 CREATE TABLE `kit_sets` (
 	`id` text PRIMARY KEY NOT NULL,
 	`kit_id` text NOT NULL,
@@ -145,8 +122,7 @@ CREATE INDEX `learner_maps_userId_idx` ON `learner_maps` (`user_id`);--> stateme
 CREATE TABLE `texts` (
 	`id` text PRIMARY KEY NOT NULL,
 	`title` text NOT NULL,
-	`type` text DEFAULT 'plain' NOT NULL,
-	`content` text NOT NULL,
+	`content` text(1000000) NOT NULL,
 	`metadata` text,
 	`created_at` integer DEFAULT (cast(unixepoch('subsecond') * 1000 as integer)) NOT NULL,
 	`updated_at` integer DEFAULT (cast(unixepoch('subsecond') * 1000 as integer)) NOT NULL
@@ -156,14 +132,10 @@ CREATE TABLE `topics` (
 	`id` text PRIMARY KEY NOT NULL,
 	`title` text NOT NULL,
 	`description` text,
-	`text_id` text,
-	`enabled` integer DEFAULT true NOT NULL,
 	`created_at` integer DEFAULT (cast(unixepoch('subsecond') * 1000 as integer)) NOT NULL,
-	`updated_at` integer DEFAULT (cast(unixepoch('subsecond') * 1000 as integer)) NOT NULL,
-	FOREIGN KEY (`text_id`) REFERENCES `texts`(`id`) ON UPDATE no action ON DELETE no action
+	`updated_at` integer DEFAULT (cast(unixepoch('subsecond') * 1000 as integer)) NOT NULL
 );
 --> statement-breakpoint
-CREATE INDEX `topics_textId_idx` ON `topics` (`text_id`);--> statement-breakpoint
 CREATE TABLE `account` (
 	`id` text PRIMARY KEY NOT NULL,
 	`account_id` text NOT NULL,

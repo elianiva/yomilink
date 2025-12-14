@@ -3,19 +3,12 @@ import { createServerFn } from "@tanstack/react-start";
 import { desc, eq, isNull } from "drizzle-orm";
 import { Effect, Schema } from "effect";
 import { authMiddleware } from "@/middlewares/auth";
-import { goalMaps, topics } from "@/server/db/schema/app-schema";
+import { goalMaps } from "@/server/db/schema/app-schema";
 import { Database } from "../db/client";
 
 const GetGoalMapSchema = Schema.Struct({
 	id: Schema.NonEmptyString,
 });
-
-const TopicSchema = Schema.Struct({
-	id: Schema.NonEmptyString,
-	title: Schema.NonEmptyString,
-	description: Schema.optionalWith(Schema.NonEmptyString, { nullable: true }),
-});
-export type Topic = typeof TopicSchema.Type;
 
 const GoalMapResultSchema = Schema.Struct({
 	goalMapId: Schema.NonEmptyString,
@@ -34,7 +27,7 @@ export const getGoalMap = createServerFn({ method: "POST" })
 		Effect.gen(function* () {
 			const db = yield* Database;
 			const row = yield* Effect.tryPromise(() =>
-				db.select().from(goalMaps).where(eq(goalMaps.goalMapId, data.id)).get(),
+				db.select().from(goalMaps).where(eq(goalMaps.id, data.id)).get(),
 			);
 			if (!row) return null;
 
@@ -79,7 +72,7 @@ export const saveGoalMap = createServerFn({ method: "POST" })
 					.insert(goalMaps)
 					.values(payload)
 					.onConflictDoUpdate({
-						where: eq(goalMaps.goalMapId, data.goalMapId),
+						where: eq(goalMaps.id, data.goalMapId),
 						target: goalMaps.id,
 						set: payload,
 					})
@@ -92,32 +85,6 @@ export const saveGoalMap = createServerFn({ method: "POST" })
 		),
 	);
 
-export const listTopics = createServerFn({ method: "GET" })
-	.middleware([authMiddleware])
-	.handler(() =>
-		Effect.gen(function* () {
-			const db = yield* Database;
-			const rows = yield* Effect.tryPromise(() =>
-				db
-					.select({
-						id: topics.id,
-						title: topics.title,
-						description: topics.description,
-					})
-					.from(topics)
-					.where(eq(topics.enabled, true))
-					.orderBy(topics.title)
-					.all(),
-			);
-			return yield* Schema.decodeUnknown(Schema.Array(TopicSchema))(rows);
-		}).pipe(
-			Effect.provide(Database.Default),
-			Effect.withSpan("listTopics"),
-			Effect.runPromise,
-		),
-	);
-
-// List all goal maps for current teacher, optionally filtered by topic
 export const listGoalMaps = createServerFn({ method: "GET" })
 	.middleware([authMiddleware])
 	.handler(() =>
@@ -126,7 +93,7 @@ export const listGoalMaps = createServerFn({ method: "GET" })
 			const rows = yield* Effect.tryPromise(() =>
 				db
 					.select({
-						goalMapId: goalMaps.goalMapId,
+						goalMapId: goalMaps.id,
 						title: goalMaps.title,
 						description: goalMaps.description,
 						teacherId: goalMaps.teacherId,
@@ -148,7 +115,6 @@ export const listGoalMaps = createServerFn({ method: "GET" })
 		),
 	);
 
-// List goal maps filtered by topic
 const ListGoalMapsByTopicSchema = Schema.Struct({
 	topicId: Schema.optionalWith(Schema.NonEmptyString, { nullable: true }),
 });
@@ -163,7 +129,7 @@ export const listGoalMapsByTopic = createServerFn({ method: "POST" })
 			const db = yield* Database;
 			const query = db
 				.select({
-					goalMapId: goalMaps.goalMapId,
+					goalMapId: goalMaps.id,
 					title: goalMaps.title,
 					description: goalMaps.description,
 					teacherId: goalMaps.teacherId,
@@ -203,7 +169,7 @@ export const deleteGoalMap = createServerFn({ method: "POST" })
 		Effect.gen(function* () {
 			const db = yield* Database;
 			yield* Effect.tryPromise(() =>
-				db.delete(goalMaps).where(eq(goalMaps.goalMapId, data.goalMapId)).run(),
+				db.delete(goalMaps).where(eq(goalMaps.id, data.goalMapId)).run(),
 			);
 			return { success: true };
 		}).pipe(
@@ -215,12 +181,6 @@ export const deleteGoalMap = createServerFn({ method: "POST" })
 
 export const GoalMapRpc = {
 	goalMap: () => ["goal-map"],
-	topics: () => [...GoalMapRpc.goalMap(), "topics"],
-	listTopics: () =>
-		queryOptions({
-			queryKey: [...GoalMapRpc.topics()],
-			queryFn: () => listTopics(),
-		}),
 	getGoalMap: (data: typeof GetGoalMapSchema.Type) =>
 		queryOptions({
 			queryKey: [...GoalMapRpc.goalMap(), data.id],
