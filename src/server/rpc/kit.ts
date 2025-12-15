@@ -14,7 +14,7 @@ export const StudentKitSchema = Schema.Struct({
 	teacherId: Schema.optionalWith(Schema.NonEmptyString, { nullable: true }),
 });
 
-export const listStudentKits = createServerFn({ method: "GET" })
+export const listStudentKits = createServerFn()
 	.middleware([authMiddleware])
 	.handler(() =>
 		Effect.gen(function* () {
@@ -22,14 +22,14 @@ export const listStudentKits = createServerFn({ method: "GET" })
 			const rows = yield* Effect.tryPromise(() =>
 				db
 					.select({
-						goalMapId: goalMaps.goalMapId,
+						goalMapId: goalMaps.id,
 						title: goalMaps.title,
 						description: goalMaps.description,
 						updatedAt: goalMaps.updatedAt,
 						teacherId: goalMaps.teacherId,
 					})
 					.from(goalMaps)
-					.leftJoin(kits, eq(kits.goalMapId, goalMaps.goalMapId))
+					.leftJoin(kits, eq(kits.goalMapId, goalMaps.id))
 					.orderBy(desc(goalMaps.updatedAt))
 					.all(),
 			);
@@ -51,7 +51,7 @@ export const KitResultSchema = Schema.Struct({
 	edges: Schema.Array(Schema.Any),
 });
 
-export const getKit = createServerFn({ method: "POST" })
+export const getKit = createServerFn()
 	.middleware([authMiddleware])
 	.inputValidator((raw) => Schema.decodeUnknownSync(GetKitSchema)(raw))
 	.handler(({ data }) =>
@@ -84,7 +84,7 @@ const GenerateKitSchema = Schema.Struct({
 	goalMapId: Schema.NonEmptyString,
 });
 
-export const generateKit = createServerFn({ method: "POST" })
+export const generateKit = createServerFn()
 	.middleware([authMiddleware])
 	.inputValidator((raw) => Schema.decodeUnknownSync(GenerateKitSchema)(raw))
 	.handler(({ data }) =>

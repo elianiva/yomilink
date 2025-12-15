@@ -20,7 +20,7 @@ const GoalMapResultSchema = Schema.Struct({
 	topicId: Schema.optionalWith(Schema.NonEmptyString, { nullable: true }),
 });
 
-export const getGoalMap = createServerFn({ method: "POST" })
+export const getGoalMap = createServerFn()
 	.middleware([authMiddleware])
 	.inputValidator((raw) => Schema.decodeUnknownSync(GetGoalMapSchema)(raw))
 	.handler(({ data }) =>
@@ -49,7 +49,7 @@ const SaveGoalMapSchema = Schema.Struct({
 	teacherId: Schema.optionalWith(Schema.NonEmptyString, { nullable: true }),
 });
 
-export const saveGoalMap = createServerFn({ method: "POST" })
+export const saveGoalMap = createServerFn()
 	.middleware([authMiddleware])
 	.inputValidator((raw) => Schema.decodeUnknownSync(SaveGoalMapSchema)(raw))
 	.handler(async ({ data }) =>
@@ -85,7 +85,7 @@ export const saveGoalMap = createServerFn({ method: "POST" })
 		),
 	);
 
-export const listGoalMaps = createServerFn({ method: "GET" })
+export const listGoalMaps = createServerFn()
 	.middleware([authMiddleware])
 	.handler(() =>
 		Effect.gen(function* () {
@@ -119,7 +119,7 @@ const ListGoalMapsByTopicSchema = Schema.Struct({
 	topicId: Schema.optionalWith(Schema.NonEmptyString, { nullable: true }),
 });
 
-export const listGoalMapsByTopic = createServerFn({ method: "POST" })
+export const listGoalMapsByTopic = createServerFn()
 	.middleware([authMiddleware])
 	.inputValidator((raw) =>
 		Schema.decodeUnknownSync(ListGoalMapsByTopicSchema)(raw),
@@ -162,7 +162,7 @@ const DeleteGoalMapSchema = Schema.Struct({
 	goalMapId: Schema.NonEmptyString,
 });
 
-export const deleteGoalMap = createServerFn({ method: "POST" })
+export const deleteGoalMap = createServerFn()
 	.middleware([authMiddleware])
 	.inputValidator((raw) => Schema.decodeUnknownSync(DeleteGoalMapSchema)(raw))
 	.handler(({ data }) =>
@@ -196,10 +196,11 @@ export const GoalMapRpc = {
 			queryKey: [...GoalMapRpc.goalMap(), "by-topic", data.topicId ?? "null"],
 			queryFn: () => listGoalMapsByTopic({ data }),
 		}),
-	saveGoalMap: (data: typeof SaveGoalMapSchema.Type) =>
+	saveGoalMap: () =>
 		mutationOptions({
 			mutationKey: [...GoalMapRpc.goalMap()],
-			mutationFn: () => saveGoalMap({ data }),
+			mutationFn: (data: typeof SaveGoalMapSchema.Type) =>
+				saveGoalMap({ data }),
 		}),
 	deleteGoalMap: () =>
 		mutationOptions({

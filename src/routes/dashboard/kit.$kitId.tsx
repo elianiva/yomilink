@@ -18,8 +18,10 @@ import { Maximize2, RotateCcw, RotateCw, ZoomIn, ZoomOut } from "lucide-react";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import ImageNode, {
 	type ImageNodeData,
-} from "@/components/kit/nodes/ImageNode";
-import TextNode, { type TextNodeData } from "@/components/kit/nodes/TextNode";
+} from "@/features/goalmap/components/ImageNode";
+import TextNode, {
+	type TextNodeData,
+} from "@/features/goalmap/components/TextNode";
 import { Button } from "@/components/ui/button";
 import { getKit } from "@/server/rpc/kit";
 

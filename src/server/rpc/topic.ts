@@ -13,7 +13,7 @@ const TopicSchema = Schema.Struct({
 });
 export type Topic = typeof TopicSchema.Type;
 
-export const listTopics = createServerFn({ method: "GET" })
+export const listTopics = createServerFn()
 	.middleware([authMiddleware])
 	.handler(() =>
 		Effect.gen(function* () {
@@ -42,7 +42,7 @@ const CreateTopicSchema = Schema.Struct({
 	description: Schema.NonEmptyString,
 });
 
-export const createTopic = createServerFn({ method: "POST" })
+export const createTopic = createServerFn()
 	.middleware([authMiddleware])
 	.inputValidator((raw) => Schema.decodeUnknownSync(CreateTopicSchema)(raw))
 	.handler(({ data }) =>

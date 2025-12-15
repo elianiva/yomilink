@@ -174,55 +174,57 @@ const program = Effect.gen(function* () {
 
 	// Seed users first
 	console.log(`Seeding ${DEFAULT_USERS.length} users...`);
-	const teacherId = yield* Effect.tryPromise({
-		try: async () => {
-			const result = await authService.api.signUpEmail({
-				body: {
-					email: "teacher@yomilink.local",
-					password: "teacher123",
-					name: "Teacher One",
-				},
-			});
+	let teacherId = "";
 
-			if (result.user) {
-				console.log(`Created user: teacher@yomilink.local`);
-				return result.user.id;
-			} else {
-				// User already exists, get their ID
-				const existingUser = await db
-					.select()
-					.from(user)
-					.where(eq(user.email, "teacher@yomilink.local"))
-					.limit(1);
-				return existingUser[0]?.id || "";
-			}
-		},
-		catch: (error) => new Error(`Failed to seed teacher: ${error}`),
-	});
-
-	// Seed other users
-	for (const user of DEFAULT_USERS.filter(
-		(u) => u.email !== "teacher@yomilink.local",
-	)) {
-		yield* Effect.tryPromise({
+	for (const seedUser of DEFAULT_USERS) {
+		const userId = yield* Effect.tryPromise({
 			try: async () => {
 				const result = await authService.api.signUpEmail({
 					body: {
-						email: user.email,
-						password: user.password,
-						name: user.name as string,
+						email: seedUser.email,
+						password: seedUser.password,
+						name: seedUser.name as string,
 					},
 				});
 
 				if (result.user) {
-					console.log(`Created user: ${user.email}`);
-				} else {
-					console.log(`User ${user.email} already exists`);
+					console.log(`Created user: ${seedUser.email}`);
+					return result.user.id;
 				}
+				// User already exists, get their ID
+				const existingUser = await db
+					.select()
+					.from(user)
+					.where(eq(user.email, seedUser.email))
+					.limit(1);
+				console.log(`User ${seedUser.email} already exists`);
+				return existingUser[0]?.id || "";
 			},
 			catch: (error) =>
-				new Error(`Failed to seed user ${user.email}: ${error}`),
+				new Error(`Failed to seed user ${seedUser.email}: ${error}`),
 		});
+
+		// Set the user's role
+		if (userId && seedUser.roles?.[0]) {
+			yield* Effect.tryPromise({
+				try: async () => {
+					await db
+						.update(user)
+						.set({ role: seedUser.roles?.[0] })
+						.where(eq(user.id, userId));
+					console.log(
+						`Set role '${seedUser.roles?.[0]}' for ${seedUser.email}`,
+					);
+				},
+				catch: (error) =>
+					new Error(`Failed to set role for ${seedUser.email}: ${error}`),
+			});
+		}
+
+		// Track teacher ID for goal maps
+		if (seedUser.roles?.includes("teacher")) {
+			teacherId = userId;
+		}
 	}
 
 	// Seed topics and goal maps
