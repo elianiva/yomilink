@@ -6,26 +6,19 @@ import { Label } from "@/components/ui/label";
 import type { AnyNode } from "../lib/save";
 import type { TextNodeData } from "./TextNode";
 import type { ConnectorNodeData } from "./connector-node";
-import type { ImageNodeData } from "./ImageNode";
 
-interface NodePaletteSidebarProps {
+export interface NodePaletteSidebarProps {
 	nodes: AnyNode[];
 	onAddTextNode: (label: string) => void;
 	onAddConnectorNode: (label: string) => void;
-	onAddImageNode: (url: string, caption?: string) => void;
 	onDeleteNode: (id: string) => void;
-	imageDraft: { url: string; caption?: string } | null;
-	onImageDraftChange: (draft: { url: string; caption?: string } | null) => void;
 }
 
 export function NodePaletteSidebar({
 	nodes,
 	onAddTextNode,
 	onAddConnectorNode,
-	onAddImageNode,
 	onDeleteNode,
-	imageDraft,
-	onImageDraftChange,
 }: NodePaletteSidebarProps) {
 	const [textDraft, setTextDraft] = useState("");
 	const [connDraft, setConnDraft] = useState("is");
@@ -40,13 +33,6 @@ export function NodePaletteSidebar({
 	const handleAddConnector = () => {
 		if (connDraft.trim()) {
 			onAddConnectorNode(connDraft.trim());
-		}
-	};
-
-	const handleAddImage = () => {
-		if (imageDraft?.url) {
-			onAddImageNode(imageDraft.url, imageDraft.caption);
-			onImageDraftChange(null);
 		}
 	};
 
@@ -75,36 +61,6 @@ export function NodePaletteSidebar({
 							Add
 						</Button>
 					</div>
-				</div>
-
-				<div className="space-y-2">
-					<Label>Image Node</Label>
-					<div className="flex gap-2">
-						<Input
-							value={imageDraft?.url ?? ""}
-							onChange={(e) =>
-								onImageDraftChange({
-									url: e.target.value,
-									caption: imageDraft?.caption,
-								})
-							}
-							placeholder="Paste image URL or pick from left"
-						/>
-						<Button onClick={handleAddImage} disabled={!imageDraft?.url}>
-							<Plus className="size-4" />
-							Add
-						</Button>
-					</div>
-					<Input
-						value={imageDraft?.caption ?? ""}
-						onChange={(e) =>
-							onImageDraftChange({
-								url: imageDraft?.url ?? "",
-								caption: e.target.value,
-							})
-						}
-						placeholder="Optional caption"
-					/>
 				</div>
 
 				<div className="space-y-2">
@@ -151,20 +107,13 @@ export function NodePaletteSidebar({
 									<span
 										className={[
 											"mr-2 inline-flex h-4 w-1.5 rounded-sm",
-											n.type === "text"
-												? "bg-emerald-500"
-												: n.type === "connector"
-													? "bg-sky-500"
-													: "bg-amber-500",
+											n.type === "text" ? "bg-emerald-500" : "bg-sky-500",
 										].join(" ")}
 									/>
 									{n.type}:{" "}
 									{n.type === "text"
 										? (n.data as TextNodeData)?.label
-										: n.type === "connector"
-											? (n.data as ConnectorNodeData)?.label
-											: ((n.data as ImageNodeData)?.caption ??
-												(n.data as ImageNodeData)?.url)}
+										: (n.data as ConnectorNodeData)?.label}
 								</span>
 								<button
 									type="button"

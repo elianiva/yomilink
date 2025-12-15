@@ -26,7 +26,6 @@ import {
 	WarningsPanel,
 } from "@/features/goalmap/components/save-dialog";
 import { SearchNodesPanel } from "@/features/goalmap/components/search-nodes-panel";
-import ImageNode from "@/features/goalmap/components/ImageNode";
 import TextNode from "@/features/goalmap/components/TextNode";
 import { Button } from "@/components/ui/button";
 import { useFileImport } from "@/features/goalmap/hooks/use-file-import";
@@ -41,7 +40,6 @@ import {
 	linkDialogOpenAtom,
 	searchOpenAtom,
 	directionEnabledAtom,
-	imageDraftAtom,
 	saveOpenAtom,
 	saveAsOpenAtom,
 	saveTopicAtom,
@@ -53,7 +51,6 @@ import {
 	historyPointerAtom,
 	isApplyingHistoryAtom,
 	isHydratedAtom,
-	imagesAtom,
 } from "@/features/goalmap/lib/atoms";
 import { getLayoutedElements } from "@/features/goalmap/lib/layout";
 import {
@@ -75,7 +72,6 @@ function TeacherGoalMapEditor() {
 	const nodeTypes = useMemo(
 		() => ({
 			text: TextNode,
-			image: ImageNode,
 			connector: ConnectorNode,
 		}),
 		[],
@@ -92,7 +88,6 @@ function TeacherGoalMapEditor() {
 	const [linkDialogOpen, setLinkDialogOpen] = useAtom(linkDialogOpenAtom);
 	const [searchOpen, setSearchOpen] = useAtom(searchOpenAtom);
 	const [directionEnabled, setDirectionEnabled] = useAtom(directionEnabledAtom);
-	const [imageDraft, setImageDraft] = useAtom(imageDraftAtom);
 	const [saveOpen, setSaveOpen] = useAtom(saveOpenAtom);
 	const [saveAsOpen, setSaveAsOpen] = useAtom(saveAsOpenAtom);
 	const [saveTopic, setSaveTopic] = useAtom(saveTopicAtom);
@@ -104,9 +99,8 @@ function TeacherGoalMapEditor() {
 	);
 	const history = useAtomValue(historyAtom);
 	const [historyPointer, setHistoryPointer] = useAtom(historyPointerAtom);
-	const [isApplying, setIsApplying] = useAtom(isApplyingHistoryAtom);
+	const [, setIsApplying] = useAtom(isApplyingHistoryAtom);
 	const [isHydrated, setIsHydrated] = useAtom(isHydratedAtom);
-	const images = useAtomValue(imagesAtom);
 
 	const { goalMapId } = Route.useParams();
 	const navigate = useNavigate();
@@ -135,7 +129,6 @@ function TeacherGoalMapEditor() {
 		getNodeType,
 		addTextNode,
 		addConnectorNode,
-		addImageNode,
 		deleteSelected,
 		selectNode,
 	} = useNodeOperations();
@@ -239,11 +232,6 @@ function TeacherGoalMapEditor() {
 		addConnectorNode(label, viewport);
 	};
 
-	const handleAddImageFromPalette = (url: string, caption?: string) => {
-		const viewport = rfInstance?.getViewport();
-		addImageNode(url, caption, viewport);
-	};
-
 	const handleDeleteNode = (id: string) => {
 		setNodes((nds) => nds.filter((x) => x.id !== id));
 		setEdges((eds) => eds.filter((e) => e.source !== id && e.target !== id));
@@ -254,8 +242,8 @@ function TeacherGoalMapEditor() {
 			const sType = getNodeType(params.source ?? null);
 			const tType = getNodeType(params.target ?? null);
 			const ok =
-				((sType === "text" || sType === "image") && tType === "connector") ||
-				(sType === "connector" && (tType === "text" || tType === "image"));
+				(sType === "text" && tType === "connector") ||
+				(sType === "connector" && tType === "text");
 			if (!ok) {
 				console.warn("invalid connection", sType, "→", tType);
 				return;
@@ -576,8 +564,6 @@ function TeacherGoalMapEditor() {
 					materialText={materialText}
 					onMaterialTextChange={setMaterialText}
 					onImportFiles={onImportFiles}
-					images={images}
-					onSelectImage={(url, name) => setImageDraft({ url, caption: name })}
 				/>
 
 				{/* Canvas */}
@@ -614,10 +600,7 @@ function TeacherGoalMapEditor() {
 					nodes={nodes}
 					onAddTextNode={handleAddTextNodeFromPalette}
 					onAddConnectorNode={handleAddConnectorFromPalette}
-					onAddImageNode={handleAddImageFromPalette}
 					onDeleteNode={handleDeleteNode}
-					imageDraft={imageDraft}
-					onImageDraftChange={setImageDraft}
 				/>
 			</div>
 		</div>

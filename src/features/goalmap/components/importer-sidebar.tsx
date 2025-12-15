@@ -3,13 +3,11 @@ import { useId } from "react";
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
 
-interface ImporterSidebarProps {
+export interface ImporterSidebarProps {
 	fileInputRef: React.RefObject<HTMLInputElement | null>;
 	materialText: string;
 	onMaterialTextChange: (text: string) => void;
 	onImportFiles: (files: FileList | null) => void;
-	images: Array<{ id: string; url: string; name: string }>;
-	onSelectImage: (url: string, caption: string) => void;
 }
 
 export function ImporterSidebar({
@@ -17,8 +15,6 @@ export function ImporterSidebar({
 	materialText,
 	onMaterialTextChange,
 	onImportFiles,
-	images,
-	onSelectImage,
 }: ImporterSidebarProps) {
 	const materialTextareaId = useId();
 
@@ -32,7 +28,7 @@ export function ImporterSidebar({
 					ref={fileInputRef}
 					type="file"
 					multiple
-					accept=".txt,image/png,image/jpeg"
+					accept=".txt"
 					onChange={(e) => onImportFiles(e.currentTarget.files)}
 					className="sr-only"
 				/>
@@ -45,7 +41,7 @@ export function ImporterSidebar({
 				>
 					Pick files
 				</Button>
-				<span className="text-xs text-muted-foreground">.txt, .png, .jpg</span>
+				<span className="text-xs text-muted-foreground">.txt</span>
 			</div>
 			<div className="space-y-2">
 				<Label htmlFor={materialTextareaId}>Text</Label>
@@ -56,31 +52,6 @@ export function ImporterSidebar({
 					onChange={(e) => onMaterialTextChange(e.target.value)}
 					placeholder="Imported text appears here..."
 				/>
-			</div>
-			<div className="space-y-2">
-				<div className="text-sm font-medium">Images</div>
-				<div className="grid grid-cols-3 gap-2">
-					{images.map((img) => (
-						<button
-							type="button"
-							key={img.id}
-							className="overflow-hidden rounded-md border"
-							onClick={() => onSelectImage(img.url, img.name)}
-							title="Use in image node"
-						>
-							<img
-								src={img.url}
-								alt={img.name}
-								className="h-20 w-full object-cover"
-							/>
-						</button>
-					))}
-					{images.length === 0 ? (
-						<div className="text-xs text-muted-foreground">
-							No images imported
-						</div>
-					) : null}
-				</div>
 			</div>
 		</div>
 	);
