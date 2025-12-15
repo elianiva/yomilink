@@ -1,11 +1,11 @@
 import { useAtom, useAtomValue } from "jotai";
 import { useEffect } from "react";
 import {
+	edgesAtom,
 	historyAtom,
 	historyPointerAtom,
 	isApplyingHistoryAtom,
 	nodesAtom,
-	edgesAtom,
 } from "../lib/atoms";
 
 export function useHistory() {

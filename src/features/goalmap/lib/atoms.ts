@@ -1,8 +1,8 @@
 import type { Edge, ReactFlowInstance } from "@xyflow/react";
 import { atom } from "jotai";
-import type { AnyNode } from "./save";
 import type { TailwindColor } from "../components/color-picker";
 import { DEFAULT_COLOR } from "../components/color-picker";
+import type { AnyNode } from "./save";
 
 // Core state atoms
 export const nodesAtom = atom<AnyNode[]>([]);
@@ -36,6 +36,7 @@ export const saveWarningsAtom = atom<string[]>([]);
 export const lastSavedSnapshotAtom = atom<string | null>(null);
 
 // File import state atoms
+export const importDialogOpenAtom = atom(false);
 export const materialTextAtom = atom("");
 export const imagesAtom = atom<
 	Array<{ id: string; url: string; name: string }>

@@ -1,10 +1,10 @@
 import { useAtom, useAtomValue, useSetAtom } from "jotai";
 import { useCallback } from "react";
 import type { TailwindColor } from "../components/color-picker";
-import type { TextNodeData } from "../components/TextNode";
 import type { ConnectorNodeData } from "../components/connector-node";
 import type { ImageNodeData } from "../components/ImageNode";
-import { nodesAtom, edgesAtom, rfInstanceAtom } from "../lib/atoms";
+import type { TextNodeData } from "../components/TextNode";
+import { edgesAtom, nodesAtom, rfInstanceAtom } from "../lib/atoms";
 
 export function useNodeOperations() {
 	const [nodes, setNodes] = useAtom(nodesAtom);

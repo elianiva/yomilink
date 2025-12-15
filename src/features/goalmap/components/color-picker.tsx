@@ -158,8 +158,8 @@ function ColorPickerImpl({ value, onChange }: ColorPickerProps) {
 				<Button
 					variant="outline"
 					size="icon"
-					className="size-9"
 					title={`Selected color: ${value.name}`}
+					className="size-8"
 				>
 					<div className={cn("size-5 rounded-sm", value.bg)} />
 				</Button>

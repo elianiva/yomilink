@@ -1,4 +1,4 @@
-import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
+import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import "@xyflow/react/dist/style.css";
 import { useMutation, useQuery } from "@tanstack/react-query";
 import type { MarkerType } from "@xyflow/react";
@@ -10,8 +10,7 @@ import {
 	MiniMap,
 	ReactFlow,
 } from "@xyflow/react";
-import { Effect } from "effect";
-import { useAtom, useAtomValue } from "jotai";
+import { useAtom, useAtomValue, useSetAtom } from "jotai";
 import { useCallback, useEffect, useMemo } from "react";
 import { Guard } from "@/components/auth/Guard";
 import { AddConceptDialog } from "@/features/goalmap/components/add-concept-dialog";
@@ -19,45 +18,39 @@ import { AddLinkDialog } from "@/features/goalmap/components/add-link-dialog";
 import type { TailwindColor } from "@/features/goalmap/components/color-picker";
 import ConnectorNode from "@/features/goalmap/components/connector-node";
 import { EditorToolbar } from "@/features/goalmap/components/editor-toolbar";
-import { ImporterSidebar } from "@/features/goalmap/components/importer-sidebar";
-import { NodePaletteSidebar } from "@/features/goalmap/components/node-palette-sidebar";
+import { ImportMaterialDialog } from "@/features/goalmap/components/import-material-dialog";
 import {
 	SaveDialog,
 	WarningsPanel,
 } from "@/features/goalmap/components/save-dialog";
 import { SearchNodesPanel } from "@/features/goalmap/components/search-nodes-panel";
 import TextNode from "@/features/goalmap/components/TextNode";
-import { Button } from "@/components/ui/button";
-import { useFileImport } from "@/features/goalmap/hooks/use-file-import";
 import { useHistory } from "@/features/goalmap/hooks/use-history";
 import { useNodeOperations } from "@/features/goalmap/hooks/use-node-operations";
 import {
-	nodesAtom,
-	edgesAtom,
-	rfInstanceAtom,
-	selectedColorAtom,
 	conceptDialogOpenAtom,
-	linkDialogOpenAtom,
-	searchOpenAtom,
 	directionEnabledAtom,
-	saveOpenAtom,
-	saveAsOpenAtom,
-	saveTopicAtom,
-	saveNameAtom,
-	saveErrorAtom,
-	saveWarningsAtom,
-	lastSavedSnapshotAtom,
+	edgesAtom,
 	historyAtom,
 	historyPointerAtom,
 	isApplyingHistoryAtom,
 	isHydratedAtom,
+	lastSavedSnapshotAtom,
+	linkDialogOpenAtom,
+	materialTextAtom,
+	nodesAtom,
+	rfInstanceAtom,
+	saveAsOpenAtom,
+	saveErrorAtom,
+	saveNameAtom,
+	saveOpenAtom,
+	saveTopicAtom,
+	saveWarningsAtom,
+	searchOpenAtom,
+	selectedColorAtom,
 } from "@/features/goalmap/lib/atoms";
 import { getLayoutedElements } from "@/features/goalmap/lib/layout";
-import {
-	saveGoalMapEffect,
-	saveToLocalStorage,
-} from "@/features/goalmap/lib/save";
-import { GoalMapRpc } from "@/server/rpc/goal-map";
+import { GoalMapRpc, saveToLocalStorage } from "@/server/rpc/goal-map";
 import { generateKit } from "@/server/rpc/kit";
 
 export const Route = createFileRoute("/dashboard/goal/$goalMapId")({
@@ -123,8 +116,8 @@ function TeacherGoalMapEditor() {
 
 	// Use extracted hooks
 	useHistory();
-	const { fileInputRef, materialText, setMaterialText, onImportFiles } =
-		useFileImport();
+	const materialText = useAtomValue(materialTextAtom);
+	const setMaterialText = useSetAtom(materialTextAtom);
 	const {
 		getNodeType,
 		addTextNode,
@@ -188,6 +181,11 @@ function TeacherGoalMapEditor() {
 					typeof existing.description === "string" ? existing.description : "",
 				);
 				setSaveName(typeof existing.title === "string" ? existing.title : "");
+				setMaterialText(
+					typeof existing.materialText === "string"
+						? existing.materialText
+						: "",
+				);
 				setLastSavedSnapshot(
 					JSON.stringify({ nodes: loadedNodes, edges: loadedEdges }),
 				);
@@ -203,6 +201,7 @@ function TeacherGoalMapEditor() {
 		setIsHydrated,
 		setSaveName,
 		setSaveTopic,
+		setMaterialText,
 		setLastSavedSnapshot,
 	]);
 
@@ -219,22 +218,6 @@ function TeacherGoalMapEditor() {
 		const viewport = rfInstance?.getViewport();
 		addConnectorNode(data.label, viewport);
 		setLinkDialogOpen(false);
-	};
-
-	// Simple node palette handlers
-	const handleAddTextNodeFromPalette = (label: string) => {
-		const viewport = rfInstance?.getViewport();
-		addTextNode(label, selectedColor, viewport);
-	};
-
-	const handleAddConnectorFromPalette = (label: string) => {
-		const viewport = rfInstance?.getViewport();
-		addConnectorNode(label, viewport);
-	};
-
-	const handleDeleteNode = (id: string) => {
-		setNodes((nds) => nds.filter((x) => x.id !== id));
-		setEdges((eds) => eds.filter((e) => e.source !== id && e.target !== id));
 	};
 
 	const onConnect = useCallback(
@@ -348,29 +331,32 @@ function TeacherGoalMapEditor() {
 				description: meta.topic,
 				nodes,
 				edges,
+				materialText: materialText || undefined,
 			};
 
-			const program = saveGoalMapEffect(saveParams).pipe(
-				Effect.map(() => ({ isLocalFallback: false as const })),
-				// On auth error, fallback to localStorage
-				Effect.catchTag("AuthError", () =>
-					saveToLocalStorage(saveParams).pipe(
-						Effect.tap(() =>
-							Effect.sync(() => {
-								setSaveWarnings((prev) => {
-									const next = new Set([
-										...(prev ?? []),
-										"Saved locally (not signed in). Changes are only on this device.",
-									]);
-									return Array.from(next);
-								});
-							}),
-						),
-					),
-				),
-				// Handle success (both remote and local)
-				Effect.tap(() =>
-					Effect.sync(() => {
+			saveGoalMapMutation.mutate(saveParams, {
+				onSuccess: () => {
+					setLastSavedSnapshot(JSON.stringify({ nodes, edges }));
+					if (newGoalMapId) {
+						navigate({
+							to: "/dashboard/goal/$goalMapId",
+							params: { goalMapId: newGoalMapId },
+						});
+					}
+				},
+				onError: (error) => {
+					// Check if it's an auth error, fallback to localStorage
+					const message =
+						error instanceof Error ? error.message : "Save failed";
+					if (/unauthorized|forbidden/i.test(message)) {
+						saveToLocalStorage(saveParams);
+						setSaveWarnings((prev) => {
+							const next = new Set([
+								...(prev ?? []),
+								"Saved locally (not signed in). Changes are only on this device.",
+							]);
+							return Array.from(next);
+						});
 						setLastSavedSnapshot(JSON.stringify({ nodes, edges }));
 						if (newGoalMapId) {
 							navigate({
@@ -378,27 +364,23 @@ function TeacherGoalMapEditor() {
 								params: { goalMapId: newGoalMapId },
 							});
 						}
-					}),
-				),
-				// Handle remaining errors
-				Effect.catchTag("SaveError", (error) =>
-					Effect.sync(() => {
-						setSaveError(error.message);
-						console.error("goalmap.save error", error.message);
-					}),
-				),
-			);
-
-			Effect.runPromise(program);
+					} else {
+						setSaveError(message);
+						console.error("goalmap.save error", message);
+					}
+				},
+			});
 		},
 		[
 			goalMapId,
 			nodes,
 			edges,
+			materialText,
 			navigate,
 			setSaveError,
 			setSaveWarnings,
 			setLastSavedSnapshot,
+			saveGoalMapMutation,
 		],
 	);
 
@@ -484,16 +466,7 @@ function TeacherGoalMapEditor() {
 	}, [directionEnabled, setEdges]);
 
 	return (
-		<div className="space-y-3">
-			<div className="flex items-center justify-between">
-				<div className="flex items-center gap-2">
-					<Button asChild variant="outline" size="sm">
-						<Link to="/dashboard">Back</Link>
-					</Button>
-					<h2 className="text-lg font-semibold">Goal Map Editor</h2>
-				</div>
-			</div>
-
+		<div className="space-y-3 h-full flex flex-col">
 			{/* Toolbar */}
 			<EditorToolbar
 				onUndo={undo}
@@ -521,6 +494,7 @@ function TeacherGoalMapEditor() {
 				onCancel={() => setLinkDialogOpen(false)}
 				onConfirm={handleAddLink}
 			/>
+			<ImportMaterialDialog />
 			<SaveDialog
 				open={saveOpen}
 				saving={saving}
@@ -528,7 +502,7 @@ function TeacherGoalMapEditor() {
 				defaultName={saveName}
 				onCancel={() => setSaveOpen(false)}
 				onConfirm={async (meta) => {
-					await doSave(meta);
+					doSave(meta);
 					setSaveOpen(false);
 					setSaveTopic(meta.topic);
 					setSaveName(meta.name);
@@ -557,51 +531,33 @@ function TeacherGoalMapEditor() {
 				/>
 			) : null}
 
-			<div className="grid gap-3 grid-cols-12">
-				{/* Importer */}
-				<ImporterSidebar
-					fileInputRef={fileInputRef}
-					materialText={materialText}
-					onMaterialTextChange={setMaterialText}
-					onImportFiles={onImportFiles}
-				/>
-
+			<div className="flex-1">
 				{/* Canvas */}
-				<div className="col-span-12 lg:col-span-6 rounded-xl border bg-card relative">
-					<div className="h-[520px] lg:h-[calc(100vh-18rem)]">
-						<ReactFlow
+				<div className="rounded-xl border bg-card relative h-full">
+					<ReactFlow
+						nodes={nodes}
+						edges={edges}
+						nodeTypes={nodeTypes}
+						onNodesChange={onNodesChange}
+						onEdgesChange={onEdgesChange}
+						onConnect={onConnect}
+						defaultEdgeOptions={edgeOptions}
+						onInit={(instance) => {
+							setRfInstance(instance);
+						}}
+						fitView
+					>
+						<MiniMap />
+						<Background gap={16} />
+						<Controls position="bottom-right" />
+						<SearchNodesPanel
+							open={searchOpen}
 							nodes={nodes}
-							edges={edges}
-							nodeTypes={nodeTypes}
-							onNodesChange={onNodesChange}
-							onEdgesChange={onEdgesChange}
-							onConnect={onConnect}
-							defaultEdgeOptions={edgeOptions}
-							onInit={(instance) => {
-								setRfInstance(instance);
-							}}
-							fitView
-						>
-							<MiniMap />
-							<Background gap={16} />
-							<Controls position="bottom-right" />
-							<SearchNodesPanel
-								open={searchOpen}
-								nodes={nodes}
-								onClose={() => setSearchOpen(false)}
-								onSelectNode={selectNode}
-							/>
-						</ReactFlow>
-					</div>
+							onClose={() => setSearchOpen(false)}
+							onSelectNode={selectNode}
+						/>
+					</ReactFlow>
 				</div>
-
-				{/* Node palette */}
-				<NodePaletteSidebar
-					nodes={nodes}
-					onAddTextNode={handleAddTextNodeFromPalette}
-					onAddConnectorNode={handleAddConnectorFromPalette}
-					onDeleteNode={handleDeleteNode}
-				/>
 			</div>
 		</div>
 	);

@@ -3,7 +3,7 @@ import { createServerFn } from "@tanstack/react-start";
 import { desc, eq, isNull } from "drizzle-orm";
 import { Effect, Schema } from "effect";
 import { authMiddleware } from "@/middlewares/auth";
-import { goalMaps } from "@/server/db/schema/app-schema";
+import { goalMaps, texts } from "@/server/db/schema/app-schema";
 import { Database } from "../db/client";
 
 const GetGoalMapSchema = Schema.Struct({
@@ -18,6 +18,7 @@ const GoalMapResultSchema = Schema.Struct({
 	edges: Schema.optionalWith(Schema.Array(Schema.Any), { default: () => [] }),
 	teacherId: Schema.optionalWith(Schema.NonEmptyString, { nullable: true }),
 	topicId: Schema.optionalWith(Schema.NonEmptyString, { nullable: true }),
+	materialText: Schema.optionalWith(Schema.String, { nullable: true }),
 });
 
 export const getGoalMap = createServerFn()
@@ -27,7 +28,22 @@ export const getGoalMap = createServerFn()
 		Effect.gen(function* () {
 			const db = yield* Database;
 			const row = yield* Effect.tryPromise(() =>
-				db.select().from(goalMaps).where(eq(goalMaps.id, data.id)).get(),
+				db
+					.select({
+						goalMapId: goalMaps.id,
+						title: goalMaps.title,
+						description: goalMaps.description,
+						nodes: goalMaps.nodes,
+						edges: goalMaps.edges,
+						teacherId: goalMaps.teacherId,
+						topicId: goalMaps.topicId,
+						textId: goalMaps.textId,
+						materialText: texts.content,
+					})
+					.from(goalMaps)
+					.leftJoin(texts, eq(goalMaps.textId, texts.id))
+					.where(eq(goalMaps.id, data.id))
+					.get(),
 			);
 			if (!row) return null;
 
@@ -47,6 +63,7 @@ const SaveGoalMapSchema = Schema.Struct({
 	nodes: Schema.Array(Schema.Any),
 	edges: Schema.Array(Schema.Any),
 	teacherId: Schema.optionalWith(Schema.NonEmptyString, { nullable: true }),
+	materialText: Schema.optionalWith(Schema.String, { nullable: true }),
 });
 
 export const saveGoalMap = createServerFn()
@@ -55,6 +72,47 @@ export const saveGoalMap = createServerFn()
 	.handler(async ({ data }) =>
 		Effect.gen(function* () {
 			const db = yield* Database;
+
+			// Handle material text - create or update text record
+			let textId: string | null = null;
+			if (data.materialText?.trim()) {
+				// Check if goalmap already has a text linked
+				const existing = yield* Effect.tryPromise(() =>
+					db
+						.select({ textId: goalMaps.textId })
+						.from(goalMaps)
+						.where(eq(goalMaps.id, data.goalMapId))
+						.get(),
+				);
+
+				if (existing?.textId) {
+					// Update existing text record
+					textId = existing.textId;
+					yield* Effect.tryPromise(() =>
+						db
+							.update(texts)
+							.set({
+								content: data.materialText,
+								updatedAt: new Date(),
+							})
+							.where(eq(texts.id, textId as string))
+							.run(),
+					);
+				} else {
+					// Create new text record
+					textId = crypto.randomUUID();
+					yield* Effect.tryPromise(() =>
+						db
+							.insert(texts)
+							.values({
+								id: textId as string,
+								title: `Material for ${data.title}`,
+								content: data.materialText as string,
+							})
+							.run(),
+					);
+				}
+			}
 
 			const payload = {
 				id: data.goalMapId,
@@ -65,6 +123,7 @@ export const saveGoalMap = createServerFn()
 				edges: JSON.stringify(data.edges ?? []),
 				updatedAt: new Date(),
 				teacherId: data.teacherId ?? "",
+				textId,
 			};
 
 			yield* Effect.tryPromise(() =>
@@ -178,6 +237,20 @@ export const deleteGoalMap = createServerFn()
 			Effect.runPromise,
 		),
 	);
+
+// LocalStorage fallback for offline support
+export const saveToLocalStorage = (params: typeof SaveGoalMapSchema.Type) => {
+	const localDoc = {
+		goalMapId: params.goalMapId,
+		title: params.title,
+		description: params.description,
+		nodes: params.nodes,
+		edges: params.edges,
+		materialText: params.materialText,
+		updatedAt: Date.now(),
+	};
+	localStorage.setItem(`goalmap:${params.goalMapId}`, JSON.stringify(localDoc));
+};
 
 export const GoalMapRpc = {
 	goalMap: () => ["goal-map"],

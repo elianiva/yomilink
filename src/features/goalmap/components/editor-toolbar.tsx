@@ -1,5 +1,7 @@
+import { useAtom, useAtomValue, useSetAtom } from "jotai";
 import {
 	ArrowRight,
+	FileText,
 	Grid3X3,
 	Loader2,
 	Maximize2,
@@ -14,17 +16,17 @@ import {
 	ZoomOut,
 } from "lucide-react";
 import { memo } from "react";
-import { useAtom, useAtomValue, useSetAtom } from "jotai";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 import {
-	selectedColorAtom,
 	conceptDialogOpenAtom,
-	linkDialogOpenAtom,
-	searchOpenAtom,
 	directionEnabledAtom,
-	saveOpenAtom,
+	importDialogOpenAtom,
+	linkDialogOpenAtom,
 	saveAsOpenAtom,
+	saveOpenAtom,
+	searchOpenAtom,
+	selectedColorAtom,
 } from "../lib/atoms";
 import { ColorPicker } from "./color-picker";
 
@@ -56,7 +58,7 @@ function ToolbarGroup({
 	return (
 		<div
 			className={cn(
-				"inline-flex items-center gap-1 rounded-md border p-1",
+				"inline-flex items-center gap-1 rounded-md p-1 bg-white",
 				className,
 			)}
 		>
@@ -94,59 +96,22 @@ function EditorToolbarImpl({
 	onCreateKit,
 	saving,
 }: EditorToolbarProps) {
-	// Use Jotai atoms for state
 	const [selectedColor, setSelectedColor] = useAtom(selectedColorAtom);
 	const setConceptDialogOpen = useSetAtom(conceptDialogOpenAtom);
 	const setLinkDialogOpen = useSetAtom(linkDialogOpenAtom);
+	const setImportDialogOpen = useSetAtom(importDialogOpenAtom);
 	const setSearchOpen = useSetAtom(searchOpenAtom);
 	const directionEnabled = useAtomValue(directionEnabledAtom);
 	const setSaveOpen = useSetAtom(saveOpenAtom);
 	const setSaveAsOpen = useSetAtom(saveAsOpenAtom);
 
 	return (
-		<div className="space-y-2">
-			{/* Row 1: Actions */}
-			<div className="flex items-center justify-end gap-2">
-				<Button
-					variant="default"
-					onClick={() => setSaveOpen(true)}
-					disabled={saving}
-					className="bg-blue-600 hover:bg-blue-700"
-				>
-					{saving ? (
-						<Loader2 className="mr-1.5 size-4 animate-spin" />
-					) : (
-						<Save className="mr-1.5 size-4" />
-					)}
-					Save
-				</Button>
-
-				<Button
-					variant="default"
-					onClick={() => setSaveAsOpen(true)}
-					disabled={saving}
-					className="bg-blue-600 hover:bg-blue-700"
-				>
-					<Save className="mr-1.5 size-4" />
-					Save as...
-				</Button>
-
-				<Button
-					variant="default"
-					onClick={onCreateKit}
-					className="bg-teal-600 hover:bg-teal-700"
-				>
-					<Plus className="mr-1.5 size-4" />
-					Create Kit
-				</Button>
-			</div>
-
-			{/* Row 2: Tools */}
+		<div className="flex items-center justify-between">
 			<div className="flex items-center gap-2 flex-wrap">
 				{/* Add Nodes Group */}
 				<ToolbarGroup>
 					<Button
-						size="default"
+						size="icon"
 						variant="ghost"
 						onClick={() => setConceptDialogOpen(true)}
 						title="Add concept (quick)"
@@ -155,20 +120,27 @@ function EditorToolbarImpl({
 					</Button>
 					<ColorPicker value={selectedColor} onChange={setSelectedColor} />
 					<Button
-						size="default"
+						size="sm"
 						variant="outline"
 						onClick={() => setConceptDialogOpen(true)}
-						className="text-blue-600 border-blue-300 hover:bg-blue-50"
 					>
 						Concept
 					</Button>
 					<Button
-						size="default"
+						size="sm"
 						variant="outline"
 						onClick={() => setLinkDialogOpen(true)}
-						className="text-blue-600 border-blue-300 hover:bg-blue-50"
 					>
 						Link
+					</Button>
+					<Button
+						size="sm"
+						variant="outline"
+						onClick={() => setImportDialogOpen(true)}
+						title="Import learning material"
+					>
+						<FileText className="size-4 mr-1" />
+						Import
 					</Button>
 				</ToolbarGroup>
 
@@ -263,6 +235,40 @@ function EditorToolbarImpl({
 						<Trash2 className="size-4" />
 					</Button>
 				</ToolbarGroup>
+			</div>
+			<div className="flex items-center justify-end gap-2">
+				<Button
+					variant="default"
+					onClick={() => setSaveOpen(true)}
+					disabled={saving}
+					className="bg-blue-600 hover:bg-blue-700"
+				>
+					{saving ? (
+						<Loader2 className="mr-1.5 size-4 animate-spin" />
+					) : (
+						<Save className="mr-1.5 size-4" />
+					)}
+					Save
+				</Button>
+
+				<Button
+					variant="default"
+					onClick={() => setSaveAsOpen(true)}
+					disabled={saving}
+					className="bg-blue-600 hover:bg-blue-700"
+				>
+					<Save className="mr-1.5 size-4" />
+					Save as...
+				</Button>
+
+				<Button
+					variant="default"
+					onClick={onCreateKit}
+					className="bg-teal-600 hover:bg-teal-700"
+				>
+					<Plus className="mr-1.5 size-4" />
+					Create Kit
+				</Button>
 			</div>
 		</div>
 	);
