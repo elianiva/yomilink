@@ -5,7 +5,7 @@ import type { ConnectorNodeData } from "../types";
 const INVISIBLE_HANDLE_STYLE =
 	"!absolute !opacity-0 !w-full !h-full !top-0 !left-0 !transform-none !rounded-none !border-none !min-w-0 !min-h-0";
 
-function ConnectorNode({ data }: NodeProps<Node<ConnectorNodeData>>) {
+function ConnectorNodeComponent({ data }: NodeProps<Node<ConnectorNodeData>>) {
 	return (
 		<div className="min-w-24 rounded-md bg-background px-3 py-1.5 shadow-sm ring-2 ring-sky-500 text-sky-800">
 			<div className="text-sm font-medium leading-tight">
@@ -29,4 +29,4 @@ function ConnectorNode({ data }: NodeProps<Node<ConnectorNodeData>>) {
 	);
 }
 
-export default memo(ConnectorNode);
+export const ConnectorNode = memo(ConnectorNodeComponent);

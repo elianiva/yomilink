@@ -6,7 +6,7 @@ import { getEdgeParamsFromSourceToPoint } from "../lib/floating-edge-utils";
  * Custom connection line that starts from the node boundary
  * rather than a fixed handle position.
  */
-function FloatingConnectionLine({
+export function FloatingConnectionLine({
 	toX,
 	toY,
 	fromNode,
@@ -41,5 +41,3 @@ function FloatingConnectionLine({
 		</g>
 	);
 }
-
-export default FloatingConnectionLine;

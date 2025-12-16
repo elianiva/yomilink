@@ -10,7 +10,13 @@ import { getEdgeParams } from "../lib/floating-edge-utils";
  * A custom edge that connects to the closest point on the node boundary
  * rather than fixed handle positions.
  */
-function FloatingEdge({ id, source, target, markerEnd, style }: EdgeProps) {
+export function FloatingEdge({
+	id,
+	source,
+	target,
+	markerEnd,
+	style,
+}: EdgeProps) {
 	const sourceNode = useInternalNode(source);
 	const targetNode = useInternalNode(target);
 
@@ -31,5 +37,3 @@ function FloatingEdge({ id, source, target, markerEnd, style }: EdgeProps) {
 		<BaseEdge id={id} path={edgePath} markerEnd={markerEnd} style={style} />
 	);
 }
-
-export default FloatingEdge;

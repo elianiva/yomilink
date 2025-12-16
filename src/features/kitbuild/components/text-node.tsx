@@ -48,7 +48,7 @@ function getColorClasses(data?: TextNodeData): string {
 	return "ring-amber-500 text-amber-800 bg-background";
 }
 
-function TextNode({ data }: NodeProps<Node<TextNodeData>>) {
+function TextNodeComponent({ data }: NodeProps<Node<TextNodeData>>) {
 	const colorClasses = getColorClasses(data);
 
 	return (
@@ -79,4 +79,4 @@ function TextNode({ data }: NodeProps<Node<TextNodeData>>) {
 	);
 }
 
-export default memo(TextNode);
+export const TextNode = memo(TextNodeComponent);
