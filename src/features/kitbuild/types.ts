@@ -8,15 +8,8 @@ export type TextNodeData = {
 	color?: string;
 };
 
-export type ImageNodeData = {
-	url: string;
-	caption?: string;
-	width?: number;
-	height?: number;
-};
-
 export type ConnectorNodeData = {
 	label: string;
 };
 
-export type AnyNode = Node<TextNodeData | ImageNodeData | ConnectorNodeData>;
+export type AnyNode = Node<TextNodeData | ConnectorNodeData>;

@@ -3,7 +3,6 @@ import { useCallback } from "react";
 import type { TailwindColor } from "@/features/kitbuild/components/color-picker";
 import type {
 	ConnectorNodeData,
-	ImageNodeData,
 	TextNodeData,
 } from "@/features/kitbuild/types";
 import { edgesAtom, nodesAtom, rfInstanceAtom } from "../lib/atoms";
@@ -65,30 +64,6 @@ export function useNodeOperations() {
 		]);
 	};
 
-	const addImageNode = (
-		url: string,
-		caption?: string,
-		viewport?: { x: number; y: number; zoom: number },
-	) => {
-		if (!url) return;
-		const id = crypto.randomUUID();
-		const centerX = viewport ? -viewport.x / viewport.zoom + 600 : 600;
-		const centerY = viewport ? -viewport.y / viewport.zoom + 240 : 240;
-
-		setNodes((nds) => [
-			...nds,
-			{
-				id,
-				type: "image",
-				position: {
-					x: centerX + Math.random() * 50,
-					y: centerY + Math.random() * 50,
-				},
-				data: { url, caption } as ImageNodeData,
-			},
-		]);
-	};
-
 	const deleteSelected = () => {
 		setNodes((nds) => nds.filter((n) => !n.selected));
 		setEdges((eds) => eds.filter((e) => !e.selected));
@@ -116,7 +91,6 @@ export function useNodeOperations() {
 		getNodeType,
 		addTextNode,
 		addConnectorNode,
-		addImageNode,
 		deleteSelected,
 		selectNode,
 	};
