@@ -1,32 +1,34 @@
-import { createFileRoute, useNavigate } from "@tanstack/react-router";
-import "@xyflow/react/dist/style.css";
 import { useMutation, useQuery } from "@tanstack/react-query";
-import type { MarkerType } from "@xyflow/react";
+import { createFileRoute, useNavigate } from "@tanstack/react-router";
+import type { Connection, MarkerType } from "@xyflow/react";
 import {
 	addEdge,
 	Background,
-	type Connection,
 	Controls,
 	MiniMap,
 	ReactFlow,
 } from "@xyflow/react";
+import "@xyflow/react/dist/style.css";
 import { useAtom, useAtomValue, useSetAtom } from "jotai";
 import { useCallback, useEffect, useMemo } from "react";
 import { Guard } from "@/components/auth/Guard";
-import { AddConceptDialog } from "@/features/goalmap/components/add-concept-dialog";
-import { AddLinkDialog } from "@/features/goalmap/components/add-link-dialog";
-import type { TailwindColor } from "@/features/goalmap/components/color-picker";
-import ConnectorNode from "@/features/goalmap/components/connector-node";
-import { EditorToolbar } from "@/features/goalmap/components/editor-toolbar";
-import { ImportMaterialDialog } from "@/features/goalmap/components/import-material-dialog";
+import type { TailwindColor } from "@/features/kitbuild/components/color-picker";
+import ConnectorNode from "@/features/kitbuild/components/connector-node";
+import FloatingConnectionLine from "@/features/kitbuild/components/FloatingConnectionLine";
+import FloatingEdge from "@/features/kitbuild/components/FloatingEdge";
+import { SearchNodesPanel } from "@/features/kitbuild/components/search-nodes-panel";
+import TextNode from "@/features/kitbuild/components/TextNode";
+import { getLayoutedElements } from "@/features/kitbuild/lib/layout";
+import { AddConceptDialog } from "@/features/goal-map/components/add-concept-dialog";
+import { AddLinkDialog } from "@/features/goal-map/components/add-link-dialog";
+import { EditorToolbar } from "@/features/goal-map/components/editor-toolbar";
+import { ImportMaterialDialog } from "@/features/goal-map/components/import-material-dialog";
 import {
 	SaveDialog,
 	WarningsPanel,
-} from "@/features/goalmap/components/save-dialog";
-import { SearchNodesPanel } from "@/features/goalmap/components/search-nodes-panel";
-import TextNode from "@/features/goalmap/components/TextNode";
-import { useHistory } from "@/features/goalmap/hooks/use-history";
-import { useNodeOperations } from "@/features/goalmap/hooks/use-node-operations";
+} from "@/features/goal-map/components/save-dialog";
+import { useHistory } from "@/features/goal-map/hooks/use-history";
+import { useNodeOperations } from "@/features/goal-map/hooks/use-node-operations";
 import {
 	conceptDialogOpenAtom,
 	directionEnabledAtom,
@@ -48,12 +50,11 @@ import {
 	saveWarningsAtom,
 	searchOpenAtom,
 	selectedColorAtom,
-} from "@/features/goalmap/lib/atoms";
-import { getLayoutedElements } from "@/features/goalmap/lib/layout";
+} from "@/features/goal-map/lib/atoms";
 import { GoalMapRpc, saveToLocalStorage } from "@/server/rpc/goal-map";
 import { generateKit } from "@/server/rpc/kit";
 
-export const Route = createFileRoute("/dashboard/goal/$goalMapId")({
+export const Route = createFileRoute("/dashboard/goal-map/$goalMapId")({
 	component: () => (
 		<Guard roles={["teacher", "admin"]}>
 			<TeacherGoalMapEditor />
@@ -66,6 +67,13 @@ function TeacherGoalMapEditor() {
 		() => ({
 			text: TextNode,
 			connector: ConnectorNode,
+		}),
+		[],
+	);
+
+	const edgeTypes = useMemo(
+		() => ({
+			floating: FloatingEdge,
 		}),
 		[],
 	);
@@ -107,7 +115,7 @@ function TeacherGoalMapEditor() {
 		if (goalMapId === "new") {
 			const id = crypto.randomUUID();
 			navigate({
-				to: "/dashboard/goal/$goalMapId",
+				to: "/dashboard/goal-map/$goalMapId",
 				params: { goalMapId: id },
 				replace: true,
 			});
@@ -228,7 +236,7 @@ function TeacherGoalMapEditor() {
 				(sType === "text" && tType === "connector") ||
 				(sType === "connector" && tType === "text");
 			if (!ok) {
-				console.warn("invalid connection", sType, "→", tType);
+				console.warn("invalid connection", sType, "->", tType);
 				return;
 			}
 			setEdges((eds) => addEdge(params, eds));
@@ -339,7 +347,7 @@ function TeacherGoalMapEditor() {
 					setLastSavedSnapshot(JSON.stringify({ nodes, edges }));
 					if (newGoalMapId) {
 						navigate({
-							to: "/dashboard/goal/$goalMapId",
+							to: "/dashboard/goal-map/$goalMapId",
 							params: { goalMapId: newGoalMapId },
 						});
 					}
@@ -360,7 +368,7 @@ function TeacherGoalMapEditor() {
 						setLastSavedSnapshot(JSON.stringify({ nodes, edges }));
 						if (newGoalMapId) {
 							navigate({
-								to: "/dashboard/goal/$goalMapId",
+								to: "/dashboard/goal-map/$goalMapId",
 								params: { goalMapId: newGoalMapId },
 							});
 						}
@@ -445,6 +453,7 @@ function TeacherGoalMapEditor() {
 	// Edge options with direction
 	const edgeOptions = useMemo(
 		() => ({
+			type: "floating",
 			style: { stroke: "#16a34a", strokeWidth: 3 },
 			markerEnd: directionEnabled
 				? { type: "arrowclosed" as MarkerType, color: "#16a34a" }
@@ -538,10 +547,12 @@ function TeacherGoalMapEditor() {
 						nodes={nodes}
 						edges={edges}
 						nodeTypes={nodeTypes}
+						edgeTypes={edgeTypes}
 						onNodesChange={onNodesChange}
 						onEdgesChange={onEdgesChange}
 						onConnect={onConnect}
 						defaultEdgeOptions={edgeOptions}
+						connectionLineComponent={FloatingConnectionLine}
 						onInit={(instance) => {
 							setRfInstance(instance);
 						}}

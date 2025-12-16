@@ -1,6 +1,6 @@
 import type { Edge } from "@xyflow/react";
 import dagre from "dagre";
-import type { AnyNode } from "./save";
+import type { AnyNode } from "../types";
 
 /**
  * Auto-layout nodes using dagre graph layout algorithm

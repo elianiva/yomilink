@@ -1,9 +1,11 @@
 import { useAtom, useAtomValue, useSetAtom } from "jotai";
 import { useCallback } from "react";
-import type { TailwindColor } from "../components/color-picker";
-import type { ConnectorNodeData } from "../components/connector-node";
-import type { ImageNodeData } from "../components/ImageNode";
-import type { TextNodeData } from "../components/TextNode";
+import type { TailwindColor } from "@/features/kitbuild/components/color-picker";
+import type {
+	ConnectorNodeData,
+	ImageNodeData,
+	TextNodeData,
+} from "@/features/kitbuild/types";
 import { edgesAtom, nodesAtom, rfInstanceAtom } from "../lib/atoms";
 
 export function useNodeOperations() {

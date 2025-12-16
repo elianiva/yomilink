@@ -1,8 +1,8 @@
 import type { Edge, ReactFlowInstance } from "@xyflow/react";
 import { atom } from "jotai";
-import type { TailwindColor } from "../components/color-picker";
-import { DEFAULT_COLOR } from "../components/color-picker";
-import type { AnyNode } from "./save";
+import type { TailwindColor } from "@/features/kitbuild/components/color-picker";
+import { DEFAULT_COLOR } from "@/features/kitbuild/components/color-picker";
+import type { AnyNode } from "@/features/kitbuild/types";
 
 // Core state atoms
 export const nodesAtom = atom<AnyNode[]>([]);

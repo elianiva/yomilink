@@ -17,6 +17,7 @@ import {
 } from "lucide-react";
 import { memo } from "react";
 import { Button } from "@/components/ui/button";
+import { ColorPicker } from "@/features/kitbuild/components/color-picker";
 import { cn } from "@/lib/utils";
 import {
 	conceptDialogOpenAtom,
@@ -28,7 +29,6 @@ import {
 	searchOpenAtom,
 	selectedColorAtom,
 } from "../lib/atoms";
-import { ColorPicker } from "./color-picker";
 
 export type EditorToolbarProps = {
 	// History

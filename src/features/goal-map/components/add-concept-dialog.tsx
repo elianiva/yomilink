@@ -10,12 +10,12 @@ import {
 } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { cn } from "@/lib/utils";
 import {
 	DEFAULT_COLOR,
 	TAILWIND_COLORS,
 	type TailwindColor,
-} from "./color-picker";
+} from "@/features/kitbuild/components/color-picker";
+import { cn } from "@/lib/utils";
 
 export type AddConceptDialogProps = {
 	open: boolean;

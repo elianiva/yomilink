@@ -18,8 +18,7 @@ import { Route as DashboardResultsRouteImport } from './routes/dashboard/results
 import { Route as DashboardProfileRouteImport } from './routes/dashboard/profile'
 import { Route as DashboardAnalyticsRouteImport } from './routes/dashboard/analytics'
 import { Route as DashboardAssignmentsIndexRouteImport } from './routes/dashboard/assignments/index'
-import { Route as DashboardKitKitIdRouteImport } from './routes/dashboard/kit.$kitId'
-import { Route as DashboardGoalGoalMapIdRouteImport } from './routes/dashboard/goal.$goalMapId'
+import { Route as DashboardGoalMapGoalMapIdRouteImport } from './routes/dashboard/goal-map.$goalMapId'
 import { Route as DashboardAssignmentsArchivedRouteImport } from './routes/dashboard/assignments/archived'
 import { Route as ApiAuthSplatRouteImport } from './routes/api/auth/$'
 
@@ -69,16 +68,12 @@ const DashboardAssignmentsIndexRoute =
     path: '/assignments/',
     getParentRoute: () => DashboardRoute,
   } as any)
-const DashboardKitKitIdRoute = DashboardKitKitIdRouteImport.update({
-  id: '/kit/$kitId',
-  path: '/kit/$kitId',
-  getParentRoute: () => DashboardRoute,
-} as any)
-const DashboardGoalGoalMapIdRoute = DashboardGoalGoalMapIdRouteImport.update({
-  id: '/goal/$goalMapId',
-  path: '/goal/$goalMapId',
-  getParentRoute: () => DashboardRoute,
-} as any)
+const DashboardGoalMapGoalMapIdRoute =
+  DashboardGoalMapGoalMapIdRouteImport.update({
+    id: '/goal-map/$goalMapId',
+    path: '/goal-map/$goalMapId',
+    getParentRoute: () => DashboardRoute,
+  } as any)
 const DashboardAssignmentsArchivedRoute =
   DashboardAssignmentsArchivedRouteImport.update({
     id: '/assignments/archived',
@@ -102,8 +97,7 @@ export interface FileRoutesByFullPath {
   '/dashboard/': typeof DashboardIndexRoute
   '/api/auth/$': typeof ApiAuthSplatRoute
   '/dashboard/assignments/archived': typeof DashboardAssignmentsArchivedRoute
-  '/dashboard/goal/$goalMapId': typeof DashboardGoalGoalMapIdRoute
-  '/dashboard/kit/$kitId': typeof DashboardKitKitIdRoute
+  '/dashboard/goal-map/$goalMapId': typeof DashboardGoalMapGoalMapIdRoute
   '/dashboard/assignments': typeof DashboardAssignmentsIndexRoute
 }
 export interface FileRoutesByTo {
@@ -116,8 +110,7 @@ export interface FileRoutesByTo {
   '/dashboard': typeof DashboardIndexRoute
   '/api/auth/$': typeof ApiAuthSplatRoute
   '/dashboard/assignments/archived': typeof DashboardAssignmentsArchivedRoute
-  '/dashboard/goal/$goalMapId': typeof DashboardGoalGoalMapIdRoute
-  '/dashboard/kit/$kitId': typeof DashboardKitKitIdRoute
+  '/dashboard/goal-map/$goalMapId': typeof DashboardGoalMapGoalMapIdRoute
   '/dashboard/assignments': typeof DashboardAssignmentsIndexRoute
 }
 export interface FileRoutesById {
@@ -132,8 +125,7 @@ export interface FileRoutesById {
   '/dashboard/': typeof DashboardIndexRoute
   '/api/auth/$': typeof ApiAuthSplatRoute
   '/dashboard/assignments/archived': typeof DashboardAssignmentsArchivedRoute
-  '/dashboard/goal/$goalMapId': typeof DashboardGoalGoalMapIdRoute
-  '/dashboard/kit/$kitId': typeof DashboardKitKitIdRoute
+  '/dashboard/goal-map/$goalMapId': typeof DashboardGoalMapGoalMapIdRoute
   '/dashboard/assignments/': typeof DashboardAssignmentsIndexRoute
 }
 export interface FileRouteTypes {
@@ -149,8 +141,7 @@ export interface FileRouteTypes {
     | '/dashboard/'
     | '/api/auth/$'
     | '/dashboard/assignments/archived'
-    | '/dashboard/goal/$goalMapId'
-    | '/dashboard/kit/$kitId'
+    | '/dashboard/goal-map/$goalMapId'
     | '/dashboard/assignments'
   fileRoutesByTo: FileRoutesByTo
   to:
@@ -163,8 +154,7 @@ export interface FileRouteTypes {
     | '/dashboard'
     | '/api/auth/$'
     | '/dashboard/assignments/archived'
-    | '/dashboard/goal/$goalMapId'
-    | '/dashboard/kit/$kitId'
+    | '/dashboard/goal-map/$goalMapId'
     | '/dashboard/assignments'
   id:
     | '__root__'
@@ -178,8 +168,7 @@ export interface FileRouteTypes {
     | '/dashboard/'
     | '/api/auth/$'
     | '/dashboard/assignments/archived'
-    | '/dashboard/goal/$goalMapId'
-    | '/dashboard/kit/$kitId'
+    | '/dashboard/goal-map/$goalMapId'
     | '/dashboard/assignments/'
   fileRoutesById: FileRoutesById
 }
@@ -255,18 +244,11 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof DashboardAssignmentsIndexRouteImport
       parentRoute: typeof DashboardRoute
     }
-    '/dashboard/kit/$kitId': {
-      id: '/dashboard/kit/$kitId'
-      path: '/kit/$kitId'
-      fullPath: '/dashboard/kit/$kitId'
-      preLoaderRoute: typeof DashboardKitKitIdRouteImport
-      parentRoute: typeof DashboardRoute
-    }
-    '/dashboard/goal/$goalMapId': {
-      id: '/dashboard/goal/$goalMapId'
-      path: '/goal/$goalMapId'
-      fullPath: '/dashboard/goal/$goalMapId'
-      preLoaderRoute: typeof DashboardGoalGoalMapIdRouteImport
+    '/dashboard/goal-map/$goalMapId': {
+      id: '/dashboard/goal-map/$goalMapId'
+      path: '/goal-map/$goalMapId'
+      fullPath: '/dashboard/goal-map/$goalMapId'
+      preLoaderRoute: typeof DashboardGoalMapGoalMapIdRouteImport
       parentRoute: typeof DashboardRoute
     }
     '/dashboard/assignments/archived': {
@@ -293,8 +275,7 @@ interface DashboardRouteChildren {
   DashboardRoomsRoute: typeof DashboardRoomsRoute
   DashboardIndexRoute: typeof DashboardIndexRoute
   DashboardAssignmentsArchivedRoute: typeof DashboardAssignmentsArchivedRoute
-  DashboardGoalGoalMapIdRoute: typeof DashboardGoalGoalMapIdRoute
-  DashboardKitKitIdRoute: typeof DashboardKitKitIdRoute
+  DashboardGoalMapGoalMapIdRoute: typeof DashboardGoalMapGoalMapIdRoute
   DashboardAssignmentsIndexRoute: typeof DashboardAssignmentsIndexRoute
 }
 
@@ -305,8 +286,7 @@ const DashboardRouteChildren: DashboardRouteChildren = {
   DashboardRoomsRoute: DashboardRoomsRoute,
   DashboardIndexRoute: DashboardIndexRoute,
   DashboardAssignmentsArchivedRoute: DashboardAssignmentsArchivedRoute,
-  DashboardGoalGoalMapIdRoute: DashboardGoalGoalMapIdRoute,
-  DashboardKitKitIdRoute: DashboardKitKitIdRoute,
+  DashboardGoalMapGoalMapIdRoute: DashboardGoalMapGoalMapIdRoute,
   DashboardAssignmentsIndexRoute: DashboardAssignmentsIndexRoute,
 }
 

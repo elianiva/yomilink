@@ -53,7 +53,7 @@ function SaveDialogImpl({
 				className="relative z-10 w-full max-w-md rounded-xl border bg-background shadow-xl"
 			>
 				<div className="flex items-center justify-between border-b p-4">
-					<h3 className="text-lg font-semibold">Save As…</h3>
+					<h3 className="text-lg font-semibold">Save As...</h3>
 					<Button variant="ghost" size="sm" onClick={onCancel}>
 						Cancel
 					</Button>

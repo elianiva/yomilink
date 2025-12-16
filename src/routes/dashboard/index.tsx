@@ -1,8 +1,8 @@
 import { useForm } from "@tanstack/react-form";
-import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { useMutation, useQuery } from "@tanstack/react-query";
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { Schema } from "effect";
-import { Edit, ExternalLink, Loader2, Plus, Trash2 } from "lucide-react";
+import { Edit, Loader2, Plus, Trash2 } from "lucide-react";
 import { useState } from "react";
 import {
 	AlertDialog,
@@ -98,7 +98,10 @@ function DashboardHome() {
 					/>
 				</div>
 				<Button asChild>
-					<Link to="/dashboard/goal/$goalMapId" params={{ goalMapId: "new" }}>
+					<Link
+						to="/dashboard/goal-map/$goalMapId"
+						params={{ goalMapId: "new" }}
+					>
 						<Plus className="mr-2 h-4 w-4" />
 						New Goal Map
 					</Link>
@@ -201,18 +204,10 @@ function DashboardHome() {
 									<div className="flex items-center">
 										<Button asChild variant="ghost" size="icon">
 											<Link
-												to="/dashboard/goal/$goalMapId"
+												to="/dashboard/goal-map/$goalMapId"
 												params={{ goalMapId: goalMap.goalMapId }}
 											>
 												<Edit className="h-4 w-4" />
-											</Link>
-										</Button>
-										<Button asChild variant="ghost" size="icon">
-											<Link
-												to="/dashboard/kit/$kitId"
-												params={{ kitId: goalMap.goalMapId }}
-											>
-												<ExternalLink className="h-4 w-4" />
 											</Link>
 										</Button>
 										<AlertDialog
@@ -286,7 +281,6 @@ const TopicSchema = Schema.Struct({
 function NewTopicDialog() {
 	const [isOpen, setIsOpen] = useState(false);
 	const [error, setError] = useState<string | null>(null);
-	const queryClient = useQueryClient();
 	const { mutate: createTopic, isPending } = useMutation(
 		TopicRpc.createTopic(),
 	);

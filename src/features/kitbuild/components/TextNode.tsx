@@ -1,14 +1,10 @@
 import { Handle, type Node, type NodeProps, Position } from "@xyflow/react";
 import { memo } from "react";
 import { cn } from "@/lib/utils";
+import type { TextNodeData } from "../types";
 
-export type TextNodeData = {
-	label: string;
-	/** Legacy variant support */
-	variant?: "green" | "blue" | "default";
-	/** Tailwind color value, e.g. "amber-500" */
-	color?: string;
-};
+const INVISIBLE_HANDLE_STYLE =
+	"!absolute !opacity-0 !w-full !h-full !top-0 !left-0 !transform-none !rounded-none !border-none !min-w-0 !min-h-0";
 
 /**
  * Maps color values to Tailwind classes.
@@ -66,10 +62,19 @@ function TextNode({ data }: NodeProps<Node<TextNodeData>>) {
 				{data?.label ?? "Text"}
 			</div>
 
-			<Handle type="target" position={Position.Top} className="size-2" />
-			<Handle type="source" position={Position.Right} className="size-2" />
-			<Handle type="source" position={Position.Bottom} className="size-2" />
-			<Handle type="target" position={Position.Left} className="size-2" />
+			{/* Invisible handles that cover the entire node for floating edges */}
+			<Handle
+				type="target"
+				id="target"
+				position={Position.Top}
+				className={INVISIBLE_HANDLE_STYLE}
+			/>
+			<Handle
+				type="source"
+				id="source"
+				position={Position.Bottom}
+				className={INVISIBLE_HANDLE_STYLE}
+			/>
 		</div>
 	);
 }
