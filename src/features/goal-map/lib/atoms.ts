@@ -49,3 +49,28 @@ export const historyAtom = atom<Array<{ nodes: AnyNode[]; edges: Edge[] }>>([
 export const historyPointerAtom = atom(0);
 export const isApplyingHistoryAtom = atom(false);
 export const isHydratedAtom = atom(false);
+
+// Node context menu state
+export type ContextMenuState = {
+	nodeId: string;
+	nodeType: "text" | "connector";
+	position: { x: number; y: number };
+} | null;
+export const contextMenuAtom = atom<ContextMenuState>(null);
+
+// Connection mode state - for "Connect From/To" from link nodes
+export type ConnectionModeState = {
+	active: boolean;
+	linkNodeId: string;
+	direction: "to" | "from"; // "to" = link→concept, "from" = concept→link
+} | null;
+export const connectionModeAtom = atom<ConnectionModeState>(null);
+
+// Edit node dialog state
+export type EditNodeState = {
+	id: string;
+	type: "text" | "connector";
+	label: string;
+	color?: string; // Only for text nodes
+} | null;
+export const editNodeAtom = atom<EditNodeState>(null);

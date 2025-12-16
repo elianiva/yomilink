@@ -20,6 +20,12 @@ import { cn } from "@/lib/utils";
 export type AddConceptDialogProps = {
 	open: boolean;
 	defaultColor?: TailwindColor;
+	/** When true, dialog is in edit mode with pre-filled values */
+	editMode?: boolean;
+	/** Initial label for edit mode */
+	initialLabel?: string;
+	/** Initial color for edit mode */
+	initialColor?: TailwindColor;
 	onCancel: () => void;
 	onConfirm: (data: { label: string; color: TailwindColor }) => void;
 };
@@ -27,6 +33,9 @@ export type AddConceptDialogProps = {
 function AddConceptDialogImpl({
 	open,
 	defaultColor = DEFAULT_COLOR,
+	editMode = false,
+	initialLabel = "",
+	initialColor,
 	onCancel,
 	onConfirm,
 }: AddConceptDialogProps) {
@@ -36,10 +45,15 @@ function AddConceptDialogImpl({
 
 	useEffect(() => {
 		if (open) {
-			setLabel("");
-			setColor(defaultColor);
+			if (editMode) {
+				setLabel(initialLabel);
+				setColor(initialColor ?? defaultColor);
+			} else {
+				setLabel("");
+				setColor(defaultColor);
+			}
 		}
-	}, [open, defaultColor]);
+	}, [open, defaultColor, editMode, initialLabel, initialColor]);
 
 	const handleSubmit = () => {
 		const trimmed = label.trim();
@@ -51,9 +65,11 @@ function AddConceptDialogImpl({
 		<Dialog open={open} onOpenChange={(isOpen) => !isOpen && onCancel()}>
 			<DialogContent className="sm:max-w-md">
 				<DialogHeader>
-					<DialogTitle>Add Concept</DialogTitle>
+					<DialogTitle>{editMode ? "Edit Concept" : "Add Concept"}</DialogTitle>
 					<DialogDescription>
-						Enter a label for the concept node and choose a color.
+						{editMode
+							? "Update the label and color for this concept node."
+							: "Enter a label for the concept node and choose a color."}
 					</DialogDescription>
 				</DialogHeader>
 
@@ -116,7 +132,7 @@ function AddConceptDialogImpl({
 						Cancel
 					</Button>
 					<Button onClick={handleSubmit} disabled={!label.trim()}>
-						Add Concept
+						{editMode ? "Save Changes" : "Add Concept"}
 					</Button>
 				</DialogFooter>
 			</DialogContent>

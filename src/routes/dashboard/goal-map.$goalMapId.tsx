@@ -1,6 +1,6 @@
 import { useMutation, useQuery } from "@tanstack/react-query";
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
-import type { Connection, MarkerType } from "@xyflow/react";
+import type { Connection, MarkerType, NodeMouseHandler } from "@xyflow/react";
 import {
 	addEdge,
 	Background,
@@ -12,13 +12,6 @@ import "@xyflow/react/dist/style.css";
 import { useAtom, useAtomValue, useSetAtom } from "jotai";
 import { useCallback, useEffect, useMemo } from "react";
 import { Guard } from "@/components/auth/Guard";
-import type { TailwindColor } from "@/features/kitbuild/components/color-picker";
-import { ConnectorNode } from "@/features/kitbuild/components/connector-node";
-import { FloatingConnectionLine } from "@/features/kitbuild/components/floating-connection-line";
-import { FloatingEdge } from "@/features/kitbuild/components/floating-edge";
-import { SearchNodesPanel } from "@/features/kitbuild/components/search-nodes-panel";
-import { TextNode } from "@/features/kitbuild/components/text-node";
-import { getLayoutedElements } from "@/features/kitbuild/lib/layout";
 import { AddConceptDialog } from "@/features/goal-map/components/add-concept-dialog";
 import { AddLinkDialog } from "@/features/goal-map/components/add-link-dialog";
 import { EditorToolbar } from "@/features/goal-map/components/editor-toolbar";
@@ -31,8 +24,11 @@ import { useHistory } from "@/features/goal-map/hooks/use-history";
 import { useNodeOperations } from "@/features/goal-map/hooks/use-node-operations";
 import {
 	conceptDialogOpenAtom,
+	connectionModeAtom,
+	contextMenuAtom,
 	directionEnabledAtom,
 	edgesAtom,
+	editNodeAtom,
 	historyAtom,
 	historyPointerAtom,
 	isApplyingHistoryAtom,
@@ -51,6 +47,22 @@ import {
 	searchOpenAtom,
 	selectedColorAtom,
 } from "@/features/goal-map/lib/atoms";
+import {
+	getColorByValue,
+	type TailwindColor,
+} from "@/features/kitbuild/components/color-picker";
+import { ConnectorNode } from "@/features/kitbuild/components/connector-node";
+import { FloatingConnectionLine } from "@/features/kitbuild/components/floating-connection-line";
+import { FloatingEdge } from "@/features/kitbuild/components/floating-edge";
+import { NodeContextMenu } from "@/features/kitbuild/components/node-context-menu";
+import { SearchNodesPanel } from "@/features/kitbuild/components/search-nodes-panel";
+import { TextNode } from "@/features/kitbuild/components/text-node";
+import { getLayoutedElements } from "@/features/kitbuild/lib/layout";
+import type {
+	ConnectorNodeData,
+	TextNodeData,
+} from "@/features/kitbuild/types";
+import { cn } from "@/lib/utils";
 import { GoalMapRpc, saveToLocalStorage } from "@/server/rpc/goal-map";
 import { generateKit } from "@/server/rpc/kit";
 
@@ -103,6 +115,11 @@ function TeacherGoalMapEditor() {
 	const [, setIsApplying] = useAtom(isApplyingHistoryAtom);
 	const [isHydrated, setIsHydrated] = useAtom(isHydratedAtom);
 
+	// Context menu and connection mode state
+	const [contextMenu, setContextMenu] = useAtom(contextMenuAtom);
+	const [connectionMode, setConnectionMode] = useAtom(connectionModeAtom);
+	const [editNode, setEditNode] = useAtom(editNodeAtom);
+
 	const { goalMapId } = Route.useParams();
 	const navigate = useNavigate();
 
@@ -133,6 +150,185 @@ function TeacherGoalMapEditor() {
 		deleteSelected,
 		selectNode,
 	} = useNodeOperations();
+
+	// Close context menu when clicking outside or pressing Escape
+	useEffect(() => {
+		const handleKeyDown = (e: KeyboardEvent) => {
+			if (e.key === "Escape") {
+				setContextMenu(null);
+				setConnectionMode(null);
+			}
+		};
+		window.addEventListener("keydown", handleKeyDown);
+		return () => window.removeEventListener("keydown", handleKeyDown);
+	}, [setContextMenu, setConnectionMode]);
+
+	// Handle node click - show context menu or complete connection
+	const onNodeClick: NodeMouseHandler = useCallback(
+		(_event, node) => {
+			// If in connection mode, try to complete the connection
+			if (connectionMode?.active) {
+				const clickedType = node.type;
+
+				// Only allow connecting to concept (text) nodes
+				if (clickedType !== "text") {
+					return;
+				}
+
+				// Create the edge based on direction
+				const newEdge = {
+					id: `e-${connectionMode.linkNodeId}-${node.id}`,
+					source:
+						connectionMode.direction === "to"
+							? connectionMode.linkNodeId
+							: node.id,
+					target:
+						connectionMode.direction === "to"
+							? node.id
+							: connectionMode.linkNodeId,
+					type: "floating",
+					style: { stroke: "#16a34a", strokeWidth: 3 },
+					markerEnd: directionEnabled
+						? { type: "arrowclosed" as MarkerType, color: "#16a34a" }
+						: undefined,
+				};
+
+				setEdges((eds) => [...eds, newEdge]);
+				setConnectionMode(null);
+				return;
+			}
+
+			// Show context menu using screen coordinates
+			const nodeType = node.type as "text" | "connector";
+
+			// Find the node element from the event target
+			const target = _event.target as HTMLElement;
+			const nodeElement = target.closest(
+				".react-flow__node",
+			) as HTMLElement | null;
+
+			if (nodeElement) {
+				const rect = nodeElement.getBoundingClientRect();
+				setContextMenu({
+					nodeId: node.id,
+					nodeType,
+					position: {
+						x: rect.left + rect.width / 2,
+						y: rect.top,
+					},
+				});
+			}
+		},
+		[
+			connectionMode,
+			directionEnabled,
+			setEdges,
+			setConnectionMode,
+			setContextMenu,
+		],
+	);
+
+	// Handle pane click - close context menu and cancel connection mode
+	const onPaneClick = useCallback(() => {
+		setContextMenu(null);
+		setConnectionMode(null);
+	}, [setContextMenu, setConnectionMode]);
+
+	// Context menu actions
+	const handleContextMenuEdit = useCallback(() => {
+		if (!contextMenu) return;
+
+		const node = nodes.find((n) => n.id === contextMenu.nodeId);
+		if (!node) return;
+
+		if (contextMenu.nodeType === "text") {
+			const data = node.data as TextNodeData;
+			setEditNode({
+				id: node.id,
+				type: "text",
+				label: data.label,
+				color: data.color,
+			});
+		} else {
+			const data = node.data as ConnectorNodeData;
+			setEditNode({
+				id: node.id,
+				type: "connector",
+				label: data.label,
+			});
+		}
+		setContextMenu(null);
+	}, [contextMenu, nodes, setEditNode, setContextMenu]);
+
+	const handleContextMenuDelete = useCallback(() => {
+		if (!contextMenu) return;
+
+		// Remove the node
+		setNodes((nds) => nds.filter((n) => n.id !== contextMenu.nodeId));
+		// Remove connected edges
+		setEdges((eds) =>
+			eds.filter(
+				(e) =>
+					e.source !== contextMenu.nodeId && e.target !== contextMenu.nodeId,
+			),
+		);
+		setContextMenu(null);
+	}, [contextMenu, setNodes, setEdges, setContextMenu]);
+
+	const handleConnectTo = useCallback(() => {
+		if (!contextMenu || contextMenu.nodeType !== "connector") return;
+
+		setConnectionMode({
+			active: true,
+			linkNodeId: contextMenu.nodeId,
+			direction: "to",
+		});
+		setContextMenu(null);
+	}, [contextMenu, setConnectionMode, setContextMenu]);
+
+	const handleConnectFrom = useCallback(() => {
+		if (!contextMenu || contextMenu.nodeType !== "connector") return;
+
+		setConnectionMode({
+			active: true,
+			linkNodeId: contextMenu.nodeId,
+			direction: "from",
+		});
+		setContextMenu(null);
+	}, [contextMenu, setConnectionMode, setContextMenu]);
+
+	// Handle edit node confirmation
+	const handleEditNodeConfirm = useCallback(
+		(data: { label: string; color?: TailwindColor }) => {
+			if (!editNode) return;
+
+			setNodes((nds) =>
+				nds.map((n) => {
+					if (n.id !== editNode.id) return n;
+
+					if (editNode.type === "text") {
+						return {
+							...n,
+							data: {
+								...n.data,
+								label: data.label,
+								color: data.color?.value,
+							},
+						};
+					}
+					return {
+						...n,
+						data: {
+							...n.data,
+							label: data.label,
+						},
+					};
+				}),
+			);
+			setEditNode(null);
+		},
+		[editNode, setNodes, setEditNode],
+	);
 
 	// Undo/redo functions
 	const undo = useCallback(() => {
@@ -503,6 +699,27 @@ function TeacherGoalMapEditor() {
 				onCancel={() => setLinkDialogOpen(false)}
 				onConfirm={handleAddLink}
 			/>
+
+			{/* Edit dialogs */}
+			<AddConceptDialog
+				open={editNode?.type === "text"}
+				editMode
+				initialLabel={editNode?.type === "text" ? editNode.label : ""}
+				initialColor={
+					editNode?.type === "text" && editNode.color
+						? getColorByValue(editNode.color)
+						: undefined
+				}
+				onCancel={() => setEditNode(null)}
+				onConfirm={(data) => handleEditNodeConfirm(data)}
+			/>
+			<AddLinkDialog
+				open={editNode?.type === "connector"}
+				editMode
+				initialLabel={editNode?.type === "connector" ? editNode.label : ""}
+				onCancel={() => setEditNode(null)}
+				onConfirm={(data) => handleEditNodeConfirm(data)}
+			/>
 			<ImportMaterialDialog />
 			<SaveDialog
 				open={saveOpen}
@@ -542,7 +759,12 @@ function TeacherGoalMapEditor() {
 
 			<div className="flex-1">
 				{/* Canvas */}
-				<div className="rounded-xl border bg-card relative h-full">
+				<div
+					className={cn(
+						"rounded-xl border bg-card relative h-full",
+						connectionMode?.active && "ring-2 ring-blue-500/50",
+					)}
+				>
 					<ReactFlow
 						nodes={nodes}
 						edges={edges}
@@ -551,6 +773,8 @@ function TeacherGoalMapEditor() {
 						onNodesChange={onNodesChange}
 						onEdgesChange={onEdgesChange}
 						onConnect={onConnect}
+						onNodeClick={onNodeClick}
+						onPaneClick={onPaneClick}
 						defaultEdgeOptions={edgeOptions}
 						connectionLineComponent={FloatingConnectionLine}
 						onInit={(instance) => {
@@ -568,6 +792,53 @@ function TeacherGoalMapEditor() {
 							onSelectNode={selectNode}
 						/>
 					</ReactFlow>
+
+					{/* Dark overlay when context menu is open */}
+					{contextMenu && (
+						<div
+							className="absolute inset-0 bg-black/30 z-40 pointer-events-none animate-in fade-in duration-150"
+							aria-hidden="true"
+						/>
+					)}
+
+					{/* Node Context Menu - rendered outside ReactFlow with screen coordinates */}
+					{contextMenu && (
+						<NodeContextMenu
+							nodeId={contextMenu.nodeId}
+							nodeType={contextMenu.nodeType}
+							position={contextMenu.position}
+							onEdit={handleContextMenuEdit}
+							onDelete={handleContextMenuDelete}
+							onConnectTo={
+								contextMenu.nodeType === "connector"
+									? handleConnectTo
+									: undefined
+							}
+							onConnectFrom={
+								contextMenu.nodeType === "connector"
+									? handleConnectFrom
+									: undefined
+							}
+							onClose={() => setContextMenu(null)}
+						/>
+					)}
+
+					{/* Connection Mode Indicator */}
+					{connectionMode?.active && (
+						<div className="absolute bottom-4 left-1/2 -translate-x-1/2 bg-background/95 border rounded-lg px-3 py-1.5 shadow-sm text-sm text-muted-foreground flex items-center gap-2">
+							<span>
+								Click a concept to connect{" "}
+								{connectionMode.direction === "to" ? "to" : "from"}
+							</span>
+							<button
+								type="button"
+								onClick={() => setConnectionMode(null)}
+								className="text-xs text-muted-foreground hover:text-foreground underline"
+							>
+								Cancel
+							</button>
+						</div>
+					)}
 				</div>
 			</div>
 		</div>

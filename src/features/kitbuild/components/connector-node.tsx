@@ -1,29 +1,46 @@
 import { Handle, type Node, type NodeProps, Position } from "@xyflow/react";
+import { useAtomValue } from "jotai";
 import { memo } from "react";
+import { contextMenuAtom } from "@/features/goal-map/lib/atoms";
+import { cn } from "@/lib/utils";
 import type { ConnectorNodeData } from "../types";
 
-const INVISIBLE_HANDLE_STYLE =
-	"!absolute !opacity-0 !w-full !h-full !top-0 !left-0 !transform-none !rounded-none !border-none !min-w-0 !min-h-0";
+// Small invisible handles at center - only used for edge anchoring, not for initiating connections
+const ANCHOR_HANDLE_STYLE =
+	"!absolute !opacity-0 !w-1 !h-1 !min-w-0 !min-h-0 !border-none !pointer-events-none";
 
-function ConnectorNodeComponent({ data }: NodeProps<Node<ConnectorNodeData>>) {
+function ConnectorNodeComponent({
+	id,
+	data,
+}: NodeProps<Node<ConnectorNodeData>>) {
+	const contextMenu = useAtomValue(contextMenuAtom);
+	const isActive = contextMenu?.nodeId === id;
+
 	return (
-		<div className="min-w-24 rounded-md bg-background px-3 py-1.5 shadow-sm ring-2 ring-sky-500 text-sky-800">
+		<div
+			className={cn(
+				"min-w-24 rounded-md bg-background px-3 py-1.5 shadow-sm ring-2 ring-sky-500 text-sky-800 transition-all duration-150",
+				isActive && "ring-4 scale-105 z-50 shadow-lg",
+			)}
+		>
 			<div className="text-sm font-medium leading-tight">
 				{data?.label ?? "rel"}
 			</div>
 
-			{/* Invisible handles that cover the entire node for floating edges */}
+			{/* Small invisible handles at center - only for edge anchoring, not for initiating connections */}
 			<Handle
 				type="target"
 				id="target"
 				position={Position.Top}
-				className={INVISIBLE_HANDLE_STYLE}
+				className={ANCHOR_HANDLE_STYLE}
+				isConnectable={false}
 			/>
 			<Handle
 				type="source"
 				id="source"
 				position={Position.Bottom}
-				className={INVISIBLE_HANDLE_STYLE}
+				className={ANCHOR_HANDLE_STYLE}
+				isConnectable={false}
 			/>
 		</div>
 	);

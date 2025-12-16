@@ -24,19 +24,33 @@ const LINK_PRESETS = [
 
 export type AddLinkDialogProps = {
 	open: boolean;
+	/** When true, dialog is in edit mode with pre-filled values */
+	editMode?: boolean;
+	/** Initial label for edit mode */
+	initialLabel?: string;
 	onCancel: () => void;
 	onConfirm: (data: { label: string }) => void;
 };
 
-function AddLinkDialogImpl({ open, onCancel, onConfirm }: AddLinkDialogProps) {
+function AddLinkDialogImpl({
+	open,
+	editMode = false,
+	initialLabel = "",
+	onCancel,
+	onConfirm,
+}: AddLinkDialogProps) {
 	const [label, setLabel] = useState("");
 	const labelId = useId();
 
 	useEffect(() => {
 		if (open) {
-			setLabel("");
+			if (editMode) {
+				setLabel(initialLabel);
+			} else {
+				setLabel("");
+			}
 		}
-	}, [open]);
+	}, [open, editMode, initialLabel]);
 
 	const handleSubmit = () => {
 		const trimmed = label.trim();
@@ -48,9 +62,11 @@ function AddLinkDialogImpl({ open, onCancel, onConfirm }: AddLinkDialogProps) {
 		<Dialog open={open} onOpenChange={(isOpen) => !isOpen && onCancel()}>
 			<DialogContent className="sm:max-w-md">
 				<DialogHeader>
-					<DialogTitle>Add Link</DialogTitle>
+					<DialogTitle>{editMode ? "Edit Link" : "Add Link"}</DialogTitle>
 					<DialogDescription>
-						Enter a label for the link/connector node or choose a preset.
+						{editMode
+							? "Update the label for this link node."
+							: "Enter a label for the link/connector node or choose a preset."}
 					</DialogDescription>
 				</DialogHeader>
 
@@ -103,7 +119,7 @@ function AddLinkDialogImpl({ open, onCancel, onConfirm }: AddLinkDialogProps) {
 						Cancel
 					</Button>
 					<Button onClick={handleSubmit} disabled={!label.trim()}>
-						Add Link
+						{editMode ? "Save Changes" : "Add Link"}
 					</Button>
 				</DialogFooter>
 			</DialogContent>
