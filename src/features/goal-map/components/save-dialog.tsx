@@ -1,6 +1,13 @@
 import { Loader2 } from "lucide-react";
 import { memo, useEffect, useId, useState } from "react";
 import { Button } from "@/components/ui/button";
+import {
+	Dialog,
+	DialogContent,
+	DialogFooter,
+	DialogHeader,
+	DialogTitle,
+} from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 
@@ -37,29 +44,21 @@ function SaveDialogImpl({
 	const topicId = useId();
 	const nameId = useId();
 
-	if (!open) return null;
+	const handleSubmit = async () => {
+		const t = topic.trim();
+		const n = name.trim();
+		if (!t || !n) return;
+		await onConfirm({ topic: t, name: n });
+	};
 
 	return (
-		<div className="fixed inset-0 z-50 flex items-center justify-center">
-			<button
-				type="button"
-				className="absolute inset-0 bg-black/40 backdrop-blur-sm"
-				onClick={onCancel}
-				aria-label="Close dialog backdrop"
-			/>
-			<div
-				role="dialog"
-				aria-modal="true"
-				className="relative z-10 w-full max-w-md rounded-xl border bg-background shadow-xl"
-			>
-				<div className="flex items-center justify-between border-b p-4">
-					<h3 className="text-lg font-semibold">Save As...</h3>
-					<Button variant="ghost" size="sm" onClick={onCancel}>
-						Cancel
-					</Button>
-				</div>
+		<Dialog open={open} onOpenChange={(v) => !v && onCancel()}>
+			<DialogContent className="sm:max-w-md" showCloseButton={false}>
+				<DialogHeader>
+					<DialogTitle>Save As...</DialogTitle>
+				</DialogHeader>
 
-				<div className="p-4 space-y-3">
+				<div className="space-y-3">
 					<div className="space-y-1.5">
 						<Label htmlFor={topicId}>Topic</Label>
 						<Input
@@ -80,25 +79,20 @@ function SaveDialogImpl({
 					</div>
 				</div>
 
-				<div className="flex items-center justify-end gap-2 border-t p-4">
-					<Button variant="outline" onClick={onCancel}>
+				<DialogFooter>
+					<Button variant="outline" onClick={onCancel} disabled={saving}>
 						Cancel
 					</Button>
 					<Button
-						onClick={async () => {
-							const t = topic.trim();
-							const n = name.trim();
-							if (!t || !n) return;
-							await onConfirm({ topic: t, name: n });
-						}}
+						onClick={handleSubmit}
 						disabled={saving || !topic.trim() || !name.trim()}
 					>
 						{saving ? <Loader2 className="mr-1 size-4 animate-spin" /> : null}
 						Save
 					</Button>
-				</div>
-			</div>
-		</div>
+				</DialogFooter>
+			</DialogContent>
+		</Dialog>
 	);
 }
 

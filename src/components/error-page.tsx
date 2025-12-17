@@ -11,7 +11,9 @@ export function ErrorPage({ error, reset }: ErrorComponentProps) {
 		<div className="flex min-h-screen w-full items-center justify-center bg-neutral-50 text-neutral-900">
 			<div className="mx-4 w-full max-w-xl rounded-2xl border border-neutral-200 bg-white p-6 shadow-sm">
 				<div className="flex items-center gap-3">
-					<img src="/tanstack-circle-logo.png" alt="Logo" className="h-8 w-8" />
+					<div className="flex h-8 w-8 items-center justify-center rounded-lg bg-primary text-white font-bold text-sm">
+						KB
+					</div>
 					<h1 className="text-xl font-semibold">Something went wrong</h1>
 				</div>
 				<p className="mt-3 text-sm text-neutral-600">

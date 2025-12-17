@@ -19,6 +19,8 @@ const GoalMapResultSchema = Schema.Struct({
 	teacherId: Schema.optionalWith(Schema.NonEmptyString, { nullable: true }),
 	topicId: Schema.optionalWith(Schema.NonEmptyString, { nullable: true }),
 	materialText: Schema.optionalWith(Schema.String, { nullable: true }),
+	createdAt: Schema.optionalWith(Schema.DateFromSelf, { nullable: true }),
+	updatedAt: Schema.optionalWith(Schema.DateFromSelf, { nullable: true }),
 });
 
 export const getGoalMap = createServerFn()
@@ -195,6 +197,8 @@ export const listGoalMapsByTopic = createServerFn()
 					topicId: goalMaps.topicId,
 					createdAt: goalMaps.createdAt,
 					updatedAt: goalMaps.updatedAt,
+					nodes: goalMaps.nodes,
+					edges: goalMaps.edges,
 				})
 				.from(goalMaps);
 

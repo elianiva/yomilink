@@ -58,6 +58,7 @@ function SearchNodesPanelImpl({
 					size="icon"
 					className="size-7"
 					onClick={onClose}
+					aria-label="Close search"
 				>
 					<X className="size-4" />
 				</Button>
@@ -96,6 +97,7 @@ function SearchNodesPanelImpl({
 									)}
 								>
 									<span
+										aria-hidden="true"
 										className={cn(
 											"inline-flex h-4 w-1.5 shrink-0 rounded-sm",
 											typeColor,

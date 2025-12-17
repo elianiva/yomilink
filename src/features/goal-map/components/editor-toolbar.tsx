@@ -115,6 +115,7 @@ function EditorToolbarImpl({
 						variant="ghost"
 						onClick={() => setConceptDialogOpen(true)}
 						title="Add concept (quick)"
+						aria-label="Add concept"
 					>
 						<Plus className="size-4" />
 					</Button>
@@ -146,11 +147,23 @@ function EditorToolbarImpl({
 
 				{/* History Group */}
 				<ToolbarGroup>
-					<Button size="default" variant="ghost" onClick={onUndo} title="Undo">
+					<Button
+						size="default"
+						variant="ghost"
+						onClick={onUndo}
+						title="Undo"
+						aria-label="Undo"
+					>
 						<RotateCcw className="size-4" />
 						<span className="ml-1">Undo</span>
 					</Button>
-					<Button size="default" variant="ghost" onClick={onRedo} title="Redo">
+					<Button
+						size="default"
+						variant="ghost"
+						onClick={onRedo}
+						title="Redo"
+						aria-label="Redo"
+					>
 						<RotateCw className="size-4" />
 						<span className="ml-1">Redo</span>
 					</Button>
@@ -164,6 +177,7 @@ function EditorToolbarImpl({
 						variant="ghost"
 						onClick={onZoomIn}
 						title="Zoom in"
+						aria-label="Zoom in"
 					>
 						<ZoomIn className="size-4" />
 					</Button>
@@ -172,6 +186,7 @@ function EditorToolbarImpl({
 						variant="ghost"
 						onClick={onZoomOut}
 						title="Zoom out"
+						aria-label="Zoom out"
 					>
 						<ZoomOut className="size-4" />
 					</Button>
@@ -180,6 +195,7 @@ function EditorToolbarImpl({
 						variant="ghost"
 						onClick={onFit}
 						title="Fit to screen"
+						aria-label="Fit to screen"
 					>
 						<Maximize2 className="size-4" />
 					</Button>
@@ -193,6 +209,7 @@ function EditorToolbarImpl({
 						variant="ghost"
 						onClick={onCenterMap}
 						title="Center map"
+						aria-label="Center map"
 					>
 						<Grid3X3 className="size-4" />
 					</Button>
@@ -201,6 +218,7 @@ function EditorToolbarImpl({
 						variant="ghost"
 						onClick={() => setSearchOpen(true)}
 						title="Search nodes"
+						aria-label="Search nodes"
 					>
 						<Search className="size-4" />
 					</Button>
@@ -213,6 +231,12 @@ function EditorToolbarImpl({
 								? "Disable edge direction"
 								: "Enable edge direction"
 						}
+						aria-label={
+							directionEnabled
+								? "Disable edge direction"
+								: "Enable edge direction"
+						}
+						aria-pressed={directionEnabled}
 					>
 						<ArrowRight className="size-4" />
 					</Button>
@@ -221,6 +245,7 @@ function EditorToolbarImpl({
 						variant="ghost"
 						onClick={onAutoLayout}
 						title="Auto-layout nodes"
+						aria-label="Auto-layout nodes"
 					>
 						<Shuffle className="size-4" />
 					</Button>
@@ -230,6 +255,7 @@ function EditorToolbarImpl({
 						variant="ghost"
 						onClick={onDelete}
 						title="Delete selected"
+						aria-label="Delete selected"
 						className="text-destructive hover:text-destructive"
 					>
 						<Trash2 className="size-4" />

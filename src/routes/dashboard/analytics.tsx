@@ -94,7 +94,13 @@ function ToolbarButton({
 	title: string;
 }) {
 	return (
-		<Button variant="outline" size="sm" className="h-8 w-8 p-0" title={title}>
+		<Button
+			variant="outline"
+			size="sm"
+			className="h-8 w-8 p-0"
+			title={title}
+			aria-label={title}
+		>
 			{children}
 		</Button>
 	);

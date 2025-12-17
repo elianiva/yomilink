@@ -2,8 +2,8 @@ import { useForm } from "@tanstack/react-form";
 import { useMutation, useQuery } from "@tanstack/react-query";
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { Schema } from "effect";
-import { Edit, Loader2, Plus, Trash2 } from "lucide-react";
-import { useState } from "react";
+import { Circle, Edit, GitFork, Loader2, Plus, Trash2 } from "lucide-react";
+import { useMemo, useState } from "react";
 import {
 	AlertDialog,
 	AlertDialogAction,
@@ -48,6 +48,54 @@ export const Route = createFileRoute("/dashboard/")({
 	},
 });
 
+/**
+ * Format a date as relative time (e.g., "2h ago", "Yesterday", "3 days ago")
+ */
+function formatRelativeTime(date: Date | string | null | undefined): string {
+	if (!date) return "";
+
+	const now = new Date();
+	const then = new Date(date);
+	const diffMs = now.getTime() - then.getTime();
+	const diffSecs = Math.floor(diffMs / 1000);
+	const diffMins = Math.floor(diffSecs / 60);
+	const diffHours = Math.floor(diffMins / 60);
+	const diffDays = Math.floor(diffHours / 24);
+
+	if (diffSecs < 60) return "Just now";
+	if (diffMins < 60) return `${diffMins}m ago`;
+	if (diffHours < 24) return `${diffHours}h ago`;
+	if (diffDays === 1) return "Yesterday";
+	if (diffDays < 7) return `${diffDays} days ago`;
+	if (diffDays < 30) return `${Math.floor(diffDays / 7)} weeks ago`;
+
+	return then.toLocaleDateString();
+}
+
+/**
+ * Parse nodes/edges JSON and return counts
+ */
+function parseGoalMapStats(nodes: unknown, edges: unknown) {
+	let nodeCount = 0;
+	let edgeCount = 0;
+
+	try {
+		const parsedNodes = typeof nodes === "string" ? JSON.parse(nodes) : nodes;
+		const parsedEdges = typeof edges === "string" ? JSON.parse(edges) : edges;
+
+		if (Array.isArray(parsedNodes)) {
+			nodeCount = parsedNodes.length;
+		}
+		if (Array.isArray(parsedEdges)) {
+			edgeCount = parsedEdges.length;
+		}
+	} catch {
+		// Ignore parse errors
+	}
+
+	return { nodeCount, edgeCount };
+}
+
 function DashboardHome() {
 	const [searchTerm, setSearchTerm] = useState("");
 	const [deleteConfirmOpen, setDeleteConfirmOpen] = useState(false);
@@ -70,6 +118,17 @@ function DashboardHome() {
 
 	const isLoading = topicsLoading || goalMapsLoading;
 	const error = topicsError || goalMapsError;
+
+	// Filter goal maps by search term
+	const filteredGoalMaps = useMemo(() => {
+		if (!searchTerm.trim()) return goalMaps;
+		const query = searchTerm.toLowerCase();
+		return goalMaps.filter(
+			(gm) =>
+				gm.title.toLowerCase().includes(query) ||
+				gm.description?.toLowerCase().includes(query),
+		);
+	}, [goalMaps, searchTerm]);
 
 	const handleDelete = (goalMapId: string) => {
 		setGoalMapToDelete(goalMapId);
@@ -144,7 +203,7 @@ function DashboardHome() {
 					</div>
 				</div>
 				<div className="flex-1 bg-white rounded-lg p-4 overflow-y-auto">
-					<div className="mb-3">
+					<div className="mb-4">
 						<div className="flex items-center justify-between">
 							<h3 className="font-semibold">
 								{selectedTopic
@@ -159,16 +218,16 @@ function DashboardHome() {
 						)}
 					</div>
 					{isLoading ? (
-						<div className="space-y-3">
-							{Array(5)
+						<div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+							{Array(4)
 								.fill(0)
 								.map((_, i) => (
 									<Skeleton
-										// biome-ignore lint/suspicious/noArrayIndexKey: don't care
+										// biome-ignore lint/suspicious/noArrayIndexKey: skeleton placeholders
 										key={i}
-										className="w-full h-20"
+										className="w-full h-32 rounded-xl"
 										style={{
-											opacity: 1 - i * 0.2,
+											opacity: 1 - i * 0.15,
 										}}
 									/>
 								))}
@@ -177,7 +236,7 @@ function DashboardHome() {
 						<div className="text-center py-8 text-destructive">
 							Failed to load goal maps. Please try again.
 						</div>
-					) : goalMaps.length === 0 ? (
+					) : filteredGoalMaps.length === 0 ? (
 						<div className="text-center py-8 text-muted-foreground">
 							{searchTerm
 								? "No goal maps found matching your search."
@@ -186,85 +245,121 @@ function DashboardHome() {
 									: "Select a topic to see goal maps."}
 						</div>
 					) : (
-						<div className="grid gap-3">
-							{goalMaps.map((goalMap) => (
-								<div
-									key={goalMap.goalMapId}
-									className="flex items-center justify-between p-4 bg-primary/10 rounded-lg hover:bg-accent/50 transition-colors"
-								>
-									<div className="flex-1 min-w-0">
-										<h3 className="font-semibold truncate">{goalMap.title}</h3>
-										{goalMap.description && (
-											<p className="text-sm text-muted-foreground mt-1 line-clamp-2">
-												{goalMap.description}
-											</p>
-										)}
-									</div>
+						<div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+							{filteredGoalMaps.map((goalMap) => {
+								const { nodeCount, edgeCount } = parseGoalMapStats(
+									goalMap.nodes,
+									goalMap.edges,
+								);
 
-									<div className="flex items-center">
-										<Button asChild variant="ghost" size="icon">
-											<Link
-												to="/dashboard/goal-map/$goalMapId"
-												params={{ goalMapId: goalMap.goalMapId }}
+								return (
+									<div
+										key={goalMap.goalMapId}
+										className="group relative flex flex-col p-4 bg-card border rounded-xl hover:border-primary/30 hover:shadow-md transition-all duration-200"
+									>
+										{/* Card content */}
+										<div className="flex-1 min-w-0">
+											<h3 className="font-semibold truncate text-base">
+												{goalMap.title}
+											</h3>
+											{goalMap.description && (
+												<p className="text-sm text-muted-foreground mt-1 line-clamp-2">
+													{goalMap.description}
+												</p>
+											)}
+										</div>
+
+										{/* Metadata row */}
+										<div className="flex items-center gap-3 mt-3 text-xs text-muted-foreground">
+											<span className="inline-flex items-center gap-1">
+												<Circle className="size-3" aria-hidden="true" />
+												{nodeCount} concept{nodeCount !== 1 ? "s" : ""}
+											</span>
+											<span className="inline-flex items-center gap-1">
+												<GitFork className="size-3" aria-hidden="true" />
+												{edgeCount} link{edgeCount !== 1 ? "s" : ""}
+											</span>
+											{goalMap.updatedAt && (
+												<span className="ml-auto">
+													{formatRelativeTime(goalMap.updatedAt)}
+												</span>
+											)}
+										</div>
+
+										{/* Action buttons - visible on hover */}
+										<div className="absolute top-2 right-2 flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
+											<Button
+												asChild
+												variant="secondary"
+												size="icon"
+												className="size-8"
 											>
-												<Edit className="h-4 w-4" />
-											</Link>
-										</Button>
-										<AlertDialog
-											open={
-												deleteConfirmOpen &&
-												goalMapToDelete === goalMap.goalMapId
-											}
-										>
-											<AlertDialogTrigger asChild>
-												<Button
-													variant="ghost"
-													size="icon"
-													onClick={() => handleDelete(goalMap.goalMapId)}
-													disabled={deleteMutation.isPending}
+												<Link
+													to="/dashboard/goal-map/$goalMapId"
+													params={{ goalMapId: goalMap.goalMapId }}
 												>
-													<Trash2 className="h-4 w-4" />
-												</Button>
-											</AlertDialogTrigger>
-											<AlertDialogContent>
-												<AlertDialogHeader>
-													<AlertDialogTitle>Delete Goal Map</AlertDialogTitle>
-													<AlertDialogDescription>
-														Are you sure you want to delete "{goalMap.title}"?
-														This action cannot be undone.
-													</AlertDialogDescription>
-												</AlertDialogHeader>
-												<AlertDialogFooter>
-													<AlertDialogCancel asChild>
-														<Button
-															variant="outline"
-															disabled={deleteMutation.isPending}
-														>
-															Cancel
-														</Button>
-													</AlertDialogCancel>
-													<AlertDialogAction asChild>
-														<Button
-															variant="destructive"
-															onClick={confirmDelete}
-															disabled={deleteMutation.isPending}
-														>
-															{deleteMutation.isPending ? (
-																<>
-																	<Loader2 className="mr-2 h-4 w-4 animate-spin" />
-																	Deleting...
-																</>
-															) : (
-																"Delete"
-															)}
-														</Button>
-													</AlertDialogAction>
-												</AlertDialogFooter>
-											</AlertDialogContent>
-										</AlertDialog>
+													<Edit className="size-4" />
+													<span className="sr-only">Edit</span>
+												</Link>
+											</Button>
+											<AlertDialog
+												open={
+													deleteConfirmOpen &&
+													goalMapToDelete === goalMap.goalMapId
+												}
+											>
+												<AlertDialogTrigger asChild>
+													<Button
+														variant="secondary"
+														size="icon"
+														className="size-8"
+														onClick={() => handleDelete(goalMap.goalMapId)}
+														disabled={deleteMutation.isPending}
+													>
+														<Trash2 className="size-4" />
+														<span className="sr-only">Delete</span>
+													</Button>
+												</AlertDialogTrigger>
+												<AlertDialogContent>
+													<AlertDialogHeader>
+														<AlertDialogTitle>Delete Goal Map</AlertDialogTitle>
+														<AlertDialogDescription>
+															Are you sure you want to delete "{goalMap.title}"?
+															This action cannot be undone.
+														</AlertDialogDescription>
+													</AlertDialogHeader>
+													<AlertDialogFooter>
+														<AlertDialogCancel asChild>
+															<Button
+																variant="outline"
+																disabled={deleteMutation.isPending}
+															>
+																Cancel
+															</Button>
+														</AlertDialogCancel>
+														<AlertDialogAction asChild>
+															<Button
+																variant="destructive"
+																onClick={confirmDelete}
+																disabled={deleteMutation.isPending}
+															>
+																{deleteMutation.isPending ? (
+																	<>
+																		<Loader2 className="mr-2 h-4 w-4 animate-spin" />
+																		Deleting...
+																	</>
+																) : (
+																	"Delete"
+																)}
+															</Button>
+														</AlertDialogAction>
+													</AlertDialogFooter>
+												</AlertDialogContent>
+											</AlertDialog>
+										</div>
 									</div>
-								</div>
-							))}
+								);
+							})}
 						</div>
 					)}
 				</div>
