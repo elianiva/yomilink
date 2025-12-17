@@ -62,7 +62,7 @@ import type {
 	ConnectorNodeData,
 	TextNodeData,
 } from "@/features/kitbuild/types";
-import { cn } from "@/lib/utils";
+import { cn, randomString } from "@/lib/utils";
 import { GoalMapRpc, saveToLocalStorage } from "@/server/rpc/goal-map";
 import { generateKit } from "@/server/rpc/kit";
 
@@ -127,17 +127,6 @@ function TeacherGoalMapEditor() {
 		...GoalMapRpc.getGoalMap({ id: goalMapId }),
 		enabled: goalMapId !== "new",
 	});
-
-	useEffect(() => {
-		if (goalMapId === "new") {
-			const id = crypto.randomUUID();
-			navigate({
-				to: "/dashboard/goal-map/$goalMapId",
-				params: { goalMapId: id },
-				replace: true,
-			});
-		}
-	}, [goalMapId, navigate]);
 
 	// Use extracted hooks
 	useHistory();
@@ -527,7 +516,10 @@ function TeacherGoalMapEditor() {
 	const doSave = useCallback(
 		(meta: { topic: string; name: string }, newGoalMapId?: string) => {
 			setSaveError(null);
-			const targetGoalMapId = newGoalMapId ?? goalMapId;
+			// Generate a new ID if this is a new goal map
+			const targetGoalMapId =
+				newGoalMapId ?? (goalMapId === "new" ? randomString() : goalMapId);
+			const isNewMap = goalMapId === "new" || newGoalMapId !== undefined;
 
 			const saveParams = {
 				goalMapId: targetGoalMapId,
@@ -541,10 +533,11 @@ function TeacherGoalMapEditor() {
 			saveGoalMapMutation.mutate(saveParams, {
 				onSuccess: () => {
 					setLastSavedSnapshot(JSON.stringify({ nodes, edges }));
-					if (newGoalMapId) {
+					if (isNewMap) {
 						navigate({
 							to: "/dashboard/goal-map/$goalMapId",
-							params: { goalMapId: newGoalMapId },
+							params: { goalMapId: targetGoalMapId },
+							replace: goalMapId === "new",
 						});
 					}
 				},
@@ -562,10 +555,11 @@ function TeacherGoalMapEditor() {
 							return Array.from(next);
 						});
 						setLastSavedSnapshot(JSON.stringify({ nodes, edges }));
-						if (newGoalMapId) {
+						if (isNewMap) {
 							navigate({
 								to: "/dashboard/goal-map/$goalMapId",
-								params: { goalMapId: newGoalMapId },
+								params: { goalMapId: targetGoalMapId },
+								replace: goalMapId === "new",
 							});
 						}
 					} else {
@@ -590,7 +584,7 @@ function TeacherGoalMapEditor() {
 
 	// Handle Save As (create copy with new ID)
 	const handleSaveAs = (meta: { topic: string; name: string }) => {
-		const newId = crypto.randomUUID();
+		const newId = randomString();
 		doSave(meta, newId);
 		setSaveAsOpen(false);
 		setSaveTopic(meta.topic);
