@@ -1,7 +1,5 @@
 import type { Edge, ReactFlowInstance } from "@xyflow/react";
 import { atom } from "jotai";
-import type { TailwindColor } from "@/features/kitbuild/components/color-picker";
-import { DEFAULT_COLOR } from "@/features/kitbuild/components/color-picker";
 import type { AnyNode } from "@/features/kitbuild/types";
 
 // Core state atoms
@@ -14,7 +12,6 @@ export const rfInstanceAtom = atom<ReactFlowInstance<AnyNode, Edge> | null>(
 );
 
 // Toolbar state atoms
-export const selectedColorAtom = atom<TailwindColor>(DEFAULT_COLOR);
 export const conceptDialogOpenAtom = atom(false);
 export const linkDialogOpenAtom = atom(false);
 export const searchOpenAtom = atom(false);

@@ -1,13 +1,7 @@
 import { useMutation, useQuery } from "@tanstack/react-query";
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import type { Connection, MarkerType, NodeMouseHandler } from "@xyflow/react";
-import {
-	addEdge,
-	Background,
-	Controls,
-	MiniMap,
-	ReactFlow,
-} from "@xyflow/react";
+import { addEdge, Background, MiniMap, ReactFlow } from "@xyflow/react";
 import "@xyflow/react/dist/style.css";
 import { useAtom, useAtomValue, useSetAtom } from "jotai";
 import { useCallback, useEffect, useMemo } from "react";
@@ -45,9 +39,9 @@ import {
 	saveTopicAtom,
 	saveWarningsAtom,
 	searchOpenAtom,
-	selectedColorAtom,
 } from "@/features/goal-map/lib/atoms";
 import {
+	DEFAULT_COLOR,
 	getColorByValue,
 	type TailwindColor,
 } from "@/features/kitbuild/components/color-picker";
@@ -94,7 +88,6 @@ function TeacherGoalMapEditor() {
 	const [nodes, setNodes] = useAtom(nodesAtom);
 	const [edges, setEdges] = useAtom(edgesAtom);
 	const [rfInstance, setRfInstance] = useAtom(rfInstanceAtom);
-	const [selectedColor, setSelectedColor] = useAtom(selectedColorAtom);
 	const [conceptDialogOpen, setConceptDialogOpen] = useAtom(
 		conceptDialogOpenAtom,
 	);
@@ -402,7 +395,6 @@ function TeacherGoalMapEditor() {
 	const handleAddConcept = (data: { label: string; color: TailwindColor }) => {
 		const viewport = rfInstance?.getViewport();
 		addTextNode(data.label, data.color, viewport);
-		setSelectedColor(data.color);
 		setConceptDialogOpen(false);
 	};
 
@@ -665,26 +657,11 @@ function TeacherGoalMapEditor() {
 	}, [directionEnabled, setEdges]);
 
 	return (
-		<div className="space-y-3 h-full flex flex-col">
-			{/* Toolbar */}
-			<EditorToolbar
-				onUndo={undo}
-				onRedo={redo}
-				onZoomIn={zoomIn}
-				onZoomOut={zoomOut}
-				onFit={fit}
-				onCenterMap={centerMap}
-				onToggleDirection={toggleDirection}
-				onAutoLayout={autoLayout}
-				onDelete={deleteSelected}
-				onCreateKit={handleCreateKit}
-				saving={saving}
-			/>
-
+		<div className="h-full relative">
 			{/* Dialogs */}
 			<AddConceptDialog
 				open={conceptDialogOpen}
-				defaultColor={selectedColor}
+				defaultColor={DEFAULT_COLOR}
 				onCancel={() => setConceptDialogOpen(false)}
 				onConfirm={handleAddConcept}
 			/>
@@ -738,102 +715,114 @@ function TeacherGoalMapEditor() {
 			/>
 
 			{/* Warnings */}
-			<WarningsPanel
-				warnings={saveWarnings}
-				onClear={() => setSaveWarnings([])}
-			/>
-			{saveError ? (
+			<div className="absolute top-20 left-4 z-20 max-w-md">
 				<WarningsPanel
-					warnings={[saveError]}
-					variant="error"
-					onClear={() => setSaveError(null)}
-					className="mt-2"
+					warnings={saveWarnings}
+					onClear={() => setSaveWarnings([])}
 				/>
-			) : null}
+				{saveError ? (
+					<WarningsPanel
+						warnings={[saveError]}
+						variant="error"
+						onClear={() => setSaveError(null)}
+						className="mt-2"
+					/>
+				) : null}
+			</div>
 
-			<div className="flex-1">
-				{/* Canvas */}
-				<div
-					className={cn(
-						"rounded-xl border bg-card relative h-full",
-						connectionMode?.active && "ring-2 ring-blue-500/50",
-					)}
+			{/* Canvas */}
+			<div
+				className={cn(
+					"rounded-xl border bg-card relative h-full overflow-hidden",
+					connectionMode?.active && "ring-2 ring-blue-500/50",
+				)}
+			>
+				<ReactFlow
+					nodes={nodes}
+					edges={edges}
+					nodeTypes={nodeTypes}
+					edgeTypes={edgeTypes}
+					onNodesChange={onNodesChange}
+					onEdgesChange={onEdgesChange}
+					onConnect={onConnect}
+					onNodeClick={onNodeClick}
+					onPaneClick={onPaneClick}
+					defaultEdgeOptions={edgeOptions}
+					connectionLineComponent={FloatingConnectionLine}
+					onInit={(instance) => {
+						setRfInstance(instance);
+					}}
+					fitView
 				>
-					<ReactFlow
+					<MiniMap />
+					<Background gap={16} />
+					<SearchNodesPanel
+						open={searchOpen}
 						nodes={nodes}
-						edges={edges}
-						nodeTypes={nodeTypes}
-						edgeTypes={edgeTypes}
-						onNodesChange={onNodesChange}
-						onEdgesChange={onEdgesChange}
-						onConnect={onConnect}
-						onNodeClick={onNodeClick}
-						onPaneClick={onPaneClick}
-						defaultEdgeOptions={edgeOptions}
-						connectionLineComponent={FloatingConnectionLine}
-						onInit={(instance) => {
-							setRfInstance(instance);
-						}}
-						fitView
-					>
-						<MiniMap />
-						<Background gap={16} />
-						<Controls position="bottom-right" />
-						<SearchNodesPanel
-							open={searchOpen}
-							nodes={nodes}
-							onClose={() => setSearchOpen(false)}
-							onSelectNode={selectNode}
-						/>
-					</ReactFlow>
+						onClose={() => setSearchOpen(false)}
+						onSelectNode={selectNode}
+					/>
+				</ReactFlow>
 
-					{/* Dark overlay when context menu is open */}
-					{contextMenu && (
-						<div
-							className="absolute inset-0 bg-black/30 z-40 pointer-events-none animate-in fade-in duration-150"
-							aria-hidden="true"
-						/>
-					)}
+				{/* Floating Toolbar */}
+				<EditorToolbar
+					onUndo={undo}
+					onRedo={redo}
+					onZoomIn={zoomIn}
+					onZoomOut={zoomOut}
+					onFit={fit}
+					onCenterMap={centerMap}
+					onToggleDirection={toggleDirection}
+					onAutoLayout={autoLayout}
+					onDelete={deleteSelected}
+					onCreateKit={handleCreateKit}
+					saving={saving}
+				/>
 
-					{/* Node Context Menu - rendered outside ReactFlow with screen coordinates */}
-					{contextMenu && (
-						<NodeContextMenu
-							nodeId={contextMenu.nodeId}
-							nodeType={contextMenu.nodeType}
-							position={contextMenu.position}
-							onEdit={handleContextMenuEdit}
-							onDelete={handleContextMenuDelete}
-							onConnectTo={
-								contextMenu.nodeType === "connector"
-									? handleConnectTo
-									: undefined
-							}
-							onConnectFrom={
-								contextMenu.nodeType === "connector"
-									? handleConnectFrom
-									: undefined
-							}
-							onClose={() => setContextMenu(null)}
-						/>
-					)}
+				{/* Dark overlay when context menu is open */}
+				{contextMenu && (
+					<div
+						className="absolute inset-0 bg-black/30 z-40 pointer-events-none animate-in fade-in duration-150"
+						aria-hidden="true"
+					/>
+				)}
 
-					{/* Connection Mode Indicator */}
-					{connectionMode?.active && (
-						<div className="absolute bottom-4 left-1/2 -translate-x-1/2 bg-background/95 border rounded-lg px-3 py-1.5 shadow-sm text-sm text-muted-foreground flex items-center gap-2">
-							<span>
-								Click a concept to connect{" "}
-								{connectionMode.direction === "to" ? "to" : "from"}
-							</span>
-							<button
-								type="button"
-								onClick={() => setConnectionMode(null)}
-								className="text-xs text-muted-foreground hover:text-foreground underline"
-							>
-								Cancel
-							</button>
-						</div>
-					)}
-				</div>
+				{/* Node Context Menu - rendered outside ReactFlow with screen coordinates */}
+				{contextMenu && (
+					<NodeContextMenu
+						nodeId={contextMenu.nodeId}
+						nodeType={contextMenu.nodeType}
+						position={contextMenu.position}
+						onEdit={handleContextMenuEdit}
+						onDelete={handleContextMenuDelete}
+						onConnectTo={
+							contextMenu.nodeType === "connector" ? handleConnectTo : undefined
+						}
+						onConnectFrom={
+							contextMenu.nodeType === "connector"
+								? handleConnectFrom
+								: undefined
+						}
+						onClose={() => setContextMenu(null)}
+					/>
+				)}
+
+				{/* Connection Mode Indicator */}
+				{connectionMode?.active && (
+					<div className="absolute bottom-20 left-1/2 -translate-x-1/2 z-20 bg-blue-500 text-white border border-blue-600 rounded-lg px-3 py-1.5 shadow-lg text-sm flex items-center gap-2">
+						<span>
+							Click a concept to connect{" "}
+							{connectionMode.direction === "to" ? "to" : "from"}
+						</span>
+						<button
+							type="button"
+							onClick={() => setConnectionMode(null)}
+							className="text-xs text-white/80 hover:text-white underline"
+						>
+							Cancel
+						</button>
+					</div>
+				)}
 			</div>
 		</div>
 	);
