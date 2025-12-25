@@ -50,11 +50,7 @@ function ManageAssignmentsPage() {
 	);
 
 	const deleteMutation = useMutation({
-		mutationKey: ["assignments", "delete"],
-		mutationFn: (id: string) =>
-			import("@/server/rpc/assignment").then((m) =>
-				m.deleteAssignment({ data: { id } }),
-			),
+		...AssignmentRpc.deleteAssignment(),
 		onSuccess: () => {
 			queryClient.invalidateQueries({ queryKey: ["assignments"] });
 		},
@@ -176,23 +172,7 @@ function CreateAssignmentDialog({ onSuccess }: { onSuccess: () => void }) {
 	const { data: cohorts } = useQuery(AssignmentRpc.getAvailableCohorts());
 	const { data: users } = useQuery(AssignmentRpc.getAvailableUsers());
 
-	const createMutation = useMutation({
-		mutationKey: ["assignments", "create"],
-		mutationFn: (data: {
-			title: string;
-			description?: string;
-			goalMapId: string;
-			readingMaterial?: string;
-			timeLimitMinutes?: number;
-			dueAt?: number;
-			cohortIds: string[];
-			userIds: string[];
-			layout?: string;
-		}) =>
-			import("@/server/rpc/assignment").then((m) =>
-				m.createAssignment({ data }),
-			),
-	});
+	const createMutation = useMutation(AssignmentRpc.createAssignment());
 
 	const handleSubmit = async (e: React.FormEvent) => {
 		e.preventDefault();
@@ -225,7 +205,6 @@ function CreateAssignmentDialog({ onSuccess }: { onSuccess: () => void }) {
 			dueAt: dueAt ? new Date(dueAt).getTime() : undefined,
 			cohortIds: selectedCohorts,
 			userIds: selectedUsers,
-			layout,
 		});
 
 		if (result.success) {

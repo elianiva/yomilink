@@ -276,10 +276,11 @@ export const getTeacherGoalMaps = createServerFn()
 export const AssignmentRpc = {
 	assignments: () => ["assignments"],
 
-	createAssignment: (data: typeof CreateAssignmentSchema.Type) =>
+	createAssignment: () =>
 		mutationOptions({
 			mutationKey: [...AssignmentRpc.assignments(), "create"],
-			mutationFn: () => createAssignment({ data }),
+			mutationFn: (data: typeof CreateAssignmentSchema.Type) =>
+				createAssignment({ data }),
 		}),
 
 	listTeacherAssignments: () =>
@@ -288,10 +289,10 @@ export const AssignmentRpc = {
 			queryFn: () => listTeacherAssignments(),
 		}),
 
-	deleteAssignment: (id: string) =>
+	deleteAssignment: () =>
 		mutationOptions({
-			mutationKey: [...AssignmentRpc.assignments(), id, "delete"],
-			mutationFn: () => deleteAssignment({ data: { id } }),
+			mutationKey: [...AssignmentRpc.assignments(), "delete"],
+			mutationFn: (id: string) => deleteAssignment({ data: { id } }),
 		}),
 
 	getAvailableCohorts: () =>

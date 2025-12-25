@@ -84,7 +84,7 @@ export function NavMain({ items }: NavMainProps) {
 								tooltip={item.title}
 								className={
 									isActive
-										? "bg-primary hover:bg-primary text-white font-medium"
+										? "bg-primary hover:bg-primary hover:text-white text-white font-medium"
 										: "hover:bg-primary hover:text-white"
 								}
 							>

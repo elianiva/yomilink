@@ -187,7 +187,7 @@ function DashboardHome() {
 								key={topic.id}
 								onClick={() => setSelectedTopic(topic)}
 								className={cn(
-									"w-full text-left px-4 py-2 rounded-lg hover:bg-primary/20 bg-transparent text-foreground duration-50",
+									"cursor-pointer w-full text-left px-4 py-2 rounded-lg hover:bg-primary/20 bg-transparent text-foreground duration-50",
 									selectedTopic?.id === topic.id
 										? "bg-primary hover:bg-primary text-white"
 										: "",
