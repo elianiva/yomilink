@@ -6,7 +6,7 @@ import {
 	sqliteTable,
 	text,
 } from "drizzle-orm/sqlite-core";
-import { user } from "./auth-schema";
+import { cohorts, user } from "./auth-schema";
 
 const timestamps = {
 	createdAt: integer("created_at", { mode: "timestamp_ms" })
@@ -75,6 +75,10 @@ export const kits = sqliteTable(
 			.references(() => goalMaps.id),
 		teacherId: text("teacher_id").notNull(),
 		textId: text("text_id").references(() => texts.id),
+		// Kit nodes (concepts + connectors from goal map)
+		nodes: text("nodes", { length: 1_000_000 }).notNull().default("[]"),
+		// Kit edges - empty for students to build
+		edges: text("edges", { length: 1_000_000 }).notNull().default("[]"),
 		...timestamps,
 	},
 	(table) => [
@@ -116,6 +120,8 @@ export const assignments = sqliteTable(
 			.references(() => kits.id),
 		title: text("title").notNull(),
 		description: text("description"),
+		readingMaterial: text("reading_material", { length: 1_000_000 }),
+		timeLimitMinutes: integer("time_limit_minutes"),
 		dueAt: integer("due_at", { mode: "timestamp_ms" }),
 		createdBy: text("created_by").notNull(),
 		...timestamps,
@@ -123,6 +129,28 @@ export const assignments = sqliteTable(
 	(table) => [
 		index("assignments_goalMapId_idx").on(table.goalMapId),
 		index("assignments_kitId_idx").on(table.kitId),
+		index("assignments_createdBy_idx").on(table.createdBy),
+	],
+);
+
+// Assignment Targets - links assignments to cohorts or individual users
+export const assignmentTargets = sqliteTable(
+	"assignment_targets",
+	{
+		id: text("id").primaryKey(),
+		assignmentId: text("assignment_id")
+			.notNull()
+			.references(() => assignments.id, { onDelete: "cascade" }),
+		cohortId: text("cohort_id").references(() => cohorts.id, {
+			onDelete: "cascade",
+		}),
+		userId: text("user_id").references(() => user.id, { onDelete: "cascade" }),
+		...timestamps,
+	},
+	(table) => [
+		index("assignment_targets_assignmentId_idx").on(table.assignmentId),
+		index("assignment_targets_cohortId_idx").on(table.cohortId),
+		index("assignment_targets_userId_idx").on(table.userId),
 	],
 );
 
@@ -130,6 +158,9 @@ export const learnerMaps = sqliteTable(
 	"learner_maps",
 	{
 		id: text("id").primaryKey(),
+		assignmentId: text("assignment_id")
+			.notNull()
+			.references(() => assignments.id),
 		goalMapId: text("goal_map_id")
 			.notNull()
 			.references(() => goalMaps.id),
@@ -147,6 +178,7 @@ export const learnerMaps = sqliteTable(
 		...timestamps,
 	},
 	(table) => [
+		index("learner_maps_assignmentId_idx").on(table.assignmentId),
 		index("learner_maps_goalMapId_idx").on(table.goalMapId),
 		index("learner_maps_kitId_idx").on(table.kitId),
 		index("learner_maps_userId_idx").on(table.userId),
@@ -259,7 +291,7 @@ export const kitSetsRelations = relations(kitSets, ({ one }) => ({
 	}),
 }));
 
-export const assignmentsRelations = relations(assignments, ({ one }) => ({
+export const assignmentsRelations = relations(assignments, ({ one, many }) => ({
 	goalMap: one(goalMaps, {
 		fields: [assignments.goalMapId],
 		references: [goalMaps.id],
@@ -268,9 +300,37 @@ export const assignmentsRelations = relations(assignments, ({ one }) => ({
 		fields: [assignments.kitId],
 		references: [kits.id],
 	}),
+	creator: one(user, {
+		fields: [assignments.createdBy],
+		references: [user.id],
+	}),
+	targets: many(assignmentTargets),
+	learnerMaps: many(learnerMaps),
 }));
 
+export const assignmentTargetsRelations = relations(
+	assignmentTargets,
+	({ one }) => ({
+		assignment: one(assignments, {
+			fields: [assignmentTargets.assignmentId],
+			references: [assignments.id],
+		}),
+		cohort: one(cohorts, {
+			fields: [assignmentTargets.cohortId],
+			references: [cohorts.id],
+		}),
+		user: one(user, {
+			fields: [assignmentTargets.userId],
+			references: [user.id],
+		}),
+	}),
+);
+
 export const learnerMapsRelations = relations(learnerMaps, ({ one, many }) => ({
+	assignment: one(assignments, {
+		fields: [learnerMaps.assignmentId],
+		references: [assignments.id],
+	}),
 	goalMap: one(goalMaps, {
 		fields: [learnerMaps.goalMapId],
 		references: [goalMaps.id],

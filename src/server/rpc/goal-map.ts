@@ -3,22 +3,56 @@ import { createServerFn } from "@tanstack/react-start";
 import { desc, eq, isNull } from "drizzle-orm";
 import { Effect, Schema } from "effect";
 import { authMiddleware } from "@/middlewares/auth";
-import { goalMaps, texts } from "@/server/db/schema/app-schema";
+import { goalMaps, kits, texts } from "@/server/db/schema/app-schema";
 import { Database } from "../db/client";
 
 const GetGoalMapSchema = Schema.Struct({
 	id: Schema.NonEmptyString,
 });
 
+// Schema to parse JSON string or array into array
+const JsonArraySchema = Schema.transform(
+	Schema.Union(Schema.String, Schema.Array(Schema.Any), Schema.Null),
+	Schema.Array(Schema.Any),
+	{
+		decode: (input) => {
+			if (input === null || input === undefined) return [];
+			if (Array.isArray(input)) return input;
+			if (typeof input === "string") {
+				try {
+					const parsed = JSON.parse(input);
+					return Array.isArray(parsed) ? parsed : [];
+				} catch {
+					return [];
+				}
+			}
+			return [];
+		},
+		encode: (input) => input,
+	},
+);
+
+// Schema that accepts any string and converts empty strings to null
+const NullableNonEmptyString = Schema.transform(
+	Schema.String,
+	Schema.Union(Schema.String.pipe(Schema.minLength(1)), Schema.Null),
+	{
+		decode: (s) => (s.length > 0 ? s : null),
+		encode: (s) => s ?? "",
+	},
+);
+
 const GoalMapResultSchema = Schema.Struct({
 	goalMapId: Schema.NonEmptyString,
 	title: Schema.NonEmptyString,
 	description: Schema.optionalWith(Schema.NonEmptyString, { nullable: true }),
-	nodes: Schema.optionalWith(Schema.Array(Schema.Any), { default: () => [] }),
-	edges: Schema.optionalWith(Schema.Array(Schema.Any), { default: () => [] }),
-	teacherId: Schema.optionalWith(Schema.NonEmptyString, { nullable: true }),
+	nodes: Schema.optionalWith(JsonArraySchema, { default: () => [] }),
+	edges: Schema.optionalWith(JsonArraySchema, { default: () => [] }),
+	teacherId: Schema.optionalWith(NullableNonEmptyString, { nullable: true }),
 	topicId: Schema.optionalWith(Schema.NonEmptyString, { nullable: true }),
 	materialText: Schema.optionalWith(Schema.String, { nullable: true }),
+	kitId: Schema.optionalWith(Schema.String, { nullable: true }),
+	kitExists: Schema.optionalWith(Schema.Boolean, { default: () => false }),
 	createdAt: Schema.optionalWith(Schema.DateFromSelf, { nullable: true }),
 	updatedAt: Schema.optionalWith(Schema.DateFromSelf, { nullable: true }),
 });
@@ -64,14 +98,14 @@ const SaveGoalMapSchema = Schema.Struct({
 	description: Schema.optionalWith(Schema.NonEmptyString, { nullable: true }),
 	nodes: Schema.Array(Schema.Any),
 	edges: Schema.Array(Schema.Any),
-	teacherId: Schema.optionalWith(Schema.NonEmptyString, { nullable: true }),
+	topicId: Schema.optionalWith(Schema.NonEmptyString, { nullable: true }),
 	materialText: Schema.optionalWith(Schema.String, { nullable: true }),
 });
 
 export const saveGoalMap = createServerFn()
 	.middleware([authMiddleware])
 	.inputValidator((raw) => Schema.decodeUnknownSync(SaveGoalMapSchema)(raw))
-	.handler(async ({ data }) =>
+	.handler(async ({ data, context }) =>
 		Effect.gen(function* () {
 			const db = yield* Database;
 
@@ -124,7 +158,8 @@ export const saveGoalMap = createServerFn()
 				nodes: JSON.stringify(data.nodes ?? []),
 				edges: JSON.stringify(data.edges ?? []),
 				updatedAt: new Date(),
-				teacherId: data.teacherId ?? "",
+				teacherId: context.user.id,
+				topicId: data.topicId ?? null,
 				textId,
 			};
 
@@ -199,8 +234,10 @@ export const listGoalMapsByTopic = createServerFn()
 					updatedAt: goalMaps.updatedAt,
 					nodes: goalMaps.nodes,
 					edges: goalMaps.edges,
+					kitId: kits.id,
 				})
-				.from(goalMaps);
+				.from(goalMaps)
+				.leftJoin(kits, eq(kits.goalMapId, goalMaps.id));
 
 			if (data.topicId) {
 				query.where(eq(goalMaps.topicId, data.topicId));

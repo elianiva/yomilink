@@ -60,18 +60,22 @@ export const getKit = createServerFn()
 			const row = yield* Effect.tryPromise(() =>
 				db
 					.select({
-						goalMapId: goalMaps.goalMapId,
+						goalMapId: goalMaps.id,
 						nodes: kits.nodes,
 						edges: kits.edges,
 					})
 					.from(kits)
-					.leftJoin(goalMaps, eq(kits.goalMapId, goalMaps.goalMapId))
+					.leftJoin(goalMaps, eq(kits.goalMapId, goalMaps.id))
 					.where(eq(kits.goalMapId, data.kitId))
 					.get(),
 			);
 			if (!row) return null;
 
-			const result = yield* Schema.decodeUnknown(KitResultSchema)(row);
+			const result = yield* Schema.decodeUnknown(KitResultSchema)({
+				goalMapId: row.goalMapId,
+				nodes: safeParseJson(row.nodes) ?? [],
+				edges: safeParseJson(row.edges) ?? [],
+			});
 			return result;
 		}).pipe(
 			Effect.provide(Database.Default),
@@ -82,7 +86,65 @@ export const getKit = createServerFn()
 
 const GenerateKitSchema = Schema.Struct({
 	goalMapId: Schema.NonEmptyString,
+	layout: Schema.optionalWith(
+		Schema.Union(Schema.Literal("preset"), Schema.Literal("random")),
+		{ nullable: true },
+	),
 });
+
+const GetKitStatusSchema = Schema.Struct({
+	goalMapId: Schema.NonEmptyString,
+});
+
+export const getKitStatus = createServerFn()
+	.middleware([authMiddleware])
+	.inputValidator((raw) => Schema.decodeUnknownSync(GetKitStatusSchema)(raw))
+	.handler(({ data }) =>
+		Effect.gen(function* () {
+			const db = yield* Database;
+
+			const [kit, goalMap] = yield* Effect.all([
+				Effect.tryPromise(() =>
+					db
+						.select({
+							id: kits.id,
+							layout: kits.layout,
+							nodes: kits.nodes,
+							updatedAt: kits.updatedAt,
+						})
+						.from(kits)
+						.where(eq(kits.goalMapId, data.goalMapId))
+						.get(),
+				),
+				Effect.tryPromise(() =>
+					db
+						.select({ updatedAt: goalMaps.updatedAt })
+						.from(goalMaps)
+						.where(eq(goalMaps.id, data.goalMapId))
+						.get(),
+				),
+			]);
+
+			const nodeCount = kit ? (safeParseJson(kit.nodes)?.length ?? 0) : 0;
+			const kitUpdatedAt = kit?.updatedAt?.getTime() ?? null;
+			const goalMapUpdatedAt = goalMap?.updatedAt?.getTime() ?? null;
+
+			return {
+				exists: !!kit,
+				layout: kit?.layout ?? "preset",
+				nodeCount,
+				updatedAt: kitUpdatedAt,
+				isOutdated:
+					kitUpdatedAt && goalMapUpdatedAt
+						? kitUpdatedAt < goalMapUpdatedAt
+						: true,
+			};
+		}).pipe(
+			Effect.provide(Database.Default),
+			Effect.withSpan("getKitStatus"),
+			Effect.runPromise,
+		),
+	);
 
 export const generateKit = createServerFn()
 	.middleware([authMiddleware])
@@ -91,37 +153,32 @@ export const generateKit = createServerFn()
 		Effect.gen(function* () {
 			const db = yield* Database;
 			const gm = yield* Effect.tryPromise(() =>
-				db
-					.select()
-					.from(goalMaps)
-					.where(eq(goalMaps.goalMapId, data.goalMapId))
-					.get(),
+				db.select().from(goalMaps).where(eq(goalMaps.id, data.goalMapId)).get(),
 			);
 			if (!gm) return { ok: false } as const;
 
-			const nodes = safeParseJson(gm.nodes) ?? [];
-			const edges = safeParseJson(gm.edges) ?? [];
-			const conceptIds = new Set(
-				(nodes as any[])
-					.filter((n) => n?.type === "text" || n?.type === "image")
-					.map((n) => n.id),
-			);
+			const nodes = Array.isArray(gm.nodes) ? gm.nodes : [];
+
+			// Kit includes ALL nodes from goal map: concepts (text/image) AND connectors
+			// Students will only draw edges, not create new nodes
 			const kitNodes = (nodes as any[]).filter(
-				(n) => n?.type === "text" || n?.type === "image",
+				(n) =>
+					n?.type === "text" || n?.type === "image" || n?.type === "connector",
 			);
-			const kitEdges = (edges as any[]).filter(
-				(e) => conceptIds.has(e?.source) && conceptIds.has(e?.target),
-			);
+
+			// Kit has NO edges - students will create these by connecting nodes
+			const kitEdges: any[] = [];
 
 			const payload = {
 				id: data.goalMapId,
+				kitId: data.goalMapId,
+				name: gm.title,
 				goalMapId: data.goalMapId,
-				createdBy: gm.teacherId ?? "",
+				teacherId: gm.teacherId ?? "",
+				layout: data.layout ?? "preset",
 				nodes: JSON.stringify(kitNodes),
 				edges: JSON.stringify(kitEdges),
-				constraints: null as any,
-				version: 1,
-				createdAt: Date.now(),
+				textId: gm.textId,
 			};
 
 			const existing = yield* Effect.tryPromise(() =>
@@ -137,14 +194,12 @@ export const generateKit = createServerFn()
 					db
 						.update(kits)
 						.set({
-							id: payload.id,
-							goalMapId: payload.goalMapId,
-							createdBy: payload.createdBy,
+							name: payload.name,
+							teacherId: payload.teacherId,
+							layout: payload.layout,
 							nodes: payload.nodes,
 							edges: payload.edges,
-							constraints: null,
-							version: payload.version,
-							createdAt: payload.createdAt,
+							textId: payload.textId,
 						})
 						.where(eq(kits.goalMapId, data.goalMapId))
 						.run(),
@@ -180,9 +235,15 @@ export const KitRpc = {
 			queryKey: [...KitRpc.studentKits()],
 			queryFn: () => getKit(),
 		}),
-	generateKit: (data: typeof GenerateKitSchema.Type) =>
+	getKitStatus: (goalMapId: string) =>
+		queryOptions({
+			queryKey: [...KitRpc.studentKits(), goalMapId, "status"],
+			queryFn: () => getKitStatus({ data: { goalMapId } }),
+		}),
+	generateKit: () =>
 		mutationOptions({
 			mutationKey: [...KitRpc.studentKits()],
-			mutationFn: () => generateKit({ data }),
+			mutationFn: (data: typeof GenerateKitSchema.Type) =>
+				generateKit({ data }),
 		}),
 };

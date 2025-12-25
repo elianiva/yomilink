@@ -1,4 +1,4 @@
-import { Link } from "@tanstack/react-router";
+import { Link, useLocation } from "@tanstack/react-router";
 import { ChevronRight, type LucideIcon } from "lucide-react";
 import {
 	Collapsible,
@@ -29,16 +29,29 @@ type NavMainProps = {
 };
 
 export function NavMain({ items }: NavMainProps) {
+	const location = useLocation();
+
+	const isItemActive = (itemUrl: string) => {
+		// Exact match for dashboard root
+		if (itemUrl === "/dashboard") {
+			return location.pathname === "/dashboard";
+		}
+		// For other items, check if pathname starts with the item URL
+		return location.pathname.startsWith(itemUrl);
+	};
+
 	return (
 		<SidebarGroup>
 			<SidebarGroupLabel>Platform</SidebarGroupLabel>
 			<SidebarMenu>
-				{items.map((item) =>
-					item.items && item.items.length > 0 ? (
+				{items.map((item) => {
+					const isActive = isItemActive(item.url);
+
+					return item.items && item.items.length > 0 ? (
 						<Collapsible
 							key={item.title}
 							asChild
-							defaultOpen={item.isActive}
+							defaultOpen={isActive}
 							className="group/collapsible"
 						>
 							<SidebarMenuItem>
@@ -70,7 +83,7 @@ export function NavMain({ items }: NavMainProps) {
 								asChild
 								tooltip={item.title}
 								className={
-									item.isActive
+									isActive
 										? "bg-primary hover:bg-primary text-white font-medium"
 										: "hover:bg-primary hover:text-white"
 								}
@@ -81,8 +94,8 @@ export function NavMain({ items }: NavMainProps) {
 								</Link>
 							</SidebarMenuButton>
 						</SidebarMenuItem>
-					),
-				)}
+					);
+				})}
 			</SidebarMenu>
 		</SidebarGroup>
 	);

@@ -1,9 +1,13 @@
 import {
 	ActivityIcon,
+	BookOpenIcon,
+	ClipboardListIcon,
 	LayoutPanelLeftIcon,
+	type LucideIcon,
 	ScanSearchIcon,
 	SettingsIcon,
 } from "lucide-react";
+import { useMemo } from "react";
 import { NavMain } from "@/components/nav-main";
 import { NavUser } from "@/components/nav-user";
 import {
@@ -15,46 +19,75 @@ import {
 } from "@/components/ui/sidebar";
 import { useSession } from "@/lib/auth-client";
 
-const NAVBAR_ITEMS = [
+type Role = "teacher" | "admin" | "student";
+
+type NavItemWithRoles = {
+	title: string;
+	url: string;
+	icon: LucideIcon;
+	isActive?: boolean;
+	roles?: Role[]; // If undefined, visible to all roles
+};
+
+const NAVBAR_ITEMS: NavItemWithRoles[] = [
+	// Teacher/Admin items
 	{
 		title: "Dashboard",
 		url: "/dashboard",
 		icon: LayoutPanelLeftIcon,
-		isActive: true,
+		roles: ["teacher", "admin"],
+	},
+	{
+		title: "Assignments",
+		url: "/dashboard/assignments/manage",
+		icon: ClipboardListIcon,
+		roles: ["teacher", "admin"],
 	},
 	{
 		title: "Static Analyzer",
 		url: "/dashboard/analytics",
 		icon: ScanSearchIcon,
+		roles: ["teacher", "admin"],
 	},
 	{
 		title: "Dynamic Analyzer",
 		url: "/dashboard/results",
 		icon: ActivityIcon,
+		roles: ["teacher", "admin"],
 	},
 	{
 		title: "System Administration",
 		url: "/dashboard/rooms",
 		icon: SettingsIcon,
+		roles: ["admin"],
+	},
+	// Student items
+	{
+		title: "My Assignments",
+		url: "/dashboard/assignments",
+		icon: BookOpenIcon,
+		roles: ["student"],
 	},
 ];
 
-type SidebarUser = {
-	name: string | null;
-	email: string | null;
-	image?: string | null;
-	role?: "teacher" | "admin" | "student" | null;
-};
-
-type AppSidebarProps = {
-	user?: SidebarUser;
-} & React.ComponentProps<typeof Sidebar>;
+type AppSidebarProps = React.ComponentProps<typeof Sidebar>;
 
 export function AppSidebar(props: AppSidebarProps) {
 	const { data: me } = useSession();
 	const displayName = me?.user.name ?? null;
 	const displayEmail = me?.user.email ?? null;
 	const displayAvatar = me?.user.image ?? null;
+	const userRole = (me?.user as { role?: Role })?.role ?? "student";
+
+	// Filter navbar items based on user role
+	const filteredItems = useMemo(() => {
+		return NAVBAR_ITEMS.filter((item) => {
+			// If no roles specified, show to everyone
+			if (!item.roles) return true;
+			// Check if user's role is in the allowed roles
+			return item.roles.includes(userRole);
+		}).map(({ roles, ...item }) => item); // Remove roles from the item before passing to NavMain
+	}, [userRole]);
 
 	return (
 		<Sidebar collapsible="icon" {...props}>
@@ -74,7 +107,7 @@ export function AppSidebar(props: AppSidebarProps) {
 				</div>
 			</SidebarHeader>
 			<SidebarContent>
-				<NavMain items={NAVBAR_ITEMS} />
+				<NavMain items={filteredItems} />
 			</SidebarContent>
 			<SidebarFooter>
 				<NavUser

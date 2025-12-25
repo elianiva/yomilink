@@ -21,6 +21,7 @@ import {
 	ButtonGroup,
 	ButtonGroupSeparator,
 } from "@/components/ui/button-group";
+import { Separator } from "@/components/ui/separator";
 import {
 	Tooltip,
 	TooltipContent,
@@ -38,81 +39,45 @@ import {
 } from "../lib/atoms";
 
 export type EditorToolbarProps = {
-	// History
 	onUndo: () => void;
 	onRedo: () => void;
-	// Zoom
 	onZoomIn: () => void;
 	onZoomOut: () => void;
 	onFit: () => void;
-	// Map tools
 	onCenterMap: () => void;
 	onToggleDirection: () => void;
 	onAutoLayout: () => void;
 	onDelete: () => void;
-	// Actions
+	onSave: () => void;
 	onCreateKit: () => void;
 	saving: boolean;
+	isNewMap: boolean;
+	kitStatus?: {
+		exists: boolean;
+		layout: "preset" | "random";
+		nodeCount: number;
+		updatedAt: number | null;
+		isOutdated: boolean;
+	} | null;
+	isGeneratingKit?: boolean;
 };
-
-type IconButtonProps = {
-	icon: React.ReactNode;
-	label: string;
-	onClick: () => void;
-	variant?: "ghost" | "secondary";
-	className?: string;
-	disabled?: boolean;
-};
-
-function IconButton({
-	icon,
-	label,
-	onClick,
-	variant = "ghost",
-	className,
-	disabled,
-}: IconButtonProps) {
-	return (
-		<Tooltip>
-			<TooltipTrigger asChild>
-				<Button
-					size="icon-sm"
-					variant={variant}
-					onClick={onClick}
-					aria-label={label}
-					className={className}
-					disabled={disabled}
-				>
-					{icon}
-				</Button>
-			</TooltipTrigger>
-			<TooltipContent side="top" sideOffset={8}>
-				{label}
-			</TooltipContent>
-		</Tooltip>
-	);
-}
-
-function ToolbarSeparator() {
-	return <div className="mx-1 h-6 w-px bg-border" />;
-}
 
 function EditorToolbarImpl({
-	// History
 	onUndo,
 	onRedo,
-	// Zoom
 	onZoomIn,
 	onZoomOut,
 	onFit,
-	// Map tools
 	onCenterMap,
 	onToggleDirection,
 	onAutoLayout,
 	onDelete,
-	// Actions
+	onSave,
 	onCreateKit,
 	saving,
+	isNewMap,
+	kitStatus,
+	isGeneratingKit,
 }: EditorToolbarProps) {
 	const setConceptDialogOpen = useSetAtom(conceptDialogOpenAtom);
 	const setLinkDialogOpen = useSetAtom(linkDialogOpenAtom);
@@ -122,139 +87,253 @@ function EditorToolbarImpl({
 	const setSaveOpen = useSetAtom(saveOpenAtom);
 	const setSaveAsOpen = useSetAtom(saveAsOpenAtom);
 
+	const handleSave = () => {
+		if (isNewMap) {
+			setSaveOpen(true);
+		} else {
+			onSave();
+		}
+	};
+
 	return (
-		<TooltipProvider delayDuration={100} skipDelayDuration={300}>
-			{/* Bottom toolbar - all controls in one bar */}
-			<div className="absolute bottom-4 left-1/2 z-10 flex -translate-x-1/2 items-center gap-0.5 rounded-xl border bg-white/95 p-1.5 shadow-lg backdrop-blur-sm">
-				{/* Add nodes */}
+		<TooltipProvider delayDuration={300}>
+			<div className="absolute bottom-4 left-1/2 z-10 flex -translate-x-1/2 items-center gap-1 rounded-xl border bg-white/90 p-1.5 shadow-lg backdrop-blur-sm h-12">
+				<ButtonGroup className="mr-1">
+					<Tooltip>
+						<TooltipTrigger asChild>
+							<Button
+								size="sm"
+								variant="outline"
+								onClick={() => setConceptDialogOpen(true)}
+							>
+								<Plus className="size-4" />
+								Concept
+							</Button>
+						</TooltipTrigger>
+						<TooltipContent side="top" sideOffset={8}>
+							Add concept node
+						</TooltipContent>
+					</Tooltip>
+					<ButtonGroupSeparator />
+					<Tooltip>
+						<TooltipTrigger asChild>
+							<Button
+								size="sm"
+								variant="outline"
+								onClick={() => setLinkDialogOpen(true)}
+							>
+								<Plus className="size-4" />
+								Link
+							</Button>
+						</TooltipTrigger>
+						<TooltipContent side="top" sideOffset={8}>
+							Add link node
+						</TooltipContent>
+					</Tooltip>
+					<ButtonGroupSeparator />
+					<Tooltip>
+						<TooltipTrigger asChild>
+							<Button
+								size="sm"
+								variant="outline"
+								onClick={() => setImportDialogOpen(true)}
+							>
+								<FileText className="size-4" />
+								Import
+							</Button>
+						</TooltipTrigger>
+						<TooltipContent side="top" sideOffset={8}>
+							Import learning material
+						</TooltipContent>
+					</Tooltip>
+				</ButtonGroup>
+
+				<Separator orientation="vertical" className="h-5! mx-1" />
+
 				<Tooltip>
 					<TooltipTrigger asChild>
 						<Button
-							size="sm"
-							variant="outline"
-							onClick={() => setConceptDialogOpen(true)}
+							variant="ghost"
+							size="icon"
+							className="size-8"
+							onClick={onUndo}
+							aria-label="Undo"
 						>
-							<Plus className="size-4" />
-							Concept
+							<RotateCcw className="size-4" />
 						</Button>
 					</TooltipTrigger>
 					<TooltipContent side="top" sideOffset={8}>
-						Add concept node
+						Undo
 					</TooltipContent>
 				</Tooltip>
 				<Tooltip>
 					<TooltipTrigger asChild>
 						<Button
-							size="sm"
-							variant="outline"
-							onClick={() => setLinkDialogOpen(true)}
+							variant="ghost"
+							size="icon"
+							className="size-8"
+							onClick={onRedo}
+							aria-label="Redo"
 						>
-							<Plus className="size-4" />
-							Link
+							<RotateCw className="size-4" />
 						</Button>
 					</TooltipTrigger>
 					<TooltipContent side="top" sideOffset={8}>
-						Add link node
+						Redo
+					</TooltipContent>
+				</Tooltip>
+
+				<Separator orientation="vertical" className="h-5! mx-1" />
+
+				<Tooltip>
+					<TooltipTrigger asChild>
+						<Button
+							variant="ghost"
+							size="icon"
+							className="size-8"
+							onClick={onZoomIn}
+							aria-label="Zoom in"
+						>
+							<ZoomIn className="size-4" />
+						</Button>
+					</TooltipTrigger>
+					<TooltipContent side="top" sideOffset={8}>
+						Zoom in
 					</TooltipContent>
 				</Tooltip>
 				<Tooltip>
 					<TooltipTrigger asChild>
 						<Button
-							size="sm"
-							variant="outline"
-							onClick={() => setImportDialogOpen(true)}
+							variant="ghost"
+							size="icon"
+							className="size-8"
+							onClick={onZoomOut}
+							aria-label="Zoom out"
 						>
-							<FileText className="size-4" />
-							Import
+							<ZoomOut className="size-4" />
 						</Button>
 					</TooltipTrigger>
 					<TooltipContent side="top" sideOffset={8}>
-						Import learning material
+						Zoom out
+					</TooltipContent>
+				</Tooltip>
+				<Tooltip>
+					<TooltipTrigger asChild>
+						<Button
+							variant="ghost"
+							size="icon"
+							className="size-8"
+							onClick={onFit}
+							aria-label="Fit to screen"
+						>
+							<Maximize2 className="size-4" />
+						</Button>
+					</TooltipTrigger>
+					<TooltipContent side="top" sideOffset={8}>
+						Fit to screen
 					</TooltipContent>
 				</Tooltip>
 
-				<ToolbarSeparator />
+				<Separator orientation="vertical" className="h-5! mx-1" />
 
-				{/* Undo/Redo */}
-				<IconButton
-					icon={<RotateCcw className="size-4" />}
-					label="Undo"
-					onClick={onUndo}
-				/>
-				<IconButton
-					icon={<RotateCw className="size-4" />}
-					label="Redo"
-					onClick={onRedo}
-				/>
-
-				<ToolbarSeparator />
-
-				{/* Zoom */}
-				<IconButton
-					icon={<ZoomIn className="size-4" />}
-					label="Zoom in"
-					onClick={onZoomIn}
-				/>
-				<IconButton
-					icon={<ZoomOut className="size-4" />}
-					label="Zoom out"
-					onClick={onZoomOut}
-				/>
-				<IconButton
-					icon={<Maximize2 className="size-4" />}
-					label="Fit to screen"
-					onClick={onFit}
-				/>
-
-				<ToolbarSeparator />
-
-				{/* Map tools */}
-				<IconButton
-					icon={<Grid3X3 className="size-4" />}
-					label="Center map"
-					onClick={onCenterMap}
-				/>
-				<IconButton
-					icon={<Search className="size-4" />}
-					label="Search nodes"
-					onClick={() => setSearchOpen(true)}
-				/>
-				<IconButton
-					icon={<ArrowRight className="size-4" />}
-					label={
-						directionEnabled
+				<Tooltip>
+					<TooltipTrigger asChild>
+						<Button
+							variant="ghost"
+							size="icon"
+							className="size-8"
+							onClick={onCenterMap}
+							aria-label="Center map"
+						>
+							<Grid3X3 className="size-4" />
+						</Button>
+					</TooltipTrigger>
+					<TooltipContent side="top" sideOffset={8}>
+						Center map
+					</TooltipContent>
+				</Tooltip>
+				<Tooltip>
+					<TooltipTrigger asChild>
+						<Button
+							variant="ghost"
+							size="icon"
+							className="size-8"
+							onClick={() => setSearchOpen(true)}
+							aria-label="Search nodes"
+						>
+							<Search className="size-4" />
+						</Button>
+					</TooltipTrigger>
+					<TooltipContent side="top" sideOffset={8}>
+						Search nodes
+					</TooltipContent>
+				</Tooltip>
+				<Tooltip>
+					<TooltipTrigger asChild>
+						<Button
+							variant={directionEnabled ? "secondary" : "ghost"}
+							size="icon"
+							className="size-8"
+							onClick={onToggleDirection}
+							aria-label={
+								directionEnabled
+									? "Disable edge direction"
+									: "Enable edge direction"
+							}
+						>
+							<ArrowRight className="size-4" />
+						</Button>
+					</TooltipTrigger>
+					<TooltipContent side="top" sideOffset={8}>
+						{directionEnabled
 							? "Disable edge direction"
-							: "Enable edge direction"
-					}
-					onClick={onToggleDirection}
-					variant={directionEnabled ? "secondary" : "ghost"}
-				/>
-				<IconButton
-					icon={<Shuffle className="size-4" />}
-					label="Auto-layout nodes"
-					onClick={onAutoLayout}
-				/>
+							: "Enable edge direction"}
+					</TooltipContent>
+				</Tooltip>
+				<Tooltip>
+					<TooltipTrigger asChild>
+						<Button
+							variant="ghost"
+							size="icon"
+							className="size-8"
+							onClick={onAutoLayout}
+							aria-label="Auto-layout nodes"
+						>
+							<Shuffle className="size-4" />
+						</Button>
+					</TooltipTrigger>
+					<TooltipContent side="top" sideOffset={8}>
+						Auto-layout nodes
+					</TooltipContent>
+				</Tooltip>
 
-				<ToolbarSeparator />
+				<Separator orientation="vertical" className="h-5! mx-1" />
 
-				{/* Delete */}
-				<IconButton
-					icon={<Trash2 className="size-4" />}
-					label="Delete selected"
-					onClick={onDelete}
-					className="text-destructive hover:text-destructive hover:bg-destructive/10"
-				/>
+				<Tooltip>
+					<TooltipTrigger asChild>
+						<Button
+							variant="ghost"
+							size="icon"
+							className="size-8 text-destructive hover:text-destructive hover:bg-destructive/10"
+							onClick={onDelete}
+							aria-label="Delete selected"
+						>
+							<Trash2 className="size-4" />
+						</Button>
+					</TooltipTrigger>
+					<TooltipContent side="top" sideOffset={8}>
+						Delete selected
+					</TooltipContent>
+				</Tooltip>
 
-				<ToolbarSeparator />
+				<Separator orientation="vertical" className="h-5! mx-1" />
 
-				{/* Actions */}
-				<ButtonGroup>
+				<ButtonGroup className="ml-1">
 					<Button
 						size="sm"
 						variant="default"
-						onClick={() => setSaveOpen(true)}
+						onClick={handleSave}
 						disabled={saving}
-						className="bg-blue-600 hover:bg-blue-700"
 					>
 						{saving ? (
 							<Loader2 className="size-4 animate-spin" />
@@ -269,20 +348,66 @@ function EditorToolbarImpl({
 						variant="default"
 						onClick={() => setSaveAsOpen(true)}
 						disabled={saving}
-						className="bg-blue-600 hover:bg-blue-700"
 					>
 						Save As
 					</Button>
 					<ButtonGroupSeparator />
-					<Button
-						size="sm"
-						variant="default"
-						onClick={onCreateKit}
-						className="bg-teal-600 hover:bg-teal-700"
-					>
-						<Plus className="size-4" />
-						Create Kit
-					</Button>
+					{!isNewMap && (
+						<Tooltip>
+							<TooltipTrigger asChild>
+								<Button
+									size="sm"
+									variant={
+										kitStatus?.exists && !kitStatus.isOutdated
+											? "secondary"
+											: "default"
+									}
+									onClick={onCreateKit}
+									disabled={isGeneratingKit || saving}
+								>
+									{isGeneratingKit ? (
+										<Loader2 className="size-4 animate-spin" />
+									) : (
+										<Plus className="size-4" />
+									)}
+									{kitStatus?.exists && !kitStatus.isOutdated
+										? "Update Kit"
+										: "Create Kit"}
+								</Button>
+							</TooltipTrigger>
+							<TooltipContent side="top" sideOffset={8}>
+								{kitStatus ? (
+									<div className="flex flex-col gap-1">
+										<div className="flex items-center gap-2">
+											{kitStatus.exists ? (
+												<>
+													<div className="w-2 h-2 bg-green-500 rounded-full" />
+													<span className="font-medium">Kit Generated</span>
+												</>
+											) : (
+												<>
+													<div className="w-2 h-2 bg-gray-400 rounded-full" />
+													<span className="font-medium">No Kit</span>
+												</>
+											)}
+										</div>
+										{kitStatus.exists && (
+											<div className="text-xs text-muted-foreground">
+												{kitStatus.nodeCount} nodes
+												{kitStatus.isOutdated && (
+													<span className="text-amber-500 ml-1">
+														(Outdated)
+													</span>
+												)}
+											</div>
+										)}
+									</div>
+								) : (
+									"Create a kit from this map"
+								)}
+							</TooltipContent>
+						</Tooltip>
+					)}
 				</ButtonGroup>
 			</div>
 		</TooltipProvider>

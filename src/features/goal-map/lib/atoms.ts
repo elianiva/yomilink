@@ -26,7 +26,7 @@ export const imageDraftAtom = atom<{
 // Save state atoms
 export const saveOpenAtom = atom(false);
 export const saveAsOpenAtom = atom(false);
-export const saveTopicAtom = atom("");
+export const saveTopicIdAtom = atom("");
 export const saveNameAtom = atom("");
 export const saveErrorAtom = atom<string | null>(null);
 export const saveWarningsAtom = atom<string[]>([]);

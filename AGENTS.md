@@ -8,6 +8,7 @@
 - `bun run lint` - Run biome linter with auto-fix
 - `bun run format` - Format code with biome
 - `bun run check` - Run all biome checks (lint + format)
+- `bun run typecheck` - Run TypeScript type checking
 - `bun ui add` - Add component from shadcn ui, can only do one at a time
 
 ## Code Style
@@ -20,3 +21,14 @@
 - TypeScript strict mode enabled - ensure proper typing
 - Use class-variance-authority for component variants
 - Prefer Radix UI primitives for accessible components
+
+<!-- effect-solutions:start -->
+## Effect Best Practices
+
+**Before implementing Effect features**, run `effect-solutions list` and read the relevant guide.
+
+Topics include: services and layers, data modeling, error handling, configuration, testing, HTTP clients, CLIs, observability, and project structure.
+
+**Effect Source Reference:** `~/.local/share/effect-solutions/effect`
+Search here for real implementations when docs aren't enough.
+<!-- effect-solutions:end -->

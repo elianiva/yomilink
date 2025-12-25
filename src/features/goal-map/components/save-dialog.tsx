@@ -10,13 +10,28 @@ import {
 } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import {
+	Select,
+	SelectContent,
+	SelectItem,
+	SelectTrigger,
+	SelectValue,
+} from "@/components/ui/select";
 
-export type SaveMeta = { topic: string; name: string };
+export type SaveMeta = { topicId: string; name: string };
+
+export type Topic = {
+	id: string;
+	title: string;
+	description?: string | null;
+};
 
 export type SaveDialogProps = {
 	open: boolean;
 	saving?: boolean;
-	defaultTopic?: string;
+	topics: readonly Topic[];
+	topicsLoading?: boolean;
+	defaultTopicId?: string;
 	defaultName?: string;
 	onCancel: () => void;
 	onConfirm: (meta: SaveMeta) => void | Promise<void>;
@@ -25,30 +40,31 @@ export type SaveDialogProps = {
 function SaveDialogImpl({
 	open,
 	saving = false,
-	defaultTopic = "",
+	topics,
+	topicsLoading = false,
+	defaultTopicId = "",
 	defaultName = "",
 	onCancel,
 	onConfirm,
 }: SaveDialogProps) {
-	const [topic, setTopic] = useState(defaultTopic);
+	const [topicId, setTopicId] = useState(defaultTopicId);
 	const [name, setName] = useState(defaultName);
 
 	// Reset when opened
 	useEffect(() => {
 		if (open) {
-			setTopic(defaultTopic);
+			setTopicId(defaultTopicId);
 			setName(defaultName);
 		}
-	}, [open, defaultTopic, defaultName]);
+	}, [open, defaultTopicId, defaultName]);
 
-	const topicId = useId();
+	const topicFieldId = useId();
 	const nameId = useId();
 
 	const handleSubmit = async () => {
-		const t = topic.trim();
 		const n = name.trim();
-		if (!t || !n) return;
-		await onConfirm({ topic: t, name: n });
+		if (!topicId || !n) return;
+		await onConfirm({ topicId, name: n });
 	};
 
 	return (
@@ -60,13 +76,23 @@ function SaveDialogImpl({
 
 				<div className="space-y-3">
 					<div className="space-y-1.5">
-						<Label htmlFor={topicId}>Topic</Label>
-						<Input
-							id={topicId}
-							value={topic}
-							onChange={(e) => setTopic(e.target.value)}
-							placeholder="e.g. General, Biology"
-						/>
+						<Label htmlFor={topicFieldId}>Topic</Label>
+						<Select value={topicId} onValueChange={setTopicId}>
+							<SelectTrigger id={topicFieldId} className="w-full">
+								<SelectValue
+									placeholder={
+										topicsLoading ? "Loading topics..." : "Select a topic"
+									}
+								/>
+							</SelectTrigger>
+							<SelectContent>
+								{topics.map((t) => (
+									<SelectItem key={t.id} value={t.id}>
+										{t.title}
+									</SelectItem>
+								))}
+							</SelectContent>
+						</Select>
 					</div>
 					<div className="space-y-1.5">
 						<Label htmlFor={nameId}>Map Name</Label>
@@ -85,7 +111,7 @@ function SaveDialogImpl({
 					</Button>
 					<Button
 						onClick={handleSubmit}
-						disabled={saving || !topic.trim() || !name.trim()}
+						disabled={saving || !topicId || !name.trim()}
 					>
 						{saving ? <Loader2 className="mr-1 size-4 animate-spin" /> : null}
 						Save

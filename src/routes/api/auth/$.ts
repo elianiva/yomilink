@@ -9,13 +9,16 @@ const authHandler = (request: Request) =>
 		return result;
 	}).pipe(
 		Effect.provide(Auth.Default),
-		Effect.catchTag("UnknownException", (exception) => {
-			// TODO: better logging with sentry
-			Effect.log(exception);
-			return Effect.succeed(
-				Response.json({ message: "Internal Server Error" }, { status: 500 }),
-			);
-		}),
+		Effect.catchTag("UnknownException", (exception) =>
+			Effect.gen(function* () {
+				// TODO: better logging with sentry
+				yield* Effect.log(exception);
+				return Response.json(
+					{ message: "Internal Server Error" },
+					{ status: 500 },
+				);
+			}),
+		),
 		Effect.runPromise,
 	);
 

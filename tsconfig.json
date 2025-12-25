@@ -23,6 +23,13 @@
     "baseUrl": ".",
     "paths": {
       "@/*": ["./src/*"],
-    }
+    },
+
+    /* Effect Language Service */
+    "plugins": [
+      {
+        "name": "@effect/language-service"
+      }
+    ]
   }
 }

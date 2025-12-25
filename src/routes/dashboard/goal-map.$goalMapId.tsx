@@ -36,10 +36,11 @@ import {
 	saveErrorAtom,
 	saveNameAtom,
 	saveOpenAtom,
-	saveTopicAtom,
+	saveTopicIdAtom,
 	saveWarningsAtom,
 	searchOpenAtom,
 } from "@/features/goal-map/lib/atoms";
+import { TopicRpc } from "@/server/rpc/topic";
 import {
 	DEFAULT_COLOR,
 	getColorByValue,
@@ -58,7 +59,7 @@ import type {
 } from "@/features/kitbuild/types";
 import { cn, randomString } from "@/lib/utils";
 import { GoalMapRpc, saveToLocalStorage } from "@/server/rpc/goal-map";
-import { generateKit } from "@/server/rpc/kit";
+import { KitRpc } from "@/server/rpc/kit";
 
 export const Route = createFileRoute("/dashboard/goal-map/$goalMapId")({
 	component: () => (
@@ -96,7 +97,7 @@ function TeacherGoalMapEditor() {
 	const [directionEnabled, setDirectionEnabled] = useAtom(directionEnabledAtom);
 	const [saveOpen, setSaveOpen] = useAtom(saveOpenAtom);
 	const [saveAsOpen, setSaveAsOpen] = useAtom(saveAsOpenAtom);
-	const [saveTopic, setSaveTopic] = useAtom(saveTopicAtom);
+	const [saveTopicId, setSaveTopicId] = useAtom(saveTopicIdAtom);
 	const [saveName, setSaveName] = useAtom(saveNameAtom);
 	const [saveError, setSaveError] = useAtom(saveErrorAtom);
 	const [saveWarnings, setSaveWarnings] = useAtom(saveWarningsAtom);
@@ -120,6 +121,15 @@ function TeacherGoalMapEditor() {
 		...GoalMapRpc.getGoalMap({ id: goalMapId }),
 		enabled: goalMapId !== "new",
 	});
+
+	const { data: topics = [], isLoading: topicsLoading } = useQuery(
+		TopicRpc.listTopics(),
+	);
+
+	const { data: kitStatus } = useQuery(KitRpc.getKitStatus(goalMapId));
+	const generateKitMutation = useMutation(KitRpc.generateKit());
+
+	const isNewMap = goalMapId === "new";
 
 	// Use extracted hooks
 	useHistory();
@@ -363,8 +373,8 @@ function TeacherGoalMapEditor() {
 				const loadedEdges = Array.isArray(existing.edges) ? existing.edges : [];
 				setNodes(loadedNodes);
 				setEdges(loadedEdges);
-				setSaveTopic(
-					typeof existing.description === "string" ? existing.description : "",
+				setSaveTopicId(
+					typeof existing.topicId === "string" ? existing.topicId : "",
 				);
 				setSaveName(typeof existing.title === "string" ? existing.title : "");
 				setMaterialText(
@@ -386,7 +396,7 @@ function TeacherGoalMapEditor() {
 		isHydrated,
 		setIsHydrated,
 		setSaveName,
-		setSaveTopic,
+		setSaveTopicId,
 		setMaterialText,
 		setLastSavedSnapshot,
 	]);
@@ -506,17 +516,18 @@ function TeacherGoalMapEditor() {
 	};
 
 	const doSave = useCallback(
-		(meta: { topic: string; name: string }, newGoalMapId?: string) => {
+		(meta: { topicId: string; name: string }, newGoalMapId?: string) => {
 			setSaveError(null);
 			// Generate a new ID if this is a new goal map
 			const targetGoalMapId =
 				newGoalMapId ?? (goalMapId === "new" ? randomString() : goalMapId);
-			const isNewMap = goalMapId === "new" || newGoalMapId !== undefined;
+			const isCreatingNewMap =
+				goalMapId === "new" || newGoalMapId !== undefined;
 
 			const saveParams = {
 				goalMapId: targetGoalMapId,
 				title: meta.name,
-				description: meta.topic,
+				topicId: meta.topicId || undefined,
 				nodes,
 				edges,
 				materialText: materialText || undefined,
@@ -525,7 +536,7 @@ function TeacherGoalMapEditor() {
 			saveGoalMapMutation.mutate(saveParams, {
 				onSuccess: () => {
 					setLastSavedSnapshot(JSON.stringify({ nodes, edges }));
-					if (isNewMap) {
+					if (isCreatingNewMap) {
 						navigate({
 							to: "/dashboard/goal-map/$goalMapId",
 							params: { goalMapId: targetGoalMapId },
@@ -547,7 +558,7 @@ function TeacherGoalMapEditor() {
 							return Array.from(next);
 						});
 						setLastSavedSnapshot(JSON.stringify({ nodes, edges }));
-						if (isNewMap) {
+						if (isCreatingNewMap) {
 							navigate({
 								to: "/dashboard/goal-map/$goalMapId",
 								params: { goalMapId: targetGoalMapId },
@@ -575,11 +586,11 @@ function TeacherGoalMapEditor() {
 	);
 
 	// Handle Save As (create copy with new ID)
-	const handleSaveAs = (meta: { topic: string; name: string }) => {
+	const handleSaveAs = (meta: { topicId: string; name: string }) => {
 		const newId = randomString();
 		doSave(meta, newId);
 		setSaveAsOpen(false);
-		setSaveTopic(meta.topic);
+		setSaveTopicId(meta.topicId);
 		setSaveName(meta.name);
 	};
 
@@ -588,21 +599,13 @@ function TeacherGoalMapEditor() {
 			{
 				goalMapId,
 				title: saveName || "Untitled",
-				description: saveTopic,
+				topicId: saveTopicId || undefined,
 				nodes,
 				edges,
 			},
 			{
 				onSuccess: async () => {
-					try {
-						const gen = await generateKit({ data: { goalMapId } });
-						console.log("kit.generate", gen);
-					} catch (e) {
-						console.error("kit.generate error", e);
-					}
-				},
-				onError: (e) => {
-					console.error("kit.generate error", e);
+					generateKitMutation.mutate({ goalMapId });
 				},
 			},
 		);
@@ -621,16 +624,17 @@ function TeacherGoalMapEditor() {
 			if ((e.metaKey || e.ctrlKey) && e.key.toLowerCase() === "s") {
 				e.preventDefault();
 				if (saving) return;
-				if (!saveTopic.trim() || !saveName.trim()) {
+				// If it's a new map or missing required data, show dialog
+				if (isNewMap || !saveName.trim()) {
 					setSaveOpen(true);
 				} else {
-					void doSave({ topic: saveTopic.trim(), name: saveName.trim() });
+					void doSave({ topicId: saveTopicId, name: saveName.trim() });
 				}
 			}
 		};
 		window.addEventListener("keydown", onKey);
 		return () => window.removeEventListener("keydown", onKey);
-	}, [doSave, saving, saveTopic, saveName, setSaveOpen]);
+	}, [doSave, saving, saveTopicId, saveName, setSaveOpen, isNewMap]);
 
 	// Edge options with direction
 	const edgeOptions = useMemo(
@@ -695,20 +699,24 @@ function TeacherGoalMapEditor() {
 			<SaveDialog
 				open={saveOpen}
 				saving={saving}
-				defaultTopic={saveTopic}
+				topics={topics}
+				topicsLoading={topicsLoading}
+				defaultTopicId={saveTopicId}
 				defaultName={saveName}
 				onCancel={() => setSaveOpen(false)}
 				onConfirm={async (meta) => {
 					doSave(meta);
 					setSaveOpen(false);
-					setSaveTopic(meta.topic);
+					setSaveTopicId(meta.topicId);
 					setSaveName(meta.name);
 				}}
 			/>
 			<SaveDialog
 				open={saveAsOpen}
 				saving={saving}
-				defaultTopic={saveTopic}
+				topics={topics}
+				topicsLoading={topicsLoading}
+				defaultTopicId={saveTopicId}
 				defaultName={saveName ? `${saveName} (copy)` : ""}
 				onCancel={() => setSaveAsOpen(false)}
 				onConfirm={handleSaveAs}
@@ -775,8 +783,12 @@ function TeacherGoalMapEditor() {
 					onToggleDirection={toggleDirection}
 					onAutoLayout={autoLayout}
 					onDelete={deleteSelected}
+					onSave={() => doSave({ topicId: saveTopicId, name: saveName })}
 					onCreateKit={handleCreateKit}
 					saving={saving}
+					isNewMap={isNewMap}
+					kitStatus={kitStatus ?? undefined}
+					isGeneratingKit={generateKitMutation.isPending}
 				/>
 
 				{/* Dark overlay when context menu is open */}

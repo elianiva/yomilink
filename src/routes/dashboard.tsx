@@ -88,5 +88,3 @@ function DashboardLayout() {
 		</SidebarProvider>
 	);
 }
-
-function DashboardContent() {}

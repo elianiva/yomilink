@@ -1,7 +1,16 @@
+import { useQuery } from "@tanstack/react-query";
 import { createFileRoute, Link } from "@tanstack/react-router";
-import { BookOpen, ChevronRight } from "lucide-react";
+import {
+	BookOpenIcon,
+	CalendarIcon,
+	CheckCircleIcon,
+	ChevronRightIcon,
+	ClockIcon,
+	AlertCircleIcon,
+} from "lucide-react";
 import { Guard } from "@/components/auth/Guard";
 import { Button } from "@/components/ui/button";
+import { LearnerMapRpc } from "@/server/rpc/learner-map";
 
 export const Route = createFileRoute("/dashboard/assignments/")({
 	component: () => (
@@ -12,69 +21,143 @@ export const Route = createFileRoute("/dashboard/assignments/")({
 });
 
 function AssignmentsPage() {
-	const assignments = [
-		{
-			id: "a1",
-			title: "Reading: Climate Change",
-			room: "Room 102",
-			due: "Due in 2d",
-			progress: 45,
-		},
-		{
-			id: "a2",
-			title: "Article: Photosynthesis",
-			room: "Room 207",
-			due: "Due in 5d",
-			progress: 10,
-		},
-		{
-			id: "a3",
-			title: "Short Story: The River",
-			room: "Room 102",
-			due: "Due in 1w",
-			progress: 0,
-		},
-	];
+	const { data: assignments, isLoading } = useQuery(
+		LearnerMapRpc.listStudentAssignments(),
+	);
+
+	const getStatusInfo = (
+		status: string,
+		isLate?: boolean,
+	): { label: string; color: string; icon: React.ElementType } => {
+		if (status === "submitted") {
+			return {
+				label: "Submitted",
+				color: "text-green-600 bg-green-50",
+				icon: CheckCircleIcon,
+			};
+		}
+		if (status === "draft") {
+			return {
+				label: isLate ? "In Progress (Late)" : "In Progress",
+				color: isLate
+					? "text-amber-600 bg-amber-50"
+					: "text-blue-600 bg-blue-50",
+				icon: ClockIcon,
+			};
+		}
+		// not_started
+		return {
+			label: isLate ? "Not Started (Late)" : "Not Started",
+			color: isLate ? "text-red-600 bg-red-50" : "text-gray-600 bg-gray-50",
+			icon: isLate ? AlertCircleIcon : ClockIcon,
+		};
+	};
 
 	return (
-		<div className="space-y-4">
+		<div className="space-y-6">
 			<div className="flex items-center justify-between">
-				<h2 className="text-lg font-semibold flex items-center gap-2">
-					<BookOpen className="size-4 text-muted-foreground" />
-					Assignments
-				</h2>
+				<div>
+					<h1 className="text-2xl font-semibold flex items-center gap-2">
+						<BookOpenIcon className="size-6" />
+						My Assignments
+					</h1>
+					<p className="text-muted-foreground">
+						View and complete your assigned concept maps
+					</p>
+				</div>
 				<Button asChild variant="outline" size="sm">
-					<Link to="/dashboard/assignments/archived" preload="intent">
-						View archived
-					</Link>
+					<Link to="/dashboard/assignments/archived">View archived</Link>
 				</Button>
 			</div>
 
-			<div className="grid sm:grid-cols-2 gap-3">
-				{assignments.map((a) => (
-					<div key={a.id} className="rounded-lg border p-3">
-						<div className="flex items-start justify-between">
-							<div>
-								<div className="font-medium">{a.title}</div>
-								<div className="text-xs text-muted-foreground">
-									{a.room} • {a.due}
+			{isLoading ? (
+				<div className="grid gap-4 md:grid-cols-2">
+					{[1, 2, 3].map((i) => (
+						<div
+							key={i}
+							className="h-32 rounded-lg border bg-card animate-pulse"
+						/>
+					))}
+				</div>
+			) : assignments && assignments.length > 0 ? (
+				<div className="grid gap-4 md:grid-cols-2">
+					{assignments.map((assignment) => {
+						const statusInfo = getStatusInfo(
+							assignment.status,
+							assignment.isLate ?? false,
+						);
+						const StatusIcon = statusInfo.icon;
+
+						return (
+							<div
+								key={assignment.id}
+								className="rounded-lg border bg-card p-4 space-y-3 hover:shadow-md transition-shadow"
+							>
+								<div className="flex items-start justify-between">
+									<div className="flex-1">
+										<h3 className="font-medium">{assignment.title}</h3>
+										{assignment.description && (
+											<p className="text-sm text-muted-foreground line-clamp-2 mt-1">
+												{assignment.description}
+											</p>
+										)}
+									</div>
+									<span
+										className={`flex items-center gap-1 px-2 py-1 rounded-full text-xs font-medium ${statusInfo.color}`}
+									>
+										<StatusIcon className="size-3" />
+										{statusInfo.label}
+									</span>
+								</div>
+
+								<div className="flex items-center justify-between">
+									<div className="flex items-center gap-4 text-sm text-muted-foreground">
+										{assignment.goalMapTitle && (
+											<span>{assignment.goalMapTitle}</span>
+										)}
+										{assignment.dueAt && (
+											<div className="flex items-center gap-1">
+												<CalendarIcon className="size-4" />
+												<span>
+													Due {new Date(assignment.dueAt).toLocaleDateString()}
+												</span>
+											</div>
+										)}
+										{assignment.attempt > 0 && (
+											<span>Attempt {assignment.attempt}</span>
+										)}
+									</div>
+
+									<Button asChild size="sm" className="gap-1">
+										<a
+											href={
+												assignment.status === "submitted"
+													? `/dashboard/learner-map/${assignment.id}/result`
+													: `/dashboard/learner-map/${assignment.id}`
+											}
+										>
+											{assignment.status === "not_started"
+												? "Start"
+												: assignment.status === "submitted"
+													? "View Result"
+													: "Continue"}
+											<ChevronRightIcon className="size-4" />
+										</a>
+									</Button>
 								</div>
 							</div>
-							<Button size="sm" variant="outline" className="gap-1">
-								Continue <ChevronRight className="size-4" />
-							</Button>
-						</div>
-						<div className="mt-3">
-							<div className="h-2 w-full rounded-full bg-muted overflow-hidden">
-								<div
-									className="h-full bg-primary transition-all"
-									style={{ width: `${a.progress}%` }}
-								/>
-							</div>
-						</div>
-					</div>
-				))}
-			</div>
+						);
+					})}
+				</div>
+			) : (
+				<div className="text-center py-12 border rounded-lg bg-card">
+					<BookOpenIcon className="size-12 mx-auto text-muted-foreground mb-4" />
+					<h3 className="font-medium mb-1">No assignments yet</h3>
+					<p className="text-sm text-muted-foreground">
+						Your teacher hasn't assigned any concept maps to you yet.
+					</p>
+				</div>
+			)}
 		</div>
 	);
 }

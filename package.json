@@ -11,9 +11,11 @@
     "format": "biome format --write",
     "lint": "biome lint --write",
     "check": "biome check",
+    "typecheck": "tsc --noEmit",
     "deploy": "wrangler deploy",
     "seed": "bun run --env-file=.env scripts/seed.ts",
-    "ui": "bunx shadcn@canary"
+    "ui": "bunx shadcn@canary",
+    "prepare": "effect-language-service patch"
   },
   "dependencies": {
     "@better-auth/utils": "^0.3.0",
@@ -76,6 +78,7 @@
   },
   "devDependencies": {
     "@biomejs/biome": "2.3.8",
+    "@effect/language-service": "^0.62.4",
     "@testing-library/dom": "^10.4.0",
     "@testing-library/react": "^16.2.0",
     "@types/dagre": "^0.7.53",

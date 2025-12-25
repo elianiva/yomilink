@@ -2,7 +2,15 @@ import { useForm } from "@tanstack/react-form";
 import { useMutation, useQuery } from "@tanstack/react-query";
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { Schema } from "effect";
-import { Circle, Edit, GitFork, Loader2, Plus, Trash2 } from "lucide-react";
+import {
+	Circle,
+	Edit,
+	GitFork,
+	Loader2,
+	Plus,
+	CheckCircle,
+	Trash2,
+} from "lucide-react";
 import { useMemo, useState } from "react";
 import {
 	AlertDialog,
@@ -279,6 +287,12 @@ function DashboardHome() {
 												<GitFork className="size-3" aria-hidden="true" />
 												{edgeCount} link{edgeCount !== 1 ? "s" : ""}
 											</span>
+											{goalMap.kitId && (
+												<span className="inline-flex items-center gap-1 text-green-600">
+													<CheckCircle className="size-3" aria-hidden="true" />
+													Kit ready
+												</span>
+											)}
 											{goalMap.updatedAt && (
 												<span className="ml-auto">
 													{formatRelativeTime(goalMap.updatedAt)}
