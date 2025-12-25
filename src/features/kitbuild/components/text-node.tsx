@@ -62,9 +62,7 @@ function TextNodeComponent({ id, data }: NodeProps<Node<TextNodeData>>) {
 				"min-w-28 rounded-md px-3 py-2 shadow-sm ring-2 transition-all duration-150",
 				colorClasses,
 				isActive && "ring-4 scale-105 z-50 shadow-lg",
-				"concept-node",
 			)}
-			data-tour-step="concept-nodes"
 		>
 			<div className="text-sm font-medium leading-tight">
 				{data?.label ?? "Text"}

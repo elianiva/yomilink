@@ -61,11 +61,8 @@ export function LearnerToolbar({
 							variant="ghost"
 							size="icon"
 							className="size-8"
-									data-tour-step="reading-material"
-												data-tour-step="undo-redo"
 							onClick={onUndo}
 							disabled={!canUndo || isSubmitted}
-							data-tour-step="undo-redo"
 						>
 							<Undo2Icon className="size-4" />
 						</Button>
@@ -81,8 +78,6 @@ export function LearnerToolbar({
 							variant="ghost"
 							size="icon"
 							className="size-8"
-									data-tour-step="reading-material"
-												data-tour-step="undo-redo"
 							onClick={onRedo}
 							disabled={!canRedo || isSubmitted}
 						>
@@ -103,8 +98,6 @@ export function LearnerToolbar({
 							variant="ghost"
 							size="icon"
 							className="size-8"
-									data-tour-step="reading-material"
-												data-tour-step="undo-redo"
 							onClick={onZoomIn}
 						>
 							<PlusIcon className="size-4" />
@@ -121,8 +114,6 @@ export function LearnerToolbar({
 							variant="ghost"
 							size="icon"
 							className="size-8"
-									data-tour-step="reading-material"
-												data-tour-step="undo-redo"
 							onClick={onZoomOut}
 						>
 							<MinusIcon className="size-4" />
@@ -139,8 +130,6 @@ export function LearnerToolbar({
 							variant="ghost"
 							size="icon"
 							className="size-8"
-									data-tour-step="reading-material"
-												data-tour-step="undo-redo"
 							onClick={onFit}
 						>
 							<Maximize2Icon className="size-4" />
@@ -160,8 +149,6 @@ export function LearnerToolbar({
 							variant="ghost"
 							size="icon"
 							className="size-8"
-									data-tour-step="reading-material"
-												data-tour-step="undo-redo"
 							onClick={onSearch}
 						>
 							<SearchIcon className="size-4" />
@@ -178,8 +165,6 @@ export function LearnerToolbar({
 							variant="ghost"
 							size="icon"
 							className="size-8"
-									data-tour-step="reading-material"
-												data-tour-step="undo-redo"
 							onClick={onAutoLayout}
 							disabled={isSubmitted}
 						>
@@ -198,8 +183,6 @@ export function LearnerToolbar({
 								variant="ghost"
 								size="icon"
 								className="size-8"
-									data-tour-step="reading-material"
-												data-tour-step="undo-redo"
 								onClick={onMaterial}
 							>
 								<BookOpenIcon className="size-4" />
@@ -219,7 +202,6 @@ export function LearnerToolbar({
 						<Button
 							size="sm"
 							className="gap-1.5"
-									data-tour-step="submit-btn"
 							onClick={onSubmit}
 							disabled={isSubmitting || isSubmitted}
 						>

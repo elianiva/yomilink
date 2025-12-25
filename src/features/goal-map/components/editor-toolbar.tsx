@@ -98,7 +98,7 @@ function EditorToolbarImpl({
 	return (
 		<TooltipProvider delayDuration={300}>
 			<div className="absolute bottom-4 left-1/2 z-10 flex -translate-x-1/2 items-center gap-1 rounded-xl border bg-white/90 p-1.5 shadow-lg backdrop-blur-sm h-12">
-				<ButtonGroup className="mr-1" data-tour-step="add-concept-btn">
+				<ButtonGroup className="mr-1">
 					<Tooltip>
 						<TooltipTrigger asChild>
 							<Button
@@ -150,125 +150,57 @@ function EditorToolbarImpl({
 
 				<Separator orientation="vertical" className="h-5! mx-1" />
 
-				<div data-tour-step="undo-redo">
-					<Tooltip>
-						<TooltipTrigger asChild>
-							<Button
-								variant="ghost"
-								size="icon"
-								className="size-8"
-								onClick={onUndo}
-								aria-label="Undo"
-							>
-								<RotateCcw className="size-4" />
-							</Button>
-						</TooltipTrigger>
-						<TooltipContent side="top" sideOffset={8}>
-							Undo
-						</TooltipContent>
-					</Tooltip>
-					<Tooltip>
-						<TooltipTrigger asChild>
-							<Button
-								variant="ghost"
-								size="icon"
-								className="size-8"
-								onClick={onRedo}
-								aria-label="Redo"
-							>
-								<RotateCw className="size-4" />
-							</Button>
-						</TooltipTrigger>
-						<TooltipContent side="top" sideOffset={8}>
-							Redo
-						</TooltipContent>
-					</Tooltip>
-				</div>
+				<Tooltip>
+					<TooltipTrigger asChild>
+						<Button
+							variant="ghost"
+							size="icon"
+							className="size-8"
+							onClick={onUndo}
+							aria-label="Undo"
+						>
+							<RotateCcw className="size-4" />
+						</Button>
+					</TooltipTrigger>
+					<TooltipContent side="top" sideOffset={8}>
+						Undo
+					</TooltipContent>
+				</Tooltip>
+				<Tooltip>
+					<TooltipTrigger asChild>
+						<Button
+							variant="ghost"
+							size="icon"
+							className="size-8"
+							onClick={onRedo}
+							aria-label="Redo"
+						>
+							<RotateCw className="size-4" />
+						</Button>
+					</TooltipTrigger>
+					<TooltipContent side="top" sideOffset={8}>
+						Redo
+					</TooltipContent>
+				</Tooltip>
 
 				<Separator orientation="vertical" className="h-5! mx-1" />
 
-				<div data-tour-step="view-controls">
-					<Tooltip>
-						<TooltipTrigger asChild>
-							<Button
-								variant="ghost"
-								size="icon"
-								className="size-8"
-								onClick={onZoomIn}
-								aria-label="Zoom in"
-							>
-								<ZoomIn className="size-4" />
-							</Button>
-						</TooltipTrigger>
-						<TooltipContent side="top" sideOffset={8}>
-							Zoom in
-						</TooltipContent>
-					</Tooltip>
-					<Tooltip>
-						<TooltipTrigger asChild>
-							<Button
-								variant="ghost"
-								size="icon"
-								className="size-8"
-								onClick={onZoomOut}
-								aria-label="Zoom out"
-							>
-								<ZoomOut className="size-4" />
-							</Button>
-						</TooltipTrigger>
-						<TooltipContent side="top" sideOffset={8}>
-							Zoom out
-						</TooltipContent>
-					</Tooltip>
-					<Tooltip>
-						<TooltipTrigger asChild>
-							<Button
-								variant="ghost"
-								size="icon"
-								className="size-8"
-								onClick={onFit}
-								aria-label="Fit to screen"
-							>
-								<Maximize2 className="size-4" />
-							</Button>
-						</TooltipTrigger>
-						<TooltipContent side="top" sideOffset={8}>
-							Fit to screen
-						</TooltipContent>
-					</Tooltip>
-					<Tooltip>
-						<TooltipTrigger asChild>
-							<Button
-								variant="ghost"
-								size="icon"
-								className="size-8"
-								onClick={onCenterMap}
-								aria-label="Center map"
-							>
-								<Grid3X3 className="size-4" />
-							</Button>
-						</TooltipTrigger>
-						<TooltipContent side="top" sideOffset={8}>
-							Center map
-						</TooltipContent>
-					</Tooltip>
-					<Tooltip>
-						<TooltipTrigger asChild>
-							<Button
-								variant="ghost"
-								size="icon"
-								className="size-8"
-								onClick={() => setSearchOpen(true)}
-								aria-label="Search nodes"
-							>
-								<Search className="size-4" />
-							</Button>
-						</TooltipTrigger>
-						<TooltipContent side="top" sideOffset={8}>
-							Search nodes
-						</TooltipContent>
-					</Tooltip>
-				</div>
+				<Tooltip>
+					<TooltipTrigger asChild>
+						<Button
+							variant="ghost"
+							size="icon"
+							className="size-8"
+							onClick={onZoomIn}
+							aria-label="Zoom in"
+						>
+							<ZoomIn className="size-4" />
+						</Button>
+					</TooltipTrigger>
+					<TooltipContent side="top" sideOffset={8}>
+						Zoom in
+					</TooltipContent>
+				</Tooltip>
 				<Tooltip>
 					<TooltipTrigger asChild>
 						<Button
@@ -307,41 +239,17 @@ function EditorToolbarImpl({
 				<Tooltip>
 					<TooltipTrigger asChild>
 						<Button
-							variant={directionEnabled ? "secondary" : "ghost"}
-							size="icon"
-							className="size-8"
-							onClick={onToggleDirection}
-							aria-label={
-								directionEnabled
-									? "Disable edge direction"
-									: "Enable edge direction"
-							}
-							data-tour-step="direction-toggle"
-						>
-							<ArrowRight className="size-4" />
-						</Button>
-					</TooltipTrigger>
-					<TooltipContent side="top" sideOffset={8}>
-						{directionEnabled
-							? "Disable edge direction"
-							: "Enable edge direction"}
-					</TooltipContent>
-				</Tooltip>
-				<Tooltip>
-					<TooltipTrigger asChild>
-						<Button
 							variant="ghost"
 							size="icon"
 							className="size-8"
-							onClick={onAutoLayout}
-							aria-label="Auto-layout nodes"
-							data-tour-step="auto-layout"
+							onClick={onCenterMap}
+							aria-label="Center map"
 						>
-							<Shuffle className="size-4" />
+							<Grid3X3 className="size-4" />
 						</Button>
 					</TooltipTrigger>
 					<TooltipContent side="top" sideOffset={8}>
-						Auto-layout nodes
+						Center map
 					</TooltipContent>
 				</Tooltip>
 				<Tooltip>
@@ -420,7 +328,7 @@ function EditorToolbarImpl({
 
 				<Separator orientation="vertical" className="h-5! mx-1" />
 
-				<ButtonGroup className="ml-1" data-tour-step="save-actions">
+				<ButtonGroup className="ml-1">
 					<Button
 						size="sm"
 						variant="default"

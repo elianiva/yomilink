@@ -3,8 +3,6 @@ import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { useAtom, useAtomValue, useSetAtom } from "jotai";
 import { pageTitleAtom } from "@/lib/page-title";
 import { toast } from "sonner";
-import { TourWrapper } from "@/components/ui/tour-wrapper";
-import { GOAL_MAP_EDITOR_TOUR } from "@/lib/tours";
 import type { Connection, MarkerType, NodeMouseHandler } from "@xyflow/react";
 import { addEdge, Background, MiniMap, ReactFlow } from "@xyflow/react";
 import "@xyflow/react/dist/style.css";
@@ -914,7 +912,6 @@ function TeacherGoalMapEditor() {
 					</div>
 				)}
 			</div>
-			<TourWrapper tourConfig={GOAL_MAP_EDITOR_TOUR} />
 		</div>
 	);
 }
