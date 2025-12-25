@@ -159,11 +159,10 @@ export const generateKit = createServerFn()
 
 			const nodes = Array.isArray(gm.nodes) ? gm.nodes : [];
 
-			// Kit includes ALL nodes from goal map: concepts (text/image) AND connectors
+			// Kit includes ALL nodes from goal map: concepts AND connectors
 			// Students will only draw edges, not create new nodes
 			const kitNodes = (nodes as any[]).filter(
-				(n) =>
-					n?.type === "text" || n?.type === "image" || n?.type === "connector",
+				(n) => n?.type === "text" || n?.type === "connector",
 			);
 
 			// Kit has NO edges - students will create these by connecting nodes

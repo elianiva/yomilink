@@ -357,13 +357,9 @@ function EditorToolbarImpl({
 							<TooltipTrigger asChild>
 								<Button
 									size="sm"
-									variant={
-										kitStatus?.exists && !kitStatus.isOutdated
-											? "secondary"
-											: "default"
-									}
+									variant={kitStatus?.exists ? "secondary" : "default"}
 									onClick={onCreateKit}
-									disabled={isGeneratingKit || saving}
+									disabled={isGeneratingKit}
 								>
 									{isGeneratingKit ? (
 										<Loader2 className="size-4 animate-spin" />

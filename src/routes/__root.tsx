@@ -11,6 +11,7 @@ import {
 import { TanStackRouterDevtoolsPanel } from "@tanstack/react-router-devtools";
 import NotFound from "../components/not-found";
 import RouteProgress from "../components/progress/route-progress";
+import { Toaster } from "@/components/ui/sonner";
 import appCss from "../styles.css?url";
 
 interface MyRouterContext {
@@ -47,6 +48,7 @@ function RootDocument({ children }: { children: React.ReactNode }) {
 				>
 					<RouteProgress />
 					{children}
+					<Toaster position="top-right" />
 					<TanStackDevtools
 						config={{ position: "bottom-right" }}
 						plugins={[

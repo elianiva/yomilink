@@ -1,10 +1,11 @@
 import { useMutation, useQuery } from "@tanstack/react-query";
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
+import { toast } from "sonner";
 import type { Connection, MarkerType, NodeMouseHandler } from "@xyflow/react";
 import { addEdge, Background, MiniMap, ReactFlow } from "@xyflow/react";
 import "@xyflow/react/dist/style.css";
 import { useAtom, useAtomValue, useSetAtom } from "jotai";
-import { useCallback, useEffect, useMemo } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import { Guard } from "@/components/auth/Guard";
 import { AddConceptDialog } from "@/features/goal-map/components/add-concept-dialog";
 import { AddLinkDialog } from "@/features/goal-map/components/add-link-dialog";
@@ -116,6 +117,7 @@ function TeacherGoalMapEditor() {
 
 	const { goalMapId } = Route.useParams();
 	const navigate = useNavigate();
+	const [isSavingForKit, setIsSavingForKit] = useState(false);
 
 	const { data: existing } = useQuery({
 		...GoalMapRpc.getGoalMap({ id: goalMapId }),
@@ -364,7 +366,7 @@ function TeacherGoalMapEditor() {
 	]);
 
 	const saveGoalMapMutation = useMutation(GoalMapRpc.saveGoalMap());
-	const saving = saveGoalMapMutation.isPending;
+	const saving = saveGoalMapMutation.isPending && !isSavingForKit;
 
 	useEffect(() => {
 		if (existing && !isHydrated) {
@@ -595,6 +597,7 @@ function TeacherGoalMapEditor() {
 	};
 
 	const handleCreateKit = () => {
+		setIsSavingForKit(true);
 		saveGoalMapMutation.mutate(
 			{
 				goalMapId,
@@ -605,7 +608,36 @@ function TeacherGoalMapEditor() {
 			},
 			{
 				onSuccess: async () => {
-					generateKitMutation.mutate({ goalMapId });
+					generateKitMutation.mutate(
+						{ goalMapId },
+						{
+							onError: (error: Error) => {
+								console.error("Failed to generate kit:", error);
+								toast.error("Failed to generate kit", {
+									description: error.message,
+								});
+							},
+							onSuccess: (data) => {
+								if (data?.ok) {
+									const message =
+										kitStatus?.exists && !kitStatus.isOutdated
+											? "Kit updated successfully"
+											: "Kit created successfully";
+									toast.success(message);
+								} else {
+									toast.error("Failed to generate kit", {
+										description: "Goal map not found",
+									});
+								}
+							},
+							onSettled: () => {
+								setIsSavingForKit(false);
+							},
+						},
+					);
+				},
+				onError: () => {
+					setIsSavingForKit(false);
 				},
 			},
 		);

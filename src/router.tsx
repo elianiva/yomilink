@@ -7,8 +7,14 @@ import { routeTree } from "./routeTree.gen";
 
 const queryClient = new QueryClient({
 	mutationCache: new MutationCache({
-		onSuccess: () => {
-			queryClient.invalidateQueries();
+		onSuccess: (_data, _variables, _context, mutation) => {
+			if (mutation.options.mutationKey) {
+				queryClient.invalidateQueries({
+					queryKey: mutation.options.mutationKey,
+				});
+			} else {
+				queryClient.invalidateQueries();
+			}
 		},
 	}),
 });
