@@ -12,6 +12,8 @@ import {
 	Trash2,
 } from "lucide-react";
 import { useMemo, useState } from "react";
+import { TourWrapper } from "@/components/ui/tour-wrapper";
+import { DASHBOARD_TOUR } from "@/lib/tours";
 import {
 	AlertDialog,
 	AlertDialogAction,
@@ -164,7 +166,7 @@ function DashboardHome() {
 						className="max-w-sm border-none shadow-none bg-white"
 					/>
 				</div>
-				<Button asChild>
+				<Button asChild data-tour-step="new-goal-map-btn">
 					<Link
 						to="/dashboard/goal-map/$goalMapId"
 						params={{ goalMapId: "new" }}
@@ -175,7 +177,10 @@ function DashboardHome() {
 				</Button>
 			</div>
 			<div className="flex-1 overflow-hidden flex items-stretch gap-4">
-				<div className="w-1/3 bg-white rounded-lg p-4 overflow-y-auto">
+				<div
+					className="w-1/3 bg-white rounded-lg p-4 overflow-y-auto"
+					data-tour-step="topics-sidebar"
+				>
 					<div className="flex items-center justify-between mb-3">
 						<h3 className="font-medium">Topics</h3>
 						<NewTopicDialog />
@@ -210,7 +215,10 @@ function DashboardHome() {
 						))}
 					</div>
 				</div>
-				<div className="flex-1 bg-white rounded-lg p-4 overflow-y-auto">
+				<div
+					className="flex-1 bg-white rounded-lg p-4 overflow-y-auto"
+					data-tour-step="goal-map-cards"
+				>
 					<div className="mb-4">
 						<div className="flex items-center justify-between">
 							<h3 className="font-semibold">
@@ -301,7 +309,10 @@ function DashboardHome() {
 										</div>
 
 										{/* Action buttons - visible on hover */}
-										<div className="absolute top-2 right-2 flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
+										<div
+											className="absolute top-2 right-2 flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity"
+											data-tour-step="goal-map-actions"
+										>
 											<Button
 												asChild
 												variant="secondary"
@@ -378,6 +389,7 @@ function DashboardHome() {
 					)}
 				</div>
 			</div>
+			<TourWrapper tourConfig={DASHBOARD_TOUR} />
 		</main>
 	);
 }

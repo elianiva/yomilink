@@ -24,7 +24,8 @@ import { TextNode } from "@/features/kitbuild/components/text-node";
 import { getLayoutedElements } from "@/features/kitbuild/lib/layout";
 import { LearnerToolbar } from "@/features/learner-map/components/learner-toolbar";
 import { MaterialDialog } from "@/features/learner-map/components/material-dialog";
-import { LearnerTour } from "@/features/learner-map/components/learner-tour";
+import { TourWrapper } from "@/components/ui/tour-wrapper";
+import { LEARNER_MAP_TOUR } from "@/lib/tours";
 import {
 	assignmentAtom,
 	attemptAtom,
@@ -99,7 +100,6 @@ function LearnerMapEditor() {
 	// Local state
 	const [submitDialogOpen, setSubmitDialogOpen] = useState(false);
 	const [isHydrated, setIsHydrated] = useState(false);
-	const [tourOpen, setTourOpen] = useState(false);
 	const [timeRemaining, setTimeRemaining] = useState<number | null>(null);
 
 	// Query
@@ -114,12 +114,6 @@ function LearnerMapEditor() {
 	// Initialize from query data
 	useEffect(() => {
 		if (assignmentData && !isHydrated) {
-			// Show tour on first visit
-			const hasSeenTour = localStorage.getItem("learnerMapTourCompleted");
-			if (!hasSeenTour && status === "not_started") {
-				setTourOpen(true);
-			}
-
 			setAssignment(assignmentData.assignment);
 			setMaterialText(assignmentData.materialText || "");
 
@@ -574,7 +568,10 @@ function LearnerMapEditor() {
 	return (
 		<div className="h-full relative">
 			{/* Header */}
-			<div className="absolute top-4 left-4 z-10 bg-background/80 backdrop-blur-sm border rounded-lg px-4 py-2">
+			<div
+				className="absolute top-4 left-4 z-10 bg-background/80 backdrop-blur-sm border rounded-lg px-4 py-2"
+				data-tour-step="assignment-info"
+			>
 				<h2 className="font-medium">{assignmentData?.assignment.title}</h2>
 				{assignmentData?.assignment.description && (
 					<p className="text-sm text-muted-foreground">
@@ -762,7 +759,7 @@ function LearnerMapEditor() {
 			</div>
 
 			{/* Onboarding Tour */}
-			<LearnerTour isOpen={tourOpen} onClose={() => setTourOpen(false)} />
+			<TourWrapper tourConfig={LEARNER_MAP_TOUR} />
 		</div>
 	);
 }

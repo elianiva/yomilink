@@ -21,7 +21,9 @@ function ConnectorNodeComponent({
 			className={cn(
 				"min-w-24 rounded-md bg-background px-3 py-1.5 shadow-sm ring-2 ring-sky-500 text-sky-800 transition-all duration-150",
 				isActive && "ring-4 scale-105 z-50 shadow-lg",
+				"connector-node",
 			)}
+			data-tour-step="connector-nodes"
 		>
 			<div className="text-sm font-medium leading-tight">
 				{data?.label ?? "rel"}
