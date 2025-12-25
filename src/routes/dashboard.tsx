@@ -5,6 +5,8 @@ import {
 	redirect,
 	useLocation,
 } from "@tanstack/react-router";
+import { useAtomValue } from "jotai";
+import { pageTitleAtom } from "@/lib/page-title";
 import { AppSidebar } from "@/components/app-sidebar";
 import {
 	Breadcrumb,
@@ -33,16 +35,22 @@ export const Route = createFileRoute("/dashboard")({
 
 function DashboardLayout() {
 	const location = useLocation();
+	const dynamicTitle = useAtomValue(pageTitleAtom);
 
 	const segments = location.pathname.split("/").filter(Boolean);
 	const crumbs = segments.map((seg, idx) => {
 		const href = `/${segments.slice(0, idx + 1).join("/")}`;
-		const label = decodeURIComponent(seg)
+		let label = decodeURIComponent(seg)
 			.replace(/[-_]/g, " ")
 			.split(" ")
 			.filter(Boolean)
 			.map((w) => w.charAt(0).toUpperCase() + w.slice(1))
 			.join(" ");
+
+		if (idx === segments.length - 1 && dynamicTitle) {
+			label = dynamicTitle;
+		}
+
 		return { href, label };
 	});
 

@@ -1,10 +1,11 @@
 import { useMutation, useQuery } from "@tanstack/react-query";
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
+import { useAtom, useAtomValue, useSetAtom } from "jotai";
+import { pageTitleAtom } from "@/lib/page-title";
 import { toast } from "sonner";
 import type { Connection, MarkerType, NodeMouseHandler } from "@xyflow/react";
 import { addEdge, Background, MiniMap, ReactFlow } from "@xyflow/react";
 import "@xyflow/react/dist/style.css";
-import { useAtom, useAtomValue, useSetAtom } from "jotai";
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { Guard } from "@/components/auth/Guard";
 import { AddConceptDialog } from "@/features/goal-map/components/add-concept-dialog";
@@ -21,25 +22,26 @@ import {
 	conceptDialogOpenAtom,
 	connectionModeAtom,
 	contextMenuAtom,
-	directionEnabledAtom,
-	edgesAtom,
 	editNodeAtom,
+	edgesAtom,
 	historyAtom,
 	historyPointerAtom,
 	isApplyingHistoryAtom,
 	isHydratedAtom,
 	lastSavedSnapshotAtom,
-	linkDialogOpenAtom,
 	materialTextAtom,
 	nodesAtom,
 	rfInstanceAtom,
 	saveAsOpenAtom,
+	saveDescriptionAtom,
 	saveErrorAtom,
 	saveNameAtom,
 	saveOpenAtom,
 	saveTopicIdAtom,
 	saveWarningsAtom,
 	searchOpenAtom,
+	directionEnabledAtom,
+	linkDialogOpenAtom,
 } from "@/features/goal-map/lib/atoms";
 import { TopicRpc } from "@/server/rpc/topic";
 import {
@@ -90,6 +92,7 @@ function TeacherGoalMapEditor() {
 	const [nodes, setNodes] = useAtom(nodesAtom);
 	const [edges, setEdges] = useAtom(edgesAtom);
 	const [rfInstance, setRfInstance] = useAtom(rfInstanceAtom);
+	const setPageTitle = useSetAtom(pageTitleAtom);
 	const [conceptDialogOpen, setConceptDialogOpen] = useAtom(
 		conceptDialogOpenAtom,
 	);
@@ -100,6 +103,7 @@ function TeacherGoalMapEditor() {
 	const [saveAsOpen, setSaveAsOpen] = useAtom(saveAsOpenAtom);
 	const [saveTopicId, setSaveTopicId] = useAtom(saveTopicIdAtom);
 	const [saveName, setSaveName] = useAtom(saveNameAtom);
+	const [saveDescription, setSaveDescription] = useAtom(saveDescriptionAtom);
 	const [saveError, setSaveError] = useAtom(saveErrorAtom);
 	const [saveWarnings, setSaveWarnings] = useAtom(saveWarningsAtom);
 	const [lastSavedSnapshot, setLastSavedSnapshot] = useAtom(
@@ -132,6 +136,30 @@ function TeacherGoalMapEditor() {
 	const generateKitMutation = useMutation(KitRpc.generateKit());
 
 	const isNewMap = goalMapId === "new";
+
+	useEffect(() => {
+		if (isNewMap) {
+			setPageTitle("New Goal Map");
+		} else if (existing?.title) {
+			setPageTitle(existing.title);
+		} else {
+			setPageTitle(null);
+		}
+
+		return () => {
+			setPageTitle(null);
+		};
+	}, [isNewMap, existing?.title, setPageTitle]);
+
+	useEffect(() => {
+		if (isNewMap) {
+			setPageTitle("New Goal Map");
+		} else if (existing?.title) {
+			setPageTitle(existing.title);
+		} else {
+			setPageTitle(null);
+		}
+	}, [isNewMap, existing?.title, setPageTitle]);
 
 	// Use extracted hooks
 	useHistory();
@@ -379,6 +407,9 @@ function TeacherGoalMapEditor() {
 					typeof existing.topicId === "string" ? existing.topicId : "",
 				);
 				setSaveName(typeof existing.title === "string" ? existing.title : "");
+				setSaveDescription(
+					typeof existing.description === "string" ? existing.description : "",
+				);
 				setMaterialText(
 					typeof existing.materialText === "string"
 						? existing.materialText
@@ -398,6 +429,7 @@ function TeacherGoalMapEditor() {
 		isHydrated,
 		setIsHydrated,
 		setSaveName,
+		setSaveDescription,
 		setSaveTopicId,
 		setMaterialText,
 		setLastSavedSnapshot,
@@ -518,7 +550,10 @@ function TeacherGoalMapEditor() {
 	};
 
 	const doSave = useCallback(
-		(meta: { topicId: string; name: string }, newGoalMapId?: string) => {
+		(
+			meta: { topicId: string; name: string; description?: string },
+			newGoalMapId?: string,
+		) => {
 			setSaveError(null);
 			// Generate a new ID if this is a new goal map
 			const targetGoalMapId =
@@ -529,6 +564,8 @@ function TeacherGoalMapEditor() {
 			const saveParams = {
 				goalMapId: targetGoalMapId,
 				title: meta.name,
+				description:
+					meta.description || (newGoalMapId ? saveDescription : undefined),
 				topicId: meta.topicId || undefined,
 				nodes,
 				edges,
@@ -579,6 +616,7 @@ function TeacherGoalMapEditor() {
 			nodes,
 			edges,
 			materialText,
+			saveDescription,
 			navigate,
 			setSaveError,
 			setSaveWarnings,
@@ -588,12 +626,17 @@ function TeacherGoalMapEditor() {
 	);
 
 	// Handle Save As (create copy with new ID)
-	const handleSaveAs = (meta: { topicId: string; name: string }) => {
+	const handleSaveAs = (meta: {
+		topicId: string;
+		name: string;
+		description?: string;
+	}) => {
 		const newId = randomString();
 		doSave(meta, newId);
 		setSaveAsOpen(false);
 		setSaveTopicId(meta.topicId);
 		setSaveName(meta.name);
+		setSaveDescription(meta.description || "");
 	};
 
 	const handleCreateKit = () => {
@@ -737,7 +780,7 @@ function TeacherGoalMapEditor() {
 				defaultName={saveName}
 				onCancel={() => setSaveOpen(false)}
 				onConfirm={async (meta) => {
-					doSave(meta);
+					doSave({ ...meta, description: saveDescription });
 					setSaveOpen(false);
 					setSaveTopicId(meta.topicId);
 					setSaveName(meta.name);
@@ -750,6 +793,7 @@ function TeacherGoalMapEditor() {
 				topicsLoading={topicsLoading}
 				defaultTopicId={saveTopicId}
 				defaultName={saveName ? `${saveName} (copy)` : ""}
+				defaultDescription={saveDescription}
 				onCancel={() => setSaveAsOpen(false)}
 				onConfirm={handleSaveAs}
 			/>

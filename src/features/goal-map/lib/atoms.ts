@@ -28,6 +28,7 @@ export const saveOpenAtom = atom(false);
 export const saveAsOpenAtom = atom(false);
 export const saveTopicIdAtom = atom("");
 export const saveNameAtom = atom("");
+export const saveDescriptionAtom = atom("");
 export const saveErrorAtom = atom<string | null>(null);
 export const saveWarningsAtom = atom<string[]>([]);
 export const lastSavedSnapshotAtom = atom<string | null>(null);

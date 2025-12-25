@@ -17,8 +17,9 @@ import {
 	SelectTrigger,
 	SelectValue,
 } from "@/components/ui/select";
+import { Textarea } from "@/components/ui/textarea";
 
-export type SaveMeta = { topicId: string; name: string };
+export type SaveMeta = { topicId: string; name: string; description?: string };
 
 export type Topic = {
 	id: string;
@@ -33,6 +34,7 @@ export type SaveDialogProps = {
 	topicsLoading?: boolean;
 	defaultTopicId?: string;
 	defaultName?: string;
+	defaultDescription?: string;
 	onCancel: () => void;
 	onConfirm: (meta: SaveMeta) => void | Promise<void>;
 };
@@ -44,19 +46,22 @@ function SaveDialogImpl({
 	topicsLoading = false,
 	defaultTopicId = "",
 	defaultName = "",
+	defaultDescription = "",
 	onCancel,
 	onConfirm,
 }: SaveDialogProps) {
 	const [topicId, setTopicId] = useState(defaultTopicId);
 	const [name, setName] = useState(defaultName);
+	const [description, setDescription] = useState(defaultDescription);
 
 	// Reset when opened
 	useEffect(() => {
 		if (open) {
 			setTopicId(defaultTopicId);
 			setName(defaultName);
+			setDescription(defaultDescription);
 		}
-	}, [open, defaultTopicId, defaultName]);
+	}, [open, defaultTopicId, defaultName, defaultDescription]);
 
 	const topicFieldId = useId();
 	const nameId = useId();
@@ -64,7 +69,8 @@ function SaveDialogImpl({
 	const handleSubmit = async () => {
 		const n = name.trim();
 		if (!topicId || !n) return;
-		await onConfirm({ topicId, name: n });
+		const desc = description.trim() || undefined;
+		await onConfirm({ topicId, name: n, description: desc });
 	};
 
 	return (
@@ -101,6 +107,15 @@ function SaveDialogImpl({
 							value={name}
 							onChange={(e) => setName(e.target.value)}
 							placeholder="Enter a name for this goal map"
+						/>
+					</div>
+					<div className="space-y-1.5">
+						<Label htmlFor={nameId}>Description</Label>
+						<Textarea
+							value={description}
+							onChange={(e) => setDescription(e.target.value)}
+							placeholder="Enter a description for this goal map (optional)"
+							rows={3}
 						/>
 					</div>
 				</div>
