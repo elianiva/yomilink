@@ -24,7 +24,6 @@ import { TextNode } from "@/features/kitbuild/components/text-node";
 import { getLayoutedElements } from "@/features/kitbuild/lib/layout";
 import { LearnerToolbar } from "@/features/learner-map/components/learner-toolbar";
 import { MaterialDialog } from "@/features/learner-map/components/material-dialog";
-import { LearnerTour } from "@/features/learner-map/components/learner-tour";
 import {
 	assignmentAtom,
 	attemptAtom,
@@ -99,7 +98,6 @@ function LearnerMapEditor() {
 	// Local state
 	const [submitDialogOpen, setSubmitDialogOpen] = useState(false);
 	const [isHydrated, setIsHydrated] = useState(false);
-	const [tourOpen, setTourOpen] = useState(false);
 	const [timeRemaining, setTimeRemaining] = useState<number | null>(null);
 
 	// Query
@@ -114,12 +112,6 @@ function LearnerMapEditor() {
 	// Initialize from query data
 	useEffect(() => {
 		if (assignmentData && !isHydrated) {
-			// Show tour on first visit
-			const hasSeenTour = localStorage.getItem("learnerMapTourCompleted");
-			if (!hasSeenTour && status === "not_started") {
-				setTourOpen(true);
-			}
-
 			setAssignment(assignmentData.assignment);
 			setMaterialText(assignmentData.materialText || "");
 
@@ -760,9 +752,6 @@ function LearnerMapEditor() {
 					</div>
 				)}
 			</div>
-
-			{/* Onboarding Tour */}
-			<LearnerTour isOpen={tourOpen} onClose={() => setTourOpen(false)} />
 		</div>
 	);
 }
