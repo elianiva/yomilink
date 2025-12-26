@@ -15,11 +15,11 @@ export function ArrowSvg(props: React.ComponentProps<"svg">) {
 		>
 			<path
 				d="M9.66437 2.60207L4.80758 6.97318C4.07308 7.63423 3.11989 8 2.13172 8H0V10H20V8H18.5349C17.5468 8 16.5936 7.63423 15.8591 6.97318L11.0023 2.60207C10.622 2.2598 10.0447 2.25979 9.66437 2.60207Z"
-				className="fill-[canvas]"
+				className="fill-popover"
 			/>
 			<path
 				d="M8.99542 1.85876C9.75604 1.17425 10.9106 1.17422 11.6713 1.85878L16.5281 6.22989C17.0789 6.72568 17.7938 7.00001 18.5349 7.00001L15.89 7L11.0023 2.60207C10.622 2.2598 10.0447 2.2598 9.66436 2.60207L4.77734 7L2.13171 7.00001C2.87284 7.00001 3.58774 6.72568 4.13861 6.22989L8.99542 1.85876Z"
-				className="fill-gray-200 dark:fill-none"
+				className="fill-border dark:fill-none"
 			/>
 			<path
 				d="M10.3333 3.34539L5.47654 7.71648C4.55842 8.54279 3.36693 9 2.13172 9H0V8H2.13172C3.11989 8 4.07308 7.63423 4.80758 6.97318L9.66437 2.60207C10.0447 2.25979 10.622 2.2598 11.0023 2.60207L15.8591 6.97318C16.5936 7.63423 17.5468 8 18.5349 8H20V9H18.5349C17.2998 9 16.1083 8.54278 15.1901 7.71648L10.3333 3.34539Z"
@@ -58,7 +58,7 @@ const TooltipPortal = BaseTooltip.Portal;
 const TooltipPositioner = React.forwardRef<
 	React.ComponentRef<typeof BaseTooltip.Positioner>,
 	React.ComponentPropsWithoutRef<typeof BaseTooltip.Positioner>
->(({ className, sideOffset = 8, ...props }, ref) => (
+>(({ className, sideOffset = 0, ...props }, ref) => (
 	<BaseTooltip.Positioner
 		ref={ref}
 		sideOffset={sideOffset}
@@ -82,7 +82,7 @@ const TooltipPopup = React.forwardRef<
 	<BaseTooltip.Popup
 		ref={ref}
 		className={cn(
-			"relative overflow-hidden rounded-md border bg-popover px-3 py-1.5 text-sm text-popover-foreground shadow-md",
+			"relative rounded-md border bg-popover px-3 py-1.5 text-sm text-popover-foreground shadow-md",
 			"h-(--popup-height,auto) w-(--popup-width,auto)",
 			"origin-(--transform-origin)",
 			"transition-[width,height,opacity,scale] duration-300 ease-[cubic-bezier(0.22,1,0.36,1)]",
@@ -107,7 +107,7 @@ const TooltipArrow = React.forwardRef<
 			"transition-[left,top,right,bottom] duration-300 ease-[cubic-bezier(0.22,1,0.36,1)]",
 			"data-[side=bottom]:-top-2 data-[side=bottom]:rotate-0",
 			"data-[side=left]:-right-2 data-[side=left]:rotate-90",
-			"data-[side=right]:-left-2 data-[side=right]:-rotate-90",
+			"data-[side=right]:-left-3 data-[side=right]:-rotate-90",
 			"data-[side=top]:-bottom-2 data-[side=top]:rotate-180",
 			className,
 		)}
@@ -125,21 +125,23 @@ const TooltipViewport = React.forwardRef<
 	<BaseTooltip.Viewport
 		ref={ref}
 		className={cn(
-			"relative h-full w-full overflow-hidden",
-			"[--viewport-padding:8px]",
+			"relative h-full w-full",
+			"[--viewport-padding:0.5rem]",
 			"px-(--viewport-padding) py-1",
 			"**:data-previous:absolute **:data-previous:top-1 **:data-previous:w-[calc(var(--popup-width)-2*var(--viewport-padding))]",
 			"**:data-previous:transition-[translate,opacity] **:data-previous:duration-300 **:data-previous:ease-[cubic-bezier(0.22,1,0.36,1)]",
 			"**:data-current:w-[calc(var(--popup-width)-2*var(--viewport-padding))]",
 			"**:data-current:transition-[translate,opacity] **:data-current:duration-300 **:data-current:ease-[cubic-bezier(0.22,1,0.36,1)]",
-			"data-[activation-direction=left]:[&_[data-current][data-starting-style]]:-translate-x-1/2",
-			"data-[activation-direction=left]:[&_[data-current][data-starting-style]]:opacity-0",
-			"data-[activation-direction=right]:[&_[data-current][data-starting-style]]:translate-x-1/2",
-			"data-[activation-direction=right]:[&_[data-current][data-starting-style]]:opacity-0",
-			"data-[activation-direction=left]:[&_[data-previous][data-ending-style]]:translate-x-1/2",
-			"data-[activation-direction=left]:[&_[data-previous][data-ending-style]]:opacity-0",
-			"data-[activation-direction=right]:[&_[data-previous][data-ending-style]]:-translate-x-1/2",
-			"data-[activation-direction=right]:[&_[data-previous][data-ending-style]]:opacity-0",
+			"data-[activation-direction~=left]:[&_[data-current][data-starting-style]]:-translate-x-1/2",
+			"data-[activation-direction~=left]:[&_[data-current][data-starting-style]]:opacity-0",
+			"data-[activation-direction~=right]:[&_[data-current][data-starting-style]]:translate-x-1/2",
+			"data-[activation-direction~=right]:[&_[data-current][data-starting-style]]:opacity-0",
+			"[[data-instant]_&_[data-previous]]:transition-none",
+			"[[data-instant]_&_[data-current]]:transition-none",
+			"data-[activation-direction~=left]:[&_[data-previous][data-ending-style]]:translate-x-1/2",
+			"data-[activation-direction~=left]:[&_[data-previous][data-ending-style]]:opacity-0",
+			"data-[activation-direction~=right]:[&_[data-previous][data-ending-style]]:-translate-x-1/2",
+			"data-[activation-direction~=right]:[&_[data-previous][data-ending-style]]:opacity-0",
 			className,
 		)}
 		{...props}
@@ -152,7 +154,7 @@ interface TooltipContentProps {
 	sideOffset?: number;
 }
 
-function TooltipContent({ handle, sideOffset = 8 }: TooltipContentProps) {
+function TooltipContent({ handle, sideOffset = 4 }: TooltipContentProps) {
 	return (
 		<Tooltip handle={handle}>
 			{({ payload }) => (
