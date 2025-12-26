@@ -1,28 +1,30 @@
-import { createClient } from "@libsql/client";
-import { drizzle, type LibSQLDatabase } from "drizzle-orm/libsql";
-import { Context, Effect, Layer, Redacted } from "effect";
+import * as SqliteDrizzle from "@effect/sql-drizzle/Sqlite";
+import { LibsqlClient } from "@effect/sql-libsql";
+import type { LibSQLDatabase } from "drizzle-orm/libsql";
+import { Effect, Layer } from "effect";
 import { ServerConfig } from "@/config";
 
 export type Db = LibSQLDatabase<Record<string, never>>;
 
-export class Database extends Context.Tag("Database")<Database, Db>() {}
-
-export const DatabaseLive = Layer.effect(
-	Database,
+const SqlLive = Layer.unwrapEffect(
 	Effect.gen(function* () {
 		const config = yield* ServerConfig;
-		const client = createClient({
+		return LibsqlClient.layer({
 			url: config.databaseUrl,
-			authToken: Redacted.value(config.dbAuthToken),
+			authToken: config.dbAuthToken,
 		});
-		return drizzle({ client }) as Db;
 	}),
 );
 
-export const DatabaseTest = Layer.effect(
-	Database,
-	Effect.sync(() => {
-		const client = createClient({ url: "file::memory:?cache=shared" });
-		return drizzle({ client }) as Db;
-	}),
-);
+const SqlTest = LibsqlClient.layer({
+	url: "file::memory:?cache=shared",
+});
+
+// re-export for convenience when switching db
+export const Database = SqliteDrizzle.SqliteDrizzle;
+
+const DrizzleLive = SqliteDrizzle.layer.pipe(Layer.provide(SqlLive));
+const DrizzleTest = SqliteDrizzle.layer.pipe(Layer.provide(SqlTest));
+
+export const DatabaseLive = Layer.mergeAll(SqlLive, DrizzleLive);
+export const DatabaseTest = Layer.mergeAll(SqlTest, DrizzleTest);

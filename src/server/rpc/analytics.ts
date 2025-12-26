@@ -465,7 +465,7 @@ export const getLearnerMapForAnalytics = createServerFn()
 				},
 				diagnosis,
 				edgeClassifications,
-			} as LearnerMapDetails;
+			};
 		}).pipe(
 			Effect.provide(DatabaseLive),
 			Effect.withSpan("getLearnerMapForAnalytics"),
@@ -482,7 +482,6 @@ export const exportAnalyticsData = createServerFn()
 
 		const analyticsResult = await getAnalyticsForAssignment({
 			data,
-			context,
 		});
 
 		if (!("learners" in analyticsResult)) {
@@ -518,12 +517,12 @@ export const exportAnalyticsData = createServerFn()
 					learner.userName,
 					learner.learnerMapId,
 					learner.status,
-					learner.attempt,
-					learner.score ?? "",
-					learner.correct,
-					learner.missing,
-					learner.excessive,
-					learner.totalGoalEdges,
+					learner.attempt.toString(),
+					learner.score?.toString() ?? "0",
+					learner.correct.toString(),
+					learner.missing.toString(),
+					learner.excessive.toString(),
+					learner.totalGoalEdges.toString(),
 					learner.submittedAt
 						? new Date(learner.submittedAt).toISOString()
 						: "",

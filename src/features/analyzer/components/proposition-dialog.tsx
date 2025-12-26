@@ -1,42 +1,4 @@
-import { useState } from "react";
-import {
-	X,
-	ZoomIn,
-	ZoomOut,
-} from "lucide-react";
-import { Button } from "@/components/ui/button";
-import {
-	Dialog,
-	DialogContent,
-	DialogHeader,
-	DialogTitle,
-} from "@/components/ui/dialog";
-import { Slider } from "@/components/ui/slider";
-import {
-	Select,
-	SelectContent,
-	SelectItem,
-	SelectTrigger,
-	SelectValue,
-} from "@/components/ui/select";
-import { Switch } from "@/components/ui/switch";
-import { Input } from "@/components/ui/input";
 import { cn } from "@/lib/utils";
-
-interface LearnerMapItem {
-	id: string;
-	userName: string;
-	kitName: string;
-	status: "draft" | "submitted" | "graded";
-	attempt: number;
-	submittedAt: Date | null;
-	score: number | null;
-	isFirst: boolean;
-	isLast: boolean;
-	isFirstOfType: boolean;
-	isLastOfType: boolean;
-	checked: boolean;
-}
 
 export interface Proposition {
 	source: string;
@@ -46,13 +8,15 @@ export interface Proposition {
 	learnerNames?: string[];
 }
 
-export function PropositionList({ propositions }: { propositions: Proposition[] }) {
+export function PropositionList({
+	propositions,
+}: {
+	propositions: Proposition[];
+}) {
 	return (
 		<div className="space-y-2">
 			{propositions.length === 0 ? (
-				<div className="text-sm text-muted-foreground">
-					No propositions
-				</div>
+				<div className="text-sm text-muted-foreground">No propositions</div>
 			) : (
 				propositions.map((prop) => (
 					<div
@@ -62,11 +26,9 @@ export function PropositionList({ propositions }: { propositions: Proposition[] 
 						<span className="badge rounded-pill bg-warning text-dark mx-1">
 							{prop.source}
 						</span>
-						<span className="text-xs">{" "}</span>
-						<span className="badge bg-secondary mx-1">
-							{prop.link}
-						</span>
-						<span className="text-xs">{" "}</span>
+						<span className="text-xs"> </span>
+						<span className="badge bg-secondary mx-1">{prop.link}</span>
+						<span className="text-xs"> </span>
 						<span className="badge rounded-pill bg-warning text-dark mx-1">
 							{prop.target}
 						</span>
@@ -89,12 +51,21 @@ export function PropositionList({ propositions }: { propositions: Proposition[] 
 						)}
 					</div>
 				))
-			))}
+			)}
 		</div>
 	);
 }
 
-export function PropositionAuthorList({ authors }: { authors: Array<{ name: string; mapId: string; type: string; timestamp: Date }> }) {
+export function PropositionAuthorList({
+	authors,
+}: {
+	authors: Array<{
+		name: string;
+		mapId: string;
+		type: string;
+		timestamp: Date;
+	}>;
+}) {
 	return (
 		<div className="space-y-2">
 			{authors.map((author) => (
@@ -104,14 +75,10 @@ export function PropositionAuthorList({ authors }: { authors: Array<{ name: stri
 				>
 					<span className="font-medium">{author.name}</span>
 					{author.type === "draft" && (
-						<span className="badge bg-secondary text-xs">
-							D
-						</span>
+						<span className="badge bg-secondary text-xs">D</span>
 					)}
 					{author.type === "submitted" && (
-						<span className="badge bg-primary text-xs">
-							S
-						</span>
+						<span className="badge bg-primary text-xs">S</span>
 					)}
 					<span className="ml-auto text-xs text-muted-foreground">
 						{new Date(author.timestamp).toLocaleString()}
@@ -123,4 +90,4 @@ export function PropositionAuthorList({ authors }: { authors: Array<{ name: stri
 			))}
 		</div>
 	);
-	}
+}
