@@ -37,7 +37,14 @@ export const lastSavedSnapshotAtom = atom<string | null>(null);
 export const importDialogOpenAtom = atom(false);
 export const materialTextAtom = atom("");
 export const imagesAtom = atom<
-	Array<{ id: string; url: string; name: string }>
+	Array<{
+		id: string;
+		url: string;
+		name: string;
+		type: string;
+		size: number;
+		uploadedAt: number;
+	}>
 >([]);
 
 // History state atoms

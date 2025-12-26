@@ -23,6 +23,7 @@ export const texts = sqliteTable("texts", {
 	title: text("title").notNull(),
 	content: text("content", { length: 1_000_000 }).notNull(),
 	metadata: text("metadata", { mode: "json" }),
+	images: text("images", { mode: "json" }),
 	...timestamps,
 });
 

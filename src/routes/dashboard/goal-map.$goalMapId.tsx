@@ -37,6 +37,7 @@ import {
 	saveAsOpenAtom,
 	saveDescriptionAtom,
 	saveErrorAtom,
+	imagesAtom,
 	saveNameAtom,
 	saveOpenAtom,
 	saveTopicIdAtom,
@@ -118,6 +119,7 @@ function TeacherGoalMapEditor() {
 	const [contextMenu, setContextMenu] = useAtom(contextMenuAtom);
 	const [connectionMode, setConnectionMode] = useAtom(connectionModeAtom);
 	const [editNode, setEditNode] = useAtom(editNodeAtom);
+	const [materialImages, setMaterialImages] = useAtom(imagesAtom);
 
 	const { goalMapId } = Route.useParams();
 	const navigate = useNavigate();
@@ -419,6 +421,12 @@ function TeacherGoalMapEditor() {
 						? existing.materialText
 						: "",
 				);
+				setMaterialImages(
+					typeof existing.materialImages === "object" &&
+						Array.isArray(existing.materialImages)
+						? existing.materialImages
+						: [],
+				);
 				setLastSavedSnapshot(
 					JSON.stringify({ nodes: loadedNodes, edges: loadedEdges }),
 				);
@@ -436,6 +444,7 @@ function TeacherGoalMapEditor() {
 		setSaveDescription,
 		setSaveTopicId,
 		setMaterialText,
+		setMaterialImages,
 		setLastSavedSnapshot,
 	]);
 
@@ -574,6 +583,7 @@ function TeacherGoalMapEditor() {
 				nodes,
 				edges,
 				materialText: materialText || undefined,
+				materialImages: materialImages.length > 0 ? materialImages : undefined,
 			};
 
 			saveGoalMapMutation.mutate(saveParams, {
@@ -620,6 +630,7 @@ function TeacherGoalMapEditor() {
 			nodes,
 			edges,
 			materialText,
+			materialImages,
 			saveDescription,
 			navigate,
 			setSaveError,
@@ -774,7 +785,7 @@ function TeacherGoalMapEditor() {
 				onCancel={() => setEditNode(null)}
 				onConfirm={(data) => handleEditNodeConfirm(data)}
 			/>
-			<ImportMaterialDialog />
+			<ImportMaterialDialog goalMapId={goalMapId} />
 			<SaveDialog
 				open={saveOpen}
 				saving={saving}

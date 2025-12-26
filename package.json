@@ -12,6 +12,7 @@
     "lint": "biome lint --write",
     "check": "biome check",
     "typecheck": "tsc --noEmit",
+    "cf-typegen": "wrangler types",
     "deploy": "wrangler deploy",
     "seed": "bun run --env-file=.env scripts/seed.ts",
     "ui": "bunx shadcn@canary",

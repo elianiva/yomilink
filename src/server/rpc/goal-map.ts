@@ -51,6 +51,9 @@ const GoalMapResultSchema = Schema.Struct({
 	teacherId: Schema.optionalWith(NullableNonEmptyString, { nullable: true }),
 	topicId: Schema.optionalWith(Schema.NonEmptyString, { nullable: true }),
 	materialText: Schema.optionalWith(Schema.String, { nullable: true }),
+	materialImages: Schema.optionalWith(Schema.Array(Schema.Any), {
+		default: () => [],
+	}),
 	kitId: Schema.optionalWith(Schema.String, { nullable: true }),
 	kitExists: Schema.optionalWith(Schema.Boolean, { default: () => false }),
 	createdAt: Schema.optionalWith(Schema.DateFromSelf, { nullable: true }),
@@ -75,6 +78,7 @@ export const getGoalMap = createServerFn()
 						topicId: goalMaps.topicId,
 						textId: goalMaps.textId,
 						materialText: texts.content,
+						materialImages: texts.images,
 					})
 					.from(goalMaps)
 					.leftJoin(texts, eq(goalMaps.textId, texts.id))
@@ -100,6 +104,19 @@ const SaveGoalMapSchema = Schema.Struct({
 	edges: Schema.Array(Schema.Any),
 	topicId: Schema.optionalWith(Schema.NonEmptyString, { nullable: true }),
 	materialText: Schema.optionalWith(Schema.String, { nullable: true }),
+	materialImages: Schema.optionalWith(
+		Schema.Array(
+			Schema.Struct({
+				id: Schema.NonEmptyString,
+				url: Schema.NonEmptyString,
+				name: Schema.NonEmptyString,
+				size: Schema.Number,
+				type: Schema.NonEmptyString,
+				uploadedAt: Schema.Number,
+			}),
+		),
+		{ nullable: true },
+	),
 });
 
 export const saveGoalMap = createServerFn()
@@ -111,7 +128,11 @@ export const saveGoalMap = createServerFn()
 
 			// Handle material text - create or update text record
 			let textId: string | null = null;
-			if (data.materialText?.trim()) {
+			const hasMaterial =
+				data.materialText?.trim() ||
+				(data.materialImages && data.materialImages.length > 0);
+
+			if (hasMaterial) {
 				// Check if goalmap already has a text linked
 				const existing = yield* Effect.tryPromise(() =>
 					db
@@ -128,7 +149,11 @@ export const saveGoalMap = createServerFn()
 						db
 							.update(texts)
 							.set({
-								content: data.materialText,
+								content: data.materialText || "",
+								images:
+									data.materialImages && data.materialImages.length > 0
+										? JSON.stringify(data.materialImages)
+										: null,
 								updatedAt: new Date(),
 							})
 							.where(eq(texts.id, textId as string))
@@ -143,7 +168,11 @@ export const saveGoalMap = createServerFn()
 							.values({
 								id: textId as string,
 								title: `Material for ${data.title}`,
-								content: data.materialText as string,
+								content: data.materialText || "",
+								images:
+									data.materialImages && data.materialImages.length > 0
+										? JSON.stringify(data.materialImages)
+										: null,
 							})
 							.run(),
 					);

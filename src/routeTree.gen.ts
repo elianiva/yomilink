@@ -24,6 +24,7 @@ import { Route as DashboardAssignmentsManageRouteImport } from './routes/dashboa
 import { Route as DashboardAssignmentsArchivedRouteImport } from './routes/dashboard/assignments/archived'
 import { Route as ApiAuthSplatRouteImport } from './routes/api/auth/$'
 import { Route as DashboardLearnerMapAssignmentIdResultRouteImport } from './routes/dashboard/learner-map/$assignmentId.result'
+import { Route as ApiMaterialsImagesGoalMapIdImageIdRouteImport } from './routes/api/materials/images/$goalMapId/$imageId'
 
 const LoginRoute = LoginRouteImport.update({
   id: '/login',
@@ -106,6 +107,12 @@ const DashboardLearnerMapAssignmentIdResultRoute =
     path: '/result',
     getParentRoute: () => DashboardLearnerMapAssignmentIdRoute,
   } as any)
+const ApiMaterialsImagesGoalMapIdImageIdRoute =
+  ApiMaterialsImagesGoalMapIdImageIdRouteImport.update({
+    id: '/api/materials/images/$goalMapId/$imageId',
+    path: '/api/materials/images/$goalMapId/$imageId',
+    getParentRoute: () => rootRouteImport,
+  } as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
@@ -123,6 +130,7 @@ export interface FileRoutesByFullPath {
   '/dashboard/learner-map/$assignmentId': typeof DashboardLearnerMapAssignmentIdRouteWithChildren
   '/dashboard/assignments': typeof DashboardAssignmentsIndexRoute
   '/dashboard/learner-map/$assignmentId/result': typeof DashboardLearnerMapAssignmentIdResultRoute
+  '/api/materials/images/$goalMapId/$imageId': typeof ApiMaterialsImagesGoalMapIdImageIdRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
@@ -139,6 +147,7 @@ export interface FileRoutesByTo {
   '/dashboard/learner-map/$assignmentId': typeof DashboardLearnerMapAssignmentIdRouteWithChildren
   '/dashboard/assignments': typeof DashboardAssignmentsIndexRoute
   '/dashboard/learner-map/$assignmentId/result': typeof DashboardLearnerMapAssignmentIdResultRoute
+  '/api/materials/images/$goalMapId/$imageId': typeof ApiMaterialsImagesGoalMapIdImageIdRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
@@ -157,6 +166,7 @@ export interface FileRoutesById {
   '/dashboard/learner-map/$assignmentId': typeof DashboardLearnerMapAssignmentIdRouteWithChildren
   '/dashboard/assignments/': typeof DashboardAssignmentsIndexRoute
   '/dashboard/learner-map/$assignmentId/result': typeof DashboardLearnerMapAssignmentIdResultRoute
+  '/api/materials/images/$goalMapId/$imageId': typeof ApiMaterialsImagesGoalMapIdImageIdRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
@@ -176,6 +186,7 @@ export interface FileRouteTypes {
     | '/dashboard/learner-map/$assignmentId'
     | '/dashboard/assignments'
     | '/dashboard/learner-map/$assignmentId/result'
+    | '/api/materials/images/$goalMapId/$imageId'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
@@ -192,6 +203,7 @@ export interface FileRouteTypes {
     | '/dashboard/learner-map/$assignmentId'
     | '/dashboard/assignments'
     | '/dashboard/learner-map/$assignmentId/result'
+    | '/api/materials/images/$goalMapId/$imageId'
   id:
     | '__root__'
     | '/'
@@ -209,6 +221,7 @@ export interface FileRouteTypes {
     | '/dashboard/learner-map/$assignmentId'
     | '/dashboard/assignments/'
     | '/dashboard/learner-map/$assignmentId/result'
+    | '/api/materials/images/$goalMapId/$imageId'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
@@ -216,6 +229,7 @@ export interface RootRouteChildren {
   DashboardRoute: typeof DashboardRouteWithChildren
   LoginRoute: typeof LoginRoute
   ApiAuthSplatRoute: typeof ApiAuthSplatRoute
+  ApiMaterialsImagesGoalMapIdImageIdRoute: typeof ApiMaterialsImagesGoalMapIdImageIdRoute
 }
 
 declare module '@tanstack/react-router' {
@@ -325,6 +339,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof DashboardLearnerMapAssignmentIdResultRouteImport
       parentRoute: typeof DashboardLearnerMapAssignmentIdRoute
     }
+    '/api/materials/images/$goalMapId/$imageId': {
+      id: '/api/materials/images/$goalMapId/$imageId'
+      path: '/api/materials/images/$goalMapId/$imageId'
+      fullPath: '/api/materials/images/$goalMapId/$imageId'
+      preLoaderRoute: typeof ApiMaterialsImagesGoalMapIdImageIdRouteImport
+      parentRoute: typeof rootRouteImport
+    }
   }
 }
 
@@ -379,6 +400,8 @@ const rootRouteChildren: RootRouteChildren = {
   DashboardRoute: DashboardRouteWithChildren,
   LoginRoute: LoginRoute,
   ApiAuthSplatRoute: ApiAuthSplatRoute,
+  ApiMaterialsImagesGoalMapIdImageIdRoute:
+    ApiMaterialsImagesGoalMapIdImageIdRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
