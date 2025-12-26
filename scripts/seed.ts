@@ -1,5 +1,5 @@
 import { eq } from "drizzle-orm";
-import { Effect, Schema } from "effect";
+import { Effect, Layer, Schema } from "effect";
 import { Auth } from "@/lib/auth";
 import { randomString } from "@/lib/utils";
 import { Database } from "@/server/db/client";
@@ -279,6 +279,6 @@ const program = Effect.gen(function* () {
 	}
 
 	console.log("Seed completed.");
-}).pipe(Effect.provide(Database.Default), Effect.provide(Auth.Default));
+}).pipe(Effect.provide(Layer.mergeAll(Database.Default, Auth.Default)));
 
 Effect.runPromise(program);

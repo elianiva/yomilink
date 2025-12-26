@@ -4,7 +4,10 @@ import {
 	SearchIcon,
 	SendIcon,
 } from "lucide-react";
-import { NavigationButtons, ZoomButtons } from "@/components/toolbar/toolbar-groups";
+import {
+	NavigationButtons,
+	ZoomButtons,
+} from "@/components/toolbar/toolbar-groups";
 import { Button } from "@/components/ui/button";
 import { Separator } from "@/components/ui/separator";
 import {

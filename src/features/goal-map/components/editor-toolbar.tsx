@@ -12,7 +12,10 @@ import {
 } from "lucide-react";
 import { memo } from "react";
 import { ToolbarButton } from "@/components/toolbar/toolbar-button";
-import { NavigationButtons, ZoomButtons } from "@/components/toolbar/toolbar-groups";
+import {
+	NavigationButtons,
+	ZoomButtons,
+} from "@/components/toolbar/toolbar-groups";
 import { Button } from "@/components/ui/button";
 import {
 	ButtonGroup,

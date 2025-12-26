@@ -2,13 +2,13 @@ import { betterAuth } from "better-auth";
 import { drizzleAdapter } from "better-auth/adapters/drizzle";
 import { admin } from "better-auth/plugins";
 import { tanstackStartCookies } from "better-auth/tanstack-start";
-import { Effect, Schema } from "effect";
+import { Effect, Layer, Schema } from "effect";
 import { ServerConfig } from "@/config";
 import { ac, roles } from "@/lib/auth-permissions";
 import { Database } from "@/server/db/client";
-import { Telemetry } from "@/server/telemetry";
 import * as appSchema from "@/server/db/schema/app-schema";
 import * as authSchema from "@/server/db/schema/auth-schema";
+import { Telemetry } from "@/server/telemetry";
 
 export class Auth extends Effect.Service<Auth>()("Auth", {
 	effect: Effect.gen(function* () {
@@ -77,8 +77,7 @@ export function getServerUser(headers: Headers) {
 		return user;
 	}).pipe(
 		Effect.withSpan("getServerUser"),
-		Effect.provide(Auth.Default),
-		Effect.provide(Telemetry),
+		Effect.provide(Layer.mergeAll(Auth.Default, Telemetry)),
 		Effect.runPromise,
 	);
 }
