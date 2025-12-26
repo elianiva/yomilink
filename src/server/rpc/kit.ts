@@ -231,7 +231,7 @@ export const KitRpc = {
 		}),
 	getKit: () =>
 		queryOptions({
-			queryKey: [...KitRpc.studentKits()],
+			queryKey: [...KitRpc.studentKits(), "current"],
 			queryFn: () => getKit(),
 		}),
 	getKitStatus: (goalMapId: string) =>

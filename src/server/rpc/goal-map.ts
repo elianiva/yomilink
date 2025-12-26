@@ -271,7 +271,7 @@ export const deleteGoalMap = createServerFn()
 			yield* Effect.tryPromise(() =>
 				db.delete(goalMaps).where(eq(goalMaps.id, data.goalMapId)).run(),
 			);
-			return { success: true };
+			return { success: true } as const;
 		}).pipe(
 			Effect.provide(Database.Default),
 			Effect.withSpan("deleteGoalMap"),

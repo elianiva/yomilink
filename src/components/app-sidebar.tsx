@@ -1,3 +1,4 @@
+import { useQuery } from "@tanstack/react-query";
 import {
 	ActivityIcon,
 	BookOpenIcon,
@@ -8,7 +9,6 @@ import {
 	SettingsIcon,
 } from "lucide-react";
 import { useMemo } from "react";
-import { useQuery } from "@tanstack/react-query";
 import { NavMain } from "@/components/nav-main";
 import { NavUser } from "@/components/nav-user";
 import {

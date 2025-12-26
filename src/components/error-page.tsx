@@ -1,8 +1,8 @@
 import type { ErrorComponentProps } from "@tanstack/react-router";
 import { Link } from "@tanstack/react-router";
 import { useState } from "react";
-import { Button } from "./ui/button";
-import { Separator } from "./ui/separator";
+import { Button } from "@/components/ui/button";
+import { Separator } from "@/components/ui/separator";
 
 export function ErrorPage({ error, reset }: ErrorComponentProps) {
 	const [detailsOpen, setDetailsOpen] = useState(false);

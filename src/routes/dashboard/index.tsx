@@ -3,12 +3,12 @@ import { useMutation, useQuery } from "@tanstack/react-query";
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { Schema } from "effect";
 import {
+	CheckCircle,
 	Circle,
 	Edit,
 	GitFork,
 	Loader2,
 	Plus,
-	CheckCircle,
 	Trash2,
 } from "lucide-react";
 import { useMemo, useState } from "react";

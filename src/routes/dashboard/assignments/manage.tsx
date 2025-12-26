@@ -1,14 +1,14 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { createFileRoute } from "@tanstack/react-router";
-import { useState } from "react";
 import {
 	CalendarIcon,
+	MapIcon,
 	PlusIcon,
 	Trash2Icon,
-	UsersIcon,
 	UserIcon,
-	MapIcon,
+	UsersIcon,
 } from "lucide-react";
+import { useState } from "react";
 import { Guard } from "@/components/auth/Guard";
 import { Button } from "@/components/ui/button";
 import {
@@ -22,12 +22,12 @@ import {
 } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Textarea } from "@/components/ui/textarea";
+import { Progress } from "@/components/ui/progress";
 import { SearchableSelect } from "@/components/ui/searchable-select";
+import { Skeleton } from "@/components/ui/skeleton";
+import { Textarea } from "@/components/ui/textarea";
 import { AssignmentRpc } from "@/server/rpc/assignment";
 import { generateKit } from "@/server/rpc/kit";
-import { Skeleton } from "@/components/ui/skeleton";
-import { Progress } from "@/components/ui/progress";
 
 export const Route = createFileRoute("/dashboard/assignments/manage")({
 	component: () => (

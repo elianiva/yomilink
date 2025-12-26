@@ -1,6 +1,6 @@
+import { useQuery } from "@tanstack/react-query";
 import { Navigate, useLocation } from "@tanstack/react-router";
 import type { ReactNode } from "react";
-import { useQuery } from "@tanstack/react-query";
 import { ProfileRpc } from "@/server/rpc/profile";
 
 export type Role = "teacher" | "admin" | "student";

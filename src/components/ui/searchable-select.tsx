@@ -1,6 +1,5 @@
-import { useState } from "react";
 import { CheckIcon, SearchIcon } from "lucide-react";
-import { cn } from "@/lib/utils";
+import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import {
 	Command,
@@ -15,12 +14,13 @@ import {
 	PopoverContent,
 	PopoverTrigger,
 } from "@/components/ui/popover";
+import { cn } from "@/lib/utils";
 
-export interface SearchableSelectOption {
+export type SearchableSelectOption = {
 	id: string;
 	label: string;
 	description?: string | null;
-}
+};
 
 interface SearchableSelectProps {
 	value: string;

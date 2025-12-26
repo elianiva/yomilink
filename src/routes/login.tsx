@@ -3,11 +3,11 @@ import { createFileRoute, redirect, useNavigate } from "@tanstack/react-router";
 import { Schema } from "effect";
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
+import { FieldInfo } from "@/components/ui/field-info";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { getMe } from "@/server/rpc/profile";
 import { authClient } from "../lib/auth-client";
-import { FieldInfo } from "@/components/ui/field-info";
 
 function getFriendlyAuthErrorMessage(err: unknown) {
 	const raw = err instanceof Error ? err.message : String(err ?? "");

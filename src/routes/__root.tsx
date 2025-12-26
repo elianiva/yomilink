@@ -9,9 +9,9 @@ import {
 	Scripts,
 } from "@tanstack/react-router";
 import { TanStackRouterDevtoolsPanel } from "@tanstack/react-router-devtools";
-import NotFound from "../components/not-found";
-import RouteProgress from "../components/progress/route-progress";
 import { Toaster } from "@/components/ui/sonner";
+import { NotFound } from "../components/not-found";
+import RouteProgress from "../components/progress/route-progress";
 import appCss from "../styles.css?url";
 
 interface MyRouterContext {

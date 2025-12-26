@@ -1,10 +1,10 @@
 import { mutationOptions, queryOptions } from "@tanstack/react-query";
 import { createServerFn } from "@tanstack/react-start";
 import { Effect, Schema } from "effect";
+import { randomString } from "@/lib/utils";
 import { authMiddleware } from "@/middlewares/auth";
 import { Database } from "../db/client";
 import { topics } from "../db/schema/app-schema";
-import { randomString } from "@/lib/utils";
 
 const TopicSchema = Schema.Struct({
 	id: Schema.NonEmptyString,

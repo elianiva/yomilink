@@ -159,6 +159,10 @@ function TeacherGoalMapEditor() {
 		} else {
 			setPageTitle(null);
 		}
+
+		return () => {
+			setPageTitle(null);
+		};
 	}, [isNewMap, existing?.title, setPageTitle]);
 
 	// Use extracted hooks

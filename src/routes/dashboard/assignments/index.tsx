@@ -1,12 +1,12 @@
 import { useQuery } from "@tanstack/react-query";
 import { createFileRoute, Link } from "@tanstack/react-router";
 import {
+	AlertCircleIcon,
 	BookOpenIcon,
 	CalendarIcon,
 	CheckCircleIcon,
 	ChevronRightIcon,
 	ClockIcon,
-	AlertCircleIcon,
 } from "lucide-react";
 import { Guard } from "@/components/auth/Guard";
 import { Button } from "@/components/ui/button";

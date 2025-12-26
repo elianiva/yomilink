@@ -6,7 +6,6 @@ import {
 	useLocation,
 } from "@tanstack/react-router";
 import { useAtomValue } from "jotai";
-import { pageTitleAtom } from "@/lib/page-title";
 import { AppSidebar } from "@/components/app-sidebar";
 import {
 	Breadcrumb,
@@ -22,9 +21,9 @@ import {
 	SidebarProvider,
 	SidebarTrigger,
 } from "@/components/ui/sidebar";
-import { getMe } from "@/server/rpc/profile";
 import type { AuthUser } from "@/lib/auth";
-import { ProfileRpc } from "@/server/rpc/profile";
+import { pageTitleAtom } from "@/lib/page-title";
+import { getMe, ProfileRpc } from "@/server/rpc/profile";
 
 export const Route = createFileRoute("/dashboard")({
 	beforeLoad: async () => {

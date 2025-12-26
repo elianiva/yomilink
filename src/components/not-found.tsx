@@ -1,7 +1,7 @@
 import { Link } from "@tanstack/react-router";
 import { Button } from "@/components/ui/button";
 
-export default function NotFound() {
+export function NotFound() {
 	return (
 		<main className="min-h-dvh grid place-items-center p-6">
 			<section className="mx-auto max-w-xl text-center space-y-6">
