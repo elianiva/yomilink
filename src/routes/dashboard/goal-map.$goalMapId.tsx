@@ -1,10 +1,10 @@
 import { useMutation, useQuery } from "@tanstack/react-query";
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
-import { useAtom, useAtomValue, useSetAtom } from "jotai";
-import { pageTitleAtom } from "@/lib/page-title";
-import { toast } from "sonner";
 import type { Connection, MarkerType, NodeMouseHandler } from "@xyflow/react";
 import { addEdge, Background, MiniMap, ReactFlow } from "@xyflow/react";
+import { useAtom, useAtomValue, useSetAtom } from "jotai";
+import { toast } from "sonner";
+import { pageTitleAtom } from "@/lib/page-title";
 import "@xyflow/react/dist/style.css";
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { Guard } from "@/components/auth/Guard";
@@ -22,13 +22,15 @@ import {
 	conceptDialogOpenAtom,
 	connectionModeAtom,
 	contextMenuAtom,
-	editNodeAtom,
+	directionEnabledAtom,
 	edgesAtom,
+	editNodeAtom,
 	historyAtom,
 	historyPointerAtom,
 	isApplyingHistoryAtom,
 	isHydratedAtom,
 	lastSavedSnapshotAtom,
+	linkDialogOpenAtom,
 	materialTextAtom,
 	nodesAtom,
 	rfInstanceAtom,
@@ -40,10 +42,7 @@ import {
 	saveTopicIdAtom,
 	saveWarningsAtom,
 	searchOpenAtom,
-	directionEnabledAtom,
-	linkDialogOpenAtom,
 } from "@/features/goal-map/lib/atoms";
-import { TopicRpc } from "@/server/rpc/topic";
 import {
 	DEFAULT_COLOR,
 	getColorByValue,
@@ -63,6 +62,7 @@ import type {
 import { cn, randomString } from "@/lib/utils";
 import { GoalMapRpc, saveToLocalStorage } from "@/server/rpc/goal-map";
 import { KitRpc } from "@/server/rpc/kit";
+import { TopicRpc } from "@/server/rpc/topic";
 
 export const Route = createFileRoute("/dashboard/goal-map/$goalMapId")({
 	component: () => (

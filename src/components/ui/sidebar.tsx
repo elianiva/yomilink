@@ -17,10 +17,15 @@ import {
 } from "@/components/ui/sheet";
 import { Skeleton } from "@/components/ui/skeleton";
 import {
+	createTooltipHandle,
 	Tooltip,
-	TooltipContent,
+	TooltipArrow,
+	TooltipPortal,
+	TooltipPositioner,
+	TooltipPopup,
 	TooltipProvider,
 	TooltipTrigger,
+	TooltipViewport,
 } from "@/components/ui/tooltip";
 
 const SIDEBAR_COOKIE_NAME = "sidebar_state";
@@ -29,6 +34,8 @@ const SIDEBAR_WIDTH = "16rem";
 const SIDEBAR_WIDTH_MOBILE = "18rem";
 const SIDEBAR_WIDTH_ICON = "3rem";
 const SIDEBAR_KEYBOARD_SHORTCUT = "b";
+
+const sidebarTooltipHandle = createTooltipHandle();
 
 type SidebarContextProps = {
 	state: "expanded" | "collapsed";
@@ -143,24 +150,40 @@ function SidebarProvider({
 
 	return (
 		<SidebarContext.Provider value={contextValue}>
-			<TooltipProvider delayDuration={0}>
-				<div
-					data-slot="sidebar-wrapper"
-					style={
-						{
-							"--sidebar-width": SIDEBAR_WIDTH,
-							"--sidebar-width-icon": SIDEBAR_WIDTH_ICON,
-							...style,
-						} as React.CSSProperties
-					}
-					className={cn(
-						"group/sidebar-wrapper has-data-[variant=inset]:bg-sidebar flex min-h-svh w-full",
-						className,
-					)}
-					{...props}
-				>
-					{children}
-				</div>
+			<TooltipProvider delay={0}>
+				<>
+					<div
+						data-slot="sidebar-wrapper"
+						style={
+							{
+								"--sidebar-width": SIDEBAR_WIDTH,
+								"--sidebar-width-icon": SIDEBAR_WIDTH_ICON,
+								...style,
+							} as React.CSSProperties
+						}
+						className={cn(
+							"group/sidebar-wrapper has-data-[variant=inset]:bg-sidebar flex min-h-svh w-full",
+							className,
+						)}
+						{...props}
+					>
+						{children}
+					</div>
+					<Tooltip handle={sidebarTooltipHandle}>
+						{({ payload }) => (
+							<TooltipPortal>
+								<TooltipPositioner side="right">
+									<TooltipPopup>
+										<TooltipArrow />
+										<TooltipViewport>
+											{payload as React.ReactNode}
+										</TooltipViewport>
+									</TooltipPopup>
+								</TooltipPositioner>
+							</TooltipPortal>
+						)}
+					</Tooltip>
+				</>
 			</TooltipProvider>
 		</SidebarContext.Provider>
 	);
@@ -517,46 +540,54 @@ function SidebarMenuButton({
 	size = "default",
 	tooltip,
 	className,
+	children,
 	...props
 }: React.ComponentProps<"button"> & {
 	asChild?: boolean;
 	isActive?: boolean;
-	tooltip?: string | React.ComponentProps<typeof TooltipContent>;
+	tooltip?: string | { children: React.ReactNode; [key: string]: any };
 } & VariantProps<typeof sidebarMenuButtonVariants>) {
 	const Comp = asChild ? Slot : "button";
 	const { isMobile, state } = useSidebar();
 
-	const button = (
-		<Comp
-			data-slot="sidebar-menu-button"
-			data-sidebar="menu-button"
-			data-size={size}
-			data-active={isActive}
-			className={cn(sidebarMenuButtonVariants({ variant, size }), className)}
-			{...props}
-		/>
-	);
-
-	if (!tooltip) {
-		return button;
+	if (!tooltip || (state !== "collapsed" && !isMobile)) {
+		return (
+			<Comp
+				data-slot="sidebar-menu-button"
+				data-sidebar="menu-button"
+				data-size={size}
+				data-active={isActive}
+				className={cn(sidebarMenuButtonVariants({ variant, size }), className)}
+				{...props}
+			>
+				{children}
+			</Comp>
+		);
 	}
 
-	if (typeof tooltip === "string") {
-		tooltip = {
-			children: tooltip,
-		};
-	}
+	const tooltipContent =
+		typeof tooltip === "string" ? tooltip : tooltip.children;
 
 	return (
-		<Tooltip>
-			<TooltipTrigger asChild>{button}</TooltipTrigger>
-			<TooltipContent
-				side="right"
-				align="center"
-				hidden={state !== "collapsed" || isMobile}
-				{...tooltip}
-			/>
-		</Tooltip>
+		<TooltipTrigger
+			handle={sidebarTooltipHandle}
+			render={
+				<Comp
+					data-slot="sidebar-menu-button"
+					data-sidebar="menu-button"
+					data-size={size}
+					data-active={isActive}
+					className={cn(
+						sidebarMenuButtonVariants({ variant, size }),
+						className,
+					)}
+					{...props}
+				>
+					{children}
+				</Comp>
+			}
+			payload={tooltipContent}
+		/>
 	);
 }
 

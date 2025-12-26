@@ -1,18 +1,14 @@
 import {
 	BookOpenIcon,
-	Maximize2Icon,
-	MinusIcon,
-	PlusIcon,
-	Redo2Icon,
+	LayoutGridIcon,
 	SearchIcon,
 	SendIcon,
-	Undo2Icon,
-	LayoutGridIcon,
 } from "lucide-react";
+import { NavigationButtons, ZoomButtons } from "@/components/toolbar/toolbar-groups";
 import { Button } from "@/components/ui/button";
 import { Separator } from "@/components/ui/separator";
 import {
-	Tooltip,
+	createTooltipHandle,
 	TooltipContent,
 	TooltipProvider,
 	TooltipTrigger,
@@ -35,6 +31,8 @@ interface LearnerToolbarProps {
 	hasMaterial?: boolean;
 }
 
+const tooltipHandle = createTooltipHandle();
+
 export function LearnerToolbar({
 	onUndo,
 	onRedo,
@@ -52,153 +50,79 @@ export function LearnerToolbar({
 	hasMaterial,
 }: LearnerToolbarProps) {
 	return (
-		<TooltipProvider delayDuration={300}>
+		<TooltipProvider delay={300}>
 			<div className="absolute bottom-4 left-1/2 z-10 flex -translate-x-1/2 items-center gap-1.5 rounded-xl border bg-white/90 p-1.5 shadow-lg backdrop-blur-sm">
-				{/* Undo/Redo */}
-				<Tooltip>
-					<TooltipTrigger asChild>
-						<Button
-							variant="ghost"
-							size="icon"
-							className="size-8"
-							onClick={onUndo}
-							disabled={!canUndo || isSubmitted}
-						>
-							<Undo2Icon className="size-4" />
-						</Button>
-					</TooltipTrigger>
-					<TooltipContent side="top" sideOffset={8}>
-						Undo
-					</TooltipContent>
-				</Tooltip>
-
-				<Tooltip>
-					<TooltipTrigger asChild>
-						<Button
-							variant="ghost"
-							size="icon"
-							className="size-8"
-							onClick={onRedo}
-							disabled={!canRedo || isSubmitted}
-						>
-							<Redo2Icon className="size-4" />
-						</Button>
-					</TooltipTrigger>
-					<TooltipContent side="top" sideOffset={8}>
-						Redo
-					</TooltipContent>
-				</Tooltip>
+				<NavigationButtons
+					onUndo={onUndo}
+					onRedo={onRedo}
+					canUndo={canUndo}
+					canRedo={canRedo}
+					disabled={isSubmitted}
+					handle={tooltipHandle}
+				/>
 
 				<Separator orientation="vertical" className="h-5 mx-0.5" />
 
-				{/* Zoom */}
-				<Tooltip>
-					<TooltipTrigger asChild>
-						<Button
-							variant="ghost"
-							size="icon"
-							className="size-8"
-							onClick={onZoomIn}
-						>
-							<PlusIcon className="size-4" />
-						</Button>
-					</TooltipTrigger>
-					<TooltipContent side="top" sideOffset={8}>
-						Zoom In
-					</TooltipContent>
-				</Tooltip>
-
-				<Tooltip>
-					<TooltipTrigger asChild>
-						<Button
-							variant="ghost"
-							size="icon"
-							className="size-8"
-							onClick={onZoomOut}
-						>
-							<MinusIcon className="size-4" />
-						</Button>
-					</TooltipTrigger>
-					<TooltipContent side="top" sideOffset={8}>
-						Zoom Out
-					</TooltipContent>
-				</Tooltip>
-
-				<Tooltip>
-					<TooltipTrigger asChild>
-						<Button
-							variant="ghost"
-							size="icon"
-							className="size-8"
-							onClick={onFit}
-						>
-							<Maximize2Icon className="size-4" />
-						</Button>
-					</TooltipTrigger>
-					<TooltipContent side="top" sideOffset={8}>
-						Fit to View
-					</TooltipContent>
-				</Tooltip>
+				<ZoomButtons
+					onZoomIn={onZoomIn}
+					onZoomOut={onZoomOut}
+					onFit={onFit}
+					handle={tooltipHandle}
+				/>
 
 				<Separator orientation="vertical" className="h-5 mx-0.5" />
 
-				{/* Tools */}
-				<Tooltip>
-					<TooltipTrigger asChild>
+				<TooltipTrigger
+					handle={tooltipHandle}
+					render={
 						<Button
 							variant="ghost"
 							size="icon"
 							className="size-8"
 							onClick={onSearch}
-						>
-							<SearchIcon className="size-4" />
-						</Button>
-					</TooltipTrigger>
-					<TooltipContent side="top" sideOffset={8}>
-						Search Nodes
-					</TooltipContent>
-				</Tooltip>
-
-				<Tooltip>
-					<TooltipTrigger asChild>
+						/>
+					}
+					payload="Search Nodes"
+				>
+					<SearchIcon className="size-4" />
+				</TooltipTrigger>
+				<TooltipTrigger
+					handle={tooltipHandle}
+					render={
 						<Button
 							variant="ghost"
 							size="icon"
 							className="size-8"
 							onClick={onAutoLayout}
 							disabled={isSubmitted}
-						>
-							<LayoutGridIcon className="size-4" />
-						</Button>
-					</TooltipTrigger>
-					<TooltipContent side="top" sideOffset={8}>
-						Auto Layout
-					</TooltipContent>
-				</Tooltip>
-
+						/>
+					}
+					payload="Auto Layout"
+				>
+					<LayoutGridIcon className="size-4" />
+				</TooltipTrigger>
 				{hasMaterial && (
-					<Tooltip>
-						<TooltipTrigger asChild>
+					<TooltipTrigger
+						handle={tooltipHandle}
+						render={
 							<Button
 								variant="ghost"
 								size="icon"
 								className="size-8"
 								onClick={onMaterial}
-							>
-								<BookOpenIcon className="size-4" />
-							</Button>
-						</TooltipTrigger>
-						<TooltipContent side="top" sideOffset={8}>
-							View Reading Material
-						</TooltipContent>
-					</Tooltip>
+							/>
+						}
+						payload="View Reading Material"
+					>
+						<BookOpenIcon className="size-4" />
+					</TooltipTrigger>
 				)}
 
 				<Separator orientation="vertical" className="h-5 mx-0.5" />
 
-				{/* Submit */}
-				<Tooltip>
-					<TooltipTrigger asChild>
+				<TooltipTrigger
+					handle={tooltipHandle}
+					render={
 						<Button
 							size="sm"
 							className="gap-1.5"
@@ -212,13 +136,14 @@ export function LearnerToolbar({
 									? "Submitted"
 									: "Submit"}
 						</Button>
-					</TooltipTrigger>
-					<TooltipContent side="top" sideOffset={8}>
-						{isSubmitted
+					}
+					payload={
+						isSubmitted
 							? "Already submitted"
-							: "Submit your concept map for grading"}
-					</TooltipContent>
-				</Tooltip>
+							: "Submit your concept map for grading"
+					}
+				/>
+				<TooltipContent handle={tooltipHandle} />
 			</div>
 		</TooltipProvider>
 	);

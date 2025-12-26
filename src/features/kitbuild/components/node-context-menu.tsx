@@ -2,12 +2,19 @@ import { ArrowLeft, ArrowRight, Pencil, Trash2 } from "lucide-react";
 import { memo, useCallback, useEffect, useRef } from "react";
 import { Button } from "@/components/ui/button";
 import {
+	createTooltipHandle,
 	Tooltip,
-	TooltipContent,
+	TooltipArrow,
+	TooltipPortal,
+	TooltipPositioner,
+	TooltipPopup,
 	TooltipProvider,
 	TooltipTrigger,
+	TooltipViewport,
 } from "@/components/ui/tooltip";
 import { cn } from "@/lib/utils";
+
+const tooltipHandle = createTooltipHandle();
 
 export type NodeContextMenuProps = {
 	nodeId: string;
@@ -34,8 +41,9 @@ function ActionButton({
 	variant = "default",
 }: ActionButtonProps) {
 	return (
-		<Tooltip>
-			<TooltipTrigger asChild>
+		<TooltipTrigger
+			handle={tooltipHandle}
+			render={
 				<Button
 					variant="ghost"
 					size="icon"
@@ -50,14 +58,12 @@ function ActionButton({
 						e.stopPropagation();
 						onClick();
 					}}
-				>
-					{icon}
-				</Button>
-			</TooltipTrigger>
-			<TooltipContent side="bottom" sideOffset={4}>
-				{label}
-			</TooltipContent>
-		</Tooltip>
+				/>
+			}
+			payload={label}
+		>
+			{icon}
+		</TooltipTrigger>
 	);
 }
 
@@ -129,7 +135,7 @@ function NodeContextMenuImpl({
 	);
 
 	return (
-		<TooltipProvider delayDuration={300}>
+		<TooltipProvider delay={300}>
 			{/* Wrapper for positioning - keeps transform separate from animation */}
 			<div
 				className="fixed z-50"
@@ -182,6 +188,20 @@ function NodeContextMenuImpl({
 						variant="destructive"
 					/>
 				</div>
+				<Tooltip handle={tooltipHandle}>
+					{({ payload }) => (
+						<TooltipPortal>
+							<TooltipPositioner>
+								<TooltipPopup>
+									<TooltipArrow />
+									<TooltipViewport>
+										{payload as React.ReactNode}
+									</TooltipViewport>
+								</TooltipPopup>
+							</TooltipPositioner>
+						</TooltipPortal>
+					)}
+				</Tooltip>
 			</div>
 		</TooltipProvider>
 	);
