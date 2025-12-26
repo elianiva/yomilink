@@ -63,10 +63,10 @@ const TooltipPositioner = React.forwardRef<
 		ref={ref}
 		sideOffset={sideOffset}
 		className={cn(
-			"z-50 mx-2",
+			"z-50",
 			"h-(--positioner-height) w-(--positioner-width)",
 			"max-w-(--available-width)",
-			"transition-[top,left,right,bottom,transform] duration-300 ease-[cubic-bezier(0.22,1,0.36,1)]",
+			"transition-[top,left,right,bottom,transform] duration-150 ease-[cubic-bezier(0.22,1,0.36,1)]",
 			"data-instant:transition-none",
 			className,
 		)}
@@ -82,10 +82,10 @@ const TooltipPopup = React.forwardRef<
 	<BaseTooltip.Popup
 		ref={ref}
 		className={cn(
-			"relative rounded-md border bg-popover px-3 py-1.5 text-sm text-popover-foreground shadow-md",
+			"relative rounded-md border bg-popover px-1 py-0.5 text-sm font-medium text-popover-foreground shadow-md",
 			"h-(--popup-height,auto) w-(--popup-width,auto)",
 			"origin-(--transform-origin)",
-			"transition-[width,height,opacity,scale] duration-300 ease-[cubic-bezier(0.22,1,0.36,1)]",
+			"transition-[width,height,opacity,scale] duration-150 ease-[cubic-bezier(0.22,1,0.36,1)]",
 			"data-ending-style:opacity-0 data-ending-style:scale-90",
 			"data-starting-style:opacity-0 data-starting-style:scale-90",
 			"data-instant:transition-none",
@@ -104,7 +104,7 @@ const TooltipArrow = React.forwardRef<
 		ref={ref}
 		className={cn(
 			"flex fill-popover text-popover",
-			"transition-[left,top,right,bottom] duration-300 ease-[cubic-bezier(0.22,1,0.36,1)]",
+			"transition-[left,top,right,bottom] duration-150 ease-[cubic-bezier(0.22,1,0.36,1)]",
 			"data-[side=bottom]:-top-2 data-[side=bottom]:rotate-0",
 			"data-[side=left]:-right-2 data-[side=left]:rotate-90",
 			"data-[side=right]:-left-3 data-[side=right]:-rotate-90",
@@ -125,13 +125,21 @@ const TooltipViewport = React.forwardRef<
 	<BaseTooltip.Viewport
 		ref={ref}
 		className={cn(
-			"relative h-full w-full",
+			"relative h-full w-full whitespace-nowrap",
 			"[--viewport-padding:0.5rem]",
 			"px-(--viewport-padding) py-1",
-			"**:data-previous:absolute **:data-previous:top-1 **:data-previous:w-[calc(var(--popup-width)-2*var(--viewport-padding))]",
-			"**:data-previous:transition-[translate,opacity] **:data-previous:duration-300 **:data-previous:ease-[cubic-bezier(0.22,1,0.36,1)]",
+			"**:data-previous:w-[calc(var(--popup-width)-2*var(--viewport-padding))]",
+			"**:data-previous:translate-x-0",
+			"**:data-previous:opacity-100",
+			"**:data-previous:transition-[translate,opacity]",
+			"**:data-previous:duration-[200ms,150ms]",
+			"**:data-previous:ease-[cubic-bezier(0.22,1,0.36,1)]",
 			"**:data-current:w-[calc(var(--popup-width)-2*var(--viewport-padding))]",
-			"**:data-current:transition-[translate,opacity] **:data-current:duration-300 **:data-current:ease-[cubic-bezier(0.22,1,0.36,1)]",
+			"**:data-current:translate-x-0",
+			"**:data-current:opacity-100",
+			"**:data-current:transition-[translate,opacity]",
+			"**:data-current:duration-[200ms,150ms]",
+			"**:data-current:ease-[cubic-bezier(0.22,1,0.36,1)]",
 			"data-[activation-direction~=left]:[&_[data-current][data-starting-style]]:-translate-x-1/2",
 			"data-[activation-direction~=left]:[&_[data-current][data-starting-style]]:opacity-0",
 			"data-[activation-direction~=right]:[&_[data-current][data-starting-style]]:translate-x-1/2",
