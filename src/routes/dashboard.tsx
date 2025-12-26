@@ -23,12 +23,23 @@ import {
 	SidebarTrigger,
 } from "@/components/ui/sidebar";
 import { getMe } from "@/server/rpc/profile";
+import type { AuthUser } from "@/lib/auth";
+import { ProfileRpc } from "@/server/rpc/profile";
 
 export const Route = createFileRoute("/dashboard")({
 	beforeLoad: async () => {
 		const me = await getMe();
 		if (!me) throw redirect({ to: "/login" });
 		return me;
+	},
+	loader: async ({ context }) => {
+		context.queryClient.setQueryData<typeof AuthUser.Type>(ProfileRpc.me(), {
+			id: context.id,
+			role: context.role,
+			email: context.email,
+			name: context.name,
+			image: context.image,
+		});
 	},
 	component: DashboardLayout,
 });

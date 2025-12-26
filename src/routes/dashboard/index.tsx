@@ -37,23 +37,12 @@ import {
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Skeleton } from "@/components/ui/skeleton";
-import type { AuthUser } from "@/lib/auth";
 import { cn } from "@/lib/utils";
 import { GoalMapRpc } from "@/server/rpc/goal-map";
-import { ProfileRpc } from "@/server/rpc/profile";
 import { type Topic, TopicRpc } from "@/server/rpc/topic";
 
 export const Route = createFileRoute("/dashboard/")({
 	component: DashboardHome,
-	loader: async ({ context }) => {
-		context.queryClient.setQueryData<typeof AuthUser.Type>(ProfileRpc.me(), {
-			id: context.id,
-			role: context.role,
-			email: context.email,
-			name: context.name,
-			image: context.image,
-		});
-	},
 });
 
 /**

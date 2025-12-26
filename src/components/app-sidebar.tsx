@@ -8,6 +8,7 @@ import {
 	SettingsIcon,
 } from "lucide-react";
 import { useMemo } from "react";
+import { useQuery } from "@tanstack/react-query";
 import { NavMain } from "@/components/nav-main";
 import { NavUser } from "@/components/nav-user";
 import {
@@ -17,7 +18,7 @@ import {
 	SidebarHeader,
 	SidebarRail,
 } from "@/components/ui/sidebar";
-import { useSession } from "@/lib/auth-client";
+import { ProfileRpc } from "@/server/rpc/profile";
 
 type Role = "teacher" | "admin" | "student";
 
@@ -73,11 +74,11 @@ const NAVBAR_ITEMS: NavItemWithRoles[] = [
 type AppSidebarProps = React.ComponentProps<typeof Sidebar>;
 
 export function AppSidebar(props: AppSidebarProps) {
-	const { data: me } = useSession();
-	const displayName = me?.user.name ?? null;
-	const displayEmail = me?.user.email ?? null;
-	const displayAvatar = me?.user.image ?? null;
-	const userRole = (me?.user as { role?: Role })?.role ?? "student";
+	const { data: me } = useQuery(ProfileRpc.getMe());
+	const displayName = me?.name ?? null;
+	const displayEmail = me?.email ?? null;
+	const displayAvatar = me?.image ?? null;
+	const userRole = me?.role ?? "student";
 
 	// Filter navbar items based on user role
 	const filteredItems = useMemo(() => {
