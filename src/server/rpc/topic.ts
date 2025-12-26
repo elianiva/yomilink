@@ -3,7 +3,7 @@ import { createServerFn } from "@tanstack/react-start";
 import { Effect, Schema } from "effect";
 import { randomString } from "@/lib/utils";
 import { authMiddleware } from "@/middlewares/auth";
-import { Database } from "../db/client";
+import { Database, DatabaseLive } from "../db/client";
 import { topics } from "../db/schema/app-schema";
 
 const TopicSchema = Schema.Struct({
@@ -31,7 +31,7 @@ export const listTopics = createServerFn()
 			);
 			return yield* Schema.decodeUnknown(Schema.Array(TopicSchema))(rows);
 		}).pipe(
-			Effect.provide(Database.Default),
+			Effect.provide(DatabaseLive),
 			Effect.withSpan("listTopics"),
 			Effect.runPromise,
 		),
@@ -59,7 +59,7 @@ export const createTopic = createServerFn()
 					.run(),
 			);
 		}).pipe(
-			Effect.provide(Database.Default),
+			Effect.provide(DatabaseLive),
 			Effect.withSpan("createTopic"),
 			Effect.runPromise,
 		),

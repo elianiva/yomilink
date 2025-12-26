@@ -1,16 +1,8 @@
+import { useMutation, useQuery } from "@tanstack/react-query";
 import { createFileRoute } from "@tanstack/react-router";
-import {
-	Activity,
-	ChevronDown,
-	ImageDown,
-	Redo2,
-	Search,
-	Trash2,
-	Undo2,
-	ZoomIn,
-	ZoomOut,
-} from "lucide-react";
-import { useId, useMemo, useState } from "react";
+import { Activity, Download, RefreshCw, Search } from "lucide-react";
+import { useCallback, useMemo, useState } from "react";
+import { toast } from "sonner";
 import { Guard } from "@/components/auth/Guard";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -22,52 +14,21 @@ import {
 	SelectValue,
 } from "@/components/ui/select";
 import { Separator } from "@/components/ui/separator";
-import { Slider } from "@/components/ui/slider";
 import { Switch } from "@/components/ui/switch";
+import { cn } from "@/lib/utils";
+import { AnalyticsRpc } from "@/server/rpc/analytics";
+import { AnalyticsCanvas } from "./analytics/canvas";
+import { ToolbarButton } from "@/components/toolbar/toolbar-button";
+import { createTooltipHandle } from "@/components/ui/tooltip";
+import { TooltipProvider, TooltipContent } from "@/components/ui/tooltip";
 
 export const Route = createFileRoute("/dashboard/analytics")({
 	component: () => (
 		<Guard roles={["teacher", "admin"]}>
-			<StaticAnalyzerPage />
+			<AnalyticsPage />
 		</Guard>
 	),
 });
-
-type Learner = {
-	id: string;
-	name: string;
-	kit: string;
-	group: string;
-	type: "All" | "Passed" | "Failed" | "In Progress";
-	score: number;
-};
-
-const demoLearners: Learner[] = [
-	{
-		id: "l1",
-		name: "Andi",
-		kit: "Intro Kit",
-		group: "Room 102",
-		type: "All",
-		score: 78,
-	},
-	{
-		id: "l2",
-		name: "Budi",
-		kit: "Intro Kit",
-		group: "Room 102",
-		type: "All",
-		score: 64,
-	},
-	{
-		id: "l3",
-		name: "Citra",
-		kit: "Ecosystems",
-		group: "Room 207",
-		type: "All",
-		score: 85,
-	},
-];
 
 function LegendDot({ color }: { color: string }) {
 	return (
@@ -86,318 +47,427 @@ function SectionTitle({ children }: { children: React.ReactNode }) {
 	);
 }
 
-function ToolbarButton({
-	children,
-	title,
-}: {
-	children: React.ReactNode;
-	title: string;
-}) {
-	return (
-		<Button
-			variant="outline"
-			size="sm"
-			className="h-8 w-8 p-0"
-			title={title}
-			aria-label={title}
-		>
-			{children}
-		</Button>
+function AnalyticsPage() {
+	const [selectedAssignmentId, setSelectedAssignmentId] = useState<
+		string | null
+	>(null);
+	const [selectedLearnerId, setSelectedLearnerId] = useState<string | null>(
+		null,
 	);
-}
-
-function StaticAnalyzerPage() {
-	// Left rail state
-	const [who, setWho] = useState<"Teacher" | "Group">("Teacher");
-	const [min, setMin] = useState(1);
-	const [max, setMax] = useState(1);
-	const [firstOnly, setFirstOnly] = useState(false);
-	const [lastOnly, setLastOnly] = useState(false);
-
-	// Filters
-	const [kitFilter, setKitFilter] = useState("All");
-	const [groupFilter, setGroupFilter] = useState("All");
-	const [typeFilter, setTypeFilter] = useState<
-		"All" | "Passed" | "Failed" | "In Progress"
+	const [searchQuery, setSearchQuery] = useState("");
+	const [statusFilter, setStatusFilter] = useState<
+		"All" | "submitted" | "draft"
 	>("All");
-	const [query, setQuery] = useState("");
-	const firstId = useId();
-	const lastId = useId();
 
+	const tooltipHandle = createTooltipHandle();
+
+	const [showGoalMap, setShowGoalMap] = useState(true);
+	const [showLearnerMap, setShowLearnerMap] = useState(true);
+	const [showCorrectEdges, setShowCorrectEdges] = useState(true);
+	const [showMissingEdges, setShowMissingEdges] = useState(true);
+	const [showExcessiveEdges, setShowExcessiveEdges] = useState(true);
+	const [showNeutralEdges, setShowNeutralEdges] = useState(true);
+
+	// Fetch assignments
+	const { data: assignments, isLoading: assignmentsLoading } = useQuery(
+		AnalyticsRpc.getTeacherAssignments(),
+	);
+
+	// Fetch analytics data for selected assignment
+	const { data: analyticsData, isLoading: analyticsLoading } = useQuery({
+		...AnalyticsRpc.getAnalyticsForAssignment(selectedAssignmentId ?? ""),
+		enabled: !!selectedAssignmentId,
+		refetchOnWindowFocus: false,
+	});
+
+	// Fetch learner map details for selected learner
+	const { data: learnerMapDetails } = useQuery({
+		...AnalyticsRpc.getLearnerMapForAnalytics(selectedLearnerId ?? ""),
+		enabled: !!selectedLearnerId,
+		refetchOnWindowFocus: false,
+	});
+
+	// Filter learners
 	const filteredLearners = useMemo(() => {
-		const q = query.trim().toLowerCase();
-		return demoLearners.filter((l) => {
-			if (kitFilter !== "All" && l.kit !== kitFilter) return false;
-			if (groupFilter !== "All" && l.group !== groupFilter) return false;
-			if (typeFilter !== "All" && l.type !== typeFilter) return false;
-			if (q && !l.name.toLowerCase().includes(q)) return false;
-			return true;
+		if (!analyticsData) return [];
+
+		return analyticsData.learners.filter((learner) => {
+			const matchesSearch =
+				!searchQuery ||
+				learner.userName.toLowerCase().includes(searchQuery.toLowerCase());
+
+			const matchesStatus =
+				statusFilter === "All" || learner.status === statusFilter;
+
+			return matchesSearch && matchesStatus;
 		});
-	}, [kitFilter, groupFilter, typeFilter, query]);
+	}, [analyticsData, searchQuery, statusFilter]);
+
+	// Get selected learner
+	const selectedLearner = useMemo(() => {
+		if (!analyticsData || !selectedLearnerId) return null;
+		return analyticsData.learners.find((l) => l.userId === selectedLearnerId);
+	}, [analyticsData, selectedLearnerId]);
+
+	const handleRefresh = useCallback(() => {
+		if (selectedAssignmentId) {
+			window.location.reload();
+		}
+	}, [selectedAssignmentId]);
+
+	const exportMutation = useMutation({
+		mutationFn: (format: "csv" | "json") =>
+			AnalyticsRpc.exportAnalyticsData(
+				selectedAssignmentId ?? "",
+				format,
+			) as any,
+		onSuccess: (result) => {
+			const blob = new Blob([result.data], {
+				type: result.contentType,
+			});
+			const url = URL.createObjectURL(blob);
+			const a = document.createElement("a");
+			a.href = url;
+			a.download = result.filename;
+			document.body.appendChild(a);
+			a.click();
+			document.body.removeChild(a);
+			URL.revokeObjectURL(url);
+			toast.success(`Exported ${result.filename}`);
+		},
+		onError: () => {
+			toast.error("Failed to export data");
+		},
+	});
+
+	const handleExport = useCallback(
+		(format: "csv" | "json") => {
+			if (!selectedAssignmentId) return;
+			exportMutation.mutateAsync(format);
+		},
+		[selectedAssignmentId, exportMutation],
+	);
 
 	return (
-		<div className="h-full grid grid-cols-1 lg:grid-cols-[320px_1fr] gap-4">
-			{/* Left rail */}
-			<aside className="rounded-lg border bg-card">
-				<div className="border-b p-3 flex items-center justify-between">
-					<h2 className="text-sm font-semibold">Static Analyzer</h2>
-					<div className="text-[10px] text-muted-foreground">Teacher View</div>
-				</div>
-
-				<div className="p-3 space-y-4">
-					{/* Groups Map */}
-					<div className="space-y-2">
-						<SectionTitle>Groups Map</SectionTitle>
-
-						<div className="flex items-center gap-1.5">
-							<Button
-								size="sm"
-								variant={who === "Teacher" ? "default" : "outline"}
-								className="h-7"
-								onClick={() => setWho("Teacher")}
-							>
-								Teacher
-							</Button>
-							<Button
-								size="sm"
-								variant={who === "Group" ? "default" : "outline"}
-								className="h-7"
-								onClick={() => setWho("Group")}
-							>
-								Group
-							</Button>
-
-							<div className="ml-auto text-xs text-muted-foreground">Range</div>
-						</div>
-
-						<div className="space-y-2 rounded-md border p-3">
-							<div className="flex items-center gap-2">
-								<div className="flex-1">
-									<Slider
-										min={1}
-										max={10}
-										defaultValue={[min, max]}
-										onValueChange={(v) => {
-											const [mi, ma] = v as number[];
-											setMin(mi);
-											setMax(ma);
-										}}
-									/>
-								</div>
-								<div className="flex items-center gap-2 text-xs text-muted-foreground w-[120px]">
-									<div className="min-w-0">Min</div>
-									<div className="font-medium tabular-nums">{min}</div>
-								</div>
-								<div className="flex items-center gap-2 text-xs text-muted-foreground w-[120px]">
-									<div className="min-w-0">Max</div>
-									<div className="font-medium tabular-nums">{max}</div>
-								</div>
-							</div>
-
-							<div className="flex items-center gap-3">
-								<div className="flex items-center gap-2 text-xs">
-									<Switch
-										aria-labelledby={firstId}
-										checked={firstOnly}
-										onCheckedChange={setFirstOnly}
-									/>
-									<span id={firstId}>First</span>
-								</div>
-								<div className="flex items-center gap-2 text-xs">
-									<Switch
-										aria-labelledby={lastId}
-										checked={lastOnly}
-										onCheckedChange={setLastOnly}
-									/>
-									<span id={lastId}>Last</span>
-								</div>
-								<Button
-									size="sm"
-									variant="outline"
-									className="ml-auto h-7"
-									onClick={() => {
-										setMin(1);
-										setMax(1);
-										setFirstOnly(false);
-										setLastOnly(false);
-									}}
-								>
-									Clear
-								</Button>
-							</div>
+		<TooltipProvider delay={300}>
+			<div className="h-full grid grid-cols-1 lg:grid-cols-[280px_1fr] gap-4">
+				{/* Left sidebar */}
+				<aside className="rounded-lg border bg-card">
+					<div className="border-b p-3 flex items-center justify-between">
+						<h2 className="text-sm font-semibold">Analytics</h2>
+						<div className="text-[10px] text-muted-foreground">
+							Teacher View
 						</div>
 					</div>
 
-					<Separator />
-
-					{/* Learners Maps */}
-					<div className="space-y-2">
-						<SectionTitle>Learners Maps</SectionTitle>
-
-						<div className="grid grid-cols-1 gap-2">
-							<div className="flex items-center gap-2">
-								<Select value={kitFilter} onValueChange={setKitFilter}>
-									<SelectTrigger size="sm" className="h-8 w-full">
-										<SelectValue placeholder="Kits" />
-									</SelectTrigger>
-									<SelectContent>
-										<SelectItem value="All">Kits: All</SelectItem>
-										<SelectItem value="Intro Kit">Intro Kit</SelectItem>
-										<SelectItem value="Ecosystems">Ecosystems</SelectItem>
-									</SelectContent>
-								</Select>
-
-								<Select value={groupFilter} onValueChange={setGroupFilter}>
-									<SelectTrigger size="sm" className="h-8 w-full">
-										<SelectValue placeholder="Groups" />
-									</SelectTrigger>
-									<SelectContent>
-										<SelectItem value="All">Groups: All</SelectItem>
-										<SelectItem value="Room 102">Room 102</SelectItem>
-										<SelectItem value="Room 207">Room 207</SelectItem>
-									</SelectContent>
-								</Select>
-							</div>
-
-							<div className="flex items-center gap-2">
-								<Select
-									value={typeFilter}
-									onValueChange={(v) => setTypeFilter(v as Learner["type"])}
-								>
-									<SelectTrigger size="sm" className="h-8 w-[160px]">
-										<SelectValue placeholder="Type" />
-									</SelectTrigger>
-									<SelectContent>
-										<SelectItem value="All">Type: All</SelectItem>
-										<SelectItem value="Passed">Passed</SelectItem>
-										<SelectItem value="Failed">Failed</SelectItem>
-										<SelectItem value="In Progress">In Progress</SelectItem>
-									</SelectContent>
-								</Select>
-
-								<div className="relative flex-1">
-									<Search className="absolute left-2 top-1/2 -translate-y-1/2 size-4 text-muted-foreground" />
-									<Input
-										className="pl-8 h-8"
-										placeholder="Search learner…"
-										value={query}
-										onChange={(e) => setQuery(e.target.value)}
-									/>
-								</div>
-							</div>
+					<div className="p-3 space-y-4">
+						{/* Assignment selector */}
+						<div className="space-y-2">
+							<SectionTitle>Assignment</SectionTitle>
+							<Select
+								value={selectedAssignmentId ?? ""}
+								onValueChange={setSelectedAssignmentId}
+							>
+								<SelectTrigger size="sm" className="h-8 w-full">
+									<SelectValue placeholder="Select assignment" />
+								</SelectTrigger>
+								<SelectContent>
+									{assignmentsLoading ? (
+										<div className="px-2 py-2 text-xs text-muted-foreground">
+											Loading...
+										</div>
+									) : assignments && assignments.length > 0 ? (
+										assignments.map((assignment) => (
+											<SelectItem key={assignment.id} value={assignment.id}>
+												{assignment.title} ({assignment.totalSubmissions}{" "}
+												submissions)
+											</SelectItem>
+										))
+									) : (
+										<div className="px-2 py-2 text-xs text-muted-foreground">
+											No assignments
+										</div>
+									)}
+								</SelectContent>
+							</Select>
 						</div>
 
-						<div className="mt-2 rounded-md border">
-							<div className="flex items-center justify-between text-xs text-muted-foreground px-3 py-2 border-b">
-								<div>Name</div>
-								<div>Score</div>
+						<Separator />
+
+						{/* Summary */}
+						{analyticsData && (
+							<div className="space-y-2">
+								<SectionTitle>Summary</SectionTitle>
+								<div className="grid grid-cols-2 gap-2 text-xs">
+									<div>
+										<div className="text-muted-foreground">Learners</div>
+										<div className="font-semibold">
+											{analyticsData.summary.totalLearners}
+										</div>
+									</div>
+									<div>
+										<div className="text-muted-foreground">Submitted</div>
+										<div className="font-semibold">
+											{analyticsData.summary.submittedCount}
+										</div>
+									</div>
+									<div>
+										<div className="text-muted-foreground">Avg Score</div>
+										<div className="font-semibold">
+											{analyticsData.summary.avgScore
+												? `${analyticsData.summary.avgScore.toFixed(1)}%`
+												: "N/A"}
+										</div>
+									</div>
+									<div>
+										<div className="text-muted-foreground">Drafts</div>
+										<div className="font-semibold">
+											{analyticsData.summary.draftCount}
+										</div>
+									</div>
+								</div>
 							</div>
-							<div className="max-h-64 overflow-auto">
-								{filteredLearners.length === 0 ? (
+						)}
+
+						<Separator />
+
+						{/* Learner filter */}
+						<div className="space-y-2">
+							<SectionTitle>Filter Learners</SectionTitle>
+
+							<Select
+								value={statusFilter}
+								onValueChange={(v) => setStatusFilter(v as typeof statusFilter)}
+							>
+								<SelectTrigger size="sm" className="h-8 w-full">
+									<SelectValue />
+								</SelectTrigger>
+								<SelectContent>
+									<SelectItem value="All">Status: All</SelectItem>
+									<SelectItem value="submitted">Submitted</SelectItem>
+									<SelectItem value="draft">Draft</SelectItem>
+								</SelectContent>
+							</Select>
+
+							<div className="relative">
+								<Search className="absolute left-2 top-1/2 -translate-y-1/2 size-4 text-muted-foreground" />
+								<Input
+									className="pl-8 h-8"
+									placeholder="Search learner…"
+									value={searchQuery}
+									onChange={(e) => setSearchQuery(e.target.value)}
+								/>
+							</div>
+
+							<div className="max-h-64 overflow-auto rounded-md border">
+								<div className="flex items-center justify-between text-xs text-muted-foreground px-3 py-2 border-b">
+									<div>Name</div>
+									<div>Score</div>
+								</div>
+								{analyticsLoading ? (
 									<div className="px-3 py-6 text-center text-xs text-muted-foreground">
-										No data, please open a Kit.
+										Loading...
+									</div>
+								) : filteredLearners.length === 0 ? (
+									<div className="px-3 py-6 text-center text-xs text-muted-foreground">
+										No learners found
 									</div>
 								) : (
-									filteredLearners.map((l) => (
-										<div
-											key={l.id}
-											className="flex items-center justify-between px-3 py-2 border-b last:border-b-0"
+									filteredLearners.map((learner) => (
+										<button
+											type="button"
+											key={learner.userId}
+											className={cn(
+												"flex w-full items-center justify-between px-3 py-2 border-b last:border-b-0 text-left hover:bg-muted/50",
+												selectedLearnerId === learner.userId && "bg-muted",
+											)}
+											onClick={() => setSelectedLearnerId(learner.userId)}
 										>
-											<div className="text-sm">{l.name}</div>
-											<div className="text-xs font-semibold tabular-nums">
-												{l.score}
-											</div>
-										</div>
+											<span className="text-sm">{learner.userName}</span>
+											<span className="text-xs font-semibold tabular-nums">
+												{learner.score !== null ? `${learner.score}%` : "-"}
+											</span>
+										</button>
 									))
 								)}
 							</div>
 						</div>
 					</div>
-				</div>
-			</aside>
+				</aside>
 
-			{/* Right main area */}
-			<section className="rounded-lg border overflow-hidden flex flex-col">
-				{/* Top toolbar */}
-				<div className="border-b bg-background/70 backdrop-blur supports-[backdrop-filter]:bg-background/50">
-					<div className="h-12 px-3 flex items-center gap-2">
-						<div className="font-semibold">Static Analyzer</div>
-						<div className="ml-auto flex items-center gap-1.5">
-							<ToolbarButton title="Undo">
-								<Undo2 className="size-4" />
-							</ToolbarButton>
-							<ToolbarButton title="Redo">
-								<Redo2 className="size-4" />
-							</ToolbarButton>
+				{/* Main content area */}
+				<section className="rounded-lg border overflow-hidden flex flex-col">
+					{/* Top toolbar */}
+					<div className="border-b bg-background/70 backdrop-blur supports-[backdrop-filter]:bg-background/50">
+						<div className="h-12 px-3 flex items-center gap-2">
+							<div className="font-semibold">Analytics</div>
+							<div className="ml-auto flex items-center gap-1.5">
+								<ToolbarButton
+									icon={RefreshCw}
+									label="Refresh"
+									onClick={handleRefresh}
+									handle={tooltipHandle}
+								/>
 
-							<Separator className="h-6" orientation="vertical" />
+								<Separator className="h-6" orientation="vertical" />
 
-							<ToolbarButton title="Zoom Out">
-								<ZoomOut className="size-4" />
-							</ToolbarButton>
-							<ToolbarButton title="Zoom In">
-								<ZoomIn className="size-4" />
-							</ToolbarButton>
+								<Button
+									variant="outline"
+									size="sm"
+									className="h-8 gap-1"
+									onClick={() => handleExport("csv")}
+									disabled={!selectedAssignmentId}
+								>
+									<Download className="size-4" />
+									Export CSV
+								</Button>
+								<Button
+									variant="outline"
+									size="sm"
+									className="h-8 gap-1"
+									onClick={() => handleExport("json")}
+									disabled={!selectedAssignmentId}
+								>
+									<Download className="size-4" />
+									Export JSON
+								</Button>
 
-							<Separator className="h-6" orientation="vertical" />
+								<Separator className="h-6" orientation="vertical" />
 
-							<Select defaultValue="learnermap">
-								<SelectTrigger size="sm" className="h-8 min-w-[140px]">
-									<SelectValue />
-								</SelectTrigger>
-								<SelectContent>
-									<SelectItem value="teachermap">Layout: Teachermap</SelectItem>
-									<SelectItem value="learnermap">Layout: Learnermap</SelectItem>
-								</SelectContent>
-							</Select>
-
-							<Button variant="outline" size="sm" className="h-8 gap-1">
-								Map <ChevronDown className="size-4" />
-							</Button>
-
-							<Separator className="h-6" orientation="vertical" />
-
-							<ToolbarButton title="Export Image">
-								<ImageDown className="size-4" />
-							</ToolbarButton>
-							<ToolbarButton title="Metrics (Dynamic)">
-								<Activity className="size-4" />
-							</ToolbarButton>
-							<ToolbarButton title="Clear Canvas">
-								<Trash2 className="size-4" />
-							</ToolbarButton>
-						</div>
-					</div>
-				</div>
-
-				{/* Legend + canvas */}
-				<div className="p-3">
-					<div className="flex items-center gap-4">
-						<div className="text-xs text-muted-foreground">Legend</div>
-						<div className="flex items-center gap-3">
-							<div className="flex items-center gap-2 text-xs">
-								<LegendDot color="#16a34a" /> Correct
-							</div>
-							<div className="flex items-center gap-2 text-xs">
-								<LegendDot color="#3b82f6" /> Extra
-							</div>
-							<div className="flex items-center gap-2 text-xs">
-								<LegendDot color="#ef4444" /> Missing
-							</div>
-							<div className="flex items-center gap-2 text-xs">
-								<LegendDot color="#64748b" /> Neutral
+								<ToolbarButton
+									icon={Activity}
+									label="Metrics"
+									onClick={() => toast.info("Metrics feature coming soon")}
+									handle={tooltipHandle}
+								/>
 							</div>
 						</div>
 					</div>
-				</div>
 
-				<div className="flex-1 m-3 rounded-md border border-dashed bg-muted/10 grid place-items-center">
-					<div className="text-sm text-muted-foreground px-4 text-center">
-						Canvas placeholder. The static analyzer visualization will render
-						here.
+					{/* Visualization controls */}
+					<div className="border-b p-3 space-y-3">
+						<div className="flex items-center justify-between">
+							<SectionTitle>Map Visibility</SectionTitle>
+						</div>
+						<div className="flex items-center gap-4">
+							<div className="flex items-center gap-2 text-xs">
+								<Switch
+									checked={showGoalMap}
+									onCheckedChange={setShowGoalMap}
+								/>
+								<span>Goal Map</span>
+							</div>
+							<div className="flex items-center gap-2 text-xs">
+								<Switch
+									checked={showLearnerMap}
+									onCheckedChange={setShowLearnerMap}
+								/>
+								<span>Learner Map</span>
+							</div>
+						</div>
+
+						<div className="flex items-center justify-between">
+							<SectionTitle>Edge Types</SectionTitle>
+						</div>
+						<div className="flex items-center gap-4 flex-wrap">
+							<div className="flex items-center gap-2 text-xs">
+								<Switch
+									checked={showCorrectEdges}
+									onCheckedChange={setShowCorrectEdges}
+								/>
+								<LegendDot color="#22c55e" />
+								<span>Correct</span>
+							</div>
+							<div className="flex items-center gap-2 text-xs">
+								<Switch
+									checked={showMissingEdges}
+									onCheckedChange={setShowMissingEdges}
+								/>
+								<LegendDot color="#ef4444" />
+								<span>Missing</span>
+							</div>
+							<div className="flex items-center gap-2 text-xs">
+								<Switch
+									checked={showExcessiveEdges}
+									onCheckedChange={setShowExcessiveEdges}
+								/>
+								<LegendDot color="#3b82f6" />
+								<span>Excessive</span>
+							</div>
+							<div className="flex items-center gap-2 text-xs">
+								<Switch
+									checked={showNeutralEdges}
+									onCheckedChange={setShowNeutralEdges}
+								/>
+								<LegendDot color="#64748b" />
+								<span>Neutral</span>
+							</div>
+						</div>
 					</div>
-				</div>
-			</section>
-		</div>
+
+					{/* Selected learner stats */}
+					{selectedLearner && (
+						<div className="border-b px-3 py-2 flex items-center justify-between bg-muted/30">
+							<div className="text-sm font-medium">
+								{selectedLearner.userName}
+							</div>
+							<div className="flex items-center gap-4 text-xs">
+								<div className="flex items-center gap-1.5">
+									<LegendDot color="#22c55e" />
+									<span>{selectedLearner.correct} correct</span>
+								</div>
+								<div className="flex items-center gap-1.5">
+									<LegendDot color="#ef4444" />
+									<span>{selectedLearner.missing} missing</span>
+								</div>
+								<div className="flex items-center gap-1.5">
+									<LegendDot color="#3b82f6" />
+									<span>{selectedLearner.excessive} excessive</span>
+								</div>
+								<div className="font-semibold tabular-nums">
+									{selectedLearner.score !== null
+										? `${selectedLearner.score}%`
+										: "N/A"}
+								</div>
+							</div>
+						</div>
+					)}
+
+					{/* Canvas */}
+					<div className="flex-1 m-3 rounded-md border">
+						{!selectedAssignmentId ? (
+							<div className="w-full h-full flex items-center justify-center">
+								<div className="text-sm text-muted-foreground px-4 text-center">
+									Select an assignment to view analytics
+								</div>
+							</div>
+						) : !selectedLearnerId || !analyticsData || !learnerMapDetails ? (
+							<div className="w-full h-full flex items-center justify-center">
+								<div className="text-sm text-muted-foreground px-4 text-center">
+									Select a learner to view their map
+								</div>
+							</div>
+						) : (
+							<AnalyticsCanvas
+								goalMap={analyticsData.goalMap}
+								learnerMap={learnerMapDetails as any}
+								edgeClassifications={
+									(learnerMapDetails as any).edgeClassifications
+								}
+								visibility={{
+									showGoalMap,
+									showLearnerMap,
+									showCorrectEdges,
+									showMissingEdges,
+									showExcessiveEdges,
+									showNeutralEdges,
+								}}
+							/>
+						)}
+					</div>
+				</section>
+			</div>
+			<TooltipContent handle={tooltipHandle} />
+		</TooltipProvider>
 	);
 }

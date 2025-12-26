@@ -4,7 +4,7 @@ import { eq } from "drizzle-orm";
 import { Effect, Layer, Schema } from "effect";
 import { Auth } from "@/lib/auth";
 import { randomString } from "@/lib/utils";
-import { Database } from "@/server/db/client";
+import { Database, DatabaseLive } from "@/server/db/client";
 import { goalMaps, texts, topics } from "@/server/db/schema/app-schema";
 import { user } from "@/server/db/schema/auth-schema";
 
@@ -460,6 +460,6 @@ const program = Effect.gen(function* () {
 	}
 
 	console.log("Seed completed.");
-}).pipe(Effect.provide(Layer.mergeAll(Database.Default, Auth.Default)));
+}).pipe(Effect.provide(Layer.mergeAll(DatabaseLive, Auth.Default)));
 
 Effect.runPromise(program);

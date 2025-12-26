@@ -1,5 +1,5 @@
 import type { Edge } from "@xyflow/react";
-import { Effect } from "effect";
+import { Effect, Match } from "effect";
 
 export interface DiagnosisResult {
 	correct: Array<{ source: string; target: string; edgeId?: string }>;
@@ -117,29 +117,27 @@ export function classifyEdges(
 
 export function getEdgeStyleByType(
 	type: "correct" | "missing" | "excessive" | "neutral",
+	useAnalyticsColors = false,
 ) {
-	switch (type) {
-		case "correct":
-			return {
-				stroke: "#22c55e",
-				strokeWidth: 3,
-			};
-		case "excessive":
-			return {
-				stroke: "#ef4444",
-				strokeWidth: 3,
-			};
-		case "missing":
-			return {
-				stroke: "#f59e0b",
-				strokeWidth: 2,
-				strokeDasharray: "5,5",
-				opacity: 0.7,
-			};
-		case "neutral":
-			return {
-				stroke: "#6b7280",
-				strokeWidth: 2,
-			};
-	}
+	return Match.value(type).pipe(
+		Match.when("correct", () => ({
+			stroke: "#22c55e",
+			strokeWidth: 3,
+		})),
+		Match.when("excessive", () => ({
+			stroke: useAnalyticsColors ? "#3b82f6" : "#ef4444",
+			strokeWidth: 3,
+		})),
+		Match.when("missing", () => ({
+			stroke: useAnalyticsColors ? "#ef4444" : "#f59e0b",
+			strokeWidth: 2,
+			strokeDasharray: "5,5",
+			opacity: useAnalyticsColors ? 0.8 : 0.7,
+		})),
+		Match.when("neutral", () => ({
+			stroke: useAnalyticsColors ? "#64748b" : "#6b7280",
+			strokeWidth: 2,
+		})),
+		Match.exhaustive,
+	);
 }

@@ -126,25 +126,31 @@ export class GoalMapValidator extends Effect.Service<GoalMapValidator>()(
 
 						// KBFIRA rule: Connectors should typically connect concepts, not other connectors
 						const conn = connections[connector.id];
-						const sourceTypes = conn.sources.map(
-							(s) => nodes.find((n) => n.id === s)?.type,
-						);
-						const targetTypes = conn.targets.map(
-							(t) => nodes.find((n) => n.id === t)?.type,
-						);
-
-						const invalidSources = sourceTypes.filter((t) => t === "connector");
-						const invalidTargets = targetTypes.filter((t) => t === "connector");
-
-						if (invalidSources.length > 0) {
-							warnings.push(
-								`Connector "${(connector.data as any).label}" has connector(s) as source(s) - this may create complex relationships`,
+						if (conn) {
+							const sourceTypes = conn.sources.map(
+								(s) => nodes.find((n) => n.id === s)?.type,
 							);
-						}
-						if (invalidTargets.length > 0) {
-							warnings.push(
-								`Connector "${(connector.data as any).label}" has connector(s) as target(s) - this may create complex relationships`,
+							const targetTypes = conn.targets.map(
+								(t) => nodes.find((n) => n.id === t)?.type,
 							);
+
+							const invalidSources = sourceTypes.filter(
+								(t) => t === "connector",
+							);
+							const invalidTargets = targetTypes.filter(
+								(t) => t === "connector",
+							);
+
+							if (invalidSources.length > 0) {
+								warnings.push(
+									`Connector "${(connector.data as any).label}" has connector(s) as source(s) - this may create complex relationships`,
+								);
+							}
+							if (invalidTargets.length > 0) {
+								warnings.push(
+									`Connector "${(connector.data as any).label}" has connector(s) as target(s) - this may create complex relationships`,
+								);
+							}
 						}
 					});
 

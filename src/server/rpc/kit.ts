@@ -4,7 +4,7 @@ import { desc, eq } from "drizzle-orm";
 import { Effect, Schema } from "effect";
 import { authMiddleware } from "@/middlewares/auth";
 import { goalMaps, kits } from "@/server/db/schema/app-schema";
-import { Database } from "../db/client";
+import { Database, DatabaseLive } from "../db/client";
 
 export const StudentKitSchema = Schema.Struct({
 	goalMapId: Schema.NonEmptyString,
@@ -35,7 +35,7 @@ export const listStudentKits = createServerFn()
 			);
 			return yield* Schema.decodeUnknown(Schema.Array(StudentKitSchema))(rows);
 		}).pipe(
-			Effect.provide(Database.Default),
+			Effect.provide(DatabaseLive),
 			Effect.withSpan("listStudentKits"),
 			Effect.runPromise,
 		),
@@ -78,7 +78,7 @@ export const getKit = createServerFn()
 			});
 			return result;
 		}).pipe(
-			Effect.provide(Database.Default),
+			Effect.provide(DatabaseLive),
 			Effect.withSpan("getKit"),
 			Effect.runPromise,
 		),
@@ -140,7 +140,7 @@ export const getKitStatus = createServerFn()
 						: true,
 			};
 		}).pipe(
-			Effect.provide(Database.Default),
+			Effect.provide(DatabaseLive),
 			Effect.withSpan("getKitStatus"),
 			Effect.runPromise,
 		),
@@ -208,7 +208,7 @@ export const generateKit = createServerFn()
 			}
 			return { ok: true, kitId: data.goalMapId } as const;
 		}).pipe(
-			Effect.provide(Database.Default),
+			Effect.provide(DatabaseLive),
 			Effect.withSpan("generateKit"),
 			Effect.runPromise,
 		),

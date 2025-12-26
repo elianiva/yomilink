@@ -11,7 +11,7 @@ import {
 	kits,
 } from "@/server/db/schema/app-schema";
 import { cohortMembers, cohorts, user } from "@/server/db/schema/auth-schema";
-import { Database } from "../db/client";
+import { Database, DatabaseLive } from "../db/client";
 
 // Types
 export const CreateAssignmentSchema = Schema.Struct({
@@ -101,7 +101,7 @@ export const createAssignment = createServerFn()
 
 			return { success: true, assignmentId } as const;
 		}).pipe(
-			Effect.provide(Database.Default),
+			Effect.provide(DatabaseLive),
 			Effect.withSpan("createAssignment"),
 			Effect.runPromise,
 		),
@@ -141,7 +141,7 @@ export const listTeacherAssignments = createServerFn()
 				updatedAt: row.updatedAt?.getTime(),
 			}));
 		}).pipe(
-			Effect.provide(Database.Default),
+			Effect.provide(DatabaseLive),
 			Effect.withSpan("listTeacherAssignments"),
 			Effect.runPromise,
 		),
@@ -163,7 +163,7 @@ export const deleteAssignment = createServerFn()
 
 			return { success: true } as const;
 		}).pipe(
-			Effect.provide(Database.Default),
+			Effect.provide(DatabaseLive),
 			Effect.withSpan("deleteAssignment"),
 			Effect.runPromise,
 		),
@@ -210,7 +210,7 @@ export const getAvailableCohorts = createServerFn()
 				memberCount: countMap.get(row.id) || 0,
 			}));
 		}).pipe(
-			Effect.provide(Database.Default),
+			Effect.provide(DatabaseLive),
 			Effect.withSpan("getAvailableCohorts"),
 			Effect.runPromise,
 		),
@@ -236,7 +236,7 @@ export const getAvailableUsers = createServerFn()
 
 			return rows;
 		}).pipe(
-			Effect.provide(Database.Default),
+			Effect.provide(DatabaseLive),
 			Effect.withSpan("getAvailableUsers"),
 			Effect.runPromise,
 		),
@@ -267,7 +267,7 @@ export const getTeacherGoalMaps = createServerFn()
 				updatedAt: row.updatedAt?.getTime(),
 			}));
 		}).pipe(
-			Effect.provide(Database.Default),
+			Effect.provide(DatabaseLive),
 			Effect.withSpan("getTeacherGoalMaps"),
 			Effect.runPromise,
 		),

@@ -4,7 +4,7 @@ import { desc, eq, isNull } from "drizzle-orm";
 import { Effect, Schema } from "effect";
 import { authMiddleware } from "@/middlewares/auth";
 import { goalMaps, kits, texts } from "@/server/db/schema/app-schema";
-import { Database } from "../db/client";
+import { Database, DatabaseLive } from "../db/client";
 
 const GetGoalMapSchema = Schema.Struct({
 	id: Schema.NonEmptyString,
@@ -90,7 +90,7 @@ export const getGoalMap = createServerFn()
 			const result = yield* Schema.decodeUnknown(GoalMapResultSchema)(row);
 			return result;
 		}).pipe(
-			Effect.provide(Database.Default),
+			Effect.provide(DatabaseLive),
 			Effect.withSpan("getGoalMap"),
 			Effect.runPromise,
 		),
@@ -205,7 +205,7 @@ export const saveGoalMap = createServerFn()
 			);
 		}).pipe(
 			Effect.withSpan("saveGoalMap"),
-			Effect.provide(Database.Default),
+			Effect.provide(DatabaseLive),
 			Effect.runPromise,
 		),
 	);
@@ -234,7 +234,7 @@ export const listGoalMaps = createServerFn()
 				rows,
 			);
 		}).pipe(
-			Effect.provide(Database.Default),
+			Effect.provide(DatabaseLive),
 			Effect.withSpan("listGoalMaps"),
 			Effect.runPromise,
 		),
@@ -281,7 +281,7 @@ export const listGoalMapsByTopic = createServerFn()
 				rows,
 			);
 		}).pipe(
-			Effect.provide(Database.Default),
+			Effect.provide(DatabaseLive),
 			Effect.withSpan("listGoalMapsByTopic"),
 			Effect.runPromise,
 		),
@@ -302,7 +302,7 @@ export const deleteGoalMap = createServerFn()
 			);
 			return { success: true } as const;
 		}).pipe(
-			Effect.provide(Database.Default),
+			Effect.provide(DatabaseLive),
 			Effect.withSpan("deleteGoalMap"),
 			Effect.runPromise,
 		),

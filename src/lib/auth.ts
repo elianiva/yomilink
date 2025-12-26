@@ -5,7 +5,7 @@ import { tanstackStartCookies } from "better-auth/tanstack-start";
 import { Effect, Layer, Schema } from "effect";
 import { ServerConfig } from "@/config";
 import { ac, roles } from "@/lib/auth-permissions";
-import { Database } from "@/server/db/client";
+import { Database, DatabaseLive } from "@/server/db/client";
 import * as appSchema from "@/server/db/schema/app-schema";
 import * as authSchema from "@/server/db/schema/auth-schema";
 import { Telemetry } from "@/server/telemetry";
@@ -39,13 +39,11 @@ export class Auth extends Effect.Service<Auth>()("Auth", {
 			logger: { disabled: false },
 		});
 	}),
-	dependencies: [Database.Default],
+	dependencies: [DatabaseLive],
 }) {}
 
 // dummy function just for better-auth, do not use directly
-export const auth = Effect.gen(function* () {
-	return yield* Auth;
-}).pipe(Effect.provide(Auth.Default), Effect.runSync);
+export const auth = Auth.pipe(Effect.provide(Auth.Default), Effect.runSync);
 
 export const Role = Schema.Literal("teacher", "admin", "student").annotations({
 	message: (issue) => ({ message: `Invalid role: ${issue}`, override: true }),

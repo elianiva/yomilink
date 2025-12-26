@@ -15,7 +15,7 @@ import {
 	texts,
 } from "@/server/db/schema/app-schema";
 import { cohortMembers } from "@/server/db/schema/auth-schema";
-import { Database } from "../db/client";
+import { Database, DatabaseLive } from "../db/client";
 
 // Types
 export const SaveLearnerMapSchema = Schema.Struct({
@@ -32,7 +32,7 @@ export const SubmitLearnerMapSchema = Schema.Struct({
 export const listStudentAssignments = createServerFn()
 	.middleware([authMiddleware])
 	.handler(async ({ context }) => {
-		const user = await context.user;
+		const user = context.user;
 		if (!user) throw new Error("Unauthorized");
 
 		return Effect.gen(function* () {
@@ -144,7 +144,7 @@ export const listStudentAssignments = createServerFn()
 				};
 			});
 		}).pipe(
-			Effect.provide(Database.Default),
+			Effect.provide(DatabaseLive),
 			Effect.withSpan("listStudentAssignments"),
 			Effect.runPromise,
 		);
@@ -159,7 +159,7 @@ export const getAssignmentForStudent = createServerFn()
 		)(raw),
 	)
 	.handler(async ({ data, context }) => {
-		const user = await context.user;
+		const user = context.user;
 		if (!user) throw new Error("Unauthorized");
 
 		return Effect.gen(function* () {
@@ -261,7 +261,7 @@ export const getAssignmentForStudent = createServerFn()
 					: null,
 			};
 		}).pipe(
-			Effect.provide(Database.Default),
+			Effect.provide(DatabaseLive),
 			Effect.withSpan("getAssignmentForStudent"),
 			Effect.runPromise,
 		);
@@ -272,7 +272,7 @@ export const saveLearnerMap = createServerFn()
 	.middleware([authMiddleware])
 	.inputValidator((raw) => Schema.decodeUnknownSync(SaveLearnerMapSchema)(raw))
 	.handler(async ({ data, context }) => {
-		const user = await context.user;
+		const user = context.user;
 		if (!user) throw new Error("Unauthorized");
 
 		return Effect.gen(function* () {
@@ -355,7 +355,7 @@ export const saveLearnerMap = createServerFn()
 
 			return { success: true, learnerMapId } as const;
 		}).pipe(
-			Effect.provide(Database.Default),
+			Effect.provide(DatabaseLive),
 			Effect.withSpan("saveLearnerMap"),
 			Effect.runPromise,
 		);
@@ -368,7 +368,7 @@ export const submitLearnerMap = createServerFn()
 		Schema.decodeUnknownSync(SubmitLearnerMapSchema)(raw),
 	)
 	.handler(async ({ data, context }) => {
-		const user = await context.user;
+		const user = context.user;
 		if (!user) throw new Error("Unauthorized");
 
 		return Effect.gen(function* () {
@@ -451,7 +451,7 @@ export const submitLearnerMap = createServerFn()
 				diagnosis,
 			} as const;
 		}).pipe(
-			Effect.provide(Database.Default),
+			Effect.provide(DatabaseLive),
 			Effect.withSpan("submitLearnerMap"),
 			Effect.runPromise,
 		);
@@ -466,7 +466,7 @@ export const getDiagnosis = createServerFn()
 		)(raw),
 	)
 	.handler(async ({ data, context }) => {
-		const user = await context.user;
+		const user = context.user;
 		if (!user) throw new Error("Unauthorized");
 
 		return Effect.gen(function* () {
@@ -549,7 +549,7 @@ export const getDiagnosis = createServerFn()
 					: null,
 			};
 		}).pipe(
-			Effect.provide(Database.Default),
+			Effect.provide(DatabaseLive),
 			Effect.withSpan("getDiagnosis"),
 			Effect.runPromise,
 		);
@@ -564,7 +564,7 @@ export const startNewAttempt = createServerFn()
 		)(raw),
 	)
 	.handler(async ({ data, context }) => {
-		const user = await context.user;
+		const user = context.user;
 		if (!user) throw new Error("Unauthorized");
 
 		return Effect.gen(function* () {
@@ -611,7 +611,7 @@ export const startNewAttempt = createServerFn()
 
 			return { success: true, attempt: existing.attempt + 1 } as const;
 		}).pipe(
-			Effect.provide(Database.Default),
+			Effect.provide(DatabaseLive),
 			Effect.withSpan("startNewAttempt"),
 			Effect.runPromise,
 		);
@@ -626,7 +626,7 @@ export const getPeerStats = createServerFn()
 		)(raw),
 	)
 	.handler(async ({ data, context }) => {
-		const user = await context.user;
+		const user = context.user;
 		if (!user) throw new Error("Unauthorized");
 
 		return Effect.gen(function* () {
@@ -712,7 +712,7 @@ export const getPeerStats = createServerFn()
 				userPercentile: Math.round(userPercentile * 10) / 10,
 			};
 		}).pipe(
-			Effect.provide(Database.Default),
+			Effect.provide(DatabaseLive),
 			Effect.withSpan("getPeerStats"),
 			Effect.runPromise,
 		);
