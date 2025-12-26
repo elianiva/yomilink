@@ -122,6 +122,7 @@ export const assignments = sqliteTable(
 		description: text("description"),
 		readingMaterial: text("reading_material", { length: 1_000_000 }),
 		timeLimitMinutes: integer("time_limit_minutes"),
+		startDate: integer("start_date", { mode: "timestamp_ms" }),
 		dueAt: integer("due_at", { mode: "timestamp_ms" }),
 		createdBy: text("created_by").notNull(),
 		...timestamps,

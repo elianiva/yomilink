@@ -23,15 +23,11 @@ import {
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
-import {
-	Select,
-	SelectContent,
-	SelectItem,
-	SelectTrigger,
-	SelectValue,
-} from "@/components/ui/select";
+import { SearchableSelect } from "@/components/ui/searchable-select";
 import { AssignmentRpc } from "@/server/rpc/assignment";
 import { generateKit } from "@/server/rpc/kit";
+import { Skeleton } from "@/components/ui/skeleton";
+import { Progress } from "@/components/ui/progress";
 
 export const Route = createFileRoute("/dashboard/assignments/manage")({
 	component: () => (
@@ -88,14 +84,7 @@ function ManageAssignmentsPage() {
 			</div>
 
 			{isLoading ? (
-				<div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
-					{[1, 2, 3].map((i) => (
-						<div
-							key={i}
-							className="h-40 rounded-lg border bg-card animate-pulse"
-						/>
-					))}
-				</div>
+				<Skeleton className="h-full w-full" />
 			) : assignments && assignments.length > 0 ? (
 				<div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
 					{assignments.map((assignment) => (
@@ -127,6 +116,14 @@ function ManageAssignmentsPage() {
 									<MapIcon className="size-4" />
 									<span>{assignment.goalMapTitle ?? "Unknown"}</span>
 								</div>
+								{assignment.startDate && (
+									<div className="flex items-center gap-1">
+										<CalendarIcon className="size-4" />
+										<span>
+											{new Date(assignment.startDate).toLocaleDateString()}
+										</span>
+									</div>
+								)}
 								{assignment.dueAt && (
 									<div className="flex items-center gap-1">
 										<CalendarIcon className="size-4" />
@@ -157,15 +154,14 @@ function ManageAssignmentsPage() {
 }
 
 function CreateAssignmentDialog({ onSuccess }: { onSuccess: () => void }) {
+	const [currentStep, setCurrentStep] = useState(0);
 	const [title, setTitle] = useState("");
 	const [description, setDescription] = useState("");
 	const [goalMapId, setGoalMapId] = useState("");
-	const [readingMaterial, setReadingMaterial] = useState("");
-	const [dueAt, setDueAt] = useState("");
-	const [timeLimit, setTimeLimit] = useState("");
+	const [startDate, setStartDate] = useState("");
+	const [endDate, setEndDate] = useState("");
 	const [selectedCohorts, setSelectedCohorts] = useState<string[]>([]);
 	const [selectedUsers, setSelectedUsers] = useState<string[]>([]);
-	const [layout, setLayout] = useState<"preset" | "random">("preset");
 	const [isGeneratingKit, setIsGeneratingKit] = useState(false);
 
 	const { data: goalMaps } = useQuery(AssignmentRpc.getTeacherGoalMaps());
@@ -173,6 +169,35 @@ function CreateAssignmentDialog({ onSuccess }: { onSuccess: () => void }) {
 	const { data: users } = useQuery(AssignmentRpc.getAvailableUsers());
 
 	const createMutation = useMutation(AssignmentRpc.createAssignment());
+
+	const steps = [
+		{
+			title: "Basic Information",
+			description:
+				"Enter assignment title, description, and optional reading material",
+		},
+		{
+			title: "Configuration",
+			description: "Select a goal map and configure time limits",
+		},
+		{
+			title: "Assignment",
+			description: "Select cohorts or students to assign this to",
+		},
+	];
+
+	const canProceedNext = () => {
+		switch (currentStep) {
+			case 0:
+				return title.trim().length > 0;
+			case 1:
+				return goalMapId.length > 0;
+			case 2:
+				return selectedCohorts.length > 0 || selectedUsers.length > 0;
+			default:
+				return false;
+		}
+	};
 
 	const handleSubmit = async (e: React.FormEvent) => {
 		e.preventDefault();
@@ -183,7 +208,9 @@ function CreateAssignmentDialog({ onSuccess }: { onSuccess: () => void }) {
 
 		setIsGeneratingKit(true);
 		try {
-			const kitResult = await generateKit({ data: { goalMapId, layout } });
+			const kitResult = await generateKit({
+				data: { goalMapId, layout: "random" },
+			});
 			if (!kitResult.ok) {
 				alert("Failed to generate kit for goal map");
 				return;
@@ -200,20 +227,19 @@ function CreateAssignmentDialog({ onSuccess }: { onSuccess: () => void }) {
 			title: title.trim(),
 			description: description.trim() || undefined,
 			goalMapId,
-			readingMaterial: readingMaterial.trim() || undefined,
-			timeLimitMinutes: timeLimit ? parseInt(timeLimit, 10) : undefined,
-			dueAt: dueAt ? new Date(dueAt).getTime() : undefined,
+			startDate: startDate ? new Date(startDate).getTime() : Date.now(),
+			endDate: endDate ? new Date(endDate).getTime() : undefined,
 			cohortIds: selectedCohorts,
 			userIds: selectedUsers,
 		});
 
 		if (result.success) {
 			onSuccess();
-			// Reset form
 			setTitle("");
 			setDescription("");
 			setGoalMapId("");
-			setDueAt("");
+			setStartDate("");
+			setEndDate("");
 			setSelectedCohorts([]);
 			setSelectedUsers([]);
 		} else {
@@ -244,213 +270,207 @@ function CreateAssignmentDialog({ onSuccess }: { onSuccess: () => void }) {
 			<DialogHeader>
 				<DialogTitle>Create New Assignment</DialogTitle>
 				<DialogDescription>
-					Create an assignment from a goal map and assign it to cohorts or
-					individual students.
+					{steps[currentStep].title}: {steps[currentStep].description}
 				</DialogDescription>
 			</DialogHeader>
 
 			<form onSubmit={handleSubmit} className="space-y-4">
-				<div className="space-y-2">
-					<Label htmlFor="title">Title *</Label>
-					<Input
-						id="title"
-						value={title}
-						onChange={(e) => setTitle(e.target.value)}
-						placeholder="e.g., Photosynthesis Concept Map"
-						required
-					/>
-				</div>
+				{currentStep === 0 && (
+					<div className="space-y-4">
+						<div className="space-y-2">
+							<Label htmlFor="title">Title *</Label>
+							<Input
+								id="title"
+								value={title}
+								onChange={(e) => setTitle(e.target.value)}
+								placeholder="e.g., Photosynthesis Concept Map"
+								required
+							/>
+						</div>
 
-				<div className="space-y-2">
-					<Label htmlFor="description">Description</Label>
-					<Textarea
-						id="description"
-						value={description}
-						onChange={(e) => setDescription(e.target.value)}
-						placeholder="Optional description for students..."
-						rows={2}
-					/>
-				</div>
-
-				<div className="space-y-2">
-					<Label htmlFor="readingMaterial">Reading Material (optional)</Label>
-					<Textarea
-						id="readingMaterial"
-						value={readingMaterial}
-						onChange={(e) => setReadingMaterial(e.target.value)}
-						placeholder="Paste reading material here for students to reference..."
-						rows={6}
-					/>
-					<p className="text-xs text-muted-foreground">
-						Students can access this material via the book icon while building
-						their concept map.
-					</p>
-				</div>
-
-				<div className="space-y-2">
-					<Label htmlFor="goalMap">Goal Map *</Label>
-					<Select value={goalMapId} onValueChange={setGoalMapId} required>
-						<SelectTrigger>
-							<SelectValue placeholder="Select a goal map" />
-						</SelectTrigger>
-						<SelectContent>
-							{goalMaps?.map((gm) => (
-								<SelectItem key={gm.id} value={gm.id}>
-									{gm.title}
-								</SelectItem>
-							))}
-						</SelectContent>
-					</Select>
-				</div>
-
-				<div className="space-y-2">
-					<Label htmlFor="dueAt">Due Date (optional)</Label>
-					<Input
-						id="dueAt"
-						type="datetime-local"
-						value={dueAt}
-						onChange={(e) => setDueAt(e.target.value)}
-					/>
-				</div>
-
-				<div className="space-y-2">
-					<Label htmlFor="timeLimit">Time Limit (minutes, optional)</Label>
-					<Input
-						id="timeLimit"
-						type="number"
-						min="1"
-						max="180"
-						value={timeLimit}
-						onChange={(e) => setTimeLimit(e.target.value)}
-						placeholder="No limit"
-					/>
-					<p className="text-xs text-muted-foreground">
-						Students will have this much time to complete the assignment.
-					</p>
-				</div>
-
-				<div className="space-y-2">
-					<Label htmlFor="layout">Kit Layout</Label>
-					<Select
-						value={layout}
-						onValueChange={(v) => setLayout(v as "preset" | "random")}
-					>
-						<SelectTrigger>
-							<SelectValue placeholder="Select layout" />
-						</SelectTrigger>
-						<SelectContent>
-							<SelectItem value="preset">
-								<div className="flex flex-col">
-									<span>Preset Layout</span>
-									<span className="text-xs text-muted-foreground">
-										All students see the same arrangement
-									</span>
-								</div>
-							</SelectItem>
-							<SelectItem value="random">
-								<div className="flex flex-col">
-									<span>Random Layout</span>
-									<span className="text-xs text-muted-foreground">
-										Each student gets a unique shuffled arrangement
-									</span>
-								</div>
-							</SelectItem>
-						</SelectContent>
-					</Select>
-				</div>
-
-				<div className="space-y-2">
-					<Label className="flex items-center gap-2">
-						<UsersIcon className="size-4" />
-						Assign to Cohorts
-					</Label>
-					<div className="border rounded-lg p-3 max-h-32 overflow-y-auto">
-						{cohorts && cohorts.length > 0 ? (
-							<div className="space-y-2">
-								{cohorts.map((cohort) => (
-									<label
-										key={cohort.id}
-										className="flex items-center gap-2 cursor-pointer"
-									>
-										<input
-											type="checkbox"
-											checked={selectedCohorts.includes(cohort.id)}
-											onChange={() => toggleCohort(cohort.id)}
-											className="rounded"
-										/>
-										<span>{cohort.name}</span>
-										<span className="text-xs text-muted-foreground">
-											({cohort.memberCount} members)
-										</span>
-									</label>
-								))}
-							</div>
-						) : (
-							<p className="text-sm text-muted-foreground">
-								No cohorts available
-							</p>
-						)}
+						<div className="space-y-2">
+							<Label htmlFor="description">Description</Label>
+							<Textarea
+								id="description"
+								value={description}
+								onChange={(e) => setDescription(e.target.value)}
+								placeholder="Optional description for students..."
+								rows={2}
+							/>
+						</div>
 					</div>
-				</div>
-
-				<div className="space-y-2">
-					<Label className="flex items-center gap-2">
-						<UserIcon className="size-4" />
-						Assign to Individual Users
-					</Label>
-					<div className="border rounded-lg p-3 max-h-32 overflow-y-auto">
-						{users && users.length > 0 ? (
-							<div className="space-y-2">
-								{users
-									.filter((u) => u.role === "student")
-									.map((user) => (
-										<label
-											key={user.id}
-											className="flex items-center gap-2 cursor-pointer"
-										>
-											<input
-												type="checkbox"
-												checked={selectedUsers.includes(user.id)}
-												onChange={() => toggleUser(user.id)}
-												className="rounded"
-											/>
-											<span>{user.name}</span>
-											<span className="text-xs text-muted-foreground">
-												({user.email})
-											</span>
-										</label>
-									))}
-							</div>
-						) : (
-							<p className="text-sm text-muted-foreground">
-								No students available
-							</p>
-						)}
-					</div>
-				</div>
-
-				{selectedCohorts.length === 0 && selectedUsers.length === 0 && (
-					<p className="text-sm text-amber-600">
-						Please select at least one cohort or user to assign this to.
-					</p>
 				)}
 
+				{currentStep === 1 && (
+					<div className="space-y-4">
+						<div className="space-y-2">
+							<Label htmlFor="goalMap">Goal Map *</Label>
+							<SearchableSelect
+								value={goalMapId}
+								onChange={setGoalMapId}
+								options={
+									goalMaps?.map((gm) => ({
+										id: gm.id,
+										label: gm.title,
+										description: gm.description,
+									})) ?? []
+								}
+								placeholder="Select a goal map"
+								searchPlaceholder="Search goal maps..."
+							/>
+						</div>
+
+						<div className="grid grid-cols-2 gap-4">
+							<div className="space-y-2">
+								<Label htmlFor="startDate">Start Date</Label>
+								<Input
+									id="startDate"
+									type="datetime-local"
+									value={startDate}
+									onChange={(e) => setStartDate(e.target.value)}
+								/>
+								<p className="text-xs text-muted-foreground">
+									Default: Now (when creating)
+								</p>
+							</div>
+
+							<div className="space-y-2">
+								<Label htmlFor="endDate">End Date (optional)</Label>
+								<Input
+									id="endDate"
+									type="datetime-local"
+									value={endDate}
+									onChange={(e) => setEndDate(e.target.value)}
+								/>
+								<p className="text-xs text-muted-foreground">
+									No end date if not set
+								</p>
+							</div>
+						</div>
+					</div>
+				)}
+
+				{currentStep === 2 && (
+					<div className="space-y-4">
+						<div className="space-y-2">
+							<Label className="flex items-center gap-2">
+								<UsersIcon className="size-4" />
+								Assign to Cohorts
+							</Label>
+							<div className="border rounded-lg p-3 max-h-32 overflow-y-auto">
+								{cohorts && cohorts.length > 0 ? (
+									<div className="space-y-2">
+										{cohorts.map((cohort) => (
+											<label
+												key={cohort.id}
+												className="flex items-center gap-2 cursor-pointer"
+											>
+												<input
+													type="checkbox"
+													checked={selectedCohorts.includes(cohort.id)}
+													onChange={() => toggleCohort(cohort.id)}
+													className="rounded"
+												/>
+												<span>{cohort.name}</span>
+												<span className="text-xs text-muted-foreground">
+													({cohort.memberCount} members)
+												</span>
+											</label>
+										))}
+									</div>
+								) : (
+									<p className="text-sm text-muted-foreground">
+										No cohorts available
+									</p>
+								)}
+							</div>
+						</div>
+
+						<div className="space-y-2">
+							<Label className="flex items-center gap-2">
+								<UserIcon className="size-4" />
+								Assign to Individual Users
+							</Label>
+							<div className="border rounded-lg p-3 max-h-32 overflow-y-auto">
+								{users && users.length > 0 ? (
+									<div className="space-y-2">
+										{users
+											.filter((u) => u.role === "student")
+											.map((user) => (
+												<label
+													key={user.id}
+													className="flex items-center gap-2 cursor-pointer"
+												>
+													<input
+														type="checkbox"
+														checked={selectedUsers.includes(user.id)}
+														onChange={() => toggleUser(user.id)}
+														className="rounded"
+													/>
+													<span>{user.name}</span>
+													<span className="text-xs text-muted-foreground">
+														({user.email})
+													</span>
+												</label>
+											))}
+									</div>
+								) : (
+									<p className="text-sm text-muted-foreground">
+										No students available
+									</p>
+								)}
+							</div>
+						</div>
+
+						{selectedCohorts.length === 0 && selectedUsers.length === 0 && (
+							<p className="text-sm text-amber-600">
+								Please select at least one cohort or user to assign this to.
+							</p>
+						)}
+					</div>
+				)}
+
+				<div className="space-y-2 pt-4 border-t">
+					<div className="flex items-center justify-between text-xs text-muted-foreground">
+						<span>
+							Step {currentStep + 1} of {steps.length}
+						</span>
+						<span>{steps[currentStep].title}</span>
+					</div>
+					<Progress value={((currentStep + 1) / steps.length) * 100} />
+				</div>
+
 				<DialogFooter>
-					<Button
-						type="submit"
-						disabled={
-							isSubmitting ||
-							!title.trim() ||
-							!goalMapId ||
-							(selectedCohorts.length === 0 && selectedUsers.length === 0)
-						}
-					>
-						{isGeneratingKit
-							? "Generating Kit..."
-							: createMutation.isPending
-								? "Creating..."
-								: "Create Assignment"}
-					</Button>
+					<div className="flex gap-2 w-full justify-end">
+						<Button
+							type="button"
+							variant="outline"
+							onClick={() => setCurrentStep((prev) => prev - 1)}
+							disabled={currentStep === 0}
+						>
+							Previous
+						</Button>
+						{currentStep < steps.length - 1 ? (
+							<Button
+								type="button"
+								onClick={() => setCurrentStep((prev) => prev + 1)}
+								disabled={!canProceedNext()}
+							>
+								Next
+							</Button>
+						) : (
+							<Button
+								type="submit"
+								disabled={isSubmitting || !canProceedNext()}
+							>
+								{isGeneratingKit
+									? "Generating Kit..."
+									: createMutation.isPending
+										? "Creating..."
+										: "Create Assignment"}
+							</Button>
+						)}
+					</div>
 				</DialogFooter>
 			</form>
 		</DialogContent>

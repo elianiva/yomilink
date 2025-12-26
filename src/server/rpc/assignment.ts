@@ -18,11 +18,8 @@ export const CreateAssignmentSchema = Schema.Struct({
 	title: Schema.NonEmptyString,
 	description: Schema.optionalWith(Schema.NonEmptyString, { nullable: true }),
 	goalMapId: Schema.NonEmptyString,
-	readingMaterial: Schema.optionalWith(Schema.NonEmptyString, {
-		nullable: true,
-	}),
-	timeLimitMinutes: Schema.optionalWith(Schema.Number, { nullable: true }),
-	dueAt: Schema.optionalWith(Schema.Number, { nullable: true }),
+	startDate: Schema.optionalWith(Schema.Number, { nullable: true }),
+	endDate: Schema.optionalWith(Schema.Number, { nullable: true }),
 	cohortIds: Schema.Array(Schema.NonEmptyString),
 	userIds: Schema.Array(Schema.NonEmptyString),
 });
@@ -61,9 +58,10 @@ export const createAssignment = createServerFn()
 						kitId: kit.id,
 						title: data.title,
 						description: data.description,
-						readingMaterial: data.readingMaterial,
-						timeLimitMinutes: data.timeLimitMinutes ?? null,
-						dueAt: data.dueAt ? new Date(data.dueAt) : null,
+						readingMaterial: null,
+						timeLimitMinutes: null,
+						startDate: data.startDate ? new Date(data.startDate) : new Date(),
+						dueAt: data.endDate ? new Date(data.endDate) : null,
 						createdBy: kit.teacherId,
 					})
 					.run(),
@@ -122,6 +120,7 @@ export const listTeacherAssignments = createServerFn()
 						description: assignments.description,
 						goalMapId: assignments.goalMapId,
 						kitId: assignments.kitId,
+						startDate: assignments.startDate,
 						dueAt: assignments.dueAt,
 						createdAt: assignments.createdAt,
 						updatedAt: assignments.updatedAt,
@@ -136,6 +135,7 @@ export const listTeacherAssignments = createServerFn()
 
 			return rows.map((row) => ({
 				...row,
+				startDate: row.startDate?.getTime(),
 				dueAt: row.dueAt?.getTime(),
 				createdAt: row.createdAt?.getTime(),
 				updatedAt: row.updatedAt?.getTime(),

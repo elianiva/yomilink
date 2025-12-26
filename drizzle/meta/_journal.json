@@ -29,6 +29,13 @@
       "when": 1766645138085,
       "tag": "0003_small_blackheart",
       "breakpoints": true
+    },
+    {
+      "idx": 4,
+      "version": "6",
+      "when": 1766727123073,
+      "tag": "0004_faithful_multiple_man",
+      "breakpoints": true
     }
   ]
 }

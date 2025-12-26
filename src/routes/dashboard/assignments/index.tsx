@@ -21,7 +21,7 @@ export const Route = createFileRoute("/dashboard/assignments/")({
 });
 
 function AssignmentsPage() {
-	const { data: assignments, isLoading } = useQuery(
+	const { data: assignments = [] } = useQuery(
 		LearnerMapRpc.listStudentAssignments(),
 	);
 
@@ -70,16 +70,7 @@ function AssignmentsPage() {
 				</Button>
 			</div>
 
-			{isLoading ? (
-				<div className="grid gap-4 md:grid-cols-2">
-					{[1, 2, 3].map((i) => (
-						<div
-							key={i}
-							className="h-32 rounded-lg border bg-card animate-pulse"
-						/>
-					))}
-				</div>
-			) : assignments && assignments.length > 0 ? (
+			{assignments && assignments.length > 0 ? (
 				<div className="grid gap-4 md:grid-cols-2">
 					{assignments.map((assignment) => {
 						const statusInfo = getStatusInfo(
