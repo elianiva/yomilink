@@ -3,6 +3,7 @@ import { createServerFn } from "@tanstack/react-start";
 import { desc, eq } from "drizzle-orm";
 import { Effect, Schema } from "effect";
 import { authMiddleware } from "@/middlewares/auth";
+import { safeParseJson } from "@/lib/utils";
 import { goalMaps, kits } from "@/server/db/schema/app-schema";
 import { Database, DatabaseLive } from "../db/client";
 
@@ -71,10 +72,13 @@ export const getKit = createServerFn()
 			);
 			if (!row) return null;
 
+			const nodes = yield* safeParseJson(row.nodes, []);
+			const edges = yield* safeParseJson(row.edges, []);
+
 			const result = yield* Schema.decodeUnknown(KitResultSchema)({
 				goalMapId: row.goalMapId,
-				nodes: safeParseJson(row.nodes) ?? [],
-				edges: safeParseJson(row.edges) ?? [],
+				nodes,
+				edges,
 			});
 			return result;
 		}).pipe(
@@ -125,7 +129,8 @@ export const getKitStatus = createServerFn()
 				),
 			]);
 
-			const nodeCount = kit ? (safeParseJson(kit.nodes)?.length ?? 0) : 0;
+			const kitNodes = kit ? yield* safeParseJson(kit.nodes, []) : [];
+			const nodeCount = kitNodes.length;
 			const kitUpdatedAt = kit?.updatedAt?.getTime() ?? null;
 			const goalMapUpdatedAt = goalMap?.updatedAt?.getTime() ?? null;
 
@@ -213,14 +218,6 @@ export const generateKit = createServerFn()
 			Effect.runPromise,
 		),
 	);
-
-function safeParseJson(s?: string | null) {
-	try {
-		return s ? JSON.parse(s) : null;
-	} catch {
-		return null;
-	}
-}
 
 export const KitRpc = {
 	studentKits: () => ["student-kits"],

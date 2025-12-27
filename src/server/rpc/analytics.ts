@@ -1,7 +1,7 @@
 import { queryOptions } from "@tanstack/react-query";
 import { createServerFn } from "@tanstack/react-start";
 import { desc, eq } from "drizzle-orm";
-import { Effect, Schema } from "effect";
+import { Data, Effect, Schema } from "effect";
 import Papa from "papaparse";
 import {
 	classifyEdges,
@@ -10,6 +10,7 @@ import {
 	type EdgeClassification,
 } from "@/lib/learnermap-comparator";
 import { authMiddleware } from "@/middlewares/auth";
+import { parseJson } from "@/lib/utils";
 import {
 	assignments,
 	diagnoses,
@@ -19,6 +20,22 @@ import {
 } from "@/server/db/schema/app-schema";
 import { user as usersTable } from "@/server/db/schema/auth-schema";
 import { Database, DatabaseLive } from "../db/client";
+
+class AssignmentNotFoundError extends Data.TaggedError(
+	"AssignmentNotFoundError",
+)<{
+	readonly assignmentId: string;
+}> {}
+
+class GoalMapNotFoundError extends Data.TaggedError("GoalMapNotFoundError")<{
+	readonly goalMapId: string;
+}> {}
+
+class LearnerMapNotFoundError extends Data.TaggedError(
+	"LearnerMapNotFoundError",
+)<{
+	readonly learnerMapId: string;
+}> {}
 
 export const GetAnalyticsForAssignmentSchema = Schema.Struct({
 	assignmentId: Schema.NonEmptyString,
@@ -144,45 +161,50 @@ export const getTeacherAssignmentsForAnalytics = createServerFn()
 					.all(),
 			);
 
-			const assignmentsWithStats: TeacherAssignment[] = [];
-			for (const assignment of assignments_) {
-				const submissionCount = yield* Effect.tryPromise(() =>
-					db
-						.select({ count: db.$count(learnerMaps.id) })
-						.from(learnerMaps)
-						.where(eq(learnerMaps.assignmentId, assignment.id))
-						.get(),
-				);
+			const getAssignmentStats = (assignment: (typeof assignments_)[number]) =>
+				Effect.gen(function* () {
+					const submissionCount = yield* Effect.tryPromise(() =>
+						db
+							.select({ count: db.$count(learnerMaps.id) })
+							.from(learnerMaps)
+							.where(eq(learnerMaps.assignmentId, assignment.id))
+							.get(),
+					);
 
-				const diagnosesForAssignment = yield* Effect.tryPromise(() =>
-					db
-						.select({ score: diagnoses.score })
-						.from(diagnoses)
-						.where(eq(diagnoses.goalMapId, assignment.goalMapId))
-						.all(),
-				);
+					const diagnosesForAssignment = yield* Effect.tryPromise(() =>
+						db
+							.select({ score: diagnoses.score })
+							.from(diagnoses)
+							.where(eq(diagnoses.goalMapId, assignment.goalMapId))
+							.all(),
+					);
 
-				const scores = diagnosesForAssignment
-					.map((d) => d.score)
-					.filter((s): s is number => s !== null);
+					const scores = diagnosesForAssignment
+						.map((d) => d.score)
+						.filter((s): s is number => s !== null);
 
-				const avgScore =
-					scores.length > 0
-						? scores.reduce((a, b) => a + b, 0) / scores.length
-						: null;
+					const avgScore =
+						scores.length > 0
+							? scores.reduce((a, b) => a + b, 0) / scores.length
+							: null;
 
-				assignmentsWithStats.push({
-					id: assignment.id,
-					title: assignment.title,
-					goalMapId: assignment.goalMapId,
-					goalMapTitle: assignment.goalMapTitle,
-					kitId: assignment.kitId,
-					totalSubmissions: Number(submissionCount?.count ?? 0),
-					avgScore,
-					createdAt: assignment.createdAt?.getTime() ?? 0,
-					dueAt: assignment.dueAt?.getTime() ?? null,
+					return {
+						id: assignment.id,
+						title: assignment.title,
+						goalMapId: assignment.goalMapId,
+						goalMapTitle: assignment.goalMapTitle,
+						kitId: assignment.kitId,
+						totalSubmissions: Number(submissionCount?.count ?? 0),
+						avgScore,
+						createdAt: assignment.createdAt?.getTime() ?? 0,
+						dueAt: assignment.dueAt?.getTime() ?? null,
+					} as TeacherAssignment;
 				});
-			}
+
+			const assignmentsWithStats = yield* Effect.all(
+				assignments_.map(getAssignmentStats),
+				{ concurrency: "unbounded" },
+			);
 
 			return assignmentsWithStats;
 		}).pipe(
@@ -220,7 +242,9 @@ export const getAnalyticsForAssignment = createServerFn()
 			);
 
 			if (!assignment) {
-				throw new Error("Assignment not found");
+				return yield* Effect.fail(
+					new AssignmentNotFoundError({ assignmentId: data.assignmentId }),
+				);
 			}
 
 			const goalMap = yield* Effect.tryPromise(() =>
@@ -238,8 +262,13 @@ export const getAnalyticsForAssignment = createServerFn()
 			);
 
 			if (!goalMap) {
-				throw new Error("Goal map not found");
+				return yield* Effect.fail(
+					new GoalMapNotFoundError({ goalMapId: assignment.goalMapId }),
+				);
 			}
+
+			const parsedGoalMapNodes = yield* parseJson(goalMap.nodes);
+			const parsedGoalMapEdges = yield* parseJson(goalMap.edges);
 
 			const learnerMapsData = yield* Effect.tryPromise(() =>
 				db
@@ -268,51 +297,56 @@ export const getAnalyticsForAssignment = createServerFn()
 				}
 			}
 
-			const finalLearners: LearnerAnalytics[] = [];
-			for (const [_userId, lm] of lastAttempts) {
-				const diagnosisData =
-					lm.score !== null
-						? yield* Effect.tryPromise(() =>
-								db
-									.select({ perLink: diagnoses.perLink })
-									.from(diagnoses)
-									.where(eq(diagnoses.learnerMapId, lm.id))
-									.get(),
-							)
-						: null;
+			const getLearnerAnalytics = ([_userId, lm]: [string, any]) =>
+				Effect.gen(function* () {
+					const diagnosisData =
+						lm.score !== null
+							? yield* Effect.tryPromise(() =>
+									db
+										.select({ perLink: diagnoses.perLink })
+										.from(diagnoses)
+										.where(eq(diagnoses.learnerMapId, lm.id))
+										.get(),
+								)
+							: null;
 
-				let correct = 0;
-				let missing = 0;
-				let excessive = 0;
-				let totalGoalEdges = 0;
+					let correct = 0;
+					let missing = 0;
+					let excessive = 0;
+					let totalGoalEdges = 0;
 
-				if (diagnosisData?.perLink) {
-					try {
-						const parsed =
-							typeof diagnosisData.perLink === "string"
-								? JSON.parse(diagnosisData.perLink)
-								: diagnosisData.perLink;
+					if (diagnosisData?.perLink) {
+						const parsed = yield* parseJson<{
+							correct?: unknown[];
+							missing?: unknown[];
+							excessive?: unknown[];
+							totalGoalEdges?: number;
+						}>(diagnosisData.perLink);
 						correct = parsed.correct?.length ?? 0;
 						missing = parsed.missing?.length ?? 0;
 						excessive = parsed.excessive?.length ?? 0;
 						totalGoalEdges = parsed.totalGoalEdges ?? 0;
-					} catch {}
-				}
+					}
 
-				finalLearners.push({
-					userId: lm.userId,
-					userName: lm.userName,
-					learnerMapId: lm.id,
-					status: lm.status,
-					score: lm.score,
-					attempt: lm.attempt,
-					submittedAt: lm.submittedAt?.getTime() ?? null,
-					correct,
-					missing,
-					excessive,
-					totalGoalEdges,
+					return {
+						userId: lm.userId,
+						userName: lm.userName,
+						learnerMapId: lm.id,
+						status: lm.status,
+						score: lm.score,
+						attempt: lm.attempt,
+						submittedAt: lm.submittedAt?.getTime() ?? null,
+						correct,
+						missing,
+						excessive,
+						totalGoalEdges,
+					} as LearnerAnalytics;
 				});
-			}
+
+			const finalLearners = yield* Effect.all(
+				Array.from(lastAttempts.entries()).map(getLearnerAnalytics),
+				{ concurrency: "unbounded" },
+			);
 
 			const scores = finalLearners
 				.map((l) => l.score)
@@ -348,14 +382,8 @@ export const getAnalyticsForAssignment = createServerFn()
 				goalMap: {
 					id: goalMap.id,
 					title: goalMap.title,
-					nodes:
-						typeof goalMap.nodes === "string"
-							? JSON.parse(goalMap.nodes)
-							: goalMap.nodes,
-					edges:
-						typeof goalMap.edges === "string"
-							? JSON.parse(goalMap.edges)
-							: goalMap.edges,
+					nodes: parsedGoalMapNodes,
+					edges: parsedGoalMapEdges,
 					direction: goalMap.direction as "bi" | "uni" | "multi",
 				},
 				learners: finalLearners,
@@ -400,7 +428,9 @@ export const getLearnerMapForAnalytics = createServerFn()
 			);
 
 			if (!learnerMap) {
-				throw new Error("Learner map not found");
+				return yield* Effect.fail(
+					new LearnerMapNotFoundError({ learnerMapId: data.learnerMapId }),
+				);
 			}
 
 			const goalMap = yield* Effect.tryPromise(() =>
@@ -418,22 +448,24 @@ export const getLearnerMapForAnalytics = createServerFn()
 			);
 
 			if (!goalMap) {
-				throw new Error("Goal map not found");
+				return yield* Effect.fail(
+					new GoalMapNotFoundError({ goalMapId: learnerMap.goalMapId }),
+				);
 			}
 
-			const goalMapEdges =
-				typeof goalMap.edges === "string"
-					? JSON.parse(goalMap.edges)
-					: goalMap.edges;
-			const learnerEdges =
-				typeof learnerMap.edges === "string"
-					? JSON.parse(learnerMap.edges)
-					: learnerMap.edges;
+			const parsedGoalMapNodes = yield* parseJson(goalMap.nodes);
+			const parsedGoalMapEdges = yield* parseJson(goalMap.edges);
 
-			const diagnosis = yield* compareMaps(goalMapEdges, learnerEdges);
+			const parsedLearnerMapNodes = yield* parseJson(learnerMap.nodes);
+			const parsedLearnerMapEdges = yield* parseJson(learnerMap.edges);
+
+			const diagnosis = yield* compareMaps(
+				parsedGoalMapEdges,
+				parsedLearnerMapEdges,
+			);
 			const edgeClassifications = yield* classifyEdges(
-				goalMapEdges,
-				learnerEdges,
+				parsedGoalMapEdges,
+				parsedLearnerMapEdges,
 			);
 
 			return {
@@ -444,23 +476,14 @@ export const getLearnerMapForAnalytics = createServerFn()
 					status: learnerMap.status,
 					attempt: learnerMap.attempt,
 					submittedAt: learnerMap.submittedAt?.getTime() ?? null,
-					nodes:
-						typeof learnerMap.nodes === "string"
-							? JSON.parse(learnerMap.nodes)
-							: learnerMap.nodes,
-					edges:
-						typeof learnerMap.edges === "string"
-							? JSON.parse(learnerMap.edges)
-							: learnerMap.edges,
+					nodes: parsedLearnerMapNodes,
+					edges: parsedLearnerMapEdges,
 				},
 				goalMap: {
 					id: goalMap.id,
 					title: goalMap.title,
-					nodes:
-						typeof goalMap.nodes === "string"
-							? JSON.parse(goalMap.nodes)
-							: goalMap.nodes,
-					edges: goalMapEdges,
+					nodes: parsedGoalMapNodes,
+					edges: parsedGoalMapEdges,
 					direction: goalMap.direction as "bi" | "uni" | "multi",
 				},
 				diagnosis,

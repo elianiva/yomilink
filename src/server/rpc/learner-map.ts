@@ -5,6 +5,7 @@ import { Effect, Schema } from "effect";
 import { compareMaps } from "@/lib/learnermap-comparator";
 import { randomString } from "@/lib/utils";
 import { authMiddleware } from "@/middlewares/auth";
+import { safeParseJson } from "@/lib/utils";
 import {
 	assignments,
 	assignmentTargets,
@@ -236,8 +237,8 @@ export const getAssignmentForStudent = createServerFn()
 			);
 
 			// Parse kit nodes
-			const kitNodes = safeParseJson(kit.nodes) ?? [];
-			const kitEdges = safeParseJson(kit.edges) ?? [];
+			const kitNodes = yield* safeParseJson(kit.nodes, []);
+			const kitEdges = yield* safeParseJson(kit.edges, []);
 
 			return {
 				assignment: {
@@ -253,8 +254,8 @@ export const getAssignmentForStudent = createServerFn()
 				learnerMap: learnerMap
 					? {
 							id: learnerMap.id,
-							nodes: safeParseJson(learnerMap.nodes) ?? [],
-							edges: safeParseJson(learnerMap.edges) ?? [],
+							nodes: yield* safeParseJson(learnerMap.nodes, []),
+							edges: yield* safeParseJson(learnerMap.edges, []),
 							status: learnerMap.status,
 							attempt: learnerMap.attempt,
 						}
@@ -411,7 +412,7 @@ export const submitLearnerMap = createServerFn()
 			}
 
 			const goalMapEdges = Array.isArray(goalMap.edges) ? goalMap.edges : [];
-			const learnerEdges = safeParseJson(learnerMap.edges) ?? [];
+			const learnerEdges = yield* safeParseJson(learnerMap.edges, []);
 
 			// Compare maps
 			const diagnosis = yield* compareMaps(goalMapEdges, learnerEdges);
@@ -522,14 +523,18 @@ export const getDiagnosis = createServerFn()
 			);
 
 			const diagnosisData = diagnosis?.perLink
-				? safeParseJson(diagnosis.perLink as string)
+				? yield* safeParseJson(diagnosis.perLink, {
+						correct: [],
+						missing: [],
+						excessive: [],
+					})
 				: null;
 
 			return {
 				learnerMap: {
 					id: learnerMap.id,
-					nodes: safeParseJson(learnerMap.nodes) ?? [],
-					edges: safeParseJson(learnerMap.edges) ?? [],
+					nodes: yield* safeParseJson(learnerMap.nodes, []),
+					edges: yield* safeParseJson(learnerMap.edges, []),
 					status: learnerMap.status,
 					attempt: learnerMap.attempt,
 				},
@@ -717,14 +722,6 @@ export const getPeerStats = createServerFn()
 			Effect.runPromise,
 		);
 	});
-
-function safeParseJson(s?: string | null): any {
-	try {
-		return s ? JSON.parse(s) : null;
-	} catch {
-		return null;
-	}
-}
 
 export const LearnerMapRpc = {
 	learnerMaps: () => ["learner-maps"],

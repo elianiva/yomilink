@@ -3,6 +3,22 @@ import { Effect, Schema } from "effect";
 import { env } from "cloudflare:workers";
 import { authMiddleware } from "@/middlewares/auth";
 
+class InvalidFileTypeError extends Schema.TaggedError<InvalidFileTypeError>()(
+	"InvalidFileTypeError",
+	{
+		type: Schema.String,
+		allowed: Schema.Array(Schema.String),
+	},
+) {}
+
+class FileTooLargeError extends Schema.TaggedError<FileTooLargeError>()(
+	"FileTooLargeError",
+	{
+		size: Schema.Number,
+		maxSize: Schema.Number,
+	},
+) {}
+
 const UploadImageSchema = Schema.Struct({
 	goalMapId: Schema.NonEmptyString,
 	file: Schema.instanceOf(File),
@@ -13,7 +29,6 @@ export const uploadMaterialImage = createServerFn()
 	.inputValidator((raw) => Schema.decodeUnknownSync(UploadImageSchema)(raw))
 	.handler(async ({ data }) =>
 		Effect.gen(function* () {
-			// Validate file type
 			const allowedTypes = [
 				"image/png",
 				"image/jpeg",
@@ -21,29 +36,34 @@ export const uploadMaterialImage = createServerFn()
 				"image/gif",
 				"image/webp",
 				"image/svg+xml",
-			];
+			] as const;
 
-			if (!allowedTypes.includes(data.file.type)) {
-				return {
-					success: false,
-					error: "Invalid file type. Allowed: PNG, JPG, GIF, WebP, SVG",
-				} as const;
-			}
+			yield* Effect.succeed(data.file.type).pipe(
+				Effect.filterOrFail(
+					(type) => allowedTypes.includes(type as any),
+					() =>
+						InvalidFileTypeError.make({
+							type: data.file.type,
+							allowed: allowedTypes as any,
+						}),
+				),
+			);
 
-			// Validate file size (5MB max)
-			const maxSize = 5 * 1024 * 1024;
-			if (data.file.size > maxSize) {
-				return {
-					success: false,
-					error: "File too large. Maximum size is 5MB",
-				} as const;
-			}
+			const fileMaxSize = 5 * 1024 * 1024;
+			yield* Effect.succeed(data.file.size).pipe(
+				Effect.filterOrFail(
+					(size) => size <= fileMaxSize,
+					() =>
+						FileTooLargeError.make({
+							size: data.file.size,
+							maxSize: fileMaxSize,
+						}),
+				),
+			);
 
-			// Generate unique key for R2
 			const imageId = crypto.randomUUID();
 			const key = `materials/${data.goalMapId}/${imageId}`;
 
-			// Upload to R2
 			const arrayBuffer = yield* Effect.tryPromise(() =>
 				data.file.arrayBuffer(),
 			);
@@ -55,7 +75,6 @@ export const uploadMaterialImage = createServerFn()
 				}),
 			);
 
-			// Construct public URL
 			const publicUrl = `/api/materials/images/${data.goalMapId}/${imageId}`;
 
 			const imageMetadata = {
@@ -71,5 +90,19 @@ export const uploadMaterialImage = createServerFn()
 				success: true,
 				image: imageMetadata,
 			} as const;
-		}).pipe(Effect.runPromise),
+		}).pipe(
+			Effect.catchTags({
+				InvalidFileTypeError: () =>
+					Effect.succeed({
+						success: false,
+						error: "Invalid file type. Allowed: PNG, JPG, GIF, WebP, SVG",
+					} as const),
+				FileTooLargeError: () =>
+					Effect.succeed({
+						success: false,
+						error: "File too large. Maximum size is 5MB",
+					} as const),
+			}),
+			Effect.runPromise,
+		),
 	);
