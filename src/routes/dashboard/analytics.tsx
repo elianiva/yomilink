@@ -4,6 +4,7 @@ import { Activity, Download, RefreshCw, Search } from "lucide-react";
 import { useCallback, useMemo, useState } from "react";
 import { toast } from "sonner";
 import { Guard } from "@/components/auth/Guard";
+import { ToolbarButton } from "@/components/toolbar/toolbar-button";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import {
@@ -15,12 +16,20 @@ import {
 } from "@/components/ui/select";
 import { Separator } from "@/components/ui/separator";
 import { Switch } from "@/components/ui/switch";
+import {
+	createTooltipHandle,
+	TooltipContent,
+	TooltipProvider,
+} from "@/components/ui/tooltip";
 import { cn } from "@/lib/utils";
-import { AnalyticsRpc } from "@/server/rpc/analytics";
+import type { ExportResult } from "@/server/rpc/analytics";
+import {
+	AnalyticsRpc,
+	type AssignmentAnalytics,
+	exportAnalyticsData as exportAnalyticsDataFn,
+	type LearnerAnalytics,
+} from "@/server/rpc/analytics";
 import { AnalyticsCanvas } from "./analytics/canvas";
-import { ToolbarButton } from "@/components/toolbar/toolbar-button";
-import { createTooltipHandle } from "@/components/ui/tooltip";
-import { TooltipProvider, TooltipContent } from "@/components/ui/tooltip";
 
 export const Route = createFileRoute("/dashboard/analytics")({
 	component: () => (
@@ -51,9 +60,9 @@ function AnalyticsPage() {
 	const [selectedAssignmentId, setSelectedAssignmentId] = useState<
 		string | null
 	>(null);
-	const [selectedLearnerId, setSelectedLearnerId] = useState<string | null>(
-		null,
-	);
+	const [selectedLearnerMapId, setSelectedLearnerMapId] = useState<
+		string | null
+	>(null);
 	const [searchQuery, setSearchQuery] = useState("");
 	const [statusFilter, setStatusFilter] = useState<
 		"All" | "submitted" | "draft"
@@ -82,16 +91,21 @@ function AnalyticsPage() {
 
 	// Fetch learner map details for selected learner
 	const { data: learnerMapDetails } = useQuery({
-		...AnalyticsRpc.getLearnerMapForAnalytics(selectedLearnerId ?? ""),
-		enabled: !!selectedLearnerId,
+		...AnalyticsRpc.getLearnerMapForAnalytics(selectedLearnerMapId ?? ""),
+		enabled: !!selectedLearnerMapId,
 		refetchOnWindowFocus: false,
 	});
 
 	// Filter learners
 	const filteredLearners = useMemo(() => {
-		if (!analyticsData) return [];
+		if (
+			!analyticsData ||
+			("success" in analyticsData && !analyticsData.success)
+		)
+			return [];
 
-		return analyticsData.learners.filter((learner) => {
+		const data = analyticsData as AssignmentAnalytics;
+		return data.learners.filter((learner: LearnerAnalytics) => {
 			const matchesSearch =
 				!searchQuery ||
 				learner.userName.toLowerCase().includes(searchQuery.toLowerCase());
@@ -105,9 +119,17 @@ function AnalyticsPage() {
 
 	// Get selected learner
 	const selectedLearner = useMemo(() => {
-		if (!analyticsData || !selectedLearnerId) return null;
-		return analyticsData.learners.find((l) => l.userId === selectedLearnerId);
-	}, [analyticsData, selectedLearnerId]);
+		if (
+			!analyticsData ||
+			!("learners" in analyticsData) ||
+			!selectedLearnerMapId
+		) {
+			return null;
+		}
+		return analyticsData.learners.find(
+			(l: LearnerAnalytics) => l.learnerMapId === selectedLearnerMapId,
+		);
+	}, [analyticsData, selectedLearnerMapId]);
 
 	const handleRefresh = useCallback(() => {
 		if (selectedAssignmentId) {
@@ -117,11 +139,10 @@ function AnalyticsPage() {
 
 	const exportMutation = useMutation({
 		mutationFn: (format: "csv" | "json") =>
-			AnalyticsRpc.exportAnalyticsData(
-				selectedAssignmentId ?? "",
-				format,
-			) as any,
-		onSuccess: (result) => {
+			exportAnalyticsDataFn({
+				data: { assignmentId: selectedAssignmentId ?? "", format },
+			}),
+		onSuccess: (result: ExportResult) => {
 			const blob = new Blob([result.data], {
 				type: result.contentType,
 			});
@@ -195,7 +216,7 @@ function AnalyticsPage() {
 						<Separator />
 
 						{/* Summary */}
-						{analyticsData && (
+						{analyticsData && "summary" in analyticsData && (
 							<div className="space-y-2">
 								<SectionTitle>Summary</SectionTitle>
 								<div className="grid grid-cols-2 gap-2 text-xs">
@@ -273,15 +294,18 @@ function AnalyticsPage() {
 										No learners found
 									</div>
 								) : (
-									filteredLearners.map((learner) => (
+									filteredLearners.map((learner: LearnerAnalytics) => (
 										<button
 											type="button"
-											key={learner.userId}
+											key={learner.learnerMapId}
 											className={cn(
 												"flex w-full items-center justify-between px-3 py-2 border-b last:border-b-0 text-left hover:bg-muted/50",
-												selectedLearnerId === learner.userId && "bg-muted",
+												selectedLearnerMapId === learner.learnerMapId &&
+													"bg-muted",
 											)}
-											onClick={() => setSelectedLearnerId(learner.userId)}
+											onClick={() =>
+												setSelectedLearnerMapId(learner.learnerMapId)
+											}
 										>
 											<span className="text-sm">{learner.userName}</span>
 											<span className="text-xs font-semibold tabular-nums">
@@ -441,19 +465,25 @@ function AnalyticsPage() {
 									Select an assignment to view analytics
 								</div>
 							</div>
-						) : !selectedLearnerId || !analyticsData || !learnerMapDetails ? (
+						) : !selectedLearnerMapId ||
+							!analyticsData ||
+							!("goalMap" in analyticsData) ? (
 							<div className="w-full h-full flex items-center justify-center">
 								<div className="text-sm text-muted-foreground px-4 text-center">
 									Select a learner to view their map
 								</div>
 							</div>
+						) : !learnerMapDetails ? (
+							<div className="w-full h-full flex items-center justify-center">
+								<div className="text-sm text-muted-foreground px-4 text-center">
+									Loading learner map details...
+								</div>
+							</div>
 						) : (
 							<AnalyticsCanvas
 								goalMap={analyticsData.goalMap}
-								learnerMap={learnerMapDetails as any}
-								edgeClassifications={
-									(learnerMapDetails as any).edgeClassifications
-								}
+								learnerMap={learnerMapDetails.learnerMap}
+								edgeClassifications={learnerMapDetails.edgeClassifications}
 								visibility={{
 									showGoalMap,
 									showLearnerMap,

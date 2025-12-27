@@ -95,6 +95,7 @@ export function AnalyticsCanvas({
 		return nodes.map((node) => ({
 			...node,
 			style: {
+				...node.style,
 				opacity: 0.3,
 				borderStyle: "dashed",
 			},
