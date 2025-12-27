@@ -1,14 +1,15 @@
 import { memo } from "react";
-import { Handle, type Node, type NodeProps } from "@xyflow/react";
+import { Handle, Position } from "@xyflow/react";
 import { cn } from "@/lib/utils";
 
 export interface AnalyzerNodeData {
 	isAbandoned?: boolean;
 	isUsed?: boolean;
+	label: string;
 }
 
-export function AnalyzerNode({ data }: NodeProps<AnalyzerNodeData>) {
-	const { isAbandoned, isUsed } = data || {};
+export function AnalyzerNode({ data }: { data: AnalyzerNodeData }) {
+	const { isAbandoned, isUsed, label } = data;
 
 	return (
 		<div
@@ -37,7 +38,7 @@ export function AnalyzerNode({ data }: NodeProps<AnalyzerNodeData>) {
 					!isUsed && "text-muted-foreground",
 				)}
 			>
-				{data?.label || "Node"}
+				{label}
 			</div>
 		</div>
 	);

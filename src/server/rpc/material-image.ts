@@ -1,3 +1,4 @@
+import { mutationOptions } from "@tanstack/react-query";
 import { createServerFn } from "@tanstack/react-start";
 import { Effect, Schema } from "effect";
 import { env } from "cloudflare:workers";
@@ -106,3 +107,12 @@ export const uploadMaterialImage = createServerFn()
 			Effect.runPromise,
 		),
 	);
+
+export const MaterialImageRpc = {
+	upload: () =>
+		mutationOptions({
+			mutationKey: ["material-image", "upload"],
+			mutationFn: (data: { goalMapId: string; file: File }) =>
+				uploadMaterialImage({ data }),
+		}),
+};

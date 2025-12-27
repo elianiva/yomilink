@@ -17,8 +17,9 @@ import {
 	materialTextAtom,
 	imagesAtom,
 } from "../lib/atoms";
-import { uploadMaterialImage } from "@/server/rpc/material-image";
+import { MaterialImageRpc } from "@/server/rpc/material-image";
 import { useMutation } from "@tanstack/react-query";
+import { useEffect } from "react";
 import { toast } from "sonner";
 
 interface ImportMaterialDialogProps {
@@ -34,20 +35,28 @@ function ImportMaterialDialogImpl({ goalMapId }: ImportMaterialDialogProps) {
 	const fileInputRef = useRef<HTMLInputElement>(null);
 	const textareaId = useId();
 
-	const uploadMutation = useMutation({
-		mutationFn: uploadMaterialImage,
-		onSuccess: (result) => {
+	const uploadMutation = useMutation(MaterialImageRpc.upload());
+
+	useEffect(() => {
+		if (uploadMutation.isSuccess && uploadMutation.data) {
+			const result = uploadMutation.data;
 			if (result.success) {
 				setMaterialImages((prev) => [...prev, result.image]);
 				toast.success("Image uploaded successfully");
 			}
-		},
-		onError: (error) => {
+		}
+	}, [uploadMutation.isSuccess, uploadMutation.data, setMaterialImages]);
+
+	useEffect(() => {
+		if (uploadMutation.isError) {
 			toast.error("Upload failed", {
-				description: error instanceof Error ? error.message : "Unknown error",
+				description:
+					uploadMutation.error instanceof Error
+						? uploadMutation.error.message
+						: "Unknown error",
 			});
-		},
-	});
+		}
+	}, [uploadMutation.isError, uploadMutation.error]);
 
 	const handleFileChange = async (files: FileList | null) => {
 		if (!files || files.length === 0) return;
@@ -73,10 +82,7 @@ function ImportMaterialDialogImpl({ goalMapId }: ImportMaterialDialogProps) {
 				return;
 			}
 
-			uploadMutation.mutate({
-				goalMapId,
-				file,
-			});
+			uploadMutation.mutate({ goalMapId, file });
 			return;
 		}
 
@@ -207,12 +213,15 @@ function ImportMaterialDialogImpl({ goalMapId }: ImportMaterialDialogProps) {
 						value="images"
 						className="space-y-4 flex-1 flex flex-col min-h-0"
 					>
-						<div
-							className="flex-1 flex flex-col items-center justify-center border-2 border-dashed rounded-lg"
+						<button
+							type="button"
+							className="flex-1 flex flex-col items-center justify-center border-2 border-dashed rounded-lg relative cursor-pointer hover:bg-muted/50 transition-colors"
 							onDragOver={handleDragOver}
 							onDrop={handleDrop}
+							onClick={() => fileInputRef.current?.click()}
 						>
 							<input
+								ref={fileInputRef}
 								type="file"
 								accept="image/*"
 								multiple
@@ -228,7 +237,7 @@ function ImportMaterialDialogImpl({ goalMapId }: ImportMaterialDialogProps) {
 									Max 5MB per image, up to 10 images
 								</p>
 							</div>
-						</div>
+						</button>
 
 						{materialImages.length > 0 && (
 							<div className="flex-1 overflow-auto border-t pt-4">

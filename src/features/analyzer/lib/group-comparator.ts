@@ -1,4 +1,4 @@
-import type { Edge } from "@xyflow/react";
+import type { Edge, Node } from "@/lib/learnermap-comparator";
 
 export interface PropositionWithCount {
 	source: { id: string; label: string };
@@ -22,6 +22,7 @@ export interface LearnerMapComparisonData {
 	id: string;
 	userId: string;
 	userName: string;
+	nodes: Node[];
 	edges: Edge[];
 	comparison: {
 		match: Edge[];
@@ -30,9 +31,21 @@ export interface LearnerMapComparisonData {
 	};
 }
 
+function resolveNodeLabel(
+	nodeId: string,
+	nodes: Node[],
+): { id: string; label: string } {
+	const node = nodes.find((n) => n.id === nodeId);
+	return {
+		id: nodeId,
+		label: (node?.data as { label?: string })?.label || nodeId,
+	};
+}
+
 export function groupCompare(
 	learnerMaps: LearnerMapComparisonData[],
 	goalMapEdges: Edge[],
+	goalMapNodes: Node[],
 ): GroupComparison {
 	const matchMap = new Map<string, PropositionWithCount>();
 	const missMap = new Map<string, PropositionWithCount>();
@@ -44,60 +57,72 @@ export function groupCompare(
 		for (const edge of learner.comparison.match) {
 			const key = `${edge.source}-${edge.target}`;
 			if (!matchMap.has(key)) {
+				const sourceNode = resolveNodeLabel(edge.source, learner.nodes);
+				const targetNode = resolveNodeLabel(edge.target, learner.nodes);
 				matchMap.set(key, {
-					source: edge.source,
-					link: edge.source,
-					target: edge.target,
+					source: sourceNode,
+					link: sourceNode,
+					target: targetNode,
 					count: 1,
 					learnerIds: [learner.userId],
 					learnerNames: [learner.userName],
 					type: "match" as const,
 				});
 			} else {
-				const existing = matchMap.get(key)!;
-				existing.count += 1;
-				existing.learnerIds.push(learner.userId);
-				existing.learnerNames.push(learner.userName);
+				const existing = matchMap.get(key);
+				if (existing) {
+					existing.count += 1;
+					existing.learnerIds.push(learner.userId);
+					existing.learnerNames.push(learner.userName);
+				}
 			}
 		}
 
 		for (const edge of learner.comparison.miss) {
 			const key = `${edge.source}-${edge.target}`;
 			if (!missMap.has(key)) {
+				const sourceNode = resolveNodeLabel(edge.source, learner.nodes);
+				const targetNode = resolveNodeLabel(edge.target, learner.nodes);
 				missMap.set(key, {
-					source: edge.source,
-					link: edge.source,
-					target: edge.target,
+					source: sourceNode,
+					link: sourceNode,
+					target: targetNode,
 					count: 1,
 					learnerIds: [learner.userId],
 					learnerNames: [learner.userName],
 					type: "miss" as const,
 				});
 			} else {
-				const existing = missMap.get(key)!;
-				existing.count += 1;
-				existing.learnerIds.push(learner.userId);
-				existing.learnerNames.push(learner.userName);
+				const existing = missMap.get(key);
+				if (existing) {
+					existing.count += 1;
+					existing.learnerIds.push(learner.userId);
+					existing.learnerNames.push(learner.userName);
+				}
 			}
 		}
 
 		for (const edge of learner.comparison.excessive) {
 			const key = `${edge.source}-${edge.target}`;
 			if (!excessiveMap.has(key)) {
+				const sourceNode = resolveNodeLabel(edge.source, learner.nodes);
+				const targetNode = resolveNodeLabel(edge.target, learner.nodes);
 				excessiveMap.set(key, {
-					source: edge.source,
-					link: edge.source,
-					target: edge.target,
+					source: sourceNode,
+					link: sourceNode,
+					target: targetNode,
 					count: 1,
 					learnerIds: [learner.userId],
 					learnerNames: [learner.userName],
 					type: "excessive" as const,
 				});
 			} else {
-				const existing = excessiveMap.get(key)!;
-				existing.count += 1;
-				existing.learnerIds.push(learner.userId);
-				existing.learnerNames.push(learner.userName);
+				const existing = excessiveMap.get(key);
+				if (existing) {
+					existing.count += 1;
+					existing.learnerIds.push(learner.userId);
+					existing.learnerNames.push(learner.userName);
+				}
 			}
 		}
 	}
@@ -114,6 +139,9 @@ export function groupCompare(
 			continue;
 		}
 
+		const sourceNode = resolveNodeLabel(edge.source, goalMapNodes);
+		const targetNode = resolveNodeLabel(edge.target, goalMapNodes);
+
 		let usedBy = 0;
 		for (const prop of matchMap.values()) {
 			if (prop.source.id === edge.source && prop.target.id === edge.target) {
@@ -123,9 +151,9 @@ export function groupCompare(
 
 		if (usedBy === 0) {
 			leaveMap.set(key, {
-				source: edge.source,
-				link: edge.source,
-				target: edge.target,
+				source: sourceNode,
+				link: sourceNode,
+				target: targetNode,
 				count: 0,
 				learnerIds: [],
 				learnerNames: [],
@@ -133,9 +161,9 @@ export function groupCompare(
 			});
 		} else {
 			abandonMap.set(key, {
-				source: edge.source,
-				link: edge.source,
-				target: edge.target,
+				source: sourceNode,
+				link: sourceNode,
+				target: targetNode,
 				count: 0,
 				learnerIds: [],
 				learnerNames: [],

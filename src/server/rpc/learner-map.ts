@@ -210,7 +210,7 @@ export const getAssignmentForStudent = createServerFn()
 					db
 						.select({ content: texts.content })
 						.from(texts)
-						.where(eq(texts.id, kit.textId!))
+						.where(eq(texts.id, kit.textId))
 						.get(),
 				);
 				materialText = text?.content || null;

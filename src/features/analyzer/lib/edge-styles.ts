@@ -9,7 +9,7 @@ export const ANALYTICS_COLORS = {
 
 export function getEdgeStyleByType(
 	type: "match" | "miss" | "excess" | "leave" | "abandon" | "neutral",
-	count?: number,
+	_count?: number,
 ) {
 	const baseStyle = {
 		strokeWidth: 3,

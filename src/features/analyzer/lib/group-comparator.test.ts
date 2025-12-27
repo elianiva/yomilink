@@ -1,4 +1,4 @@
-import type { Edge } from "@xyflow/react";
+import type { Edge, Node } from "@/lib/learnermap-comparator";
 import { describe, expect, it } from "vitest";
 import {
 	groupCompare,
@@ -12,11 +12,18 @@ describe("groupCompare", () => {
 			{ id: "e2", source: "l1", target: "c2" },
 		];
 
+		const goalMapNodes: Node[] = [
+			{ id: "c1", data: { label: "Concept 1" }, position: { x: 0, y: 0 } },
+			{ id: "l1", data: { label: "Link 1" }, position: { x: 0, y: 0 } },
+			{ id: "c2", data: { label: "Concept 2" }, position: { x: 0, y: 0 } },
+		];
+
 		const learnerMaps: LearnerMapComparisonData[] = [
 			{
 				id: "lm1",
 				userId: "u1",
 				userName: "Alice",
+				nodes: goalMapNodes,
 				edges: goalMapEdges,
 				comparison: {
 					match: [...goalMapEdges],
@@ -28,6 +35,7 @@ describe("groupCompare", () => {
 				id: "lm2",
 				userId: "u2",
 				userName: "Bob",
+				nodes: goalMapNodes,
 				edges: goalMapEdges,
 				comparison: {
 					match: [...goalMapEdges],
@@ -37,7 +45,7 @@ describe("groupCompare", () => {
 			},
 		];
 
-		const result = groupCompare(learnerMaps, goalMapEdges);
+		const result = groupCompare(learnerMaps, goalMapEdges, goalMapNodes);
 
 		expect(result.match).toHaveLength(2);
 		expect(result.match[0].count).toBe(2);
@@ -51,11 +59,18 @@ describe("groupCompare", () => {
 			{ id: "e2", source: "l1", target: "c2" },
 		];
 
+		const goalMapNodes: Node[] = [
+			{ id: "c1", data: { label: "Concept 1" }, position: { x: 0, y: 0 } },
+			{ id: "l1", data: { label: "Link 1" }, position: { x: 0, y: 0 } },
+			{ id: "c2", data: { label: "Concept 2" }, position: { x: 0, y: 0 } },
+		];
+
 		const learnerMaps: LearnerMapComparisonData[] = [
 			{
 				id: "lm1",
 				userId: "u1",
 				userName: "Alice",
+				nodes: goalMapNodes,
 				edges: [{ id: "e1", source: "c1", target: "l1" }],
 				comparison: {
 					match: [{ id: "e1", source: "c1", target: "l1" }],
@@ -65,7 +80,7 @@ describe("groupCompare", () => {
 			},
 		];
 
-		const result = groupCompare(learnerMaps, goalMapEdges);
+		const result = groupCompare(learnerMaps, goalMapEdges, goalMapNodes);
 
 		expect(result.match).toHaveLength(1);
 		expect(result.miss).toHaveLength(1);
@@ -78,11 +93,17 @@ describe("groupCompare", () => {
 	it("should identify leave edges (not used by any learner)", () => {
 		const goalMapEdges: Edge[] = [{ id: "e1", source: "c1", target: "l1" }];
 
+		const goalMapNodes: Node[] = [
+			{ id: "c1", data: { label: "Concept 1" }, position: { x: 0, y: 0 } },
+			{ id: "l1", data: { label: "Link 1" }, position: { x: 0, y: 0 } },
+		];
+
 		const learnerMaps: LearnerMapComparisonData[] = [
 			{
 				id: "lm1",
 				userId: "u1",
 				userName: "Alice",
+				nodes: goalMapNodes,
 				edges: [],
 				comparison: {
 					match: [],
@@ -92,7 +113,7 @@ describe("groupCompare", () => {
 			},
 		];
 
-		const result = groupCompare(learnerMaps, goalMapEdges);
+		const result = groupCompare(learnerMaps, goalMapEdges, goalMapNodes);
 
 		expect(result.leave.length).toBeGreaterThanOrEqual(0);
 	});
@@ -100,11 +121,17 @@ describe("groupCompare", () => {
 	it("should calculate counts correctly across multiple learners", () => {
 		const goalMapEdges: Edge[] = [{ id: "e1", source: "c1", target: "l1" }];
 
+		const goalMapNodes: Node[] = [
+			{ id: "c1", data: { label: "Concept 1" }, position: { x: 0, y: 0 } },
+			{ id: "l1", data: { label: "Link 1" }, position: { x: 0, y: 0 } },
+		];
+
 		const learnerMaps: LearnerMapComparisonData[] = [
 			{
 				id: "lm1",
 				userId: "u1",
 				userName: "Alice",
+				nodes: goalMapNodes,
 				edges: [{ id: "e1", source: "c1", target: "l1" }],
 				comparison: {
 					match: [{ id: "e1", source: "c1", target: "l1" }],
@@ -116,6 +143,7 @@ describe("groupCompare", () => {
 				id: "lm2",
 				userId: "u2",
 				userName: "Bob",
+				nodes: goalMapNodes,
 				edges: [{ id: "e1", source: "c1", target: "l1" }],
 				comparison: {
 					match: [{ id: "e1", source: "c1", target: "l1" }],
@@ -127,6 +155,7 @@ describe("groupCompare", () => {
 				id: "lm3",
 				userId: "u3",
 				userName: "Charlie",
+				nodes: goalMapNodes,
 				edges: [{ id: "e1", source: "c1", target: "l1" }],
 				comparison: {
 					match: [{ id: "e1", source: "c1", target: "l1" }],
@@ -136,7 +165,7 @@ describe("groupCompare", () => {
 			},
 		];
 
-		const result = groupCompare(learnerMaps, goalMapEdges);
+		const result = groupCompare(learnerMaps, goalMapEdges, goalMapNodes);
 
 		expect(result.match).toHaveLength(1);
 		expect(result.match[0].count).toBe(3);
@@ -145,8 +174,12 @@ describe("groupCompare", () => {
 
 	it("should handle empty learner maps", () => {
 		const goalMapEdges: Edge[] = [{ id: "e1", source: "c1", target: "l1" }];
+		const goalMapNodes: Node[] = [
+			{ id: "c1", data: { label: "Concept 1" }, position: { x: 0, y: 0 } },
+			{ id: "l1", data: { label: "Link 1" }, position: { x: 0, y: 0 } },
+		];
 
-		const result = groupCompare([], goalMapEdges);
+		const result = groupCompare([], goalMapEdges, goalMapNodes);
 
 		expect(result.match).toHaveLength(0);
 		expect(result.miss).toHaveLength(0);
@@ -155,12 +188,19 @@ describe("groupCompare", () => {
 
 	it("should handle multiple excessive edges with same key", () => {
 		const goalMapEdges: Edge[] = [{ id: "e1", source: "c1", target: "l1" }];
+		const goalMapNodes: Node[] = [
+			{ id: "c1", data: { label: "Concept 1" }, position: { x: 0, y: 0 } },
+			{ id: "l1", data: { label: "Link 1" }, position: { x: 0, y: 0 } },
+			{ id: "c2", data: { label: "Concept 2" }, position: { x: 0, y: 0 } },
+			{ id: "l2", data: { label: "Link 2" }, position: { x: 0, y: 0 } },
+		];
 
 		const learnerMaps: LearnerMapComparisonData[] = [
 			{
 				id: "lm1",
 				userId: "u1",
 				userName: "Alice",
+				nodes: goalMapNodes,
 				edges: [{ id: "e2", source: "c2", target: "l2" }],
 				comparison: {
 					match: [],
@@ -172,6 +212,7 @@ describe("groupCompare", () => {
 				id: "lm2",
 				userId: "u2",
 				userName: "Bob",
+				nodes: goalMapNodes,
 				edges: [{ id: "e3", source: "c2", target: "l2" }],
 				comparison: {
 					match: [],
@@ -181,7 +222,7 @@ describe("groupCompare", () => {
 			},
 		];
 
-		const result = groupCompare(learnerMaps, goalMapEdges);
+		const result = groupCompare(learnerMaps, goalMapEdges, goalMapNodes);
 
 		expect(result.excessive).toHaveLength(1);
 		expect(result.excessive[0].count).toBe(2);

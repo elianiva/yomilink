@@ -37,6 +37,19 @@ export const EdgeSchema = Schema.Struct({
 
 export type Edge = Schema.Schema.Type<typeof EdgeSchema>;
 
+export const NodeLabelSchema = Schema.Struct({
+	id: Schema.String,
+	label: Schema.String,
+});
+export type NodeLabel = Schema.Schema.Type<typeof NodeLabelSchema>;
+
+export const PropositionSchema = Schema.Struct({
+	source: NodeLabelSchema,
+	link: NodeLabelSchema,
+	target: NodeLabelSchema,
+});
+export type Proposition = Schema.Schema.Type<typeof PropositionSchema>;
+
 export interface DiagnosisResult {
 	correct: Array<{ source: string; target: string; edgeId?: string }>;
 	missing: Array<{ source: string; target: string; edgeId?: string }>;

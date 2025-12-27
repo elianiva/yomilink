@@ -11,7 +11,7 @@
     "format": "biome format --write",
     "lint": "biome lint --write",
     "check": "biome check",
-    "typecheck": "tsc --noEmit",
+    "typecheck": "tsgo --noEmit",
     "cf-typegen": "wrangler types",
     "deploy": "wrangler deploy",
     "seed": "bun run --env-file=.env scripts/seed.ts",

@@ -160,37 +160,35 @@ function SidebarProvider({
 	return (
 		<SidebarContext.Provider value={contextValue}>
 			<TooltipProvider delay={0}>
-				<>
-					<div
-						data-slot="sidebar-wrapper"
-						style={
-							{
-								"--sidebar-width": SIDEBAR_WIDTH,
-								"--sidebar-width-icon": SIDEBAR_WIDTH_ICON,
-								...style,
-							} as CSSProperties
-						}
-						className={cn(
-							"group/sidebar-wrapper has-data-[variant=inset]:bg-sidebar flex min-h-svh w-full",
-							className,
-						)}
-						{...props}
-					>
-						{children}
-					</div>
-					<Tooltip handle={sidebarTooltipHandle}>
-						{({ payload }) => (
-							<TooltipPortal>
-								<TooltipPositioner side="right">
-									<TooltipPopup>
-										<TooltipArrow />
-										<TooltipViewport>{payload as ReactNode}</TooltipViewport>
-									</TooltipPopup>
-								</TooltipPositioner>
-							</TooltipPortal>
-						)}
-					</Tooltip>
-				</>
+				<div
+					data-slot="sidebar-wrapper"
+					style={
+						{
+							"--sidebar-width": SIDEBAR_WIDTH,
+							"--sidebar-width-icon": SIDEBAR_WIDTH_ICON,
+							...style,
+						} as CSSProperties
+					}
+					className={cn(
+						"group/sidebar-wrapper has-data-[variant=inset]:bg-sidebar flex min-h-svh w-full",
+						className,
+					)}
+					{...props}
+				>
+					{children}
+				</div>
+				<Tooltip handle={sidebarTooltipHandle}>
+					{({ payload }) => (
+						<TooltipPortal>
+							<TooltipPositioner side="right">
+								<TooltipPopup>
+									<TooltipArrow />
+									<TooltipViewport>{payload as ReactNode}</TooltipViewport>
+								</TooltipPopup>
+							</TooltipPositioner>
+						</TooltipPortal>
+					)}
+				</Tooltip>
 			</TooltipProvider>
 		</SidebarContext.Provider>
 	);
