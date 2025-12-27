@@ -1,4 +1,4 @@
-import type { Edge, Node } from "@xyflow/react";
+import type { Edge, Node } from "@/lib/learnermap-comparator";
 
 export const simpleGoalMap = {
 	nodes: [

@@ -1,5 +1,41 @@
-import type { Edge } from "@xyflow/react";
-import { Effect, Match } from "effect";
+import { Effect, Match, Schema } from "effect";
+
+export const NodeSchema = Schema.Struct({
+	id: Schema.String,
+	data: Schema.optional(Schema.Any),
+	position: Schema.optional(
+		Schema.Struct({
+			x: Schema.Number,
+			y: Schema.Number,
+		}),
+	),
+	type: Schema.optional(Schema.String),
+});
+
+export type Node = Schema.Schema.Type<typeof NodeSchema>;
+
+export const EdgeSchema = Schema.Struct({
+	id: Schema.String,
+	source: Schema.String,
+	target: Schema.String,
+	sourceHandle: Schema.optional(Schema.NullOr(Schema.String)),
+	targetHandle: Schema.optional(Schema.NullOr(Schema.String)),
+	type: Schema.optional(Schema.String),
+	data: Schema.optional(
+		Schema.Record({ key: Schema.String, value: Schema.Any }),
+	),
+	animated: Schema.optional(Schema.Boolean),
+	style: Schema.optional(
+		Schema.Struct({
+			strokeDasharray: Schema.optional(Schema.String),
+			opacity: Schema.optional(Schema.Number),
+			stroke: Schema.optional(Schema.String),
+			strokeWidth: Schema.optional(Schema.Number),
+		}),
+	),
+});
+
+export type Edge = Schema.Schema.Type<typeof EdgeSchema>;
 
 export interface DiagnosisResult {
 	correct: Array<{ source: string; target: string; edgeId?: string }>;
@@ -10,8 +46,8 @@ export interface DiagnosisResult {
 }
 
 export function compareMaps(
-	goalMapEdges: Edge[],
-	learnerEdges: Edge[],
+	goalMapEdges: Readonly<Edge[]>,
+	learnerEdges: Readonly<Edge[]>,
 ): Effect.Effect<DiagnosisResult, never> {
 	return Effect.gen(function* () {
 		// Create sets for comparison
@@ -70,9 +106,14 @@ export interface EdgeClassification {
 	type: "correct" | "missing" | "excessive" | "neutral";
 }
 
+export const EdgeClassificationSchema = Schema.Struct({
+	edge: EdgeSchema,
+	type: Schema.Literal("correct", "missing", "excessive", "neutral"),
+});
+
 export function classifyEdges(
-	goalMapEdges: Edge[],
-	learnerEdges: Edge[],
+	goalMapEdges: Readonly<Edge[]>,
+	learnerEdges: Readonly<Edge[]>,
 ): Effect.Effect<EdgeClassification[], never> {
 	return Effect.gen(function* () {
 		const diagnosis = yield* compareMaps(goalMapEdges, learnerEdges);

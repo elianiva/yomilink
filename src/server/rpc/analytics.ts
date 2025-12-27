@@ -7,10 +7,12 @@ import {
 	classifyEdges,
 	compareMaps,
 	type DiagnosisResult,
+	EdgeSchema,
+	NodeSchema,
 	type EdgeClassification,
 } from "@/lib/learnermap-comparator";
-import { authMiddleware } from "@/middlewares/auth";
 import { parseJson } from "@/lib/utils";
+import { authMiddleware } from "@/middlewares/auth";
 import {
 	assignments,
 	diagnoses,
@@ -89,8 +91,8 @@ export interface AssignmentAnalytics {
 	goalMap: {
 		id: string;
 		title: string;
-		nodes: any;
-		edges: any;
+		nodes: unknown;
+		edges: unknown;
 		direction: "bi" | "uni" | "multi";
 	};
 	learners: LearnerAnalytics[];
@@ -113,14 +115,14 @@ export interface LearnerMapDetails {
 		status: string;
 		attempt: number;
 		submittedAt: number | null;
-		nodes: any;
-		edges: any;
+		nodes: unknown;
+		edges: unknown;
 	};
 	goalMap: {
 		id: string;
 		title: string;
-		nodes: any;
-		edges: any;
+		nodes: unknown;
+		edges: unknown;
 		direction: "bi" | "uni" | "multi";
 	};
 	diagnosis: DiagnosisResult;
@@ -267,8 +269,14 @@ export const getAnalyticsForAssignment = createServerFn()
 				);
 			}
 
-			const parsedGoalMapNodes = yield* parseJson(goalMap.nodes);
-			const parsedGoalMapEdges = yield* parseJson(goalMap.edges);
+			const parsedGoalMapNodes = yield* parseJson(
+				goalMap.nodes,
+				Schema.Array(NodeSchema),
+			);
+			const parsedGoalMapEdges = yield* parseJson(
+				goalMap.edges,
+				Schema.Array(EdgeSchema),
+			);
 
 			const learnerMapsData = yield* Effect.tryPromise(() =>
 				db
@@ -316,12 +324,15 @@ export const getAnalyticsForAssignment = createServerFn()
 					let totalGoalEdges = 0;
 
 					if (diagnosisData?.perLink) {
-						const parsed = yield* parseJson<{
-							correct?: unknown[];
-							missing?: unknown[];
-							excessive?: unknown[];
-							totalGoalEdges?: number;
-						}>(diagnosisData.perLink);
+						const parsed = yield* parseJson(
+							diagnosisData.perLink,
+							Schema.Struct({
+								correct: Schema.optional(Schema.Array(Schema.String)),
+								missing: Schema.optional(Schema.Array(Schema.String)),
+								excessive: Schema.optional(Schema.Array(Schema.String)),
+								totalGoalEdges: Schema.optional(Schema.Number),
+							}),
+						);
 						correct = parsed.correct?.length ?? 0;
 						missing = parsed.missing?.length ?? 0;
 						excessive = parsed.excessive?.length ?? 0;
@@ -388,10 +399,27 @@ export const getAnalyticsForAssignment = createServerFn()
 				},
 				learners: finalLearners,
 				summary,
-			} as AssignmentAnalytics;
+			};
 		}).pipe(
 			Effect.provide(DatabaseLive),
 			Effect.withSpan("getAnalyticsForAssignment"),
+			Effect.catchTags({
+				AssignmentNotFoundError: () =>
+					Effect.succeed({
+						success: false,
+						error: "Assignment not found",
+					} as const),
+				GoalMapNotFoundError: () =>
+					Effect.succeed({
+						success: false,
+						error: "Goal map not found",
+					} as const),
+				UnknownException: () =>
+					Effect.succeed({
+						success: false,
+						error: "Unknown error",
+					} as const),
+			}),
 			Effect.runPromise,
 		);
 	});
@@ -453,11 +481,23 @@ export const getLearnerMapForAnalytics = createServerFn()
 				);
 			}
 
-			const parsedGoalMapNodes = yield* parseJson(goalMap.nodes);
-			const parsedGoalMapEdges = yield* parseJson(goalMap.edges);
+			const parsedGoalMapNodes = yield* parseJson(
+				goalMap.nodes,
+				Schema.Array(NodeSchema),
+			);
+			const parsedGoalMapEdges = yield* parseJson(
+				goalMap.edges,
+				Schema.Array(EdgeSchema),
+			);
 
-			const parsedLearnerMapNodes = yield* parseJson(learnerMap.nodes);
-			const parsedLearnerMapEdges = yield* parseJson(learnerMap.edges);
+			const parsedLearnerMapNodes = yield* parseJson(
+				learnerMap.nodes,
+				Schema.Array(NodeSchema),
+			);
+			const parsedLearnerMapEdges = yield* parseJson(
+				learnerMap.edges,
+				Schema.Array(EdgeSchema),
+			);
 
 			const diagnosis = yield* compareMaps(
 				parsedGoalMapEdges,
@@ -503,13 +543,9 @@ export const exportAnalyticsData = createServerFn()
 		const user = context.user;
 		if (!user) throw new Error("Unauthorized");
 
-		const analyticsResult = await getAnalyticsForAssignment({
+		const analyticsResult = (await getAnalyticsForAssignment({
 			data,
-		});
-
-		if (!("learners" in analyticsResult)) {
-			throw new Error("Failed to load analytics data");
-		}
+		})) as AssignmentAnalytics;
 
 		const timestamp = new Date()
 			.toISOString()

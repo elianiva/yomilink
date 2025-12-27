@@ -1,5 +1,6 @@
 import { describe, expect, it } from "vitest";
-import { cn, randomString } from "./utils";
+import { Effect, Schema } from "effect";
+import { cn, parseJson, safeParseJson, randomString } from "./utils";
 
 describe("cn", () => {
 	it("should merge class names correctly", () => {
@@ -80,5 +81,144 @@ describe("randomString", () => {
 	it("should handle large lengths", () => {
 		const result = randomString(1000);
 		expect(result).toHaveLength(1000);
+	});
+});
+
+describe("parseJson", () => {
+	it("should parse valid JSON string", () => {
+		const result = Effect.runSync(parseJson('{"key":"value"}'));
+		expect(result).toEqual({ key: "value" });
+	});
+
+	it("should return input if already parsed", () => {
+		const input = { key: "value" };
+		const result = Effect.runSync(parseJson(input));
+		expect(result).toEqual(input);
+	});
+
+	it("should fail on invalid JSON string", () => {
+		const result = Effect.runSyncExit(parseJson("invalid json"));
+		expect(result._tag).toBe("Failure");
+	});
+
+	it("should parse and validate with schema", () => {
+		const schema = Schema.Struct({
+			name: Schema.String,
+			age: Schema.Number,
+		});
+		const result = Effect.runSync(
+			parseJson('{"name":"John","age":30}', schema),
+		);
+		expect(result).toEqual({ name: "John", age: 30 });
+	});
+
+	it("should fail with schema validation error", () => {
+		const schema = Schema.Struct({
+			name: Schema.String,
+			age: Schema.Number,
+		});
+		const result = Effect.runSyncExit(
+			parseJson('{"name":"John","age":"thirty"}', schema),
+		);
+		expect(result._tag).toBe("Failure");
+	});
+
+	it("should handle nested objects with schema", () => {
+		const schema = Schema.Struct({
+			user: Schema.Struct({
+				name: Schema.String,
+				email: Schema.String,
+			}),
+		});
+		const result = Effect.runSync(
+			parseJson('{"user":{"name":"John","email":"john@example.com"}}', schema),
+		);
+		expect(result).toEqual({
+			user: { name: "John", email: "john@example.com" },
+		});
+	});
+
+	it("should handle arrays with schema", () => {
+		const schema = Schema.Array(Schema.String);
+		const result = Effect.runSync(parseJson('["a","b","c"]', schema));
+		expect(result).toEqual(["a", "b", "c"]);
+	});
+
+	it("should handle null input", () => {
+		const result = Effect.runSync(parseJson(null));
+		expect(result).toBeNull();
+	});
+
+	it("should handle number input", () => {
+		const result = Effect.runSync(parseJson(123));
+		expect(result).toBe(123);
+	});
+});
+
+describe("safeParseJson", () => {
+	it("should parse valid JSON string", () => {
+		const result = Effect.runSync(safeParseJson('{"key":"value"}', null));
+		expect(result).toEqual({ key: "value" });
+	});
+
+	it("should return defaultValue on invalid JSON", () => {
+		const result = Effect.runSync(
+			safeParseJson("invalid json", { default: true }),
+		);
+		expect(result).toEqual({ default: true });
+	});
+
+	it("should parse and validate with schema successfully", () => {
+		const schema = Schema.Struct({
+			name: Schema.String,
+			age: Schema.Number,
+		});
+		const result = Effect.runSync(
+			safeParseJson('{"name":"John","age":30}', { name: "", age: 0 }, schema),
+		);
+		expect(result).toEqual({ name: "John", age: 30 });
+	});
+
+	it("should return defaultValue on schema validation error", () => {
+		const schema = Schema.Struct({
+			name: Schema.String,
+			age: Schema.Number,
+		});
+		const result = Effect.runSync(
+			safeParseJson(
+				'{"name":"John","age":"thirty"}',
+				{ name: "", age: 0 },
+				schema,
+			),
+		);
+		expect(result).toEqual({ name: "", age: 0 });
+	});
+
+	it("should handle null input directly", () => {
+		const result = Effect.runSync(safeParseJson(null, "default"));
+		expect(result).toBeNull();
+	});
+
+	it("should handle already parsed object", () => {
+		const input = { key: "value" };
+		const result = Effect.runSync(safeParseJson(input, null));
+		expect(result).toEqual(input);
+	});
+
+	it("should handle undefined input directly", () => {
+		const result = Effect.runSync(safeParseJson(undefined, "default"));
+		expect(result).toBeUndefined();
+	});
+
+	it("should handle arrays with schema and default", () => {
+		const schema = Schema.Array(Schema.String);
+		const result = Effect.runSync(safeParseJson('["a","b","c"]', [], schema));
+		expect(result).toEqual(["a", "b", "c"]);
+	});
+
+	it("should return default array on invalid input", () => {
+		const schema = Schema.Array(Schema.String);
+		const result = Effect.runSync(safeParseJson(123, [], schema));
+		expect(result).toEqual([]);
 	});
 });
