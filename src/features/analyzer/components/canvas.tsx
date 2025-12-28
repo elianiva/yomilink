@@ -13,7 +13,7 @@ interface AnalyticsCanvasProps {
 		nodes: any;
 		edges: any;
 		direction: "bi" | "uni" | "multi";
-	};
+	}
 	learnerMap: {
 		id: string;
 		userId: string;
@@ -23,11 +23,11 @@ interface AnalyticsCanvasProps {
 		submittedAt: number | null;
 		nodes: any;
 		edges: any;
-	};
+	}
 	edgeClassifications: Array<{
 		edge: Edge;
 		type: "correct" | "missing" | "excessive" | "neutral";
-	}>;
+	}>
 	visibility: {
 		showGoalMap: boolean;
 		showLearnerMap: boolean;
@@ -35,7 +35,7 @@ interface AnalyticsCanvasProps {
 		showMissingEdges: boolean;
 		showExcessiveEdges: boolean;
 		showNeutralEdges: boolean;
-	};
+	}
 }
 
 const nodeTypes = {
@@ -55,23 +55,23 @@ function getEdgeStyleByType(
 			return {
 				stroke: "#22c55e",
 				strokeWidth: 3,
-			};
+			}
 		case "excessive":
 			return {
 				stroke: "#3b82f6",
 				strokeWidth: 3,
-			};
+			}
 		case "missing":
 			return {
 				stroke: "#ef4444",
 				strokeWidth: 2,
 				strokeDasharray: "5,5",
-			};
+			}
 		case "neutral":
 			return {
 				stroke: "#64748b",
 				strokeWidth: 2,
-			};
+			}
 	}
 }
 
@@ -104,7 +104,7 @@ export function AnalyticsCanvas({
 				opacity: 0.3,
 				dashed: true,
 			},
-		}));
+		}))
 	}, [goalMap.nodes, visibility.showGoalMap]);
 
 	const learnerMapNodes = useMemo(() => {
@@ -135,7 +135,7 @@ export function AnalyticsCanvas({
 		learnerMapNodes,
 		visibility.showGoalMap,
 		visibility.showLearnerMap,
-	]);
+	])
 
 	const filteredEdges = useMemo(() => {
 		const edges: Edge[] = edgeClassifications
@@ -150,7 +150,7 @@ export function AnalyticsCanvas({
 					case "neutral":
 						return visibility.showNeutralEdges;
 					default:
-						return false;
+						return false
 				}
 			})
 			.map((classification) => {
@@ -164,8 +164,8 @@ export function AnalyticsCanvas({
 						type: "arrowclosed" as MarkerType,
 						color: style.stroke,
 					},
-				};
-			});
+				}
+			})
 
 		return edges;
 	}, [
@@ -174,7 +174,7 @@ export function AnalyticsCanvas({
 		visibility.showMissingEdges,
 		visibility.showExcessiveEdges,
 		visibility.showNeutralEdges,
-	]);
+	])
 
 	return (
 		<div className="w-full h-full relative">
@@ -220,5 +220,5 @@ export function AnalyticsCanvas({
 				<Background gap={16} />
 			</ReactFlow>
 		</div>
-	);
+	)
 }

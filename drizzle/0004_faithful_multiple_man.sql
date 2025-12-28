@@ -1,1 +1,0 @@
-ALTER TABLE `assignments` ADD `start_date` integer;

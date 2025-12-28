@@ -427,8 +427,8 @@ const program = Effect.gen(function* () {
 							.update(goalMaps)
 							.set({
 								description: material.description,
-								nodes: JSON.stringify(material.nodes),
-								edges: JSON.stringify(material.edges),
+								nodes: material.nodes,
+								edges: material.edges,
 							})
 							.where(eq(goalMaps.id, existingGoalMap[0].id));
 					},
@@ -445,8 +445,8 @@ const program = Effect.gen(function* () {
 							teacherId: teacherId,
 							title: material.title,
 							description: material.description,
-							nodes: JSON.stringify(material.nodes),
-							edges: JSON.stringify(material.edges),
+							nodes: material.nodes,
+							edges: material.edges,
 							topicId: topicId,
 							textId: textId,
 						});

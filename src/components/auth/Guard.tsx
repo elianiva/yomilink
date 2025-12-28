@@ -15,8 +15,10 @@ type GuardProps = {
 /**
  * Role-based UI/page guard. Place around page content to restrict by role.
  * Example:
+ * ```tsx
  *   <Guard roles={["teacher", "admin"]}>...</Guard>
  *   <Guard roles={["student"]}>...</Guard>
+ * ```
  *
  * If roles is omitted or empty, it allows any authenticated user (or anyone when auth gate is disabled).
  */

@@ -5,36 +5,8 @@
     {
       "idx": 0,
       "version": "6",
-      "when": 1765697637888,
-      "tag": "0000_normal_bloodscream",
-      "breakpoints": true
-    },
-    {
-      "idx": 1,
-      "version": "6",
-      "when": 1766227660303,
-      "tag": "0001_wet_anthem",
-      "breakpoints": true
-    },
-    {
-      "idx": 2,
-      "version": "6",
-      "when": 1766227708266,
-      "tag": "0002_stiff_storm",
-      "breakpoints": true
-    },
-    {
-      "idx": 3,
-      "version": "6",
-      "when": 1766645138085,
-      "tag": "0003_small_blackheart",
-      "breakpoints": true
-    },
-    {
-      "idx": 4,
-      "version": "6",
-      "when": 1766727123073,
-      "tag": "0004_faithful_multiple_man",
+      "when": 1766898246041,
+      "tag": "0000_glorious_stark_industries",
       "breakpoints": true
     }
   ]

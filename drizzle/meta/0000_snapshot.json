@@ -1,9 +1,125 @@
 {
   "version": "6",
   "dialect": "sqlite",
-  "id": "a0201160-7a87-44e4-b4e4-0094263e78fd",
+  "id": "f3464f33-53e7-485d-820d-63ebdbbef55c",
   "prevId": "00000000-0000-0000-0000-000000000000",
   "tables": {
+    "assignment_targets": {
+      "name": "assignment_targets",
+      "columns": {
+        "id": {
+          "name": "id",
+          "type": "text",
+          "primaryKey": true,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "assignment_id": {
+          "name": "assignment_id",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "cohort_id": {
+          "name": "cohort_id",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false,
+          "autoincrement": false
+        },
+        "user_id": {
+          "name": "user_id",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false,
+          "autoincrement": false
+        },
+        "created_at": {
+          "name": "created_at",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false,
+          "default": "(cast(unixepoch('subsecond') * 1000 as integer))"
+        },
+        "updated_at": {
+          "name": "updated_at",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false,
+          "default": "(cast(unixepoch('subsecond') * 1000 as integer))"
+        }
+      },
+      "indexes": {
+        "assignment_targets_assignmentId_idx": {
+          "name": "assignment_targets_assignmentId_idx",
+          "columns": [
+            "assignment_id"
+          ],
+          "isUnique": false
+        },
+        "assignment_targets_cohortId_idx": {
+          "name": "assignment_targets_cohortId_idx",
+          "columns": [
+            "cohort_id"
+          ],
+          "isUnique": false
+        },
+        "assignment_targets_userId_idx": {
+          "name": "assignment_targets_userId_idx",
+          "columns": [
+            "user_id"
+          ],
+          "isUnique": false
+        }
+      },
+      "foreignKeys": {
+        "assignment_targets_assignment_id_assignments_id_fk": {
+          "name": "assignment_targets_assignment_id_assignments_id_fk",
+          "tableFrom": "assignment_targets",
+          "tableTo": "assignments",
+          "columnsFrom": [
+            "assignment_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
+          "onDelete": "cascade",
+          "onUpdate": "no action"
+        },
+        "assignment_targets_cohort_id_cohorts_id_fk": {
+          "name": "assignment_targets_cohort_id_cohorts_id_fk",
+          "tableFrom": "assignment_targets",
+          "tableTo": "cohorts",
+          "columnsFrom": [
+            "cohort_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
+          "onDelete": "cascade",
+          "onUpdate": "no action"
+        },
+        "assignment_targets_user_id_user_id_fk": {
+          "name": "assignment_targets_user_id_user_id_fk",
+          "tableFrom": "assignment_targets",
+          "tableTo": "user",
+          "columnsFrom": [
+            "user_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
+          "onDelete": "cascade",
+          "onUpdate": "no action"
+        }
+      },
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {},
+      "checkConstraints": {}
+    },
     "assignments": {
       "name": "assignments",
       "columns": {
@@ -38,6 +154,27 @@
         "description": {
           "name": "description",
           "type": "text",
+          "primaryKey": false,
+          "notNull": false,
+          "autoincrement": false
+        },
+        "reading_material": {
+          "name": "reading_material",
+          "type": "text(1000000)",
+          "primaryKey": false,
+          "notNull": false,
+          "autoincrement": false
+        },
+        "time_limit_minutes": {
+          "name": "time_limit_minutes",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": false,
+          "autoincrement": false
+        },
+        "start_date": {
+          "name": "start_date",
+          "type": "integer",
           "primaryKey": false,
           "notNull": false,
           "autoincrement": false
@@ -85,6 +222,13 @@
           "name": "assignments_kitId_idx",
           "columns": [
             "kit_id"
+          ],
+          "isUnique": false
+        },
+        "assignments_createdBy_idx": {
+          "name": "assignments_createdBy_idx",
+          "columns": [
+            "created_by"
           ],
           "isUnique": false
         }
@@ -674,6 +818,22 @@
           "notNull": false,
           "autoincrement": false
         },
+        "nodes": {
+          "name": "nodes",
+          "type": "text(1000000)",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false,
+          "default": "'[]'"
+        },
+        "edges": {
+          "name": "edges",
+          "type": "text(1000000)",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false,
+          "default": "'[]'"
+        },
         "created_at": {
           "name": "created_at",
           "type": "integer",
@@ -763,6 +923,13 @@
           "notNull": true,
           "autoincrement": false
         },
+        "assignment_id": {
+          "name": "assignment_id",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
         "goal_map_id": {
           "name": "goal_map_id",
           "type": "text",
@@ -839,6 +1006,13 @@
         }
       },
       "indexes": {
+        "learner_maps_assignmentId_idx": {
+          "name": "learner_maps_assignmentId_idx",
+          "columns": [
+            "assignment_id"
+          ],
+          "isUnique": false
+        },
         "learner_maps_goalMapId_idx": {
           "name": "learner_maps_goalMapId_idx",
           "columns": [
@@ -862,6 +1036,19 @@
         }
       },
       "foreignKeys": {
+        "learner_maps_assignment_id_assignments_id_fk": {
+          "name": "learner_maps_assignment_id_assignments_id_fk",
+          "tableFrom": "learner_maps",
+          "tableTo": "assignments",
+          "columnsFrom": [
+            "assignment_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
+          "onDelete": "no action",
+          "onUpdate": "no action"
+        },
         "learner_maps_goal_map_id_goal_maps_id_fk": {
           "name": "learner_maps_goal_map_id_goal_maps_id_fk",
           "tableFrom": "learner_maps",
@@ -919,6 +1106,13 @@
         },
         "metadata": {
           "name": "metadata",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false,
+          "autoincrement": false
+        },
+        "images": {
+          "name": "images",
           "type": "text",
           "primaryKey": false,
           "notNull": false,

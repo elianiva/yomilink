@@ -29,7 +29,7 @@ import {
 	exportAnalyticsData as exportAnalyticsDataFn,
 	type LearnerAnalytics,
 } from "@/server/rpc/analytics";
-import { AnalyticsCanvas } from "./analytics/canvas";
+import { AnalyticsCanvas } from "@/features/analyzer/components/canvas";
 
 export const Route = createFileRoute("/dashboard/analytics")({
 	component: () => (
