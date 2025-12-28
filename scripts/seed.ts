@@ -5,8 +5,17 @@ import { Effect, Layer, Schema } from "effect";
 import { Auth } from "@/lib/auth";
 import { randomString } from "@/lib/utils";
 import { Database, DatabaseLive } from "@/server/db/client";
-import { goalMaps, texts, topics } from "@/server/db/schema/app-schema";
-import { user } from "@/server/db/schema/auth-schema";
+import {
+	assignments,
+	assignmentTargets,
+	diagnoses,
+	goalMaps,
+	kits,
+	learnerMaps,
+	texts,
+	topics,
+} from "@/server/db/schema/app-schema";
+import { cohortMembers, cohorts, user } from "@/server/db/schema/auth-schema";
 
 const SeedUserSchema = Schema.Struct({
 	email: Schema.NonEmptyString,
@@ -45,6 +54,81 @@ const DEFAULT_USERS: readonly SeedUser[] = [
 		name: "Student One",
 		roles: ["student"],
 	},
+	// Demo students for the assignment demo
+	{
+		email: "tanaka@demo.local",
+		password: "demo12345",
+		name: "Tanaka Yuki",
+		roles: ["student"],
+	},
+	{
+		email: "suzuki@demo.local",
+		password: "demo12345",
+		name: "Suzuki Hana",
+		roles: ["student"],
+	},
+	{
+		email: "yamamoto@demo.local",
+		password: "demo12345",
+		name: "Yamamoto Kenji",
+		roles: ["student"],
+	},
+	{
+		email: "watanabe@demo.local",
+		password: "demo12345",
+		name: "Watanabe Mei",
+		roles: ["student"],
+	},
+	{
+		email: "takahashi@demo.local",
+		password: "demo12345",
+		name: "Takahashi Ryo",
+		roles: ["student"],
+	},
+	{
+		email: "ito@demo.local",
+		password: "demo12345",
+		name: "Ito Sakura",
+		roles: ["student"],
+	},
+	{
+		email: "nakamura@demo.local",
+		password: "demo12345",
+		name: "Nakamura Sota",
+		roles: ["student"],
+	},
+	{
+		email: "kobayashi@demo.local",
+		password: "demo12345",
+		name: "Kobayashi Rin",
+		roles: ["student"],
+	},
+	{
+		email: "kato@demo.local",
+		password: "demo12345",
+		name: "Kato Haruto",
+		roles: ["student"],
+	},
+	{
+		email: "matsumoto@demo.local",
+		password: "demo12345",
+		name: "Matsumoto Yui",
+		roles: ["student"],
+	},
+];
+
+// Demo student emails for cohort creation
+const DEMO_STUDENT_EMAILS = [
+	"tanaka@demo.local",
+	"suzuki@demo.local",
+	"yamamoto@demo.local",
+	"watanabe@demo.local",
+	"takahashi@demo.local",
+	"ito@demo.local",
+	"nakamura@demo.local",
+	"kobayashi@demo.local",
+	"kato@demo.local",
+	"matsumoto@demo.local",
 ];
 
 interface MaterialData {
@@ -263,15 +347,321 @@ for (const material of MATERIALS) {
 	GOAL_MAP_TO_MATERIAL[material.title] = material;
 }
 
+// Hiragana Vowels goal map has 18 edges (e1-e18)
+// Full edges list for reference:
+// e1: vowels -> a
+// e2: vowels -> i
+// e3: vowels -> u
+// e4: vowels -> e
+// e5: vowels -> o
+// e6: a -> pronunciation
+// e7: i -> pronunciation
+// e8: u -> pronunciation
+// e9: e -> pronunciation
+// e10: o -> pronunciation
+// e11: a -> writing
+// e12: i -> writing
+// e13: u -> writing
+// e14: e -> writing
+// e15: o -> writing
+// e16: pronunciation -> practice
+// e17: writing -> practice
+// e18: practice -> memory
+
+// Learner map configurations for demo
+// Each config specifies which edges to include (correct edges)
+// Missing edges = goal edges not in learner edges
+// Excessive edges = learner edges not in goal edges
+interface LearnerMapConfig {
+	studentEmail: string;
+	attempt: number;
+	// Edge IDs to include (correct edges)
+	correctEdgeIds: string[];
+	// Excessive edges (wrong connections)
+	excessiveEdges: Array<{ source: string; target: string }>;
+	expectedScore: number; // For verification
+}
+
+const LEARNER_MAP_CONFIGS: LearnerMapConfig[] = [
+	// 1. Tanaka Yuki - Perfect score (100%)
+	{
+		studentEmail: "tanaka@demo.local",
+		attempt: 1,
+		correctEdgeIds: [
+			"e1",
+			"e2",
+			"e3",
+			"e4",
+			"e5",
+			"e6",
+			"e7",
+			"e8",
+			"e9",
+			"e10",
+			"e11",
+			"e12",
+			"e13",
+			"e14",
+			"e15",
+			"e16",
+			"e17",
+			"e18",
+		],
+		excessiveEdges: [],
+		expectedScore: 1.0, // 18/18 = 100%
+	},
+	// 2. Suzuki Hana - Near perfect (94%, 17/18)
+	{
+		studentEmail: "suzuki@demo.local",
+		attempt: 1,
+		correctEdgeIds: [
+			"e1",
+			"e2",
+			"e3",
+			"e4",
+			"e5",
+			"e6",
+			"e7",
+			"e8",
+			"e9",
+			"e10",
+			"e11",
+			"e12",
+			"e13",
+			"e14",
+			"e15",
+			"e16",
+			"e17",
+			// Missing e18 (practice -> memory)
+		],
+		excessiveEdges: [],
+		expectedScore: 0.94, // 17/18
+	},
+	// 3. Yamamoto Kenji - Good (83%, 15/18)
+	{
+		studentEmail: "yamamoto@demo.local",
+		attempt: 1,
+		correctEdgeIds: [
+			"e1",
+			"e2",
+			"e3",
+			"e4",
+			"e5",
+			"e6",
+			"e7",
+			"e8",
+			"e9",
+			"e10",
+			"e11",
+			"e12",
+			"e13",
+			"e14",
+			"e15",
+			// Missing e16, e17, e18
+		],
+		excessiveEdges: [],
+		expectedScore: 0.83, // 15/18
+	},
+	// 4. Watanabe Mei - Good with some extras (78%, 14/18)
+	{
+		studentEmail: "watanabe@demo.local",
+		attempt: 1,
+		correctEdgeIds: [
+			"e1",
+			"e2",
+			"e3",
+			"e4",
+			"e5",
+			"e6",
+			"e7",
+			"e8",
+			"e9",
+			"e10",
+			"e11",
+			"e12",
+			"e13",
+			"e14",
+			// Missing e15, e16, e17, e18
+		],
+		excessiveEdges: [
+			{ source: "vowels", target: "practice" }, // Wrong direct connection
+		],
+		expectedScore: 0.78, // 14/18
+	},
+	// 5. Takahashi Ryo - First attempt (56%, 10/18)
+	{
+		studentEmail: "takahashi@demo.local",
+		attempt: 1,
+		correctEdgeIds: [
+			"e1",
+			"e2",
+			"e3",
+			"e4",
+			"e5",
+			"e6",
+			"e7",
+			"e8",
+			"e9",
+			"e10",
+			// Missing e11-e18
+		],
+		excessiveEdges: [
+			{ source: "a", target: "memory" }, // Wrong connection
+		],
+		expectedScore: 0.56, // 10/18
+	},
+	// 6. Takahashi Ryo - Second attempt improved (89%, 16/18)
+	{
+		studentEmail: "takahashi@demo.local",
+		attempt: 2,
+		correctEdgeIds: [
+			"e1",
+			"e2",
+			"e3",
+			"e4",
+			"e5",
+			"e6",
+			"e7",
+			"e8",
+			"e9",
+			"e10",
+			"e11",
+			"e12",
+			"e13",
+			"e14",
+			"e15",
+			"e16",
+			// Missing e17, e18
+		],
+		excessiveEdges: [],
+		expectedScore: 0.89, // 16/18
+	},
+	// 7. Ito Sakura - Average (67%, 12/18)
+	{
+		studentEmail: "ito@demo.local",
+		attempt: 1,
+		correctEdgeIds: [
+			"e1",
+			"e2",
+			"e3",
+			"e4",
+			"e5",
+			"e6",
+			"e7",
+			"e8",
+			"e9",
+			"e10",
+			"e11",
+			"e12",
+			// Missing e13-e18
+		],
+		excessiveEdges: [],
+		expectedScore: 0.67, // 12/18
+	},
+	// 8. Nakamura Sota - Below average (61%, 11/18)
+	{
+		studentEmail: "nakamura@demo.local",
+		attempt: 1,
+		correctEdgeIds: [
+			"e1",
+			"e2",
+			"e3",
+			"e4",
+			"e5",
+			"e6",
+			"e7",
+			"e8",
+			"e9",
+			"e10",
+			"e11",
+			// Missing e12-e18
+		],
+		excessiveEdges: [
+			{ source: "pronunciation", target: "memory" }, // Skipped practice
+		],
+		expectedScore: 0.61, // 11/18
+	},
+	// 9. Kobayashi Rin - Struggling (39%, 7/18)
+	{
+		studentEmail: "kobayashi@demo.local",
+		attempt: 1,
+		correctEdgeIds: [
+			"e1",
+			"e2",
+			"e3",
+			"e4",
+			"e5",
+			"e6",
+			"e7",
+			// Missing e8-e18
+		],
+		excessiveEdges: [
+			{ source: "vowels", target: "memory" }, // Wrong direct connection
+			{ source: "a", target: "practice" }, // Wrong connection
+		],
+		expectedScore: 0.39, // 7/18
+	},
+	// 10. Kato Haruto - Good (72%, 13/18)
+	{
+		studentEmail: "kato@demo.local",
+		attempt: 1,
+		correctEdgeIds: [
+			"e1",
+			"e2",
+			"e3",
+			"e4",
+			"e5",
+			"e6",
+			"e7",
+			"e8",
+			"e9",
+			"e10",
+			"e11",
+			"e12",
+			"e13",
+			// Missing e14-e18
+		],
+		excessiveEdges: [],
+		expectedScore: 0.72, // 13/18
+	},
+	// 11. Matsumoto Yui - Good (78%, 14/18)
+	{
+		studentEmail: "matsumoto@demo.local",
+		attempt: 1,
+		correctEdgeIds: [
+			"e1",
+			"e2",
+			"e3",
+			"e4",
+			"e5",
+			"e6",
+			"e7",
+			"e8",
+			"e9",
+			"e10",
+			"e16",
+			"e17",
+			"e18",
+			"e11",
+			// Missing e12, e13, e14, e15
+		],
+		excessiveEdges: [],
+		expectedScore: 0.78, // 14/18
+	},
+];
+
 const program = Effect.gen(function* () {
 	const authService = yield* Auth;
 	const db = yield* Database;
 
 	console.log("Seeding database...");
 
+	// Track user IDs by email for later use
+	const userIdsByEmail: Record<string, string> = {};
+	let teacherId = "";
+
 	// Seed users first
 	console.log(`Seeding ${DEFAULT_USERS.length} users...`);
-	let teacherId = "";
 
 	for (const seedUser of DEFAULT_USERS) {
 		// Try to find existing user first
@@ -318,6 +708,9 @@ const program = Effect.gen(function* () {
 			});
 		}
 
+		// Track user ID
+		userIdsByEmail[seedUser.email] = userId;
+
 		// Track teacher ID for goal maps
 		if (seedUser.roles?.includes("teacher")) {
 			teacherId = userId;
@@ -328,6 +721,13 @@ const program = Effect.gen(function* () {
 	console.log(
 		`Seeding ${TOPICS.length} topics with ${MATERIALS.length} goal maps...`,
 	);
+
+	// Track goal map IDs by title for later use
+	const goalMapIdsByTitle: Record<string, string> = {};
+	const goalMapDataByTitle: Record<
+		string,
+		{ nodes: MaterialData["nodes"]; edges: MaterialData["edges"] }
+	> = {};
 
 	for (const topicData of TOPICS) {
 		// Check if topic exists by title
@@ -420,7 +820,9 @@ const program = Effect.gen(function* () {
 					.limit(1),
 			);
 
+			let goalMapId: string;
 			if (existingGoalMap[0]) {
+				goalMapId = existingGoalMap[0].id;
 				yield* Effect.tryPromise({
 					try: async () => {
 						await db
@@ -430,14 +832,14 @@ const program = Effect.gen(function* () {
 								nodes: material.nodes,
 								edges: material.edges,
 							})
-							.where(eq(goalMaps.id, existingGoalMap[0].id));
+							.where(eq(goalMaps.id, goalMapId));
 					},
 					catch: (error) =>
 						new Error(`Failed to update goal map ${material.title}: ${error}`),
 				});
 				console.log(`  Updated goal map: ${material.title}`);
 			} else {
-				const goalMapId = randomString();
+				goalMapId = randomString();
 				yield* Effect.tryPromise({
 					try: async () => {
 						await db.insert(goalMaps).values({
@@ -456,10 +858,357 @@ const program = Effect.gen(function* () {
 				});
 				console.log(`  Created goal map: ${material.title}`);
 			}
+
+			// Track goal map ID and data
+			goalMapIdsByTitle[material.title] = goalMapId;
+			goalMapDataByTitle[material.title] = {
+				nodes: material.nodes,
+				edges: material.edges,
+			};
 		}
 	}
 
-	console.log("Seed completed.");
+	// ============================================
+	// DEMO DATA: Cohort, Kit, Assignment, Learner Maps, Diagnoses
+	// ============================================
+
+	console.log("\n--- Creating Demo Data ---\n");
+
+	// 1. Create Demo Cohort
+	console.log("Creating demo cohort...");
+	const demoCohortName = "Demo Class 2025";
+
+	const existingCohort = yield* Effect.tryPromise(() =>
+		db.select().from(cohorts).where(eq(cohorts.name, demoCohortName)).limit(1),
+	);
+
+	let demoCohortId: string;
+	if (existingCohort[0]) {
+		demoCohortId = existingCohort[0].id;
+		console.log(`  Cohort "${demoCohortName}" already exists`);
+	} else {
+		demoCohortId = randomString();
+		yield* Effect.tryPromise({
+			try: async () => {
+				await db.insert(cohorts).values({
+					id: demoCohortId,
+					name: demoCohortName,
+					description: "Demo class for professor presentation",
+				});
+			},
+			catch: (error) => new Error(`Failed to create cohort: ${error}`),
+		});
+		console.log(`  Created cohort: ${demoCohortName}`);
+	}
+
+	// 2. Add demo students to cohort
+	console.log("Adding demo students to cohort...");
+	for (const studentEmail of DEMO_STUDENT_EMAILS) {
+		const studentId = userIdsByEmail[studentEmail];
+		if (!studentId) {
+			console.warn(`  Student ${studentEmail} not found, skipping...`);
+			continue;
+		}
+
+		// Check if already a member
+		const existingMember = yield* Effect.tryPromise(() =>
+			db
+				.select()
+				.from(cohortMembers)
+				.where(eq(cohortMembers.cohortId, demoCohortId))
+				.limit(100),
+		);
+
+		const alreadyMember = existingMember.some((m) => m.userId === studentId);
+		if (alreadyMember) {
+			console.log(`  ${studentEmail} already in cohort`);
+			continue;
+		}
+
+		yield* Effect.tryPromise({
+			try: async () => {
+				await db.insert(cohortMembers).values({
+					id: randomString(),
+					cohortId: demoCohortId,
+					userId: studentId,
+					role: "member",
+				});
+			},
+			catch: (error) =>
+				new Error(`Failed to add ${studentEmail} to cohort: ${error}`),
+		});
+		console.log(`  Added ${studentEmail} to cohort`);
+	}
+
+	// 3. Create Kit for Hiragana Vowels goal map
+	console.log("Creating kit for Hiragana Vowels...");
+	const hiraganaVowelsGoalMapId = goalMapIdsByTitle["Hiragana Vowels"];
+	const hiraganaVowelsData = goalMapDataByTitle["Hiragana Vowels"];
+
+	if (!hiraganaVowelsGoalMapId || !hiraganaVowelsData) {
+		console.error("Hiragana Vowels goal map not found!");
+		return;
+	}
+
+	// Get textId for the goal map
+	const hiraganaVowelsGoalMap = yield* Effect.tryPromise(() =>
+		db
+			.select()
+			.from(goalMaps)
+			.where(eq(goalMaps.id, hiraganaVowelsGoalMapId))
+			.limit(1),
+	);
+
+	const hiraganaVowelsTextId = hiraganaVowelsGoalMap[0]?.textId || null;
+
+	const kitName = "Hiragana Vowels Kit";
+	const existingKit = yield* Effect.tryPromise(() =>
+		db.select().from(kits).where(eq(kits.name, kitName)).limit(1),
+	);
+
+	let demoKitId: string;
+	if (existingKit[0]) {
+		demoKitId = existingKit[0].id;
+		console.log(`  Kit "${kitName}" already exists`);
+	} else {
+		demoKitId = randomString();
+		const kitKitId = randomString(); // The unique kit identifier
+
+		yield* Effect.tryPromise({
+			try: async () => {
+				await db.insert(kits).values({
+					id: demoKitId,
+					kitId: kitKitId,
+					name: kitName,
+					layout: "preset",
+					enabled: true,
+					goalMapId: hiraganaVowelsGoalMapId,
+					teacherId: teacherId,
+					textId: hiraganaVowelsTextId,
+					// Nodes from goal map (for students to arrange)
+					nodes: JSON.stringify(hiraganaVowelsData.nodes),
+					// Empty edges (students need to create these)
+					edges: "[]",
+				});
+			},
+			catch: (error) => new Error(`Failed to create kit: ${error}`),
+		});
+		console.log(`  Created kit: ${kitName}`);
+	}
+
+	// 4. Create Assignment
+	console.log("Creating assignment...");
+	const assignmentTitle = "Hiragana Vowels Quiz";
+
+	const existingAssignment = yield* Effect.tryPromise(() =>
+		db
+			.select()
+			.from(assignments)
+			.where(eq(assignments.title, assignmentTitle))
+			.limit(1),
+	);
+
+	let demoAssignmentId: string;
+	// Dates: started 2 weeks ago, due 1 week ago (already completed)
+	const twoWeeksAgo = new Date(Date.now() - 14 * 24 * 60 * 60 * 1000);
+	const oneWeekAgo = new Date(Date.now() - 7 * 24 * 60 * 60 * 1000);
+
+	if (existingAssignment[0]) {
+		demoAssignmentId = existingAssignment[0].id;
+		console.log(`  Assignment "${assignmentTitle}" already exists`);
+	} else {
+		demoAssignmentId = randomString();
+
+		yield* Effect.tryPromise({
+			try: async () => {
+				await db.insert(assignments).values({
+					id: demoAssignmentId,
+					goalMapId: hiraganaVowelsGoalMapId,
+					kitId: demoKitId,
+					title: assignmentTitle,
+					description:
+						"Learn the five basic hiragana vowels by creating a concept map.",
+					timeLimitMinutes: 30,
+					startDate: twoWeeksAgo,
+					dueAt: oneWeekAgo,
+					createdBy: teacherId,
+				});
+			},
+			catch: (error) => new Error(`Failed to create assignment: ${error}`),
+		});
+		console.log(`  Created assignment: ${assignmentTitle}`);
+	}
+
+	// 5. Create Assignment Target (link to cohort)
+	console.log("Linking assignment to cohort...");
+	const existingTarget = yield* Effect.tryPromise(() =>
+		db
+			.select()
+			.from(assignmentTargets)
+			.where(eq(assignmentTargets.assignmentId, demoAssignmentId))
+			.limit(1),
+	);
+
+	if (existingTarget[0]) {
+		console.log("  Assignment already linked to cohort");
+	} else {
+		yield* Effect.tryPromise({
+			try: async () => {
+				await db.insert(assignmentTargets).values({
+					id: randomString(),
+					assignmentId: demoAssignmentId,
+					cohortId: demoCohortId,
+					userId: null,
+				});
+			},
+			catch: (error) =>
+				new Error(`Failed to link assignment to cohort: ${error}`),
+		});
+		console.log("  Linked assignment to cohort");
+	}
+
+	// 6. Create Learner Maps and Diagnoses
+	console.log("Creating learner maps and diagnoses...");
+
+	// Build edge lookup from goal map
+	const goalEdges = hiraganaVowelsData.edges;
+	const edgeById: Record<string, { source: string; target: string }> = {};
+	for (const edge of goalEdges) {
+		edgeById[edge.id] = { source: edge.source, target: edge.target };
+	}
+
+	// Submission date (1 week ago, a few hours before due date)
+	const submissionDate = new Date(oneWeekAgo.getTime() - 3 * 60 * 60 * 1000);
+
+	for (const config of LEARNER_MAP_CONFIGS) {
+		const studentId = userIdsByEmail[config.studentEmail];
+		if (!studentId) {
+			console.warn(`  Student ${config.studentEmail} not found, skipping...`);
+			continue;
+		}
+
+		// Check if learner map already exists for this student and attempt
+		const existingLearnerMap = yield* Effect.tryPromise(() =>
+			db
+				.select()
+				.from(learnerMaps)
+				.where(eq(learnerMaps.assignmentId, demoAssignmentId))
+				.limit(100),
+		);
+
+		const alreadyExists = existingLearnerMap.some(
+			(lm) => lm.userId === studentId && lm.attempt === config.attempt,
+		);
+
+		if (alreadyExists) {
+			console.log(
+				`  Learner map for ${config.studentEmail} attempt ${config.attempt} already exists`,
+			);
+			continue;
+		}
+
+		// Build learner edges from config
+		const learnerEdges: Array<{ id: string; source: string; target: string }> =
+			[];
+
+		// Add correct edges
+		for (const edgeId of config.correctEdgeIds) {
+			const edge = edgeById[edgeId];
+			if (edge) {
+				learnerEdges.push({
+					id: edgeId,
+					source: edge.source,
+					target: edge.target,
+				});
+			}
+		}
+
+		// Add excessive edges (wrong connections)
+		for (let i = 0; i < config.excessiveEdges.length; i++) {
+			const excessive = config.excessiveEdges[i];
+			learnerEdges.push({
+				id: `excess-${i + 1}`,
+				source: excessive.source,
+				target: excessive.target,
+			});
+		}
+
+		// Create learner map
+		const learnerMapId = randomString();
+		yield* Effect.tryPromise({
+			try: async () => {
+				await db.insert(learnerMaps).values({
+					id: learnerMapId,
+					assignmentId: demoAssignmentId,
+					goalMapId: hiraganaVowelsGoalMapId,
+					kitId: demoKitId,
+					userId: studentId,
+					nodes: JSON.stringify(hiraganaVowelsData.nodes),
+					edges: JSON.stringify(learnerEdges),
+					status: "submitted",
+					attempt: config.attempt,
+					submittedAt: submissionDate,
+				});
+			},
+			catch: (error) =>
+				new Error(
+					`Failed to create learner map for ${config.studentEmail}: ${error}`,
+				),
+		});
+		console.log(
+			`  Created learner map for ${config.studentEmail} (attempt ${config.attempt})`,
+		);
+
+		// Calculate actual score
+		const correctCount = config.correctEdgeIds.length;
+		const totalGoalEdges = 18; // Hiragana Vowels has 18 edges
+		const score = Math.round((correctCount / totalGoalEdges) * 100) / 100;
+
+		// Build per-link diagnosis data
+		const perLink = {
+			correct: config.correctEdgeIds.map((edgeId) => {
+				const edge = edgeById[edgeId];
+				return { source: edge?.source, target: edge?.target, edgeId };
+			}),
+			missing: goalEdges
+				.filter((e) => !config.correctEdgeIds.includes(e.id))
+				.map((e) => ({ source: e.source, target: e.target, edgeId: e.id })),
+			excessive: config.excessiveEdges.map((e, i) => ({
+				source: e.source,
+				target: e.target,
+				edgeId: `excess-${i + 1}`,
+			})),
+		};
+
+		// Create diagnosis
+		yield* Effect.tryPromise({
+			try: async () => {
+				await db.insert(diagnoses).values({
+					id: randomString(),
+					goalMapId: hiraganaVowelsGoalMapId,
+					learnerMapId: learnerMapId,
+					summary: `Score: ${Math.round(score * 100)}% (${correctCount}/${totalGoalEdges} correct edges)`,
+					perLink: perLink,
+					score: score,
+					rubricVersion: "v1.0",
+				});
+			},
+			catch: (error) =>
+				new Error(
+					`Failed to create diagnosis for ${config.studentEmail}: ${error}`,
+				),
+		});
+		console.log(
+			`  Created diagnosis for ${config.studentEmail}: ${Math.round(score * 100)}%`,
+		);
+	}
+
+	console.log("\n--- Seed completed ---");
+	console.log("\nDemo credentials:");
+	console.log("  Teacher: teacher@yomilink.local / teacher123");
+	console.log("  Demo students: [name]@demo.local / demo12345");
+	console.log("    - tanaka, suzuki, yamamoto, watanabe, takahashi");
+	console.log("    - ito, nakamura, kobayashi, kato, matsumoto");
 }).pipe(Effect.provide(Layer.mergeAll(DatabaseLive, Auth.Default)));
 
 Effect.runPromise(program);
