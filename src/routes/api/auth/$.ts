@@ -11,8 +11,20 @@ const authHandler = (request: Request) =>
 		Effect.provide(Auth.Default),
 		Effect.catchTag("UnknownException", (exception) =>
 			Effect.gen(function* () {
-				// TODO: better logging with sentry
-				yield* Effect.log(exception);
+				const errorDetails =
+					exception instanceof Error
+						? {
+								message: exception.message,
+								stack: exception.stack,
+							}
+						: {
+								message: String(exception),
+							};
+				yield* Effect.logError("Auth handler failed", {
+					...errorDetails,
+					method: request.method,
+					url: request.url,
+				});
 				return Response.json(
 					{ message: "Internal Server Error" },
 					{ status: 500 },

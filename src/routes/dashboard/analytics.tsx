@@ -1,5 +1,5 @@
 import { useMutation, useQuery } from "@tanstack/react-query";
-import { createFileRoute } from "@tanstack/react-router";
+import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { Activity, Download, RefreshCw, Search } from "lucide-react";
 import { useCallback, useMemo, useState } from "react";
 import { toast } from "sonner";
@@ -69,6 +69,8 @@ function AnalyticsPage() {
 	>("All");
 
 	const tooltipHandle = createTooltipHandle();
+
+	const navigate = useNavigate();
 
 	const [showGoalMap, setShowGoalMap] = useState(true);
 	const [showLearnerMap, setShowLearnerMap] = useState(true);
@@ -361,7 +363,17 @@ function AnalyticsPage() {
 								<ToolbarButton
 									icon={Activity}
 									label="Metrics"
-									onClick={() => toast.info("Metrics feature coming soon")}
+									onClick={() => {
+										if (!selectedAssignmentId) {
+											toast.error("Please select an assignment first");
+											return;
+										}
+										navigate({
+											to: "/dashboard/analytics/$assignmentId/metrics",
+											params: { assignmentId: selectedAssignmentId },
+										});
+									}}
+									disabled={!selectedAssignmentId}
 									handle={tooltipHandle}
 								/>
 							</div>
