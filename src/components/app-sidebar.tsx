@@ -1,12 +1,10 @@
 import { useQuery } from "@tanstack/react-query";
 import {
-	ActivityIcon,
 	BookOpenIcon,
 	ClipboardListIcon,
 	LayoutPanelLeftIcon,
 	type LucideIcon,
 	ScanSearchIcon,
-	SettingsIcon,
 } from "lucide-react";
 import { useMemo } from "react";
 import { NavMain } from "@/components/nav-main";
@@ -49,18 +47,6 @@ const NAVBAR_ITEMS: NavItemWithRoles[] = [
 		url: "/dashboard/analytics",
 		icon: ScanSearchIcon,
 		roles: ["teacher", "admin"],
-	},
-	{
-		title: "Dynamic Analyzer",
-		url: "/dashboard/results",
-		icon: ActivityIcon,
-		roles: ["teacher", "admin"],
-	},
-	{
-		title: "System Administration",
-		url: "/dashboard/rooms",
-		icon: SettingsIcon,
-		roles: ["admin"],
 	},
 	// Student items
 	{

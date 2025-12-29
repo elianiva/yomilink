@@ -6,17 +6,6 @@
 - [ ] `src/lib/auth.ts:67` - Better error handling (currently just logs to console)
 - [ ] `src/routes/api/auth/$.ts:14` - Better logging with Sentry
 
-### Incomplete Pages
-- [ ] `src/routes/dashboard/results.tsx` - **Dynamic Analyzer page**
-  - Contains hardcoded `demoSessions` array with mock data
-  - Toolbar buttons (Undo/Redo, Zoom, Export, Clear) have no functionality
-  - Group Analysis sliders, timeline slider not wired up
-- [ ] `src/routes/dashboard/rooms.tsx` - **System Administration page**
-  - Contains extensive hardcoded dummy data (users, groups, roles, etc.)
-  - All CRUD buttons (View, Edit, Delete, Create) render UI only with no implementation
-- [ ] `src/routes/dashboard/assignments/archived.tsx` - **Archived Assignments page**
-  - Hardcoded mock data, no actual data fetching
-
 ### Coming Soon Features
 - [ ] `src/routes/dashboard/analytics.tsx:364` - Metrics feature (shows "coming soon" toast)
 

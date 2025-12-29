@@ -1,5 +1,5 @@
 import { useQuery } from "@tanstack/react-query";
-import { createFileRoute, Link } from "@tanstack/react-router";
+import { createFileRoute } from "@tanstack/react-router";
 import {
 	AlertCircleIcon,
 	BookOpenIcon,
@@ -55,19 +55,14 @@ function AssignmentsPage() {
 
 	return (
 		<div className="space-y-6">
-			<div className="flex items-center justify-between">
-				<div>
-					<h1 className="text-2xl font-semibold flex items-center gap-2">
-						<BookOpenIcon className="size-6" />
-						My Assignments
-					</h1>
-					<p className="text-muted-foreground">
-						View and complete your assigned concept maps
-					</p>
-				</div>
-				<Button asChild variant="outline" size="sm">
-					<Link to="/dashboard/assignments/archived">View archived</Link>
-				</Button>
+			<div>
+				<h1 className="text-2xl font-semibold flex items-center gap-2">
+					<BookOpenIcon className="size-6" />
+					My Assignments
+				</h1>
+				<p className="text-muted-foreground">
+					View and complete your assigned concept maps
+				</p>
 			</div>
 
 			{assignments && assignments.length > 0 ? (
