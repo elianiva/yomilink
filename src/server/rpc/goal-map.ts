@@ -6,7 +6,7 @@ import { authMiddleware } from "@/middlewares/auth";
 import { requireGoalMapOwner } from "@/lib/auth-authorization";
 import { goalMaps, kits, texts } from "@/server/db/schema/app-schema";
 import { Database, DatabaseLive } from "../db/client";
-import { GoalMapValidator } from "@/features/goal-map/lib/validator";
+import { validateNodes } from "@/features/goal-map/lib/validator";
 
 const GetGoalMapSchema = Schema.Struct({
 	id: Schema.NonEmptyString,
@@ -134,8 +134,7 @@ export const saveGoalMap = createServerFn()
 			}
 
 			// Validate goal map structure
-			const validator = yield* GoalMapValidator;
-			const validationResult = yield* validator.validateNodes(
+			const validationResult = yield* validateNodes(
 				data.nodes as any[],
 				data.edges as any[],
 			);
@@ -235,7 +234,6 @@ export const saveGoalMap = createServerFn()
 			} as const;
 		}).pipe(
 			Effect.withSpan("saveGoalMap"),
-			Effect.provide(GoalMapValidator.Default),
 			Effect.provide(DatabaseLive),
 			Effect.runPromise,
 		),

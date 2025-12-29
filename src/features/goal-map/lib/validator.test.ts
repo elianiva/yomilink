@@ -1,15 +1,14 @@
 import { describe, expect, it } from "@effect/vitest";
 import { Effect } from "effect";
 import {
-	GoalMapValidator,
 	detectCycles,
 	findConnectedComponents,
+	validateNodes,
 } from "./validator";
 
 describe("GoalMapValidator", () => {
 	it.effect("should validate a correct KBFIRA structure", () =>
 		Effect.gen(function* () {
-			const validator = yield* GoalMapValidator;
 			const nodes = [
 				{
 					id: "root",
@@ -41,15 +40,14 @@ describe("GoalMapValidator", () => {
 				{ id: "edge2", source: "link", target: "child1" },
 				{ id: "edge3", source: "link", target: "child2" },
 			];
-			const result = yield* validator.validateNodes(nodes, edges);
+			const result = yield* validateNodes(nodes, edges);
 			expect(result.isValid).toBe(true);
 			expect(result.errors).toEqual([]);
-		}).pipe(Effect.provide(GoalMapValidator.Default)),
+		}),
 	);
 
 	it.effect("should reject goal map with insufficient nodes", () =>
 		Effect.gen(function* () {
-			const validator = yield* GoalMapValidator;
 			const nodes = [
 				{
 					id: "root",
@@ -65,17 +63,16 @@ describe("GoalMapValidator", () => {
 				},
 			];
 			const edges = [{ id: "edge1", source: "root", target: "link" }];
-			const result = yield* validator.validateNodes(nodes, edges);
+			const result = yield* validateNodes(nodes, edges);
 			expect(result.isValid).toBe(false);
 			expect(result.errors).toContain(
 				"At least 2 concept nodes (text/image) required",
 			);
-		}).pipe(Effect.provide(GoalMapValidator.Default)),
+		}),
 	);
 
 	it.effect("should reject goal map with insufficient connectors", () =>
 		Effect.gen(function* () {
-			const validator = yield* GoalMapValidator;
 			const nodes = [
 				{
 					id: "root",
@@ -91,15 +88,14 @@ describe("GoalMapValidator", () => {
 				},
 			];
 			const edges = [{ id: "edge1", source: "root", target: "child1" }];
-			const result = yield* validator.validateNodes(nodes, edges);
+			const result = yield* validateNodes(nodes, edges);
 			expect(result.isValid).toBe(false);
 			expect(result.errors).toContain("At least 1 connector node required");
-		}).pipe(Effect.provide(GoalMapValidator.Default)),
+		}),
 	);
 
 	it.effect("should reject goal map with insufficient edges", () =>
 		Effect.gen(function* () {
-			const validator = yield* GoalMapValidator;
 			const nodes = [
 				{
 					id: "root",
@@ -121,15 +117,14 @@ describe("GoalMapValidator", () => {
 				},
 			];
 			const edges = [{ id: "edge1", source: "root", target: "link" }];
-			const result = yield* validator.validateNodes(nodes, edges);
+			const result = yield* validateNodes(nodes, edges);
 			expect(result.isValid).toBe(false);
 			expect(result.errors).toContain("At least 2 edges required");
-		}).pipe(Effect.provide(GoalMapValidator.Default)),
+		}),
 	);
 
 	it.effect("should reject goal map with non-unique node IDs", () =>
 		Effect.gen(function* () {
-			const validator = yield* GoalMapValidator;
 			const nodes = [
 				{
 					id: "root",
@@ -154,15 +149,14 @@ describe("GoalMapValidator", () => {
 				{ id: "edge1", source: "root", target: "link" },
 				{ id: "edge2", source: "link", target: "root" },
 			];
-			const result = yield* validator.validateNodes(nodes, edges);
+			const result = yield* validateNodes(nodes, edges);
 			expect(result.isValid).toBe(false);
 			expect(result.errors).toContain("All node IDs must be unique");
-		}).pipe(Effect.provide(GoalMapValidator.Default)),
+		}),
 	);
 
 	it.effect("should reject goal map with invalid edge references", () =>
 		Effect.gen(function* () {
-			const validator = yield* GoalMapValidator;
 			const nodes = [
 				{
 					id: "root",
@@ -181,17 +175,16 @@ describe("GoalMapValidator", () => {
 				{ id: "edge1", source: "root", target: "link" },
 				{ id: "edge2", source: "nonexistent", target: "link" },
 			];
-			const result = yield* validator.validateNodes(nodes, edges);
+			const result = yield* validateNodes(nodes, edges);
 			expect(result.isValid).toBe(false);
-			expect(result.errors.some((e) => e.includes("does not exist"))).toBe(
-				true,
-			);
-		}).pipe(Effect.provide(GoalMapValidator.Default)),
+			expect(
+				result.errors.some((e: string) => e.includes("does not exist")),
+			).toBe(true);
+		}),
 	);
 
 	it.effect("should reject goal map with disconnected connectors", () =>
 		Effect.gen(function* () {
-			const validator = yield* GoalMapValidator;
 			const nodes = [
 				{
 					id: "root",
@@ -213,19 +206,18 @@ describe("GoalMapValidator", () => {
 				},
 			];
 			const edges = [{ id: "edge1", source: "root", target: "child1" }];
-			const result = yield* validator.validateNodes(nodes, edges);
+			const result = yield* validateNodes(nodes, edges);
 			expect(result.isValid).toBe(false);
 			expect(
 				result.errors.some(
-					(e) => e.includes("has no") && e.includes("connections"),
+					(e: string) => e.includes("has no") && e.includes("connections"),
 				),
 			).toBe(true);
-		}).pipe(Effect.provide(GoalMapValidator.Default)),
+		}),
 	);
 
 	it.effect("should compose propositions correctly", () =>
 		Effect.gen(function* () {
-			const validator = yield* GoalMapValidator;
 			const nodes = [
 				{
 					id: "cat",
@@ -250,19 +242,18 @@ describe("GoalMapValidator", () => {
 				{ id: "edge1", source: "cat", target: "is" },
 				{ id: "edge2", source: "is", target: "animal" },
 			];
-			const result = yield* validator.validateNodes(nodes, edges);
+			const result = yield* validateNodes(nodes, edges);
 			expect(result.propositions).toHaveLength(1);
 			expect(result.propositions[0]).toEqual({
 				sourceId: "cat",
 				linkId: "is",
 				targetId: "animal",
 			});
-		}).pipe(Effect.provide(GoalMapValidator.Default)),
+		}),
 	);
 
 	it.effect("should warn about disconnected concept nodes", () =>
 		Effect.gen(function* () {
-			const validator = yield* GoalMapValidator;
 			const nodes = [
 				{
 					id: "root",
@@ -293,13 +284,13 @@ describe("GoalMapValidator", () => {
 				{ id: "edge1", source: "root", target: "link" },
 				{ id: "edge2", source: "link", target: "child1" },
 			];
-			const result = yield* validator.validateNodes(nodes, edges);
+			const result = yield* validateNodes(nodes, edges);
 			expect(
 				result.warnings.some(
-					(w) => w.includes("Orphan") && w.includes("not connected"),
+					(w: string) => w.includes("Orphan") && w.includes("not connected"),
 				),
 			).toBe(true);
-		}).pipe(Effect.provide(GoalMapValidator.Default)),
+		}),
 	);
 
 	describe("findConnectedComponents", () => {

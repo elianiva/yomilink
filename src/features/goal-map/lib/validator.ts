@@ -34,231 +34,195 @@ export const ValidationResultSchema = Schema.Struct({
 
 export type ValidationResult = typeof ValidationResultSchema.Type;
 
-// Validation service
-export class GoalMapValidator extends Effect.Service<GoalMapValidator>()(
-	"GoalMapValidator",
-	{
-		effect: Effect.succeed({
-			validateNodes: (nodes: Node[], edges: Edge[]) =>
-				Effect.gen(function* () {
-					const errors: string[] = [];
-					const warnings: string[] = [];
-					const propositions: Proposition[] = [];
+const composePropositions = Effect.fn(function* (nodes: Node[], edges: Edge[]) {
+	const concepts = new Map(
+		nodes
+			.filter((n): n is ConceptNode => n.type === "text" || n.type === "image")
+			.map((c) => [c.id, c]),
+	);
+	const connectors = new Map(
+		nodes
+			.filter((n): n is ConnectorNode => n.type === "connector")
+			.map((c) => [c.id, c]),
+	);
 
-					// Separate node types
-					const conceptNodes = nodes.filter(
-						(n): n is ConceptNode => n.type === "text" || n.type === "image",
-					);
-					const connectorNodes = nodes.filter(
-						(n): n is ConnectorNode => n.type === "connector",
-					);
+	const propositions: Proposition[] = [];
 
-					// Basic structure validation
-					if (conceptNodes.length < 2) {
-						errors.push("At least 2 concept nodes (text/image) required");
-					}
-					if (connectorNodes.length < 1) {
-						errors.push("At least 1 connector node required");
-					}
-					if (edges.length < 2) {
-						errors.push("At least 2 edges required");
-					}
+	connectors.forEach((connector) => {
+		const inboundEdges = edges.filter((e) => e.target === connector.id);
+		const outboundEdges = edges.filter((e) => e.source === connector.id);
 
-					// Node ID uniqueness
-					const nodeIds = new Set(nodes.map((n) => n.id));
-					if (nodeIds.size !== nodes.length) {
-						errors.push("All node IDs must be unique");
-					}
+		inboundEdges.forEach((inEdge) => {
+			const sourceConcept = concepts.get(inEdge.source);
+			if (!sourceConcept) return;
 
-					// Edge validation - edges must connect existing nodes
-					const edgeErrors = edges.flatMap((e) => {
-						const errs: string[] = [];
-						if (!nodeIds.has(e.source)) {
-							errs.push(
-								`Edge ${e.id ?? `${e.source}-${e.target}`} source node ${e.source} does not exist`,
-							);
-						}
-						if (!nodeIds.has(e.target)) {
-							errs.push(
-								`Edge ${e.id ?? `${e.source}-${e.target}`} target node ${e.target} does not exist`,
-							);
-						}
-						return errs;
-					});
-					errors.push(...edgeErrors);
+			outboundEdges.forEach((outEdge) => {
+				const targetConcept = concepts.get(outEdge.target);
+				if (!targetConcept) return;
 
-					// KBFIRA-specific validation: Connector connection rules
-					const inCount: Record<string, number> = {};
-					const outCount: Record<string, number> = {};
-					const connections: Record<
-						string,
-						{ sources: string[]; targets: string[] }
-					> = {};
+				propositions.push({
+					source: sourceConcept,
+					link: connector,
+					target: targetConcept,
+				});
+			});
+		});
+	});
 
-					edges.forEach((e) => {
-						outCount[e.source] = (outCount[e.source] ?? 0) + 1;
-						inCount[e.target] = (inCount[e.target] ?? 0) + 1;
+	return propositions;
+});
 
-						// Track connections for each node
-						if (!connections[e.source])
-							connections[e.source] = { sources: [], targets: [] };
-						if (!connections[e.target])
-							connections[e.target] = { sources: [], targets: [] };
-						connections[e.source].targets.push(e.target);
-						connections[e.target].sources.push(e.source);
-					});
+export const validateNodes = Effect.fn(function* (
+	nodes: Node[],
+	edges: Edge[],
+) {
+	const errors: string[] = [];
+	const warnings: string[] = [];
 
-					// Validate connector nodes (must have at least 1 inbound and 1 outbound)
-					connectorNodes.forEach((connector) => {
-						const inbound = inCount[connector.id] ?? 0;
-						const outbound = outCount[connector.id] ?? 0;
+	const conceptNodes = nodes.filter(
+		(n): n is ConceptNode => n.type === "text" || n.type === "image",
+	);
+	const connectorNodes = nodes.filter(
+		(n): n is ConnectorNode => n.type === "connector",
+	);
 
-						if (inbound === 0) {
-							errors.push(
-								`Connector "${(connector.data as any).label}" has no inbound connections`,
-							);
-						}
-						if (outbound === 0) {
-							errors.push(
-								`Connector "${(connector.data as any).label}" has no outbound connections`,
-							);
-						}
+	if (conceptNodes.length < 2) {
+		errors.push("At least 2 concept nodes (text/image) required");
+	}
+	if (connectorNodes.length < 1) {
+		errors.push("At least 1 connector node required");
+	}
+	if (edges.length < 2) {
+		errors.push("At least 2 edges required");
+	}
 
-						// KBFIRA rule: Connectors should typically connect concepts, not other connectors
-						const conn = connections[connector.id];
-						if (conn) {
-							const sourceTypes = conn.sources.map(
-								(s) => nodes.find((n) => n.id === s)?.type,
-							);
-							const targetTypes = conn.targets.map(
-								(t) => nodes.find((n) => n.id === t)?.type,
-							);
+	const nodeIds = new Set(nodes.map((n) => n.id));
+	if (nodeIds.size !== nodes.length) {
+		errors.push("All node IDs must be unique");
+	}
 
-							const invalidSources = sourceTypes.filter(
-								(t) => t === "connector",
-							);
-							const invalidTargets = targetTypes.filter(
-								(t) => t === "connector",
-							);
+	const edgeErrors = edges.flatMap((e) => {
+		const errs: string[] = [];
+		if (!nodeIds.has(e.source)) {
+			errs.push(
+				`Edge ${e.id ?? `${e.source}-${e.target}`} source node ${e.source} does not exist`,
+			);
+		}
+		if (!nodeIds.has(e.target)) {
+			errs.push(
+				`Edge ${e.id ?? `${e.source}-${e.target}`} target node ${e.target} does not exist`,
+			);
+		}
+		return errs;
+	});
+	errors.push(...edgeErrors);
 
-							if (invalidSources.length > 0) {
-								warnings.push(
-									`Connector "${(connector.data as any).label}" has connector(s) as source(s) - this may create complex relationships`,
-								);
-							}
-							if (invalidTargets.length > 0) {
-								warnings.push(
-									`Connector "${(connector.data as any).label}" has connector(s) as target(s) - this may create complex relationships`,
-								);
-							}
-						}
-					});
+	const inCount: Record<string, number> = {};
+	const outCount: Record<string, number> = {};
+	const connections: Record<string, { sources: string[]; targets: string[] }> =
+		{};
 
-					// Validate concept nodes (should have connections)
-					conceptNodes.forEach((concept) => {
-						const totalConnections =
-							(inCount[concept.id] ?? 0) + (outCount[concept.id] ?? 0);
-						if (totalConnections === 0) {
-							warnings.push(
-								`Concept node "${(concept.data as any).label || (concept.data as any).caption}" is not connected to any other nodes`,
-							);
-						}
-					});
+	edges.forEach((e) => {
+		outCount[e.source] = (outCount[e.source] ?? 0) + 1;
+		inCount[e.target] = (inCount[e.target] ?? 0) + 1;
 
-					// KBFIRA proposition composition validation
-					const validator = yield* GoalMapValidator;
-					const composedPropositions = yield* validator.composePropositions(
-						nodes,
-						edges,
-					);
-					propositions.push(...composedPropositions);
+		if (!connections[e.source])
+			connections[e.source] = { sources: [], targets: [] };
+		if (!connections[e.target])
+			connections[e.target] = { sources: [], targets: [] };
+		connections[e.source].targets.push(e.target);
+		connections[e.target].sources.push(e.source);
+	});
 
-					// Validate proposition structure
-					if (
-						composedPropositions.length === 0 &&
-						conceptNodes.length >= 2 &&
-						connectorNodes.length >= 1
-					) {
-						errors.push(
-							"No valid propositions found - check that connectors properly connect concept nodes",
-						);
-					}
+	connectorNodes.forEach((connector) => {
+		const inbound = inCount[connector.id] ?? 0;
+		const outbound = outCount[connector.id] ?? 0;
 
-					// Check for isolated subgraphs
-					const connectedComponents = findConnectedComponents(nodes, edges);
-					if (connectedComponents.length > 1) {
-						warnings.push(
-							`Goal map has ${connectedComponents.length} disconnected sections - consider connecting them for better learning outcomes`,
-						);
-					}
+		if (inbound === 0) {
+			errors.push(
+				`Connector "${connector.data.label}" has no inbound connections`,
+			);
+		}
+		if (outbound === 0) {
+			errors.push(
+				`Connector "${connector.data.label}" has no outbound connections`,
+			);
+		}
 
-					// Check for potential cycles (which may indicate circular reasoning)
-					const hasCycles = detectCycles(nodes, edges);
-					if (hasCycles) {
-						warnings.push(
-							"Circular relationships detected - this may indicate circular reasoning in the concept structure",
-						);
-					}
+		const conn = connections[connector.id];
+		if (conn) {
+			const sourceTypes = conn.sources.map(
+				(s) => nodes.find((n) => n.id === s)?.type,
+			);
+			const targetTypes = conn.targets.map(
+				(t) => nodes.find((n) => n.id === t)?.type,
+			);
 
-					return {
-						isValid: errors.length === 0,
-						errors,
-						warnings,
-						propositions: composedPropositions.map((p: Proposition) => ({
-							sourceId: p.source.id,
-							linkId: p.link.id,
-							targetId: p.target.id,
-						})),
-					};
-				}),
+			const invalidSources = sourceTypes.filter((t) => t === "connector");
+			const invalidTargets = targetTypes.filter((t) => t === "connector");
 
-			composePropositions: (nodes: Node[], edges: Edge[]) =>
-				Effect.gen(function* () {
-					const concepts = new Map(
-						nodes
-							.filter(
-								(n): n is ConceptNode =>
-									n.type === "text" || n.type === "image",
-							)
-							.map((c) => [c.id, c]),
-					);
-					const connectors = new Map(
-						nodes
-							.filter((n): n is ConnectorNode => n.type === "connector")
-							.map((c) => [c.id, c]),
-					);
+			if (invalidSources.length > 0) {
+				warnings.push(
+					`Connector "${connector.data.label}" has connector(s) as source(s) - this may create complex relationships`,
+				);
+			}
+			if (invalidTargets.length > 0) {
+				warnings.push(
+					`Connector "${connector.data.label}" has connector(s) as target(s) - this may create complex relationships`,
+				);
+			}
+		}
+	});
 
-					const propositions: Proposition[] = [];
+	conceptNodes.forEach((concept) => {
+		const totalConnections =
+			(inCount[concept.id] ?? 0) + (outCount[concept.id] ?? 0);
+		if (totalConnections === 0) {
+			const label =
+				"label" in concept.data ? concept.data.label : concept.data.caption;
+			warnings.push(
+				`Concept node "${label}" is not connected to any other nodes`,
+			);
+		}
+	});
 
-					// Find propositions: concept -> connector -> concept
-					connectors.forEach((connector) => {
-						const inboundEdges = edges.filter((e) => e.target === connector.id);
-						const outboundEdges = edges.filter(
-							(e) => e.source === connector.id,
-						);
+	const composedPropositions = yield* composePropositions(nodes, edges);
 
-						inboundEdges.forEach((inEdge) => {
-							const sourceConcept = concepts.get(inEdge.source);
-							if (!sourceConcept) return;
+	if (
+		composedPropositions.length === 0 &&
+		conceptNodes.length >= 2 &&
+		connectorNodes.length >= 1
+	) {
+		errors.push(
+			"No valid propositions found - check that connectors properly connect concept nodes",
+		);
+	}
 
-							outboundEdges.forEach((outEdge) => {
-								const targetConcept = concepts.get(outEdge.target);
-								if (!targetConcept) return;
+	const connectedComponents = findConnectedComponents(nodes, edges);
+	if (connectedComponents.length > 1) {
+		warnings.push(
+			`Goal map has ${connectedComponents.length} disconnected sections - consider connecting them for better learning outcomes`,
+		);
+	}
 
-								propositions.push({
-									source: sourceConcept,
-									link: connector,
-									target: targetConcept,
-								});
-							});
-						});
-					});
+	const hasCycles = detectCycles(nodes, edges);
+	if (hasCycles) {
+		warnings.push(
+			"Circular relationships detected - this may indicate circular reasoning in the concept structure",
+		);
+	}
 
-					return propositions;
-				}),
-		}),
-	},
-) {}
+	return {
+		isValid: errors.length === 0,
+		errors,
+		warnings,
+		propositions: composedPropositions.map((p: Proposition) => ({
+			sourceId: p.source.id,
+			linkId: p.link.id,
+			targetId: p.target.id,
+		})),
+	};
+});
 
 export function findConnectedComponents(
 	nodes: Node[],
