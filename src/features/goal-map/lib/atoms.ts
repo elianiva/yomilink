@@ -1,6 +1,24 @@
 import type { Edge, ReactFlowInstance } from "@xyflow/react";
 import { atom } from "jotai";
 import type { AnyNode } from "@/features/kitbuild/types";
+import {
+	saveMetaAtom,
+	saveOpenAtom,
+	saveAsOpenAtom,
+	saveErrorAtom,
+	saveWarningsAtom,
+	lastSavedSnapshotAtom,
+} from "../hooks/use-save-dialog";
+
+// Re-export save atoms for components
+export {
+	saveMetaAtom,
+	saveOpenAtom,
+	saveAsOpenAtom,
+	saveErrorAtom,
+	saveWarningsAtom,
+	lastSavedSnapshotAtom,
+};
 
 // Core state atoms
 export const nodesAtom = atom<AnyNode[]>([]);
@@ -22,16 +40,6 @@ export const imageDraftAtom = atom<{
 	url: string;
 	caption?: string;
 } | null>(null);
-
-// Save state atoms
-export const saveOpenAtom = atom(false);
-export const saveAsOpenAtom = atom(false);
-export const saveTopicIdAtom = atom("");
-export const saveNameAtom = atom("");
-export const saveDescriptionAtom = atom("");
-export const saveErrorAtom = atom<string | null>(null);
-export const saveWarningsAtom = atom<string[]>([]);
-export const lastSavedSnapshotAtom = atom<string | null>(null);
 
 // File import state atoms
 export const importDialogOpenAtom = atom(false);

@@ -13,15 +13,12 @@ import { Route as LoginRouteImport } from './routes/login'
 import { Route as DashboardRouteImport } from './routes/dashboard'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as DashboardIndexRouteImport } from './routes/dashboard/index'
-import { Route as DashboardRoomsRouteImport } from './routes/dashboard/rooms'
-import { Route as DashboardResultsRouteImport } from './routes/dashboard/results'
 import { Route as DashboardProfileRouteImport } from './routes/dashboard/profile'
 import { Route as DashboardAnalyticsRouteImport } from './routes/dashboard/analytics'
 import { Route as DashboardAssignmentsIndexRouteImport } from './routes/dashboard/assignments/index'
 import { Route as DashboardLearnerMapAssignmentIdRouteImport } from './routes/dashboard/learner-map/$assignmentId'
 import { Route as DashboardGoalMapGoalMapIdRouteImport } from './routes/dashboard/goal-map.$goalMapId'
 import { Route as DashboardAssignmentsManageRouteImport } from './routes/dashboard/assignments/manage'
-import { Route as DashboardAssignmentsArchivedRouteImport } from './routes/dashboard/assignments/archived'
 import { Route as ApiAuthSplatRouteImport } from './routes/api/auth/$'
 import { Route as DashboardLearnerMapAssignmentIdResultRouteImport } from './routes/dashboard/learner-map/$assignmentId.result'
 import { Route as ApiMaterialsImagesGoalMapIdImageIdRouteImport } from './routes/api/materials/images/$goalMapId/$imageId'
@@ -44,16 +41,6 @@ const IndexRoute = IndexRouteImport.update({
 const DashboardIndexRoute = DashboardIndexRouteImport.update({
   id: '/',
   path: '/',
-  getParentRoute: () => DashboardRoute,
-} as any)
-const DashboardRoomsRoute = DashboardRoomsRouteImport.update({
-  id: '/rooms',
-  path: '/rooms',
-  getParentRoute: () => DashboardRoute,
-} as any)
-const DashboardResultsRoute = DashboardResultsRouteImport.update({
-  id: '/results',
-  path: '/results',
   getParentRoute: () => DashboardRoute,
 } as any)
 const DashboardProfileRoute = DashboardProfileRouteImport.update({
@@ -90,12 +77,6 @@ const DashboardAssignmentsManageRoute =
     path: '/assignments/manage',
     getParentRoute: () => DashboardRoute,
   } as any)
-const DashboardAssignmentsArchivedRoute =
-  DashboardAssignmentsArchivedRouteImport.update({
-    id: '/assignments/archived',
-    path: '/assignments/archived',
-    getParentRoute: () => DashboardRoute,
-  } as any)
 const ApiAuthSplatRoute = ApiAuthSplatRouteImport.update({
   id: '/api/auth/$',
   path: '/api/auth/$',
@@ -120,11 +101,8 @@ export interface FileRoutesByFullPath {
   '/login': typeof LoginRoute
   '/dashboard/analytics': typeof DashboardAnalyticsRoute
   '/dashboard/profile': typeof DashboardProfileRoute
-  '/dashboard/results': typeof DashboardResultsRoute
-  '/dashboard/rooms': typeof DashboardRoomsRoute
   '/dashboard/': typeof DashboardIndexRoute
   '/api/auth/$': typeof ApiAuthSplatRoute
-  '/dashboard/assignments/archived': typeof DashboardAssignmentsArchivedRoute
   '/dashboard/assignments/manage': typeof DashboardAssignmentsManageRoute
   '/dashboard/goal-map/$goalMapId': typeof DashboardGoalMapGoalMapIdRoute
   '/dashboard/learner-map/$assignmentId': typeof DashboardLearnerMapAssignmentIdRouteWithChildren
@@ -137,11 +115,8 @@ export interface FileRoutesByTo {
   '/login': typeof LoginRoute
   '/dashboard/analytics': typeof DashboardAnalyticsRoute
   '/dashboard/profile': typeof DashboardProfileRoute
-  '/dashboard/results': typeof DashboardResultsRoute
-  '/dashboard/rooms': typeof DashboardRoomsRoute
   '/dashboard': typeof DashboardIndexRoute
   '/api/auth/$': typeof ApiAuthSplatRoute
-  '/dashboard/assignments/archived': typeof DashboardAssignmentsArchivedRoute
   '/dashboard/assignments/manage': typeof DashboardAssignmentsManageRoute
   '/dashboard/goal-map/$goalMapId': typeof DashboardGoalMapGoalMapIdRoute
   '/dashboard/learner-map/$assignmentId': typeof DashboardLearnerMapAssignmentIdRouteWithChildren
@@ -156,11 +131,8 @@ export interface FileRoutesById {
   '/login': typeof LoginRoute
   '/dashboard/analytics': typeof DashboardAnalyticsRoute
   '/dashboard/profile': typeof DashboardProfileRoute
-  '/dashboard/results': typeof DashboardResultsRoute
-  '/dashboard/rooms': typeof DashboardRoomsRoute
   '/dashboard/': typeof DashboardIndexRoute
   '/api/auth/$': typeof ApiAuthSplatRoute
-  '/dashboard/assignments/archived': typeof DashboardAssignmentsArchivedRoute
   '/dashboard/assignments/manage': typeof DashboardAssignmentsManageRoute
   '/dashboard/goal-map/$goalMapId': typeof DashboardGoalMapGoalMapIdRoute
   '/dashboard/learner-map/$assignmentId': typeof DashboardLearnerMapAssignmentIdRouteWithChildren
@@ -176,11 +148,8 @@ export interface FileRouteTypes {
     | '/login'
     | '/dashboard/analytics'
     | '/dashboard/profile'
-    | '/dashboard/results'
-    | '/dashboard/rooms'
     | '/dashboard/'
     | '/api/auth/$'
-    | '/dashboard/assignments/archived'
     | '/dashboard/assignments/manage'
     | '/dashboard/goal-map/$goalMapId'
     | '/dashboard/learner-map/$assignmentId'
@@ -193,11 +162,8 @@ export interface FileRouteTypes {
     | '/login'
     | '/dashboard/analytics'
     | '/dashboard/profile'
-    | '/dashboard/results'
-    | '/dashboard/rooms'
     | '/dashboard'
     | '/api/auth/$'
-    | '/dashboard/assignments/archived'
     | '/dashboard/assignments/manage'
     | '/dashboard/goal-map/$goalMapId'
     | '/dashboard/learner-map/$assignmentId'
@@ -211,11 +177,8 @@ export interface FileRouteTypes {
     | '/login'
     | '/dashboard/analytics'
     | '/dashboard/profile'
-    | '/dashboard/results'
-    | '/dashboard/rooms'
     | '/dashboard/'
     | '/api/auth/$'
-    | '/dashboard/assignments/archived'
     | '/dashboard/assignments/manage'
     | '/dashboard/goal-map/$goalMapId'
     | '/dashboard/learner-map/$assignmentId'
@@ -262,20 +225,6 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof DashboardIndexRouteImport
       parentRoute: typeof DashboardRoute
     }
-    '/dashboard/rooms': {
-      id: '/dashboard/rooms'
-      path: '/rooms'
-      fullPath: '/dashboard/rooms'
-      preLoaderRoute: typeof DashboardRoomsRouteImport
-      parentRoute: typeof DashboardRoute
-    }
-    '/dashboard/results': {
-      id: '/dashboard/results'
-      path: '/results'
-      fullPath: '/dashboard/results'
-      preLoaderRoute: typeof DashboardResultsRouteImport
-      parentRoute: typeof DashboardRoute
-    }
     '/dashboard/profile': {
       id: '/dashboard/profile'
       path: '/profile'
@@ -316,13 +265,6 @@ declare module '@tanstack/react-router' {
       path: '/assignments/manage'
       fullPath: '/dashboard/assignments/manage'
       preLoaderRoute: typeof DashboardAssignmentsManageRouteImport
-      parentRoute: typeof DashboardRoute
-    }
-    '/dashboard/assignments/archived': {
-      id: '/dashboard/assignments/archived'
-      path: '/assignments/archived'
-      fullPath: '/dashboard/assignments/archived'
-      preLoaderRoute: typeof DashboardAssignmentsArchivedRouteImport
       parentRoute: typeof DashboardRoute
     }
     '/api/auth/$': {
@@ -367,10 +309,7 @@ const DashboardLearnerMapAssignmentIdRouteWithChildren =
 interface DashboardRouteChildren {
   DashboardAnalyticsRoute: typeof DashboardAnalyticsRoute
   DashboardProfileRoute: typeof DashboardProfileRoute
-  DashboardResultsRoute: typeof DashboardResultsRoute
-  DashboardRoomsRoute: typeof DashboardRoomsRoute
   DashboardIndexRoute: typeof DashboardIndexRoute
-  DashboardAssignmentsArchivedRoute: typeof DashboardAssignmentsArchivedRoute
   DashboardAssignmentsManageRoute: typeof DashboardAssignmentsManageRoute
   DashboardGoalMapGoalMapIdRoute: typeof DashboardGoalMapGoalMapIdRoute
   DashboardLearnerMapAssignmentIdRoute: typeof DashboardLearnerMapAssignmentIdRouteWithChildren
@@ -380,10 +319,7 @@ interface DashboardRouteChildren {
 const DashboardRouteChildren: DashboardRouteChildren = {
   DashboardAnalyticsRoute: DashboardAnalyticsRoute,
   DashboardProfileRoute: DashboardProfileRoute,
-  DashboardResultsRoute: DashboardResultsRoute,
-  DashboardRoomsRoute: DashboardRoomsRoute,
   DashboardIndexRoute: DashboardIndexRoute,
-  DashboardAssignmentsArchivedRoute: DashboardAssignmentsArchivedRoute,
   DashboardAssignmentsManageRoute: DashboardAssignmentsManageRoute,
   DashboardGoalMapGoalMapIdRoute: DashboardGoalMapGoalMapIdRoute,
   DashboardLearnerMapAssignmentIdRoute:

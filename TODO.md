@@ -11,20 +11,8 @@
 
 ## Medium Priority
 
-### Profile Page
-- [ ] `src/routes/dashboard/profile.tsx` - All fields are read-only, no edit functionality
-
-### Code Quality
-- [ ] `src/routes/dashboard/goal-map.$goalMapId.tsx:142-168` - Duplicate useEffect hooks setting page title
-- [ ] Review console statements in production code:
-  - `src/lib/auth.ts:68` - `console.log(e)`
-  - `src/routes/dashboard/goal-map.$goalMapId.tsx:473` - `console.warn`
-  - `src/routes/dashboard/goal-map.$goalMapId.tsx:623` - `console.error`
-  - `src/routes/dashboard/goal-map.$goalMapId.tsx:673` - `console.error`
-  - `src/routes/dashboard/assignments/manage.tsx:219` - `console.error`
-
 ### Documentation
-- [ ] `README.md:276` - License section is a placeholder
+- License section is a placeholder
 
 ## Low Priority - Test Coverage
 

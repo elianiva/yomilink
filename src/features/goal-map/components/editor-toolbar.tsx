@@ -33,9 +33,9 @@ import {
 	directionEnabledAtom,
 	importDialogOpenAtom,
 	linkDialogOpenAtom,
+	searchOpenAtom,
 	saveAsOpenAtom,
 	saveOpenAtom,
-	searchOpenAtom,
 } from "../lib/atoms";
 
 export type EditorToolbarProps = {
