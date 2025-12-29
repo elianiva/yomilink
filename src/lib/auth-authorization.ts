@@ -1,4 +1,4 @@
-import { and, eq } from "drizzle-orm";
+import { and, eq, inArray } from "drizzle-orm";
 import { Data, Effect } from "effect";
 import { Database } from "@/server/db/client";
 import {
@@ -76,29 +76,30 @@ export const canAccessGoalMap = (userId: string, goalMapId: string) =>
 				.all(),
 		);
 
-		for (const assignment of assignments_) {
-			if (assignment.targetUserId === userId) {
+		const hasDirectAccess = assignments_.some((a) => a.targetUserId === userId);
+		if (hasDirectAccess) return true;
+
+		const cohortIds = assignments_
+			.map((a) => a.cohortId)
+			.filter((id): id is string => id !== undefined);
+
+		if (cohortIds.length > 0) {
+			const memberRecords = yield* Effect.tryPromise(() =>
+				db
+					.select({ cohortId: cohortMembers.cohortId })
+					.from(cohortMembers)
+					.where(
+						and(
+							eq(cohortMembers.userId, userId),
+							inArray(cohortMembers.cohortId, cohortIds),
+						),
+					)
+					.all(),
+			);
+
+			const userCohortIds = new Set(memberRecords.map((cm) => cm.cohortId));
+			if (cohortIds.some((id) => userCohortIds.has(id))) {
 				return true;
-			}
-
-			if (assignment.cohortId) {
-				const cohortId = assignment.cohortId;
-				const cohortMember = yield* Effect.tryPromise(() =>
-					db
-						.select()
-						.from(cohortMembers)
-						.where(
-							and(
-								eq(cohortMembers.cohortId, cohortId),
-								eq(cohortMembers.userId, userId),
-							),
-						)
-						.get(),
-				);
-
-				if (cohortMember) {
-					return true;
-				}
 			}
 		}
 
@@ -139,29 +140,30 @@ export const canAccessAssignment = (userId: string, assignmentId: string) =>
 				.all(),
 		);
 
-		for (const target of targets) {
-			if (target.userId === userId) {
+		const hasDirectAccess = targets.some((t) => t.userId === userId);
+		if (hasDirectAccess) return true;
+
+		const cohortIds = targets
+			.map((t) => t.cohortId)
+			.filter((id): id is string => id !== undefined);
+
+		if (cohortIds.length > 0) {
+			const memberRecords = yield* Effect.tryPromise(() =>
+				db
+					.select({ cohortId: cohortMembers.cohortId })
+					.from(cohortMembers)
+					.where(
+						and(
+							eq(cohortMembers.userId, userId),
+							inArray(cohortMembers.cohortId, cohortIds),
+						),
+					)
+					.all(),
+			);
+
+			const userCohortIds = new Set(memberRecords.map((cm) => cm.cohortId));
+			if (cohortIds.some((id) => userCohortIds.has(id))) {
 				return true;
-			}
-
-			if (target.cohortId) {
-				const cohortId = target.cohortId;
-				const cohortMember = yield* Effect.tryPromise(() =>
-					db
-						.select()
-						.from(cohortMembers)
-						.where(
-							and(
-								eq(cohortMembers.cohortId, cohortId),
-								eq(cohortMembers.userId, userId),
-							),
-						)
-						.get(),
-				);
-
-				if (cohortMember) {
-					return true;
-				}
 			}
 		}
 
@@ -253,37 +255,20 @@ export const requireAnyRole =
 export const requireTeacher = requireAnyRole("teacher", "admin");
 export const requireAdmin = requireRole("admin");
 
-class LearnerMapNotFoundError extends Data.TaggedError(
-	"LearnerMapNotFoundError",
-)<{
-	readonly learnerMapId: string;
-}> {}
-
-class KitNotFoundError extends Data.TaggedError("KitNotFoundError")<{
-	readonly kitId: string;
-}> {}
-
-class ValidationError extends Data.TaggedError("ValidationError")<{
-	readonly field: string;
-	readonly message: string;
-}> {}
-
-class BusinessLogicError extends Data.TaggedError("BusinessLogicError")<{
-	readonly reason: string;
-}> {}
-
 /**
  * Create standardized error response
  */
-export const errorResponse = (message: string) => ({
-	success: false,
-	error: message,
-} as const);
+export const errorResponse = (message: string) =>
+	({
+		success: false,
+		error: message,
+	}) as const;
 
 /**
  * Create standardized success response
  */
-export const successResponse = <T extends Record<string, unknown>>(data: T) => ({
-	success: true,
-	...data,
-} as const);
+export const successResponse = <T extends Record<string, unknown>>(data: T) =>
+	({
+		success: true,
+		...data,
+	}) as const;

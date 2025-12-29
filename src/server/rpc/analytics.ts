@@ -1,6 +1,6 @@
 import { queryOptions } from "@tanstack/react-query";
 import { createServerFn } from "@tanstack/react-start";
-import { desc, eq, inArray } from "drizzle-orm";
+import { and, desc, eq, inArray } from "drizzle-orm";
 import { Data, Effect, Schema } from "effect";
 import Papa from "papaparse";
 import {
@@ -206,7 +206,7 @@ export const getTeacherAssignmentsForAnalytics = createServerFn()
 
 			const assignmentsWithStats = yield* Effect.all(
 				assignments_.map(getAssignmentStats),
-				{ concurrency: "unbounded" },
+				{ concurrency: 10 },
 			);
 
 			return assignmentsWithStats;
@@ -241,10 +241,14 @@ export const getAnalyticsForAssignment = createServerFn()
 						kitId: assignments.kitId,
 						createdAt: assignments.createdAt,
 						dueAt: assignments.dueAt,
-						createdBy: assignments.createdBy,
 					})
 					.from(assignments)
-					.where(eq(assignments.id, data.assignmentId))
+					.where(
+						and(
+							eq(assignments.id, data.assignmentId),
+							eq(assignments.createdBy, user.id),
+						),
+					)
 					.get(),
 			);
 
@@ -252,13 +256,6 @@ export const getAnalyticsForAssignment = createServerFn()
 				return yield* Effect.fail(
 					new AssignmentNotFoundError({ assignmentId: data.assignmentId }),
 				);
-			}
-
-			if (assignment.createdBy !== user.id) {
-				return {
-					success: false,
-					error: "Access denied",
-				} as const;
 			}
 
 			const goalMap = yield* Effect.tryPromise(() =>
@@ -367,7 +364,7 @@ export const getAnalyticsForAssignment = createServerFn()
 						} as LearnerAnalytics;
 					}),
 				),
-				{ concurrency: "unbounded" },
+				{ concurrency: 10 },
 			);
 
 			const scores = finalLearners

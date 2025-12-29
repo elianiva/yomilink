@@ -55,11 +55,14 @@ export function useHistory() {
 		if (same) return;
 		const newHistory = history.slice(0, pointer + 1);
 		newHistory.push({
-			nodes: JSON.parse(JSON.stringify(nodes)),
-			edges: JSON.parse(JSON.stringify(edges)),
+			nodes: structuredClone(nodes),
+			edges: structuredClone(edges),
 		});
+		if (newHistory.length > 100) {
+			newHistory.shift();
+		}
 		setHistory(newHistory);
-		setPointer(pointer + 1);
+		setPointer(newHistory.length - 1);
 	}, [nodes, edges, history, pointer, isApplying, setHistory, setPointer]);
 
 	return { undo, redo };
