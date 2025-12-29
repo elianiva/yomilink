@@ -637,31 +637,12 @@ export const getPeerStats = createServerFn()
 		return Effect.gen(function* () {
 			const db = yield* Database;
 
-			// Get all submitted learner maps for this assignment (excluding current user)
-			const peerMaps = yield* Effect.tryPromise(() =>
+			// Get all submitted learner maps for this assignment
+			const allSubmittedMaps = yield* Effect.tryPromise(() =>
 				db
 					.select({
 						id: learnerMaps.id,
-						score: diagnoses.score,
-						attempt: learnerMaps.attempt,
-					})
-					.from(learnerMaps)
-					.leftJoin(diagnoses, eq(diagnoses.learnerMapId, learnerMaps.id))
-					.where(
-						and(
-							eq(learnerMaps.assignmentId, data.assignmentId),
-							eq(learnerMaps.status, "submitted"),
-							eq(learnerMaps.userId, user.id),
-						),
-					)
-					.all(),
-			);
-
-			// Get all submitted maps from OTHER students
-			const otherMaps = yield* Effect.tryPromise(() =>
-				db
-					.select({
-						id: learnerMaps.id,
+						userId: learnerMaps.userId,
 						score: diagnoses.score,
 						attempt: learnerMaps.attempt,
 					})
@@ -676,9 +657,14 @@ export const getPeerStats = createServerFn()
 					.all(),
 			);
 
-			// Filter out current user's maps and calculate stats
-			const peerScores = otherMaps
-				.filter((m) => !peerMaps.some((pm) => pm.id === m.id))
+			// Separate current user's maps from peers
+			const currentUserMaps = allSubmittedMaps.filter(
+				(m) => m.userId === user.id,
+			);
+			const peerMaps = allSubmittedMaps.filter((m) => m.userId !== user.id);
+
+			// Calculate stats from peerMaps
+			const peerScores = peerMaps
 				.map((m) => m.score)
 				.filter((s): s is number => s !== null && s !== undefined);
 
@@ -702,7 +688,9 @@ export const getPeerStats = createServerFn()
 			const lowestScore = sortedScores[0];
 
 			// Calculate user's percentile
-			const userBestScore = Math.max(...peerMaps.map((m) => m.score ?? 0));
+			const userBestScore = Math.max(
+				...currentUserMaps.map((m) => m.score ?? 0),
+			);
 			const userPercentile =
 				(peerScores.filter((s) => s < userBestScore).length /
 					peerScores.length) *

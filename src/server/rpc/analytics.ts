@@ -309,65 +309,64 @@ export const getAnalyticsForAssignment = createServerFn()
 					.all(),
 			);
 
-			const lastAttempts = new Map<string, any>();
-			for (const lm of learnerMapsData) {
-				const existing = lastAttempts.get(lm.userId);
-				if (!existing) {
-					lastAttempts.set(lm.userId, lm);
-				}
-			}
+			const learnerMapIds = learnerMapsData.map((lm) => lm.id);
 
-			const getLearnerAnalytics = ([_userId, lm]: [string, any]) =>
-				Effect.gen(function* () {
-					const diagnosisData =
-						lm.score !== null
-							? yield* Effect.tryPromise(() =>
-									db
-										.select({ perLink: diagnoses.perLink })
-										.from(diagnoses)
-										.where(eq(diagnoses.learnerMapId, lm.id))
-										.get(),
-								)
-							: null;
+			const allDiagnoses = yield* Effect.tryPromise(() =>
+				db
+					.select({
+						learnerMapId: diagnoses.learnerMapId,
+						perLink: diagnoses.perLink,
+					})
+					.from(diagnoses)
+					.where(inArray(diagnoses.learnerMapId, learnerMapIds))
+					.all(),
+			);
 
-					let correct = 0;
-					let missing = 0;
-					let excessive = 0;
-					let totalGoalEdges = 0;
-
-					if (diagnosisData?.perLink) {
-						const parsed = yield* parseJson(
-							diagnosisData.perLink,
-							Schema.Struct({
-								correct: Schema.optional(Schema.Array(Schema.String)),
-								missing: Schema.optional(Schema.Array(Schema.String)),
-								excessive: Schema.optional(Schema.Array(Schema.String)),
-								totalGoalEdges: Schema.optional(Schema.Number),
-							}),
-						);
-						correct = parsed.correct?.length ?? 0;
-						missing = parsed.missing?.length ?? 0;
-						excessive = parsed.excessive?.length ?? 0;
-						totalGoalEdges = parsed.totalGoalEdges ?? 0;
-					}
-
-					return {
-						userId: lm.userId,
-						userName: lm.userName,
-						learnerMapId: lm.id,
-						status: lm.status,
-						score: lm.score,
-						attempt: lm.attempt,
-						submittedAt: lm.submittedAt?.getTime() ?? null,
-						correct,
-						missing,
-						excessive,
-						totalGoalEdges,
-					} as LearnerAnalytics;
-				});
+			const diagnosisMap = new Map(
+				allDiagnoses.map((d) => [d.learnerMapId, d.perLink]),
+			);
 
 			const finalLearners = yield* Effect.all(
-				Array.from(lastAttempts.entries()).map(getLearnerAnalytics),
+				learnerMapsData.map((lm) =>
+					Effect.gen(function* () {
+						const diagnosisData = diagnosisMap.get(lm.id);
+
+						let correct = 0;
+						let missing = 0;
+						let excessive = 0;
+						let totalGoalEdges = 0;
+
+						if (diagnosisData) {
+							const parsed = yield* parseJson(
+								diagnosisData,
+								Schema.Struct({
+									correct: Schema.optional(Schema.Array(Schema.String)),
+									missing: Schema.optional(Schema.Array(Schema.String)),
+									excessive: Schema.optional(Schema.Array(Schema.String)),
+									totalGoalEdges: Schema.optional(Schema.Number),
+								}),
+							);
+							correct = parsed.correct?.length ?? 0;
+							missing = parsed.missing?.length ?? 0;
+							excessive = parsed.excessive?.length ?? 0;
+							totalGoalEdges = parsed.totalGoalEdges ?? 0;
+						}
+
+						return {
+							userId: lm.userId,
+							userName: lm.userName,
+							learnerMapId: lm.id,
+							status: lm.status,
+							score: lm.score,
+							attempt: lm.attempt,
+							submittedAt: lm.submittedAt?.getTime() ?? null,
+							correct,
+							missing,
+							excessive,
+							totalGoalEdges,
+						} as LearnerAnalytics;
+					}),
+				),
 				{ concurrency: "unbounded" },
 			);
 
@@ -552,9 +551,17 @@ export const exportAnalyticsData = createServerFn()
 		const user = context.user;
 		if (!user) throw new Error("Unauthorized");
 
-		const analyticsResult = (await getAnalyticsForAssignment({
+		const analyticsResult = await getAnalyticsForAssignment({
 			data,
-		})) as AssignmentAnalytics;
+		});
+
+		if (!analyticsResult || !("learners" in analyticsResult)) {
+			return {
+				filename: `KB-Analytics.csv`,
+				data: "",
+				contentType: "text/csv" as const,
+			};
+		}
 
 		const timestamp = new Date()
 			.toISOString()
