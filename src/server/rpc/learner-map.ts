@@ -2,10 +2,9 @@ import { mutationOptions, queryOptions } from "@tanstack/react-query";
 import { createServerFn } from "@tanstack/react-start";
 import { and, desc, eq, inArray, or } from "drizzle-orm";
 import { Effect, Schema } from "effect";
-import { compareMaps } from "@/lib/learnermap-comparator";
-import { randomString } from "@/lib/utils";
+import { compareMaps } from "@/features/learner-map/lib/comparator";
+import { randomString, safeParseJson } from "@/lib/utils";
 import { authMiddleware } from "@/middlewares/auth";
-import { safeParseJson } from "@/lib/utils";
 import {
 	assignments,
 	assignmentTargets,
@@ -206,11 +205,12 @@ export const getAssignmentForStudent = createServerFn()
 			// Use reading material from assignment if available, fallback to kit's text
 			let materialText: string | null = assignment.readingMaterial;
 			if (!materialText && kit.textId) {
+				const textId = kit.textId;
 				const text = yield* Effect.tryPromise(() =>
 					db
 						.select({ content: texts.content })
 						.from(texts)
-						.where(eq(texts.id, kit.textId))
+						.where(eq(texts.id, textId))
 						.get(),
 				);
 				materialText = text?.content || null;
@@ -415,7 +415,7 @@ export const submitLearnerMap = createServerFn()
 			const learnerEdges = yield* safeParseJson(learnerMap.edges, []);
 
 			// Compare maps
-			const diagnosis = yield* compareMaps(goalMapEdges, learnerEdges);
+			const diagnosis = compareMaps(goalMapEdges, learnerEdges);
 
 			// Update learner map status
 			yield* Effect.tryPromise(() =>

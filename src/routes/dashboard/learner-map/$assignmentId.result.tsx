@@ -11,7 +11,7 @@ import { ConnectorNode } from "@/features/kitbuild/components/connector-node";
 import { FloatingEdge } from "@/features/kitbuild/components/floating-edge";
 import { TextNode } from "@/features/kitbuild/components/text-node";
 import { DiagnosisStats } from "@/features/learner-map/components/diagnosis/diagnosis-stats";
-import { getEdgeStyleByType } from "@/lib/learnermap-comparator";
+import { getEdgeStyleByType } from "@/features/learner-map/lib/comparator";
 import { LearnerMapRpc } from "@/server/rpc/learner-map";
 
 export const Route = createFileRoute(

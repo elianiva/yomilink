@@ -5,6 +5,7 @@ import { Effect, Schema } from "effect";
 import { authMiddleware } from "@/middlewares/auth";
 import { goalMaps, kits, texts } from "@/server/db/schema/app-schema";
 import { Database, DatabaseLive } from "../db/client";
+import { GoalMapValidator } from "@/features/goal-map/lib/validator";
 
 const GetGoalMapSchema = Schema.Struct({
 	id: Schema.NonEmptyString,
@@ -126,6 +127,22 @@ export const saveGoalMap = createServerFn()
 		Effect.gen(function* () {
 			const db = yield* Database;
 
+			// Validate goal map structure
+			const validator = yield* GoalMapValidator;
+			const validationResult = yield* validator.validateNodes(
+				data.nodes as any[],
+				data.edges as any[],
+			);
+
+			// If validation fails, return errors
+			if (!validationResult.isValid) {
+				return {
+					success: false,
+					errors: validationResult.errors,
+					warnings: validationResult.warnings,
+				} as const;
+			}
+
 			// Handle material text - create or update text record
 			let textId: string | null = null;
 			const hasMaterial =
@@ -203,8 +220,16 @@ export const saveGoalMap = createServerFn()
 					})
 					.run(),
 			);
+
+			return {
+				success: true,
+				errors: validationResult.errors,
+				warnings: validationResult.warnings,
+				propositions: validationResult.propositions,
+			} as const;
 		}).pipe(
 			Effect.withSpan("saveGoalMap"),
+			Effect.provide(GoalMapValidator.Default),
 			Effect.provide(DatabaseLive),
 			Effect.runPromise,
 		),

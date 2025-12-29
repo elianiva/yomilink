@@ -4,7 +4,7 @@ import {
 	GoalMapValidator,
 	detectCycles,
 	findConnectedComponents,
-} from "./goalmap-validator";
+} from "./validator";
 
 describe("GoalMapValidator", () => {
 	it.effect("should validate a correct KBFIRA structure", () =>

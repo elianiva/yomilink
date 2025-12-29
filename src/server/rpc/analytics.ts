@@ -10,7 +10,7 @@ import {
 	EdgeSchema,
 	NodeSchema,
 	type EdgeClassification,
-} from "@/lib/learnermap-comparator";
+} from "@/features/learner-map/lib/comparator";
 import { parseJson } from "@/lib/utils";
 import { authMiddleware } from "@/middlewares/auth";
 import {
@@ -499,11 +499,8 @@ export const getLearnerMapForAnalytics = createServerFn()
 				Schema.Array(EdgeSchema),
 			);
 
-			const diagnosis = yield* compareMaps(
-				parsedGoalMapEdges,
-				parsedLearnerMapEdges,
-			);
-			const edgeClassifications = yield* classifyEdges(
+			const diagnosis = compareMaps(parsedGoalMapEdges, parsedLearnerMapEdges);
+			const edgeClassifications = classifyEdges(
 				parsedGoalMapEdges,
 				parsedLearnerMapEdges,
 			);

@@ -1,4 +1,4 @@
-import type { Edge, Node } from "@/lib/learnermap-comparator";
+import type { Edge, Node } from "@/features/learner-map/lib/comparator";
 
 export const simpleGoalMap = {
 	nodes: [
