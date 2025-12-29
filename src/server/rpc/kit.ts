@@ -3,6 +3,7 @@ import { createServerFn } from "@tanstack/react-start";
 import { desc, eq } from "drizzle-orm";
 import { Effect, Schema } from "effect";
 import { authMiddleware } from "@/middlewares/auth";
+import { requireTeacher } from "@/lib/auth-authorization";
 import { safeParseJson } from "@/lib/utils";
 import { goalMaps, kits } from "@/server/db/schema/app-schema";
 import { Database, DatabaseLive } from "../db/client";
@@ -154,9 +155,13 @@ export const getKitStatus = createServerFn()
 export const generateKit = createServerFn()
 	.middleware([authMiddleware])
 	.inputValidator((raw) => Schema.decodeUnknownSync(GenerateKitSchema)(raw))
-	.handler(({ data }) =>
+	.handler(({ data, context }) =>
 		Effect.gen(function* () {
 			const db = yield* Database;
+
+			// Verify user is a teacher
+			yield* requireTeacher(context.user.id);
+
 			const gm = yield* Effect.tryPromise(() =>
 				db.select().from(goalMaps).where(eq(goalMaps.id, data.goalMapId)).get(),
 			);

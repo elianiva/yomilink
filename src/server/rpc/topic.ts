@@ -39,7 +39,7 @@ export const listTopics = createServerFn()
 
 const CreateTopicSchema = Schema.Struct({
 	title: Schema.NonEmptyString,
-	description: Schema.NonEmptyString,
+	description: Schema.optionalWith(Schema.NonEmptyString, { nullable: true }),
 });
 
 export const createTopic = createServerFn()

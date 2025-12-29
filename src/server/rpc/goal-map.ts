@@ -3,6 +3,7 @@ import { createServerFn } from "@tanstack/react-start";
 import { desc, eq, isNull } from "drizzle-orm";
 import { Effect, Schema } from "effect";
 import { authMiddleware } from "@/middlewares/auth";
+import { requireGoalMapOwner } from "@/lib/auth-authorization";
 import { goalMaps, kits, texts } from "@/server/db/schema/app-schema";
 import { Database, DatabaseLive } from "../db/client";
 import { GoalMapValidator } from "@/features/goal-map/lib/validator";
@@ -127,6 +128,11 @@ export const saveGoalMap = createServerFn()
 		Effect.gen(function* () {
 			const db = yield* Database;
 
+			// Check ownership if updating existing map
+			if (data.goalMapId !== "new") {
+				yield* requireGoalMapOwner(context.user.id, data.goalMapId);
+			}
+
 			// Validate goal map structure
 			const validator = yield* GoalMapValidator;
 			const validationResult = yield* validator.validateNodes(
@@ -237,7 +243,7 @@ export const saveGoalMap = createServerFn()
 
 export const listGoalMaps = createServerFn()
 	.middleware([authMiddleware])
-	.handler(() =>
+	.handler(({ context }) =>
 		Effect.gen(function* () {
 			const db = yield* Database;
 			const rows = yield* Effect.tryPromise(() =>
@@ -252,6 +258,7 @@ export const listGoalMaps = createServerFn()
 						updatedAt: goalMaps.updatedAt,
 					})
 					.from(goalMaps)
+					.where(eq(goalMaps.teacherId, context.user.id))
 					.orderBy(desc(goalMaps.updatedAt))
 					.all(),
 			);
@@ -319,9 +326,13 @@ const DeleteGoalMapSchema = Schema.Struct({
 export const deleteGoalMap = createServerFn()
 	.middleware([authMiddleware])
 	.inputValidator((raw) => Schema.decodeUnknownSync(DeleteGoalMapSchema)(raw))
-	.handler(({ data }) =>
+	.handler(({ data, context }) =>
 		Effect.gen(function* () {
 			const db = yield* Database;
+
+			// Check ownership
+			yield* requireGoalMapOwner(context.user.id, data.goalMapId);
+
 			yield* Effect.tryPromise(() =>
 				db.delete(goalMaps).where(eq(goalMaps.id, data.goalMapId)).run(),
 			);

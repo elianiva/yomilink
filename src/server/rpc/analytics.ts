@@ -1,6 +1,6 @@
 import { queryOptions } from "@tanstack/react-query";
 import { createServerFn } from "@tanstack/react-start";
-import { desc, eq } from "drizzle-orm";
+import { desc, eq, inArray } from "drizzle-orm";
 import { Data, Effect, Schema } from "effect";
 import Papa from "papaparse";
 import {
@@ -13,6 +13,7 @@ import {
 } from "@/features/learner-map/lib/comparator";
 import { parseJson } from "@/lib/utils";
 import { authMiddleware } from "@/middlewares/auth";
+import { requireTeacher } from "@/lib/auth-authorization";
 import {
 	assignments,
 	diagnoses,
@@ -228,6 +229,9 @@ export const getAnalyticsForAssignment = createServerFn()
 		return Effect.gen(function* () {
 			const db = yield* Database;
 
+			// Verify user is a teacher
+			yield* requireTeacher(user.id);
+
 			const assignment = yield* Effect.tryPromise(() =>
 				db
 					.select({
@@ -237,6 +241,7 @@ export const getAnalyticsForAssignment = createServerFn()
 						kitId: assignments.kitId,
 						createdAt: assignments.createdAt,
 						dueAt: assignments.dueAt,
+						createdBy: assignments.createdBy,
 					})
 					.from(assignments)
 					.where(eq(assignments.id, data.assignmentId))
@@ -247,6 +252,13 @@ export const getAnalyticsForAssignment = createServerFn()
 				return yield* Effect.fail(
 					new AssignmentNotFoundError({ assignmentId: data.assignmentId }),
 				);
+			}
+
+			if (assignment.createdBy !== user.id) {
+				return {
+					success: false,
+					error: "Access denied",
+				} as const;
 			}
 
 			const goalMap = yield* Effect.tryPromise(() =>

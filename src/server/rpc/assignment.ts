@@ -4,6 +4,7 @@ import { count, desc, eq } from "drizzle-orm";
 import { Effect, Schema } from "effect";
 import { randomString } from "@/lib/utils";
 import { authMiddleware } from "@/middlewares/auth";
+import { requireTeacher } from "@/lib/auth-authorization";
 import {
 	assignments,
 	assignmentTargets,
@@ -30,9 +31,12 @@ export const createAssignment = createServerFn()
 	.inputValidator((raw) =>
 		Schema.decodeUnknownSync(CreateAssignmentSchema)(raw),
 	)
-	.handler(({ data }) =>
+	.handler(({ data, context }) =>
 		Effect.gen(function* () {
 			const db = yield* Database;
+
+			// Verify user is a teacher
+			yield* requireTeacher(context.user.id);
 
 			// Check if kit exists for goal map
 			const kit = yield* Effect.tryPromise(() =>
@@ -109,7 +113,7 @@ export const createAssignment = createServerFn()
 
 export const listTeacherAssignments = createServerFn()
 	.middleware([authMiddleware])
-	.handler(() =>
+	.handler(({ context }) =>
 		Effect.gen(function* () {
 			const db = yield* Database;
 			const rows = yield* Effect.tryPromise(() =>
@@ -129,6 +133,7 @@ export const listTeacherAssignments = createServerFn()
 					})
 					.from(assignments)
 					.leftJoin(goalMaps, eq(assignments.goalMapId, goalMaps.id))
+					.where(eq(assignments.createdBy, context.user.id))
 					.orderBy(desc(assignments.createdAt))
 					.all(),
 			);
@@ -152,9 +157,28 @@ export const deleteAssignment = createServerFn()
 	.inputValidator((raw) =>
 		Schema.decodeUnknownSync(Schema.Struct({ id: Schema.NonEmptyString }))(raw),
 	)
-	.handler(({ data }) =>
+	.handler(({ data, context }) =>
 		Effect.gen(function* () {
 			const db = yield* Database;
+
+			// Verify user is a teacher
+			yield* requireTeacher(context.user.id);
+
+			// Check ownership
+			const assignment = yield* Effect.tryPromise(() =>
+				db
+					.select({ createdBy: assignments.createdBy })
+					.from(assignments)
+					.where(eq(assignments.id, data.id))
+					.get(),
+			);
+
+			if (!assignment || assignment.createdBy !== context.user.id) {
+				return {
+					success: false,
+					error: "Assignment not found or access denied",
+				} as const;
+			}
 
 			// Delete assignment (cascade will delete targets)
 			yield* Effect.tryPromise(() =>

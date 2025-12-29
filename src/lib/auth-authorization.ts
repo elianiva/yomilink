@@ -226,3 +226,64 @@ export const requireRole = (role: string) => (userId: string) =>
 
 		return userId;
 	});
+export const requireAnyRole =
+	(...roles: string[]) =>
+	(userId: string) =>
+		Effect.gen(function* () {
+			const db = yield* Database;
+			const userRecord = yield* Effect.tryPromise(() =>
+				db
+					.select({ role: user.role })
+					.from(user)
+					.where(eq(user.id, userId))
+					.get(),
+			);
+
+			if (!userRecord || !userRecord.role || !roles.includes(userRecord.role)) {
+				return yield* Effect.fail(
+					new ForbiddenError({
+						message: `You must be one of: ${roles.join(", ")}`,
+					}),
+				);
+			}
+
+			return userId;
+		});
+
+export const requireTeacher = requireAnyRole("teacher", "admin");
+export const requireAdmin = requireRole("admin");
+
+class LearnerMapNotFoundError extends Data.TaggedError(
+	"LearnerMapNotFoundError",
+)<{
+	readonly learnerMapId: string;
+}> {}
+
+class KitNotFoundError extends Data.TaggedError("KitNotFoundError")<{
+	readonly kitId: string;
+}> {}
+
+class ValidationError extends Data.TaggedError("ValidationError")<{
+	readonly field: string;
+	readonly message: string;
+}> {}
+
+class BusinessLogicError extends Data.TaggedError("BusinessLogicError")<{
+	readonly reason: string;
+}> {}
+
+/**
+ * Create standardized error response
+ */
+export const errorResponse = (message: string) => ({
+	success: false,
+	error: message,
+} as const);
+
+/**
+ * Create standardized success response
+ */
+export const successResponse = <T extends Record<string, unknown>>(data: T) => ({
+	success: true,
+	...data,
+} as const);
