@@ -1,6 +1,10 @@
 import { describe, expect, it } from "@effect/vitest";
 import { Effect } from "effect";
-import { GoalMapValidator } from "./goalmap-validator";
+import {
+	GoalMapValidator,
+	detectCycles,
+	findConnectedComponents,
+} from "./goalmap-validator";
 
 describe("GoalMapValidator", () => {
 	it.effect("should validate a correct KBFIRA structure", () =>
@@ -297,4 +301,332 @@ describe("GoalMapValidator", () => {
 			).toBe(true);
 		}).pipe(Effect.provide(GoalMapValidator.Default)),
 	);
+
+	describe("findConnectedComponents", () => {
+		it("should find single connected component", () => {
+			const nodes = [
+				{
+					id: "a",
+					type: "text",
+					data: { label: "A" },
+					position: { x: 0, y: 0 },
+				},
+				{
+					id: "b",
+					type: "text",
+					data: { label: "B" },
+					position: { x: 100, y: 0 },
+				},
+				{
+					id: "c",
+					type: "text",
+					data: { label: "C" },
+					position: { x: 200, y: 0 },
+				},
+			];
+			const edges = [
+				{ id: "e1", source: "a", target: "b" },
+				{ id: "e2", source: "b", target: "c" },
+			];
+			const components = findConnectedComponents(nodes, edges);
+			expect(components).toHaveLength(1);
+			expect(components[0]).toHaveLength(3);
+		});
+
+		it("should detect multiple disconnected components", () => {
+			const nodes = [
+				{
+					id: "a",
+					type: "text",
+					data: { label: "A" },
+					position: { x: 0, y: 0 },
+				},
+				{
+					id: "b",
+					type: "text",
+					data: { label: "B" },
+					position: { x: 100, y: 0 },
+				},
+				{
+					id: "c",
+					type: "text",
+					data: { label: "C" },
+					position: { x: 200, y: 0 },
+				},
+				{
+					id: "d",
+					type: "text",
+					data: { label: "D" },
+					position: { x: 300, y: 0 },
+				},
+			];
+			const edges = [
+				{ id: "e1", source: "a", target: "b" },
+				{ id: "e2", source: "c", target: "d" },
+			];
+			const components = findConnectedComponents(nodes, edges);
+			expect(components).toHaveLength(2);
+			expect(components[0]).toHaveLength(2);
+			expect(components[1]).toHaveLength(2);
+		});
+
+		it("should handle isolated nodes as separate components", () => {
+			const nodes = [
+				{
+					id: "a",
+					type: "text",
+					data: { label: "A" },
+					position: { x: 0, y: 0 },
+				},
+				{
+					id: "b",
+					type: "text",
+					data: { label: "B" },
+					position: { x: 100, y: 0 },
+				},
+				{
+					id: "c",
+					type: "text",
+					data: { label: "C" },
+					position: { x: 200, y: 0 },
+				},
+			];
+			const edges = [{ id: "e1", source: "a", target: "b" }];
+			const components = findConnectedComponents(nodes, edges);
+			expect(components).toHaveLength(2);
+			expect(components[0]).toHaveLength(2);
+			expect(components[1]).toHaveLength(1);
+			expect(components[1][0].id).toBe("c");
+		});
+
+		it("should handle empty nodes array", () => {
+			const components = findConnectedComponents([], []);
+			expect(components).toHaveLength(0);
+		});
+
+		it("should handle nodes with no edges", () => {
+			const nodes = [
+				{
+					id: "a",
+					type: "text",
+					data: { label: "A" },
+					position: { x: 0, y: 0 },
+				},
+				{
+					id: "b",
+					type: "text",
+					data: { label: "B" },
+					position: { x: 100, y: 0 },
+				},
+			];
+			const components = findConnectedComponents(nodes, []);
+			expect(components).toHaveLength(2);
+		});
+
+		it("should work with bidirectional edges", () => {
+			const nodes = [
+				{
+					id: "a",
+					type: "text",
+					data: { label: "A" },
+					position: { x: 0, y: 0 },
+				},
+				{
+					id: "b",
+					type: "text",
+					data: { label: "B" },
+					position: { x: 100, y: 0 },
+				},
+			];
+			const edges = [
+				{ id: "e1", source: "a", target: "b" },
+				{ id: "e2", source: "b", target: "a" },
+			];
+			const components = findConnectedComponents(nodes, edges);
+			expect(components).toHaveLength(1);
+			expect(components[0]).toHaveLength(2);
+		});
+	});
+
+	describe("detectCycles", () => {
+		it("should detect simple cycle", () => {
+			const nodes = [
+				{
+					id: "a",
+					type: "text",
+					data: { label: "A" },
+					position: { x: 0, y: 0 },
+				},
+				{
+					id: "b",
+					type: "text",
+					data: { label: "B" },
+					position: { x: 100, y: 0 },
+				},
+			];
+			const edges = [
+				{ id: "e1", source: "a", target: "b" },
+				{ id: "e2", source: "b", target: "a" },
+			];
+			expect(detectCycles(nodes, edges)).toBe(true);
+		});
+
+		it("should detect cycle with three nodes", () => {
+			const nodes = [
+				{
+					id: "a",
+					type: "text",
+					data: { label: "A" },
+					position: { x: 0, y: 0 },
+				},
+				{
+					id: "b",
+					type: "text",
+					data: { label: "B" },
+					position: { x: 100, y: 0 },
+				},
+				{
+					id: "c",
+					type: "text",
+					data: { label: "C" },
+					position: { x: 200, y: 0 },
+				},
+			];
+			const edges = [
+				{ id: "e1", source: "a", target: "b" },
+				{ id: "e2", source: "b", target: "c" },
+				{ id: "e3", source: "c", target: "a" },
+			];
+			expect(detectCycles(nodes, edges)).toBe(true);
+		});
+
+		it("should return false for acyclic graph", () => {
+			const nodes = [
+				{
+					id: "a",
+					type: "text",
+					data: { label: "A" },
+					position: { x: 0, y: 0 },
+				},
+				{
+					id: "b",
+					type: "text",
+					data: { label: "B" },
+					position: { x: 100, y: 0 },
+				},
+				{
+					id: "c",
+					type: "text",
+					data: { label: "C" },
+					position: { x: 200, y: 0 },
+				},
+			];
+			const edges = [
+				{ id: "e1", source: "a", target: "b" },
+				{ id: "e2", source: "b", target: "c" },
+			];
+			expect(detectCycles(nodes, edges)).toBe(false);
+		});
+
+		it("should return false for empty graph", () => {
+			expect(detectCycles([], [])).toBe(false);
+		});
+
+		it("should return false for single node with no edges", () => {
+			const nodes = [
+				{
+					id: "a",
+					type: "text",
+					data: { label: "A" },
+					position: { x: 0, y: 0 },
+				},
+			];
+			expect(detectCycles(nodes, [])).toBe(false);
+		});
+
+		it("should detect cycle in complex graph with multiple paths", () => {
+			const nodes = [
+				{
+					id: "a",
+					type: "text",
+					data: { label: "A" },
+					position: { x: 0, y: 0 },
+				},
+				{
+					id: "b",
+					type: "text",
+					data: { label: "B" },
+					position: { x: 100, y: 0 },
+				},
+				{
+					id: "c",
+					type: "text",
+					data: { label: "C" },
+					position: { x: 200, y: 0 },
+				},
+				{
+					id: "d",
+					type: "text",
+					data: { label: "D" },
+					position: { x: 300, y: 0 },
+				},
+			];
+			const edges = [
+				{ id: "e1", source: "a", target: "b" },
+				{ id: "e2", source: "a", target: "c" },
+				{ id: "e3", source: "b", target: "d" },
+				{ id: "e4", source: "c", target: "d" },
+				{ id: "e5", source: "d", target: "a" },
+			];
+			expect(detectCycles(nodes, edges)).toBe(true);
+		});
+
+		it("should return false for tree structure", () => {
+			const nodes = [
+				{
+					id: "root",
+					type: "text",
+					data: { label: "Root" },
+					position: { x: 0, y: 0 },
+				},
+				{
+					id: "child1",
+					type: "text",
+					data: { label: "C1" },
+					position: { x: 100, y: 0 },
+				},
+				{
+					id: "child2",
+					type: "text",
+					data: { label: "C2" },
+					position: { x: 200, y: 0 },
+				},
+				{
+					id: "grandchild1",
+					type: "text",
+					data: { label: "G1" },
+					position: { x: 300, y: 0 },
+				},
+			];
+			const edges = [
+				{ id: "e1", source: "root", target: "child1" },
+				{ id: "e2", source: "root", target: "child2" },
+				{ id: "e3", source: "child1", target: "grandchild1" },
+			];
+			expect(detectCycles(nodes, edges)).toBe(false);
+		});
+
+		it("should handle self-loop", () => {
+			const nodes = [
+				{
+					id: "a",
+					type: "text",
+					data: { label: "A" },
+					position: { x: 0, y: 0 },
+				},
+			];
+			const edges = [{ id: "e1", source: "a", target: "a" }];
+			expect(detectCycles(nodes, edges)).toBe(true);
+		});
+	});
 });

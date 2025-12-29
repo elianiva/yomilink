@@ -1,14 +1,5 @@
 # TODO List
 
-## High Priority
-
-### TODO Comments
-- [ ] `src/lib/auth.ts:67` - Better error handling (currently just logs to console)
-- [ ] `src/routes/api/auth/$.ts:14` - Better logging with Sentry
-
-### Coming Soon Features
-- [ ] `src/routes/dashboard/analytics.tsx:364` - Metrics feature (shows "coming soon" toast)
-
 ## Medium Priority
 
 ### Documentation

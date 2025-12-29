@@ -260,8 +260,10 @@ export class GoalMapValidator extends Effect.Service<GoalMapValidator>()(
 	},
 ) {}
 
-// Helper functions
-function findConnectedComponents(nodes: Node[], edges: Edge[]): Node[][] {
+export function findConnectedComponents(
+	nodes: Node[],
+	edges: Edge[],
+): Node[][] {
 	const visited = new Set<string>();
 	const components: Node[][] = [];
 
@@ -293,7 +295,7 @@ function findConnectedComponents(nodes: Node[], edges: Edge[]): Node[][] {
 	return components;
 }
 
-function detectCycles(nodes: Node[], edges: Edge[]): boolean {
+export function detectCycles(nodes: Node[], edges: Edge[]): boolean {
 	const visited = new Set<string>();
 	const recursionStack = new Set<string>();
 

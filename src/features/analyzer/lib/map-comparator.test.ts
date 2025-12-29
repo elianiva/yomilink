@@ -173,4 +173,92 @@ describe("compareMapsDetailed", () => {
 
 		expect(result.match).toHaveLength(1);
 	});
+
+	it("should handle mixed scenarios with all edge types", () => {
+		const goalMapEdges: Edge[] = [
+			{ id: "e1", source: "c1", target: "l1" },
+			{ id: "e2", source: "l1", target: "c2" },
+			{ id: "e3", source: "c2", target: "l2" },
+		];
+		const learnerEdges: Edge[] = [
+			{ id: "e1", source: "c1", target: "l1" },
+			{ id: "ex1", source: "c2", target: "c1" },
+		];
+
+		const result = Effect.runSync(
+			compareMapsDetailed(goalMapEdges, [], learnerEdges, []),
+		);
+
+		expect(result.match).toHaveLength(1);
+		expect(result.miss).toHaveLength(2);
+		expect(result.excessive).toHaveLength(1);
+		expect(result.leave).toHaveLength(2);
+		expect(result.abandon).toHaveLength(0);
+	});
+
+	it("should identify abandon when learner edges are disconnected from goal", () => {
+		const goalMapEdges: Edge[] = [
+			{ id: "e1", source: "c1", target: "l1" },
+			{ id: "e2", source: "l1", target: "c2" },
+		];
+		const learnerEdges: Edge[] = [{ id: "ex1", source: "c3", target: "l2" }];
+
+		const result = Effect.runSync(
+			compareMapsDetailed(goalMapEdges, [], learnerEdges, []),
+		);
+
+		expect(result.abandon).toHaveLength(2);
+		expect(result.leave).toHaveLength(0);
+	});
+
+	it("should identify leave when learner uses goal nodes but not the edge", () => {
+		const goalMapEdges: Edge[] = [
+			{ id: "e1", source: "c1", target: "l1" },
+			{ id: "e2", source: "l1", target: "c2" },
+		];
+		const learnerEdges: Edge[] = [{ id: "e1", source: "c1", target: "l1" }];
+
+		const result = Effect.runSync(
+			compareMapsDetailed(goalMapEdges, [], learnerEdges, []),
+		);
+
+		expect(result.leave).toHaveLength(1);
+		expect(result.leave[0].id).toBe("e2");
+		expect(result.abandon).toHaveLength(0);
+	});
+
+	it("should distinguish between leave and abandon correctly", () => {
+		const goalMapEdges: Edge[] = [
+			{ id: "e1", source: "c1", target: "l1" },
+			{ id: "e2", source: "l1", target: "c2" },
+			{ id: "e3", source: "c2", target: "l2" },
+		];
+		const learnerEdges: Edge[] = [
+			{ id: "e1", source: "c1", target: "l1" },
+			{ id: "ex1", source: "c1", target: "l2" },
+		];
+
+		const result = Effect.runSync(
+			compareMapsDetailed(goalMapEdges, [], learnerEdges, []),
+		);
+
+		expect(result.leave).toHaveLength(2);
+		expect(result.abandon).toHaveLength(0);
+	});
+
+	it("should handle duplicate edges in learner map", () => {
+		const goalMapEdges: Edge[] = [{ id: "e1", source: "c1", target: "l1" }];
+		const learnerEdges: Edge[] = [
+			{ id: "e1", source: "c1", target: "l1" },
+			{ id: "e2", source: "c1", target: "l1" },
+		];
+
+		const result = Effect.runSync(
+			compareMapsDetailed(goalMapEdges, [], learnerEdges, []),
+		);
+
+		expect(result.match).toHaveLength(2);
+		expect(result.excessive).toHaveLength(0);
+		expect(result.score).toBe(2);
+	});
 });
