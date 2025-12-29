@@ -64,9 +64,19 @@ export function getServerUser(headers: Headers) {
 			auth.api.getSession({ headers }),
 		).pipe(
 			Effect.catchTag("UnknownException", (e) => {
-				// TODO: better error handling
-				console.log(e);
-				return Effect.succeed(null);
+				const errorDetails =
+					e instanceof Error
+						? {
+								message: e.message,
+								stack: e.stack,
+							}
+						: {
+								message: String(e),
+							};
+				return Effect.logError(
+					"Failed to get user session from auth",
+					errorDetails,
+				).pipe(Effect.andThen(Effect.succeed(null)));
 			}),
 		);
 		if (!session) return null;
