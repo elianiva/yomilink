@@ -1,11 +1,12 @@
 import { queryOptions } from "@tanstack/react-query";
 import { createServerFn } from "@tanstack/react-start";
-import { getRequest } from "@tanstack/react-start/server";
-import { getServerUser } from "@/lib/auth";
+import { authMiddleware } from "@/middlewares/auth";
 
-export const getMe = createServerFn().handler(() =>
-	getServerUser(getRequest().headers),
-);
+export const getMe = createServerFn()
+	.middleware([authMiddleware])
+	.handler(async ({ context }) => {
+		return context.user;
+	});
 
 export const ProfileRpc = {
 	me: () => ["me"],
