@@ -1,9 +1,9 @@
 import { mutationOptions, queryOptions } from "@tanstack/react-query";
 import { createServerFn } from "@tanstack/react-start";
-import { and, desc, eq, inArray, or } from "drizzle-orm";
+import { and, desc, eq, inArray, or, sql } from "drizzle-orm";
 import { Effect, Schema } from "effect";
 import { compareMaps } from "@/features/learner-map/lib/comparator";
-import { randomString, safeParseJson } from "@/lib/utils";
+import { randomString } from "@/lib/utils";
 import { authMiddleware } from "@/middlewares/auth";
 import {
 	assignments,
@@ -39,7 +39,6 @@ export const listStudentAssignments = createServerFn()
 			const db = yield* Database;
 			const userId = user.id;
 
-			// Get user's cohort memberships
 			const userCohorts = yield* Effect.tryPromise(() =>
 				db
 					.select({ cohortId: cohortMembers.cohortId })
@@ -50,40 +49,7 @@ export const listStudentAssignments = createServerFn()
 
 			const cohortIds = userCohorts.map((c) => c.cohortId);
 
-			// Get assignments targeted to user directly or via cohort
-			let assignmentIds: string[] = [];
-
-			if (cohortIds.length > 0) {
-				const targets = yield* Effect.tryPromise(() =>
-					db
-						.select({ assignmentId: assignmentTargets.assignmentId })
-						.from(assignmentTargets)
-						.where(
-							or(
-								eq(assignmentTargets.userId, userId),
-								inArray(assignmentTargets.cohortId, cohortIds),
-							),
-						)
-						.all(),
-				);
-				assignmentIds = [...new Set(targets.map((t) => t.assignmentId))];
-			} else {
-				const targets = yield* Effect.tryPromise(() =>
-					db
-						.select({ assignmentId: assignmentTargets.assignmentId })
-						.from(assignmentTargets)
-						.where(eq(assignmentTargets.userId, userId))
-						.all(),
-				);
-				assignmentIds = targets.map((t) => t.assignmentId);
-			}
-
-			if (assignmentIds.length === 0) {
-				return [];
-			}
-
-			// Get assignment details with learner map status
-			const rows = yield* Effect.tryPromise(() =>
+			const assignmentsData = yield* Effect.tryPromise(() =>
 				db
 					.select({
 						id: assignments.id,
@@ -94,55 +60,54 @@ export const listStudentAssignments = createServerFn()
 						dueAt: assignments.dueAt,
 						createdAt: assignments.createdAt,
 						goalMapTitle: goalMaps.title,
+						learnerMapStatus: learnerMaps.status,
+						learnerMapAttempt: learnerMaps.attempt,
+						learnerMapUpdatedAt: learnerMaps.updatedAt,
 					})
 					.from(assignments)
+					.leftJoin(
+						assignmentTargets,
+						eq(assignmentTargets.assignmentId, assignments.id),
+					)
 					.leftJoin(goalMaps, eq(assignments.goalMapId, goalMaps.id))
-					.where(inArray(assignments.id, assignmentIds))
+					.leftJoin(
+						learnerMaps,
+						and(
+							eq(learnerMaps.assignmentId, assignments.id),
+							eq(learnerMaps.userId, userId),
+						),
+					)
+					.where(
+						or(
+							eq(assignmentTargets.userId, userId),
+							cohortIds.length > 0
+								? inArray(assignmentTargets.cohortId, cohortIds)
+								: sql`1 = 0`,
+						),
+					)
 					.orderBy(desc(assignments.createdAt))
 					.all(),
 			);
 
-			// Get learner maps for these assignments
-			const learnerMapRows = yield* Effect.tryPromise(() =>
-				db
-					.select({
-						assignmentId: learnerMaps.assignmentId,
-						status: learnerMaps.status,
-						attempt: learnerMaps.attempt,
-						updatedAt: learnerMaps.updatedAt,
-					})
-					.from(learnerMaps)
-					.where(
-						and(
-							eq(learnerMaps.userId, userId),
-							inArray(learnerMaps.assignmentId, assignmentIds),
-						),
-					)
-					.all(),
-			);
-
-			const learnerMapsByAssignment = new Map(
-				learnerMapRows.map((lm) => [
-					lm.assignmentId,
-					{ status: lm.status, attempt: lm.attempt, updatedAt: lm.updatedAt },
+			const uniqueAssignments = new Map(
+				assignmentsData.map((row) => [
+					row.id,
+					{
+						...row,
+						dueAt: row.dueAt?.getTime(),
+						createdAt: row.createdAt?.getTime(),
+						status: row.learnerMapStatus || "not_started",
+						attempt: row.learnerMapAttempt || 0,
+						isLate:
+							row.dueAt &&
+							row.dueAt.getTime() < Date.now() &&
+							row.learnerMapStatus !== "submitted",
+						lastUpdated: row.learnerMapUpdatedAt?.getTime(),
+					},
 				]),
 			);
 
-			return rows.map((row) => {
-				const learnerMap = learnerMapsByAssignment.get(row.id);
-				const now = Date.now();
-				const isLate = row.dueAt && row.dueAt.getTime() < now;
-
-				return {
-					...row,
-					dueAt: row.dueAt?.getTime(),
-					createdAt: row.createdAt?.getTime(),
-					status: learnerMap?.status || "not_started",
-					attempt: learnerMap?.attempt || 0,
-					isLate: isLate && learnerMap?.status !== "submitted",
-					lastUpdated: learnerMap?.updatedAt?.getTime(),
-				};
-			});
+			return Array.from(uniqueAssignments.values());
 		}).pipe(
 			Effect.provide(DatabaseLive),
 			Effect.withSpan("listStudentAssignments"),
@@ -166,98 +131,76 @@ export const getAssignmentForStudent = createServerFn()
 			const db = yield* Database;
 			const userId = user.id;
 
-			// Get assignment
-			const assignment = yield* Effect.tryPromise(() =>
+			const result = yield* Effect.tryPromise(() =>
 				db
 					.select({
-						id: assignments.id,
-						title: assignments.title,
-						description: assignments.description,
-						readingMaterial: assignments.readingMaterial,
-						timeLimitMinutes: assignments.timeLimitMinutes,
-						goalMapId: assignments.goalMapId,
-						kitId: assignments.kitId,
-						dueAt: assignments.dueAt,
+						assignment: {
+							id: assignments.id,
+							title: assignments.title,
+							description: assignments.description,
+							readingMaterial: assignments.readingMaterial,
+							timeLimitMinutes: assignments.timeLimitMinutes,
+							goalMapId: assignments.goalMapId,
+							kitId: assignments.kitId,
+							dueAt: assignments.dueAt,
+						},
+						kit: {
+							id: kits.id,
+							nodes: kits.nodes,
+							edges: kits.edges,
+							textId: kits.textId,
+						},
+						materialText: texts.content,
+						learnerMap: {
+							id: learnerMaps.id,
+							nodes: learnerMaps.nodes,
+							edges: learnerMaps.edges,
+							status: learnerMaps.status,
+							attempt: learnerMaps.attempt,
+						},
 					})
 					.from(assignments)
+					.leftJoin(kits, eq(kits.id, assignments.kitId))
+					.leftJoin(texts, eq(texts.id, kits.textId))
+					.leftJoin(
+						learnerMaps,
+						and(
+							eq(learnerMaps.assignmentId, assignments.id),
+							eq(learnerMaps.userId, userId),
+						),
+					)
 					.where(eq(assignments.id, data.assignmentId))
 					.get(),
 			);
 
-			if (!assignment) return null;
+			if (!result || !result.kit) return null;
 
-			// Get kit nodes (concepts + connectors)
-			const kit = yield* Effect.tryPromise(() =>
-				db
-					.select({
-						id: kits.id,
-						nodes: kits.nodes,
-						edges: kits.edges,
-						textId: kits.textId,
-					})
-					.from(kits)
-					.where(eq(kits.id, assignment.kitId))
-					.get(),
-			);
-
-			if (!kit) return null;
-
-			// Use reading material from assignment if available, fallback to kit's text
-			let materialText: string | null = assignment.readingMaterial;
-			if (!materialText && kit.textId) {
-				const textId = kit.textId;
-				const text = yield* Effect.tryPromise(() =>
-					db
-						.select({ content: texts.content })
-						.from(texts)
-						.where(eq(texts.id, textId))
-						.get(),
-				);
-				materialText = text?.content || null;
-			}
-
-			// Get existing learner map if any
-			const learnerMap = yield* Effect.tryPromise(() =>
-				db
-					.select({
-						id: learnerMaps.id,
-						nodes: learnerMaps.nodes,
-						edges: learnerMaps.edges,
-						status: learnerMaps.status,
-						attempt: learnerMaps.attempt,
-					})
-					.from(learnerMaps)
-					.where(
-						and(
-							eq(learnerMaps.assignmentId, data.assignmentId),
-							eq(learnerMaps.userId, userId),
-						),
-					)
-					.get(),
-			);
-
-			// Parse kit nodes
-			const kitNodes = yield* safeParseJson(kit.nodes, []);
-			const kitEdges = yield* safeParseJson(kit.edges, []);
+			const kitNodes = Array.isArray(result.kit.nodes) ? result.kit.nodes : [];
+			const kitEdges = Array.isArray(result.kit.edges) ? result.kit.edges : [];
 
 			return {
 				assignment: {
-					...assignment,
-					dueAt: assignment.dueAt?.getTime(),
+					...result.assignment,
+					dueAt: result.assignment.dueAt?.getTime(),
 				},
 				kit: {
-					id: kit.id,
+					id: result.kit.id,
 					nodes: kitNodes,
 					edges: kitEdges,
 				},
-				materialText,
-				learnerMap: learnerMap
+				materialText:
+					result.assignment.readingMaterial || result.materialText || null,
+				learnerMap: result.learnerMap
 					? {
-							id: learnerMap.id,
-							nodes: yield* safeParseJson(learnerMap.nodes, []),
-							edges: yield* safeParseJson(learnerMap.edges, []),
-							status: learnerMap.status,
-							attempt: learnerMap.attempt,
+							id: result.learnerMap.id,
+							nodes: Array.isArray(result.learnerMap.nodes)
+								? result.learnerMap.nodes
+								: [],
+							edges: Array.isArray(result.learnerMap.edges)
+								? result.learnerMap.edges
+								: [],
+							status: result.learnerMap.status,
+							attempt: result.learnerMap.attempt,
 						}
 					: null,
 			};
@@ -412,7 +355,9 @@ export const submitLearnerMap = createServerFn()
 			}
 
 			const goalMapEdges = Array.isArray(goalMap.edges) ? goalMap.edges : [];
-			const learnerEdges = yield* safeParseJson(learnerMap.edges, []);
+			const learnerEdges = Array.isArray(learnerMap.edges)
+				? learnerMap.edges
+				: [];
 
 			// Compare maps
 			const diagnosis = compareMaps(goalMapEdges, learnerEdges);
@@ -474,82 +419,85 @@ export const getDiagnosis = createServerFn()
 			const db = yield* Database;
 			const userId = user.id;
 
-			// Get learner map
-			const learnerMap = yield* Effect.tryPromise(() =>
+			const result = yield* Effect.tryPromise(() =>
 				db
 					.select({
-						id: learnerMaps.id,
-						nodes: learnerMaps.nodes,
-						edges: learnerMaps.edges,
-						status: learnerMaps.status,
-						attempt: learnerMaps.attempt,
-						goalMapId: learnerMaps.goalMapId,
+						learnerMap: {
+							id: learnerMaps.id,
+							nodes: learnerMaps.nodes,
+							edges: learnerMaps.edges,
+							status: learnerMaps.status,
+							attempt: learnerMaps.attempt,
+							goalMapId: learnerMaps.goalMapId,
+						},
+						goalMap: {
+							nodes: goalMaps.nodes,
+							edges: goalMaps.edges,
+						},
+						diagnosis: {
+							id: diagnoses.id,
+							summary: diagnoses.summary,
+							score: diagnoses.score,
+							perLink: diagnoses.perLink,
+							createdAt: diagnoses.createdAt,
+						},
 					})
 					.from(learnerMaps)
+					.innerJoin(goalMaps, eq(goalMaps.id, learnerMaps.goalMapId))
+					.leftJoin(diagnoses, eq(diagnoses.learnerMapId, learnerMaps.id))
 					.where(
 						and(
 							eq(learnerMaps.assignmentId, data.assignmentId),
 							eq(learnerMaps.userId, userId),
 						),
 					)
-					.get(),
-			);
-
-			if (!learnerMap) {
-				return null;
-			}
-
-			// Get goal map for node info
-			const goalMap = yield* Effect.tryPromise(() =>
-				db
-					.select({ nodes: goalMaps.nodes, edges: goalMaps.edges })
-					.from(goalMaps)
-					.where(eq(goalMaps.id, learnerMap.goalMapId))
-					.get(),
-			);
-
-			if (!goalMap) {
-				return null;
-			}
-
-			// Get diagnosis
-			const diagnosis = yield* Effect.tryPromise(() =>
-				db
-					.select()
-					.from(diagnoses)
-					.where(eq(diagnoses.learnerMapId, learnerMap.id))
 					.orderBy(desc(diagnoses.createdAt))
+					.limit(1)
 					.get(),
 			);
 
-			const diagnosisData = diagnosis?.perLink
-				? yield* safeParseJson(diagnosis.perLink, {
-						correct: [],
-						missing: [],
-						excessive: [],
-					})
-				: null;
+			if (!result) {
+				return null;
+			}
+
+			const diagnosisData =
+				result.diagnosis?.perLink &&
+				typeof result.diagnosis.perLink === "object"
+					? (result.diagnosis.perLink as {
+							correct?: unknown[];
+							missing?: unknown[];
+							excessive?: unknown[];
+						})
+					: null;
 
 			return {
 				learnerMap: {
-					id: learnerMap.id,
-					nodes: yield* safeParseJson(learnerMap.nodes, []),
-					edges: yield* safeParseJson(learnerMap.edges, []),
-					status: learnerMap.status,
-					attempt: learnerMap.attempt,
+					id: result.learnerMap.id,
+					nodes: Array.isArray(result.learnerMap.nodes)
+						? result.learnerMap.nodes
+						: [],
+					edges: Array.isArray(result.learnerMap.edges)
+						? result.learnerMap.edges
+						: [],
+					status: result.learnerMap.status,
+					attempt: result.learnerMap.attempt,
 				},
 				goalMap: {
-					nodes: Array.isArray(goalMap.nodes) ? goalMap.nodes : [],
-					edges: Array.isArray(goalMap.edges) ? goalMap.edges : [],
+					nodes: Array.isArray(result.goalMap.nodes)
+						? result.goalMap.nodes
+						: [],
+					edges: Array.isArray(result.goalMap.edges)
+						? result.goalMap.edges
+						: [],
 				},
-				diagnosis: diagnosis
+				diagnosis: result.diagnosis
 					? {
-							id: diagnosis.id,
-							summary: diagnosis.summary,
-							score: diagnosis.score,
-							correct: diagnosisData?.correct ?? [],
-							missing: diagnosisData?.missing ?? [],
-							excessive: diagnosisData?.excessive ?? [],
+							id: result.diagnosis.id,
+							summary: result.diagnosis.summary,
+							score: result.diagnosis.score,
+							correct: (diagnosisData?.correct ?? []) as any[],
+							missing: (diagnosisData?.missing ?? []) as any[],
+							excessive: (diagnosisData?.excessive ?? []) as any[],
 						}
 					: null,
 			};

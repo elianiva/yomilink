@@ -4,7 +4,6 @@ import { desc, eq } from "drizzle-orm";
 import { Effect, Schema } from "effect";
 import { authMiddleware } from "@/middlewares/auth";
 import { requireTeacher } from "@/lib/auth-authorization";
-import { safeParseJson } from "@/lib/utils";
 import { goalMaps, kits } from "@/server/db/schema/app-schema";
 import { Database, DatabaseLive } from "../db/client";
 
@@ -73,8 +72,8 @@ export const getKit = createServerFn()
 			);
 			if (!row) return null;
 
-			const nodes = yield* safeParseJson(row.nodes, []);
-			const edges = yield* safeParseJson(row.edges, []);
+			const nodes = Array.isArray(row.nodes) ? row.nodes : [];
+			const edges = Array.isArray(row.edges) ? row.edges : [];
 
 			const result = yield* Schema.decodeUnknown(KitResultSchema)({
 				goalMapId: row.goalMapId,
@@ -130,7 +129,7 @@ export const getKitStatus = createServerFn()
 				),
 			]);
 
-			const kitNodes = kit ? yield* safeParseJson(kit.nodes, []) : [];
+			const kitNodes = kit && Array.isArray(kit.nodes) ? kit.nodes : [];
 			const nodeCount = kitNodes.length;
 			const kitUpdatedAt = kit?.updatedAt?.getTime() ?? null;
 			const goalMapUpdatedAt = goalMap?.updatedAt?.getTime() ?? null;

@@ -77,9 +77,9 @@ export const kits = sqliteTable(
 		teacherId: text("teacher_id").notNull(),
 		textId: text("text_id").references(() => texts.id),
 		// Kit nodes (concepts + connectors from goal map)
-		nodes: text("nodes", { length: 1_000_000 }).notNull().default("[]"),
+		nodes: text("nodes", { mode: "json" }).notNull().default("[]"),
 		// Kit edges - empty for students to build
-		edges: text("edges", { length: 1_000_000 }).notNull().default("[]"),
+		edges: text("edges", { mode: "json" }).notNull().default("[]"),
 		...timestamps,
 	},
 	(table) => [
@@ -170,8 +170,8 @@ export const learnerMaps = sqliteTable(
 			.notNull()
 			.references(() => kits.id),
 		userId: text("user_id").notNull(),
-		nodes: text("nodes", { length: 1_000_000 }).notNull(),
-		edges: text("edges", { length: 1_000_000 }).notNull(),
+		nodes: text("nodes", { mode: "json" }).notNull(),
+		edges: text("edges", { mode: "json" }).notNull(),
 		status: text("status", { enum: ["draft", "submitted", "graded"] })
 			.notNull()
 			.default("draft"),

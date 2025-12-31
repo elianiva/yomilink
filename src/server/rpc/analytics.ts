@@ -1,19 +1,19 @@
 import { queryOptions } from "@tanstack/react-query";
 import { createServerFn } from "@tanstack/react-start";
-import { and, desc, eq, inArray } from "drizzle-orm";
+import { and, desc, eq, sql } from "drizzle-orm";
 import { Data, Effect, Schema } from "effect";
 import Papa from "papaparse";
 import {
 	classifyEdges,
 	compareMaps,
 	type DiagnosisResult,
+	type EdgeClassification,
 	EdgeSchema,
 	NodeSchema,
-	type EdgeClassification,
 } from "@/features/learner-map/lib/comparator";
+import { requireTeacher } from "@/lib/auth-authorization";
 import { parseJson } from "@/lib/utils";
 import { authMiddleware } from "@/middlewares/auth";
-import { requireTeacher } from "@/lib/auth-authorization";
 import {
 	assignments,
 	diagnoses,
@@ -145,74 +145,68 @@ export const getTeacherAssignmentsForAnalytics = createServerFn()
 		return Effect.gen(function* () {
 			const db = yield* Database;
 
-			const assignments_ = yield* Effect.tryPromise(() =>
-				db
-					.select({
-						id: assignments.id,
-						title: assignments.title,
-						goalMapId: assignments.goalMapId,
-						goalMapTitle: goalMaps.title,
-						kitId: kits.id,
-						createdAt: assignments.createdAt,
-						dueAt: assignments.dueAt,
-					})
-					.from(assignments)
-					.leftJoin(goalMaps, eq(assignments.goalMapId, goalMaps.id))
-					.leftJoin(kits, eq(assignments.kitId, kits.id))
-					.where(eq(assignments.createdBy, user.id))
-					.orderBy(desc(assignments.createdAt))
-					.all(),
-			);
-
-			const getAssignmentStats = (assignment: (typeof assignments_)[number]) =>
-				Effect.gen(function* () {
-					const submissionCount = yield* Effect.tryPromise(() =>
-						db
-							.select({ count: db.$count(learnerMaps.id) })
-							.from(learnerMaps)
-							.where(eq(learnerMaps.assignmentId, assignment.id))
-							.get(),
+			const assignmentsWithStats = yield* Effect.tryPromise({
+				try: () =>
+					db
+						.select({
+							id: assignments.id,
+							title: assignments.title,
+							goalMapId: assignments.goalMapId,
+							goalMapTitle: goalMaps.title,
+							kitId: kits.id,
+							createdAt: assignments.createdAt,
+							dueAt: assignments.dueAt,
+							submissionCount: db.$count(learnerMaps.id),
+							avgScore: sql<number>`AVG(${diagnoses.score})`,
+						})
+						.from(assignments)
+						.leftJoin(goalMaps, eq(assignments.goalMapId, goalMaps.id))
+						.leftJoin(kits, eq(assignments.kitId, kits.id))
+						.leftJoin(learnerMaps, eq(learnerMaps.assignmentId, assignments.id))
+						.leftJoin(diagnoses, eq(diagnoses.goalMapId, assignments.goalMapId))
+						.where(eq(assignments.createdBy, user.id))
+						.groupBy(
+							assignments.id,
+							goalMaps.title,
+							kits.id,
+							assignments.createdAt,
+							assignments.dueAt,
+						)
+						.orderBy(desc(assignments.createdAt))
+						.all(),
+				catch: (error) => {
+					console.error(
+						"[getTeacherAssignmentsForAnalytics] Database query failed:",
+						error,
 					);
+					return error;
+				},
+			});
 
-					const diagnosesForAssignment = yield* Effect.tryPromise(() =>
-						db
-							.select({ score: diagnoses.score })
-							.from(diagnoses)
-							.where(eq(diagnoses.goalMapId, assignment.goalMapId))
-							.all(),
-					);
+			const result = assignmentsWithStats.map((row) => ({
+				id: row.id,
+				title: row.title,
+				goalMapId: row.goalMapId,
+				goalMapTitle: row.goalMapTitle,
+				kitId: row.kitId,
+				totalSubmissions: Number(row.submissionCount ?? 0),
+				avgScore: row.avgScore ? Number(row.avgScore) : null,
+				createdAt: row.createdAt?.getTime() ?? 0,
+				dueAt: row.dueAt?.getTime() ?? null,
+			}));
 
-					const scores = diagnosesForAssignment
-						.map((d) => d.score)
-						.filter((s): s is number => s !== null);
-
-					const avgScore =
-						scores.length > 0
-							? scores.reduce((a, b) => a + b, 0) / scores.length
-							: null;
-
-					return {
-						id: assignment.id,
-						title: assignment.title,
-						goalMapId: assignment.goalMapId,
-						goalMapTitle: assignment.goalMapTitle,
-						kitId: assignment.kitId,
-						totalSubmissions: Number(submissionCount?.count ?? 0),
-						avgScore,
-						createdAt: assignment.createdAt?.getTime() ?? 0,
-						dueAt: assignment.dueAt?.getTime() ?? null,
-					} as TeacherAssignment;
-				});
-
-			const assignmentsWithStats = yield* Effect.all(
-				assignments_.map(getAssignmentStats),
-				{ concurrency: 10 },
-			);
-
-			return assignmentsWithStats;
+			return result as TeacherAssignment[];
 		}).pipe(
 			Effect.provide(DatabaseLive),
 			Effect.withSpan("getTeacherAssignmentsForAnalytics"),
+			Effect.tapError((error) =>
+				Effect.sync(() =>
+					console.error(
+						"[getTeacherAssignmentsForAnalytics] Effect error:",
+						error,
+					),
+				),
+			),
 			Effect.runPromise,
 		);
 	});
@@ -296,6 +290,7 @@ export const getAnalyticsForAssignment = createServerFn()
 						attempt: learnerMaps.attempt,
 						submittedAt: learnerMaps.submittedAt,
 						score: diagnoses.score,
+						perLink: diagnoses.perLink,
 						userName: usersTable.name,
 					})
 					.from(learnerMaps)
@@ -306,36 +301,17 @@ export const getAnalyticsForAssignment = createServerFn()
 					.all(),
 			);
 
-			const learnerMapIds = learnerMapsData.map((lm) => lm.id);
-
-			const allDiagnoses = yield* Effect.tryPromise(() =>
-				db
-					.select({
-						learnerMapId: diagnoses.learnerMapId,
-						perLink: diagnoses.perLink,
-					})
-					.from(diagnoses)
-					.where(inArray(diagnoses.learnerMapId, learnerMapIds))
-					.all(),
-			);
-
-			const diagnosisMap = new Map(
-				allDiagnoses.map((d) => [d.learnerMapId, d.perLink]),
-			);
-
 			const finalLearners = yield* Effect.all(
 				learnerMapsData.map((lm) =>
 					Effect.gen(function* () {
-						const diagnosisData = diagnosisMap.get(lm.id);
-
 						let correct = 0;
 						let missing = 0;
 						let excessive = 0;
 						let totalGoalEdges = 0;
 
-						if (diagnosisData) {
+						if (lm.perLink) {
 							const parsed = yield* parseJson(
-								diagnosisData,
+								lm.perLink,
 								Schema.Struct({
 									correct: Schema.optional(Schema.Array(Schema.String)),
 									missing: Schema.optional(Schema.Array(Schema.String)),
@@ -498,14 +474,12 @@ export const getLearnerMapForAnalytics = createServerFn()
 				Schema.Array(EdgeSchema),
 			);
 
-			const parsedLearnerMapNodes = yield* parseJson(
-				learnerMap.nodes,
-				Schema.Array(NodeSchema),
-			);
-			const parsedLearnerMapEdges = yield* parseJson(
-				learnerMap.edges,
-				Schema.Array(EdgeSchema),
-			);
+			const parsedLearnerMapNodes = Array.isArray(learnerMap.nodes)
+				? learnerMap.nodes
+				: [];
+			const parsedLearnerMapEdges = Array.isArray(learnerMap.edges)
+				? learnerMap.edges
+				: [];
 
 			const diagnosis = compareMaps(parsedGoalMapEdges, parsedLearnerMapEdges);
 			const edgeClassifications = classifyEdges(

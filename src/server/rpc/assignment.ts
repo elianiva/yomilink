@@ -1,10 +1,10 @@
 import { mutationOptions, queryOptions } from "@tanstack/react-query";
 import { createServerFn } from "@tanstack/react-start";
-import { count, desc, eq } from "drizzle-orm";
+import { desc, eq } from "drizzle-orm";
 import { Effect, Schema } from "effect";
+import { requireTeacher } from "@/lib/auth-authorization";
 import { randomString } from "@/lib/utils";
 import { authMiddleware } from "@/middlewares/auth";
-import { requireTeacher } from "@/lib/auth-authorization";
 import {
 	assignments,
 	assignmentTargets,
@@ -200,38 +200,24 @@ export const getAvailableCohorts = createServerFn()
 		Effect.gen(function* () {
 			const db = yield* Database;
 
-			// Get cohorts
 			const cohortRows = yield* Effect.tryPromise(() =>
 				db
 					.select({
 						id: cohorts.id,
 						name: cohorts.name,
 						description: cohorts.description,
+						memberCount: db.$count(cohortMembers.id),
 					})
 					.from(cohorts)
+					.leftJoin(cohortMembers, eq(cohortMembers.cohortId, cohorts.id))
+					.groupBy(cohorts.id, cohorts.name, cohorts.description)
 					.orderBy(cohorts.name)
 					.all(),
 			);
 
-			// Get member counts
-			const memberCounts = yield* Effect.tryPromise(() =>
-				db
-					.select({
-						cohortId: cohortMembers.cohortId,
-						count: count(cohortMembers.id),
-					})
-					.from(cohortMembers)
-					.groupBy(cohortMembers.cohortId)
-					.all(),
-			);
-
-			const countMap = new Map(
-				memberCounts.map((mc) => [mc.cohortId, Number(mc.count)]),
-			);
-
 			return cohortRows.map((row) => ({
 				...row,
-				memberCount: countMap.get(row.id) || 0,
+				memberCount: Number(row.memberCount ?? 0),
 			}));
 		}).pipe(
 			Effect.provide(DatabaseLive),
