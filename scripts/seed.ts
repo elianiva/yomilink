@@ -1,7 +1,7 @@
 import { readdirSync, readFileSync } from "node:fs";
 import { join } from "node:path";
 import { eq } from "drizzle-orm";
-import { Effect, Layer, Schema } from "effect";
+import { Effect, Layer, Logger, Schema } from "effect";
 import { Auth } from "@/lib/auth";
 import { randomString } from "@/lib/utils";
 import { Database, DatabaseLive } from "@/server/db/client";
@@ -654,71 +654,79 @@ const program = Effect.gen(function* () {
 	const authService = yield* Auth;
 	const db = yield* Database;
 
-	console.log("Seeding database...");
+	yield* Effect.log("Seeding database...");
 
 	// Track user IDs by email for later use
 	const userIdsByEmail: Record<string, string> = {};
 	let teacherId = "";
 
 	// Seed users first
-	console.log(`Seeding ${DEFAULT_USERS.length} users...`);
+	yield* Effect.log(`Seeding ${DEFAULT_USERS.length} users...`);
 
-	for (const seedUser of DEFAULT_USERS) {
-		// Try to find existing user first
-		const existingUser = yield* Effect.tryPromise(() =>
-			db.select().from(user).where(eq(user.email, seedUser.email)).limit(1),
-		);
+	const userResults = yield* Effect.all(
+		DEFAULT_USERS.map((seedUser) =>
+			Effect.gen(function* () {
+				// Try to find existing user first
+				const existingUser = yield* db
+					.select()
+					.from(user)
+					.where(eq(user.email, seedUser.email))
+					.limit(1);
 
-		let userId = "";
-		if (existingUser[0]) {
-			userId = existingUser[0].id;
-			console.log(`User ${seedUser.email} already exists`);
-		} else {
-			// Create new user
-			const result = yield* Effect.tryPromise(() =>
-				authService.api.signUpEmail({
-					body: {
-						email: seedUser.email,
-						password: seedUser.password,
-						name: seedUser.name as string,
-					},
-				}),
-			);
+				let userId = "";
+				if (existingUser[0]) {
+					userId = existingUser[0].id;
+					yield* Effect.log(`User ${seedUser.email} already exists`);
+				} else {
+					// Create new user
+					const result = yield* Effect.tryPromise(() =>
+						authService.api.signUpEmail({
+							body: {
+								email: seedUser.email,
+								password: seedUser.password,
+								name: seedUser.name as string,
+							},
+						}),
+					);
 
-			if (result.user) {
-				userId = result.user.id;
-				console.log(`Created user: ${seedUser.email}`);
-			}
-		}
+					if (result.user) {
+						userId = result.user.id;
+						yield* Effect.log(`Created user: ${seedUser.email}`);
+					}
+				}
 
-		// Set user's role
-		if (userId && seedUser.roles?.[0]) {
-			yield* Effect.tryPromise({
-				try: async () => {
-					await db
+				// Set user's role
+				if (userId && seedUser.roles?.[0]) {
+					yield* db
 						.update(user)
 						.set({ role: seedUser.roles?.[0] })
 						.where(eq(user.id, userId));
-					console.log(
+					yield* Effect.log(
 						`Set role '${seedUser.roles?.[0]}' for ${seedUser.email}`,
 					);
-				},
-				catch: (error) =>
-					new Error(`Failed to set role for ${seedUser.email}: ${error}`),
-			});
-		}
+				}
 
-		// Track user ID
-		userIdsByEmail[seedUser.email] = userId;
+				// Return result for tracking
+				return {
+					email: seedUser.email,
+					userId,
+					roles: seedUser.roles,
+				};
+			}),
+		),
+		{ concurrency: 10 },
+	);
 
-		// Track teacher ID for goal maps
-		if (seedUser.roles?.includes("teacher")) {
-			teacherId = userId;
+	// Build lookup objects from results
+	for (const result of userResults) {
+		userIdsByEmail[result.email] = result.userId;
+		if (result.roles?.includes("teacher")) {
+			teacherId = result.userId;
 		}
 	}
 
 	// Seed topics and goal maps from materials
-	console.log(
+	yield* Effect.log(
 		`Seeding ${TOPICS.length} topics with ${MATERIALS.length} goal maps...`,
 	);
 
@@ -729,142 +737,133 @@ const program = Effect.gen(function* () {
 		{ nodes: MaterialData["nodes"]; edges: MaterialData["edges"] }
 	> = {};
 
-	for (const topicData of TOPICS) {
-		// Check if topic exists by title
-		const existingTopic = yield* Effect.tryPromise(() =>
-			db
-				.select()
-				.from(topics)
-				.where(eq(topics.title, topicData.title))
-				.limit(1),
-		);
+	// Create topics in parallel
+	const topicResults = yield* Effect.all(
+		TOPICS.map((topicData) =>
+			Effect.gen(function* () {
+				// Check if topic exists by title
+				const existingTopic = yield* db
+					.select()
+					.from(topics)
+					.where(eq(topics.title, topicData.title))
+					.limit(1);
 
-		let topicId: string;
-		if (existingTopic[0]) {
-			topicId = existingTopic[0].id;
-			yield* Effect.tryPromise({
-				try: async () => {
-					await db
+				let topicId: string;
+				if (existingTopic[0]) {
+					topicId = existingTopic[0].id;
+					yield* db
 						.update(topics)
 						.set({ description: topicData.description })
 						.where(eq(topics.id, topicId));
-				},
-				catch: (error) =>
-					new Error(`Failed to update topic ${topicData.title}: ${error}`),
-			});
-			console.log(`Updated topic: ${topicData.title}`);
-		} else {
-			topicId = randomString();
-			yield* Effect.tryPromise({
-				try: async () => {
-					await db.insert(topics).values({
+					yield* Effect.log(`Updated topic: ${topicData.title}`);
+				} else {
+					topicId = randomString();
+					yield* db.insert(topics).values({
 						id: topicId,
 						title: topicData.title,
 						description: topicData.description,
 					});
-				},
-				catch: (error) =>
-					new Error(`Failed to create topic ${topicData.title}: ${error}`),
-			});
-			console.log(`Created topic: ${topicData.title}`);
-		}
+					yield* Effect.log(`Created topic: ${topicData.title}`);
+				}
 
-		// Insert goal maps for this topic from materials
-		for (const mapTitle of topicData.goalMapTitles) {
-			const material = GOAL_MAP_TO_MATERIAL[mapTitle];
+				// Insert goal maps for this topic from materials (in parallel)
+				const goalMapResults = yield* Effect.all(
+					topicData.goalMapTitles.map((mapTitle) =>
+						Effect.gen(function* () {
+							const material = GOAL_MAP_TO_MATERIAL[mapTitle];
 
-			if (!material) {
-				console.warn(`No material found for: ${mapTitle}`);
-				continue;
+							if (!material) {
+								yield* Effect.log(`No material found for: ${mapTitle}`);
+								return null;
+							}
+
+							// Check if text exists by title
+							const existingText = yield* db
+								.select()
+								.from(texts)
+								.where(eq(texts.title, material.title))
+								.limit(1);
+
+							let textId: string;
+							if (existingText[0]) {
+								textId = existingText[0].id;
+								yield* db
+									.update(texts)
+									.set({ content: material.content })
+									.where(eq(texts.id, textId));
+							} else {
+								textId = randomString();
+								yield* db.insert(texts).values({
+									id: textId,
+									title: material.title,
+									content: material.content,
+								});
+							}
+
+							// Check if goal map exists by title
+							const existingGoalMap = yield* db
+								.select()
+								.from(goalMaps)
+								.where(eq(goalMaps.title, material.title))
+								.limit(1);
+
+							let goalMapId: string;
+							if (existingGoalMap[0]) {
+								goalMapId = existingGoalMap[0].id;
+								yield* db
+									.update(goalMaps)
+									.set({
+										description: material.description,
+										nodes: material.nodes,
+										edges: material.edges,
+									})
+									.where(eq(goalMaps.id, goalMapId));
+								yield* Effect.log(`  Updated goal map: ${material.title}`);
+							} else {
+								goalMapId = randomString();
+								yield* db.insert(goalMaps).values({
+									id: goalMapId,
+									teacherId: teacherId,
+									title: material.title,
+									description: material.description,
+									nodes: material.nodes,
+									edges: material.edges,
+									topicId: topicId,
+									textId: textId,
+								});
+								yield* Effect.log(`  Created goal map: ${material.title}`);
+							}
+
+							// Return tracking data
+							return {
+								title: material.title,
+								goalMapId,
+								material,
+							};
+						}),
+					),
+					{ concurrency: 10 },
+				);
+
+				return {
+					topicId,
+					goalMapResults,
+				};
+			}),
+		),
+		{ concurrency: 10 },
+	);
+
+	// Build lookup objects from results
+	for (const topicResult of topicResults) {
+		for (const result of topicResult.goalMapResults) {
+			if (result) {
+				goalMapIdsByTitle[result.title] = result.goalMapId;
+				goalMapDataByTitle[result.title] = {
+					nodes: result.material.nodes,
+					edges: result.material.edges,
+				};
 			}
-
-			// Check if text exists by title
-			const existingText = yield* Effect.tryPromise(() =>
-				db.select().from(texts).where(eq(texts.title, material.title)).limit(1),
-			);
-
-			let textId: string;
-			if (existingText[0]) {
-				textId = existingText[0].id;
-				yield* Effect.tryPromise({
-					try: async () => {
-						await db
-							.update(texts)
-							.set({ content: material.content })
-							.where(eq(texts.id, textId));
-					},
-					catch: (error) =>
-						new Error(`Failed to update text for ${material.title}: ${error}`),
-				});
-			} else {
-				textId = randomString();
-				yield* Effect.tryPromise({
-					try: async () => {
-						await db.insert(texts).values({
-							id: textId,
-							title: material.title,
-							content: material.content,
-						});
-					},
-					catch: (error) =>
-						new Error(`Failed to create text for ${material.title}: ${error}`),
-				});
-			}
-
-			// Check if goal map exists by title
-			const existingGoalMap = yield* Effect.tryPromise(() =>
-				db
-					.select()
-					.from(goalMaps)
-					.where(eq(goalMaps.title, material.title))
-					.limit(1),
-			);
-
-			let goalMapId: string;
-			if (existingGoalMap[0]) {
-				goalMapId = existingGoalMap[0].id;
-				yield* Effect.tryPromise({
-					try: async () => {
-						await db
-							.update(goalMaps)
-							.set({
-								description: material.description,
-								nodes: material.nodes,
-								edges: material.edges,
-							})
-							.where(eq(goalMaps.id, goalMapId));
-					},
-					catch: (error) =>
-						new Error(`Failed to update goal map ${material.title}: ${error}`),
-				});
-				console.log(`  Updated goal map: ${material.title}`);
-			} else {
-				goalMapId = randomString();
-				yield* Effect.tryPromise({
-					try: async () => {
-						await db.insert(goalMaps).values({
-							id: goalMapId,
-							teacherId: teacherId,
-							title: material.title,
-							description: material.description,
-							nodes: material.nodes,
-							edges: material.edges,
-							topicId: topicId,
-							textId: textId,
-						});
-					},
-					catch: (error) =>
-						new Error(`Failed to create goal map ${material.title}: ${error}`),
-				});
-				console.log(`  Created goal map: ${material.title}`);
-			}
-
-			// Track goal map ID and data
-			goalMapIdsByTitle[material.title] = goalMapId;
-			goalMapDataByTitle[material.title] = {
-				nodes: material.nodes,
-				edges: material.edges,
-			};
 		}
 	}
 
@@ -872,141 +871,130 @@ const program = Effect.gen(function* () {
 	// DEMO DATA: Cohort, Kit, Assignment, Learner Maps, Diagnoses
 	// ============================================
 
-	console.log("\n--- Creating Demo Data ---\n");
+	yield* Effect.log("--- Creating Demo Data ---");
 
 	// 1. Create Demo Cohort
-	console.log("Creating demo cohort...");
+	yield* Effect.log("Creating demo cohort...");
 	const demoCohortName = "Demo Class 2025";
 
-	const existingCohort = yield* Effect.tryPromise(() =>
-		db.select().from(cohorts).where(eq(cohorts.name, demoCohortName)).limit(1),
-	);
+	const existingCohort = yield* db
+		.select()
+		.from(cohorts)
+		.where(eq(cohorts.name, demoCohortName))
+		.limit(1);
 
 	let demoCohortId: string;
 	if (existingCohort[0]) {
 		demoCohortId = existingCohort[0].id;
-		console.log(`  Cohort "${demoCohortName}" already exists`);
+		yield* Effect.log(`  Cohort "${demoCohortName}" already exists`);
 	} else {
 		demoCohortId = randomString();
-		yield* Effect.tryPromise({
-			try: async () => {
-				await db.insert(cohorts).values({
-					id: demoCohortId,
-					name: demoCohortName,
-					description: "Demo class for professor presentation",
-				});
-			},
-			catch: (error) => new Error(`Failed to create cohort: ${error}`),
+		yield* db.insert(cohorts).values({
+			id: demoCohortId,
+			name: demoCohortName,
+			description: "Demo class for professor presentation",
 		});
-		console.log(`  Created cohort: ${demoCohortName}`);
+		yield* Effect.log(`  Created cohort: ${demoCohortName}`);
 	}
 
 	// 2. Add demo students to cohort
-	console.log("Adding demo students to cohort...");
-	for (const studentEmail of DEMO_STUDENT_EMAILS) {
-		const studentId = userIdsByEmail[studentEmail];
-		if (!studentId) {
-			console.warn(`  Student ${studentEmail} not found, skipping...`);
-			continue;
-		}
+	yield* Effect.log("Adding demo students to cohort...");
 
-		// Check if already a member
-		const existingMember = yield* Effect.tryPromise(() =>
-			db
-				.select()
-				.from(cohortMembers)
-				.where(eq(cohortMembers.cohortId, demoCohortId))
-				.limit(100),
-		);
+	// Fetch existing members once
+	const existingMembers = yield* db
+		.select()
+		.from(cohortMembers)
+		.where(eq(cohortMembers.cohortId, demoCohortId));
 
-		const alreadyMember = existingMember.some((m) => m.userId === studentId);
-		if (alreadyMember) {
-			console.log(`  ${studentEmail} already in cohort`);
-			continue;
-		}
+	const existingMemberIds = new Set(existingMembers.map((m) => m.userId));
 
-		yield* Effect.tryPromise({
-			try: async () => {
-				await db.insert(cohortMembers).values({
+	// Add missing students in parallel
+	yield* Effect.all(
+		DEMO_STUDENT_EMAILS.map((studentEmail) =>
+			Effect.gen(function* () {
+				const studentId = userIdsByEmail[studentEmail];
+				if (!studentId) {
+					yield* Effect.log(`  Student ${studentEmail} not found, skipping...`);
+					return;
+				}
+
+				if (existingMemberIds.has(studentId)) {
+					yield* Effect.log(`  ${studentEmail} already in cohort`);
+					return;
+				}
+
+				yield* db.insert(cohortMembers).values({
 					id: randomString(),
 					cohortId: demoCohortId,
 					userId: studentId,
 					role: "member",
 				});
-			},
-			catch: (error) =>
-				new Error(`Failed to add ${studentEmail} to cohort: ${error}`),
-		});
-		console.log(`  Added ${studentEmail} to cohort`);
-	}
+				yield* Effect.log(`  Added ${studentEmail} to cohort`);
+			}),
+		),
+		{ concurrency: 10 },
+	);
 
 	// 3. Create Kit for Hiragana Vowels goal map
-	console.log("Creating kit for Hiragana Vowels...");
+	yield* Effect.log("Creating kit for Hiragana Vowels...");
 	const hiraganaVowelsGoalMapId = goalMapIdsByTitle["Hiragana Vowels"];
 	const hiraganaVowelsData = goalMapDataByTitle["Hiragana Vowels"];
 
 	if (!hiraganaVowelsGoalMapId || !hiraganaVowelsData) {
-		console.error("Hiragana Vowels goal map not found!");
+		yield* Effect.log("Hiragana Vowels goal map not found!");
 		return;
 	}
 
 	// Get textId for the goal map
-	const hiraganaVowelsGoalMap = yield* Effect.tryPromise(() =>
-		db
-			.select()
-			.from(goalMaps)
-			.where(eq(goalMaps.id, hiraganaVowelsGoalMapId))
-			.limit(1),
-	);
+	const hiraganaVowelsGoalMap = yield* db
+		.select()
+		.from(goalMaps)
+		.where(eq(goalMaps.id, hiraganaVowelsGoalMapId))
+		.limit(1);
 
 	const hiraganaVowelsTextId = hiraganaVowelsGoalMap[0]?.textId || null;
 
 	const kitName = "Hiragana Vowels Kit";
-	const existingKit = yield* Effect.tryPromise(() =>
-		db.select().from(kits).where(eq(kits.name, kitName)).limit(1),
-	);
+	const existingKit = yield* db
+		.select()
+		.from(kits)
+		.where(eq(kits.name, kitName))
+		.limit(1);
 
 	let demoKitId: string;
 	if (existingKit[0]) {
 		demoKitId = existingKit[0].id;
-		console.log(`  Kit "${kitName}" already exists`);
+		yield* Effect.log(`  Kit "${kitName}" already exists`);
 	} else {
 		demoKitId = randomString();
 		const kitKitId = randomString(); // The unique kit identifier
 
-		yield* Effect.tryPromise({
-			try: async () => {
-				await db.insert(kits).values({
-					id: demoKitId,
-					kitId: kitKitId,
-					name: kitName,
-					layout: "preset",
-					enabled: true,
-					goalMapId: hiraganaVowelsGoalMapId,
-					teacherId: teacherId,
-					textId: hiraganaVowelsTextId,
-					// Nodes from goal map (for students to arrange)
-					nodes: JSON.stringify(hiraganaVowelsData.nodes),
-					// Empty edges (students need to create these)
-					edges: "[]",
-				});
-			},
-			catch: (error) => new Error(`Failed to create kit: ${error}`),
+		yield* db.insert(kits).values({
+			id: demoKitId,
+			kitId: kitKitId,
+			name: kitName,
+			layout: "preset",
+			enabled: true,
+			goalMapId: hiraganaVowelsGoalMapId,
+			teacherId: teacherId,
+			textId: hiraganaVowelsTextId,
+			// Nodes from goal map (for students to arrange)
+			nodes: JSON.stringify(hiraganaVowelsData.nodes),
+			// Empty edges (students need to create these)
+			edges: "[]",
 		});
-		console.log(`  Created kit: ${kitName}`);
+		yield* Effect.log(`  Created kit: ${kitName}`);
 	}
 
 	// 4. Create Assignment
-	console.log("Creating assignment...");
+	yield* Effect.log("Creating assignment...");
 	const assignmentTitle = "Hiragana Vowels Quiz";
 
-	const existingAssignment = yield* Effect.tryPromise(() =>
-		db
-			.select()
-			.from(assignments)
-			.where(eq(assignments.title, assignmentTitle))
-			.limit(1),
-	);
+	const existingAssignment = yield* db
+		.select()
+		.from(assignments)
+		.where(eq(assignments.title, assignmentTitle))
+		.limit(1);
 
 	let demoAssignmentId: string;
 	// Dates: started 2 weeks ago, due 1 week ago (already completed)
@@ -1015,60 +1003,47 @@ const program = Effect.gen(function* () {
 
 	if (existingAssignment[0]) {
 		demoAssignmentId = existingAssignment[0].id;
-		console.log(`  Assignment "${assignmentTitle}" already exists`);
+		yield* Effect.log(`  Assignment "${assignmentTitle}" already exists`);
 	} else {
 		demoAssignmentId = randomString();
 
-		yield* Effect.tryPromise({
-			try: async () => {
-				await db.insert(assignments).values({
-					id: demoAssignmentId,
-					goalMapId: hiraganaVowelsGoalMapId,
-					kitId: demoKitId,
-					title: assignmentTitle,
-					description:
-						"Learn the five basic hiragana vowels by creating a concept map.",
-					timeLimitMinutes: 30,
-					startDate: twoWeeksAgo,
-					dueAt: oneWeekAgo,
-					createdBy: teacherId,
-				});
-			},
-			catch: (error) => new Error(`Failed to create assignment: ${error}`),
+		yield* db.insert(assignments).values({
+			id: demoAssignmentId,
+			goalMapId: hiraganaVowelsGoalMapId,
+			kitId: demoKitId,
+			title: assignmentTitle,
+			description:
+				"Learn the five basic hiragana vowels by creating a concept map.",
+			timeLimitMinutes: 30,
+			startDate: twoWeeksAgo,
+			dueAt: oneWeekAgo,
+			createdBy: teacherId,
 		});
-		console.log(`  Created assignment: ${assignmentTitle}`);
+		yield* Effect.log(`  Created assignment: ${assignmentTitle}`);
 	}
 
 	// 5. Create Assignment Target (link to cohort)
-	console.log("Linking assignment to cohort...");
-	const existingTarget = yield* Effect.tryPromise(() =>
-		db
-			.select()
-			.from(assignmentTargets)
-			.where(eq(assignmentTargets.assignmentId, demoAssignmentId))
-			.limit(1),
-	);
+	yield* Effect.log("Linking assignment to cohort...");
+	const existingTarget = yield* db
+		.select()
+		.from(assignmentTargets)
+		.where(eq(assignmentTargets.assignmentId, demoAssignmentId))
+		.limit(1);
 
 	if (existingTarget[0]) {
-		console.log("  Assignment already linked to cohort");
+		yield* Effect.log("  Assignment already linked to cohort");
 	} else {
-		yield* Effect.tryPromise({
-			try: async () => {
-				await db.insert(assignmentTargets).values({
-					id: randomString(),
-					assignmentId: demoAssignmentId,
-					cohortId: demoCohortId,
-					userId: null,
-				});
-			},
-			catch: (error) =>
-				new Error(`Failed to link assignment to cohort: ${error}`),
+		yield* db.insert(assignmentTargets).values({
+			id: randomString(),
+			assignmentId: demoAssignmentId,
+			cohortId: demoCohortId,
+			userId: null,
 		});
-		console.log("  Linked assignment to cohort");
+		yield* Effect.log("  Linked assignment to cohort");
 	}
 
 	// 6. Create Learner Maps and Diagnoses
-	console.log("Creating learner maps and diagnoses...");
+	yield* Effect.log("Creating learner maps and diagnoses...");
 
 	// Build edge lookup from goal map
 	const goalEdges = hiraganaVowelsData.edges;
@@ -1077,67 +1052,71 @@ const program = Effect.gen(function* () {
 		edgeById[edge.id] = { source: edge.source, target: edge.target };
 	}
 
+	// Fetch existing learner maps once
+	const existingLearnerMaps = yield* db
+		.select()
+		.from(learnerMaps)
+		.where(eq(learnerMaps.assignmentId, demoAssignmentId));
+
+	const existingMapKeySet = new Set(
+		existingLearnerMaps.map((lm) => `${lm.userId}:${lm.attempt}`),
+	);
+
 	// Submission date (1 week ago, a few hours before due date)
 	const submissionDate = new Date(oneWeekAgo.getTime() - 3 * 60 * 60 * 1000);
 
-	for (const config of LEARNER_MAP_CONFIGS) {
-		const studentId = userIdsByEmail[config.studentEmail];
-		if (!studentId) {
-			console.warn(`  Student ${config.studentEmail} not found, skipping...`);
-			continue;
-		}
+	// Create learner maps and diagnoses in parallel
+	yield* Effect.all(
+		LEARNER_MAP_CONFIGS.map((config) =>
+			Effect.gen(function* () {
+				const studentId = userIdsByEmail[config.studentEmail];
+				if (!studentId) {
+					yield* Effect.log(
+						`  Student ${config.studentEmail} not found, skipping...`,
+					);
+					return;
+				}
 
-		// Check if learner map already exists for this student and attempt
-		const existingLearnerMap = yield* Effect.tryPromise(() =>
-			db
-				.select()
-				.from(learnerMaps)
-				.where(eq(learnerMaps.assignmentId, demoAssignmentId))
-				.limit(100),
-		);
+				const mapKey = `${studentId}:${config.attempt}`;
+				if (existingMapKeySet.has(mapKey)) {
+					yield* Effect.log(
+						`  Learner map for ${config.studentEmail} attempt ${config.attempt} already exists`,
+					);
+					return;
+				}
 
-		const alreadyExists = existingLearnerMap.some(
-			(lm) => lm.userId === studentId && lm.attempt === config.attempt,
-		);
+				// Build learner edges from config
+				const learnerEdges: Array<{
+					id: string;
+					source: string;
+					target: string;
+				}> = [];
 
-		if (alreadyExists) {
-			console.log(
-				`  Learner map for ${config.studentEmail} attempt ${config.attempt} already exists`,
-			);
-			continue;
-		}
+				// Add correct edges
+				for (const edgeId of config.correctEdgeIds) {
+					const edge = edgeById[edgeId];
+					if (edge) {
+						learnerEdges.push({
+							id: edgeId,
+							source: edge.source,
+							target: edge.target,
+						});
+					}
+				}
 
-		// Build learner edges from config
-		const learnerEdges: Array<{ id: string; source: string; target: string }> =
-			[];
+				// Add excessive edges (wrong connections)
+				for (let i = 0; i < config.excessiveEdges.length; i++) {
+					const excessive = config.excessiveEdges[i];
+					learnerEdges.push({
+						id: `excess-${i + 1}`,
+						source: excessive.source,
+						target: excessive.target,
+					});
+				}
 
-		// Add correct edges
-		for (const edgeId of config.correctEdgeIds) {
-			const edge = edgeById[edgeId];
-			if (edge) {
-				learnerEdges.push({
-					id: edgeId,
-					source: edge.source,
-					target: edge.target,
-				});
-			}
-		}
-
-		// Add excessive edges (wrong connections)
-		for (let i = 0; i < config.excessiveEdges.length; i++) {
-			const excessive = config.excessiveEdges[i];
-			learnerEdges.push({
-				id: `excess-${i + 1}`,
-				source: excessive.source,
-				target: excessive.target,
-			});
-		}
-
-		// Create learner map
-		const learnerMapId = randomString();
-		yield* Effect.tryPromise({
-			try: async () => {
-				await db.insert(learnerMaps).values({
+				// Create learner map
+				const learnerMapId = randomString();
+				yield* db.insert(learnerMaps).values({
 					id: learnerMapId,
 					assignmentId: demoAssignmentId,
 					goalMapId: hiraganaVowelsGoalMapId,
@@ -1149,41 +1128,41 @@ const program = Effect.gen(function* () {
 					attempt: config.attempt,
 					submittedAt: submissionDate,
 				});
-			},
-			catch: (error) =>
-				new Error(
-					`Failed to create learner map for ${config.studentEmail}: ${error}`,
-				),
-		});
-		console.log(
-			`  Created learner map for ${config.studentEmail} (attempt ${config.attempt})`,
-		);
+				yield* Effect.log(
+					`  Created learner map for ${config.studentEmail} (attempt ${config.attempt})`,
+				);
 
-		// Calculate actual score
-		const correctCount = config.correctEdgeIds.length;
-		const totalGoalEdges = 18; // Hiragana Vowels has 18 edges
-		const score = Math.round((correctCount / totalGoalEdges) * 100) / 100;
+				// Calculate actual score
+				const correctCount = config.correctEdgeIds.length;
+				const totalGoalEdges = 18; // Hiragana Vowels has 18 edges
+				const score = Math.round((correctCount / totalGoalEdges) * 100) / 100;
 
-		// Build per-link diagnosis data
-		const perLink = {
-			correct: config.correctEdgeIds.map((edgeId) => {
-				const edge = edgeById[edgeId];
-				return { source: edge?.source, target: edge?.target, edgeId };
-			}),
-			missing: goalEdges
-				.filter((e) => !config.correctEdgeIds.includes(e.id))
-				.map((e) => ({ source: e.source, target: e.target, edgeId: e.id })),
-			excessive: config.excessiveEdges.map((e, i) => ({
-				source: e.source,
-				target: e.target,
-				edgeId: `excess-${i + 1}`,
-			})),
-		};
+				// Build per-link diagnosis data
+				const perLink = {
+					correct: config.correctEdgeIds.map((edgeId) => {
+						const edge = edgeById[edgeId];
+						return {
+							source: edge?.source,
+							target: edge?.target,
+							edgeId,
+						};
+					}),
+					missing: goalEdges
+						.filter((e) => !config.correctEdgeIds.includes(e.id))
+						.map((e) => ({
+							source: e.source,
+							target: e.target,
+							edgeId: e.id,
+						})),
+					excessive: config.excessiveEdges.map((e, i) => ({
+						source: e.source,
+						target: e.target,
+						edgeId: `excess-${i + 1}`,
+					})),
+				};
 
-		// Create diagnosis
-		yield* Effect.tryPromise({
-			try: async () => {
-				await db.insert(diagnoses).values({
+				// Create diagnosis
+				yield* db.insert(diagnoses).values({
 					id: randomString(),
 					goalMapId: hiraganaVowelsGoalMapId,
 					learnerMapId: learnerMapId,
@@ -1192,23 +1171,24 @@ const program = Effect.gen(function* () {
 					score: score,
 					rubricVersion: "v1.0",
 				});
-			},
-			catch: (error) =>
-				new Error(
-					`Failed to create diagnosis for ${config.studentEmail}: ${error}`,
-				),
-		});
-		console.log(
-			`  Created diagnosis for ${config.studentEmail}: ${Math.round(score * 100)}%`,
-		);
-	}
+				yield* Effect.log(
+					`  Created diagnosis for ${config.studentEmail}: ${Math.round(score * 100)}%`,
+				);
+			}),
+		),
+		{ concurrency: 10 },
+	);
 
-	console.log("\n--- Seed completed ---");
-	console.log("\nDemo credentials:");
-	console.log("  Teacher: teacher@yomilink.local / teacher123");
-	console.log("  Demo students: [name]@demo.local / demo12345");
-	console.log("    - tanaka, suzuki, yamamoto, watanabe, takahashi");
-	console.log("    - ito, nakamura, kobayashi, kato, matsumoto");
-}).pipe(Effect.provide(Layer.mergeAll(DatabaseLive, Auth.Default)));
+	yield* Effect.log(
+		"--- Seed completed ---\n" +
+			"Demo credentials:\n" +
+			"  Teacher: teacher@yomilink.local / teacher123\n" +
+			"  Demo students: [name]@demo.local / demo12345\n" +
+			"    - tanaka, suzuki, yamamoto, watanabe, takahashi\n" +
+			"    - ito, nakamura, kobayashi, kato, matsumoto\n",
+	);
+}).pipe(
+	Effect.provide(Layer.mergeAll(DatabaseLive, Auth.Default, Logger.pretty)),
+);
 
 Effect.runPromise(program);
