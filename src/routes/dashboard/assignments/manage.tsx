@@ -28,6 +28,7 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { Textarea } from "@/components/ui/textarea";
 import { AssignmentRpc } from "@/server/rpc/assignment";
 import { KitRpc } from "@/server/rpc/kit";
+import { toast } from "sonner";
 
 export const Route = createFileRoute("/dashboard/assignments/manage")({
 	component: () => (
@@ -52,9 +53,19 @@ function ManageAssignmentsPage() {
 		},
 	});
 
-	const handleDelete = async (id: string) => {
+	const handleDelete = (id: string) => {
 		if (confirm("Are you sure you want to delete this assignment?")) {
-			await deleteMutation.mutateAsync({ id });
+			deleteMutation.mutate(
+				{ id },
+				{
+					onError: () => {
+						toast.error("Failed to delete assignment");
+					},
+					onSuccess: () => {
+						toast.success("Assignment deleted successfully");
+					},
+				},
+			);
 		}
 	};
 
@@ -199,42 +210,46 @@ function CreateAssignmentDialog({ onSuccess }: { onSuccess: () => void }) {
 		}
 	};
 
-	const handleSubmit = async (e: React.FormEvent) => {
+	const handleSubmit = (e: React.FormEvent) => {
 		e.preventDefault();
 
 		if (!title.trim() || !goalMapId) {
 			return;
 		}
 
-		try {
-			await generateKitMutation.mutateAsync({
+		generateKitMutation.mutate(
+			{
 				goalMapId,
 				layout: "random",
-			});
-		} catch (error) {
-			console.error("Failed to generate kit:", error);
-			alert("Failed to generate kit for goal map");
-			return;
-		}
-
-		await createMutation.mutateAsync({
-			title: title.trim(),
-			description: description.trim() || undefined,
-			goalMapId,
-			startDate: startDate ? new Date(startDate).getTime() : Date.now(),
-			endDate: endDate ? new Date(endDate).getTime() : undefined,
-			cohortIds: selectedCohorts,
-			userIds: selectedUsers,
-		});
-
-		onSuccess();
-		setTitle("");
-		setDescription("");
-		setGoalMapId("");
-		setStartDate("");
-		setEndDate("");
-		setSelectedCohorts([]);
-		setSelectedUsers([]);
+			},
+			{
+				onError: () => {
+					toast.error("Failed to generate kit for goal map");
+				},
+				onSuccess: () => {
+					createMutation.mutate(
+						{
+							title: title.trim(),
+							description: description.trim() || undefined,
+							goalMapId,
+							startDate: startDate ? new Date(startDate).getTime() : Date.now(),
+							endDate: endDate ? new Date(endDate).getTime() : undefined,
+							cohortIds: selectedCohorts,
+							userIds: selectedUsers,
+						},
+						{
+							onError: () => {
+								toast.error("Failed to create assignment");
+							},
+							onSuccess: () => {
+								toast.success("Assignment created successfully");
+								onSuccess();
+							},
+						},
+					);
+				},
+			},
+		);
 	};
 
 	const toggleCohort = (cohortId: string) => {

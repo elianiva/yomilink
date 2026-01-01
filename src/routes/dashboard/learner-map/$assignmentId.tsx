@@ -55,6 +55,7 @@ import type {
 import { arrangeNodesByType } from "@/features/learner-map/lib/grid-layout";
 import { cn } from "@/lib/utils";
 import { LearnerMapRpc } from "@/server/rpc/learner-map";
+import { toast } from "sonner";
 
 export const Route = createFileRoute("/dashboard/learner-map/$assignmentId")({
 	component: () => (
@@ -521,28 +522,47 @@ function LearnerMapEditor() {
 	};
 
 	// Submit handler
-	const handleSubmit = async () => {
+	const handleSubmit = () => {
 		// Save first
-		await saveMutation.mutateAsync({
-			assignmentId,
-			nodes: JSON.stringify(nodes),
-			edges: JSON.stringify(edges),
-		});
-
-		// Then submit
-		const result = await submitMutation.mutateAsync({ assignmentId });
-
-		if (result.success) {
-			setSubmitDialogOpen(false);
-			setStatus("submitted");
-			queryClient.invalidateQueries({
-				queryKey: LearnerMapRpc.learnerMaps(),
-			});
-			// Navigate to result page
-			navigate({
-				to: `/dashboard/learner-map/${assignmentId}/result`,
-			});
-		}
+		saveMutation.mutate(
+			{
+				assignmentId,
+				nodes: JSON.stringify(nodes),
+				edges: JSON.stringify(edges),
+			},
+			{
+				onError: () => {
+					toast.error("Failed to save map");
+				},
+				onSuccess: () => {
+					// Then submit
+					submitMutation.mutate(
+						{ assignmentId },
+						{
+							onError: () => {
+								toast.error("Failed to submit map");
+							},
+							onSuccess: (result) => {
+								if (result.success) {
+									setSubmitDialogOpen(false);
+									setStatus("submitted");
+									queryClient.invalidateQueries({
+										queryKey: LearnerMapRpc.learnerMaps(),
+									});
+									// Navigate to result page
+									navigate({
+										to: `/dashboard/learner-map/${assignmentId}/result`,
+									});
+									toast.success("Map submitted successfully");
+								} else {
+									toast.error("Failed to submit map");
+								}
+							},
+						},
+					);
+				},
+			},
+		);
 	};
 
 	// Edge options

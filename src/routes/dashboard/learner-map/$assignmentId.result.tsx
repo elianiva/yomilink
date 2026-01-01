@@ -13,6 +13,7 @@ import { TextNode } from "@/features/kitbuild/components/text-node";
 import { DiagnosisStats } from "@/features/learner-map/components/diagnosis/diagnosis-stats";
 import { getEdgeStyleByType } from "@/features/learner-map/lib/comparator";
 import { LearnerMapRpc } from "@/server/rpc/learner-map";
+import { toast } from "sonner";
 
 export const Route = createFileRoute(
 	"/dashboard/learner-map/$assignmentId/result",
@@ -54,16 +55,28 @@ function ResultPage() {
 
 	const newAttemptMutation = useMutation(LearnerMapRpc.startNewAttempt());
 
-	const handleTryAgain = async () => {
-		const result = await newAttemptMutation.mutateAsync({ assignmentId });
-		if (result.success) {
-			queryClient.invalidateQueries({
-				queryKey: LearnerMapRpc.learnerMaps(),
-			});
-			navigate({
-				to: `/dashboard/learner-map/${assignmentId}`,
-			});
-		}
+	const handleTryAgain = () => {
+		newAttemptMutation.mutate(
+			{ assignmentId },
+			{
+				onSuccess: (result) => {
+					if (result.success) {
+						queryClient.invalidateQueries({
+							queryKey: LearnerMapRpc.learnerMaps(),
+						});
+						navigate({
+							to: `/dashboard/learner-map/${assignmentId}`,
+						});
+						toast.success("New attempt started successfully");
+					} else {
+						toast.error("Failed to start new attempt");
+					}
+				},
+				onError: (_error) => {
+					toast.error("Error starting new attempt");
+				},
+			},
+		);
 	};
 
 	// Process edges for visualization
@@ -73,20 +86,11 @@ function ResultPage() {
 		const correctSet = new Set(
 			data.diagnosis.correct.map((e) => `${e.source}-${e.target}`),
 		);
-		const excessiveSet = new Set(
-			data.diagnosis.excessive.map((e) => `${e.source}-${e.target}`),
-		);
 
-		// Color-code learner edges
-		const coloredEdges: Edge[] = data.learnerMap.edges.map((edge: Edge) => {
-			const key = `${edge.source}-${edge.target}`;
-			let edgeType: "correct" | "excessive" | "neutral" = "neutral";
-
-			if (correctSet.has(key)) {
-				edgeType = "correct";
-			} else if (excessiveSet.has(key)) {
-				edgeType = "excessive";
-			}
+		// Color existing edges based on diagnosis
+		const coloredEdges = data.learnerMap.edges.map((edge) => {
+			const edgeKey = `${edge.source}-${edge.target}`;
+			const edgeType = correctSet.has(edgeKey) ? "correct" : "excessive";
 
 			const style = getEdgeStyleByType(edgeType);
 

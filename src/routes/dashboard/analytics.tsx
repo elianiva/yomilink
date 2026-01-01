@@ -169,7 +169,14 @@ function AnalyticsPage() {
 	const handleExport = useCallback(
 		(format: "csv" | "json") => {
 			if (!selectedAssignmentId) return;
-			exportMutation.mutateAsync(format);
+			exportMutation.mutate(format, {
+				onSuccess: () => {
+					toast.success(`Exported as ${format.toUpperCase()} successfully`);
+				},
+				onError: () => {
+					toast.error("Failed to export analytics");
+				},
+			});
 		},
 		[selectedAssignmentId, exportMutation],
 	);
