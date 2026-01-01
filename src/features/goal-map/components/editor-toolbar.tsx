@@ -28,14 +28,13 @@ import {
 	TooltipProvider,
 	TooltipTrigger,
 } from "@/components/ui/tooltip";
+import { useSaveDialog } from "../hooks/use-save-dialog";
 import {
 	conceptDialogOpenAtom,
 	directionEnabledAtom,
 	importDialogOpenAtom,
 	linkDialogOpenAtom,
 	searchOpenAtom,
-	saveAsOpenAtom,
-	saveOpenAtom,
 } from "../lib/atoms";
 
 export type EditorToolbarProps = {
@@ -86,8 +85,7 @@ function EditorToolbarImpl({
 	const setImportDialogOpen = useSetAtom(importDialogOpenAtom);
 	const setSearchOpen = useSetAtom(searchOpenAtom);
 	const directionEnabled = useAtomValue(directionEnabledAtom);
-	const setSaveOpen = useSetAtom(saveOpenAtom);
-	const setSaveAsOpen = useSetAtom(saveAsOpenAtom);
+	const { setSaveOpen, setSaveAsOpen } = useSaveDialog();
 
 	const handleSave = () => {
 		if (isNewMap) {

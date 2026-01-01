@@ -48,7 +48,7 @@ import { NodeContextMenu } from "@/features/kitbuild/components/node-context-men
 import { SearchNodesPanel } from "@/features/kitbuild/components/search-nodes-panel";
 import { TextNode } from "@/features/kitbuild/components/text-node";
 import { cn, randomString } from "@/lib/utils";
-import { GoalMapRpc, saveToLocalStorage } from "@/server/rpc/goal-map";
+import { GoalMapRpc } from "@/server/rpc/goal-map";
 import { KitRpc } from "@/server/rpc/kit";
 import { TopicRpc } from "@/server/rpc/topic";
 
@@ -97,7 +97,7 @@ function TeacherGoalMapEditor() {
 	const navigate = useNavigate();
 
 	const { data: existing } = useQuery({
-		...GoalMapRpc.getGoalMap({ id: goalMapId }),
+		...GoalMapRpc.getGoalMap({ goalMapId }),
 		enabled: goalMapId !== "new",
 	});
 
@@ -224,7 +224,6 @@ function TeacherGoalMapEditor() {
 					const message =
 						error instanceof Error ? error.message : "Save failed";
 					if (/unauthorized|forbidden/i.test(message)) {
-						saveToLocalStorage(saveParams);
 						addWarning(
 							"Saved locally (not signed in). Changes are only on this device.",
 						);

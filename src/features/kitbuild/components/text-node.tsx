@@ -3,7 +3,6 @@ import { useAtomValue } from "jotai";
 import { memo } from "react";
 import { contextMenuAtom } from "@/features/goal-map/lib/atoms";
 import { cn } from "@/lib/utils";
-import type { TextNodeData } from "../types";
 
 // Small invisible handles at center - only used for edge anchoring, not for initiating connections
 const ANCHOR_HANDLE_STYLE =
@@ -30,6 +29,12 @@ const COLOR_CLASSES: Record<string, { ring: string; text: string }> = {
 	"purple-500": { ring: "ring-purple-500", text: "text-purple-800" },
 	"fuchsia-500": { ring: "ring-fuchsia-500", text: "text-fuchsia-800" },
 	"pink-500": { ring: "ring-pink-500", text: "text-pink-800" },
+};
+
+type TextNodeData = {
+	label: string;
+	color?: string;
+	variant?: "green" | "blue";
 };
 
 function getColorClasses(data?: TextNodeData): string {

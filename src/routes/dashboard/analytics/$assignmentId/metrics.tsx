@@ -14,6 +14,8 @@ import {
 	XAxis,
 	YAxis,
 } from "recharts";
+import { Guard } from "@/components/auth/Guard";
+import { Button } from "@/components/ui/button";
 import {
 	Card,
 	CardContent,
@@ -27,14 +29,12 @@ import {
 	ChartTooltip,
 	ChartTooltipContent,
 } from "@/components/ui/chart";
-import { Button } from "@/components/ui/button";
-import { Guard } from "@/components/auth/Guard";
-import {
-	AnalyticsRpc,
-	type AssignmentAnalytics,
-	type LearnerAnalytics,
-} from "@/server/rpc/analytics";
+import type {
+	AssignmentAnalytics,
+	LearnerAnalytics,
+} from "@/features/analyzer/lib/analytics-service";
 import { cn } from "@/lib/utils";
+import { AnalyticsRpc } from "@/server/rpc/analytics";
 
 export const Route = createFileRoute(
 	"/dashboard/analytics/$assignmentId/metrics",
@@ -94,7 +94,7 @@ function MetricsPage() {
 		const scoreDistribution = learners
 			.filter((l) => l.score !== null)
 			.reduce<Record<string, number>>((acc, learner) => {
-				const score = learner.score!;
+				const score = learner.score ?? 0;
 				if (score < 50) acc["0-49%"] = (acc["0-49%"] || 0) + 1;
 				else if (score < 60) acc["50-59%"] = (acc["50-59%"] || 0) + 1;
 				else if (score < 70) acc["60-69%"] = (acc["60-69%"] || 0) + 1;
@@ -246,7 +246,7 @@ function MetricsPage() {
 						</CardDescription>
 					</CardHeader>
 					<CardContent>
-						<ChartContainer config={chartConfig} className="h-[300px]">
+						<ChartContainer config={chartConfig} className="h-75">
 							<ResponsiveContainer width="100%" height="100%">
 								<BarChart
 									data={Object.entries(metrics.scoreDistribution).map(
@@ -270,7 +270,7 @@ function MetricsPage() {
 						<CardDescription>Submitted vs Draft</CardDescription>
 					</CardHeader>
 					<CardContent>
-						<ChartContainer config={chartConfig} className="h-[300px]">
+						<ChartContainer config={chartConfig} className="h-75">
 							<ResponsiveContainer width="100%" height="100%">
 								<PieChart>
 									<ChartTooltip content={<ChartTooltipContent />} />
@@ -303,7 +303,7 @@ function MetricsPage() {
 						</CardDescription>
 					</CardHeader>
 					<CardContent>
-						<ChartContainer config={chartConfig} className="h-[300px]">
+						<ChartContainer config={chartConfig} className="h-75">
 							<ResponsiveContainer width="100%" height="100%">
 								<BarChart data={metrics.edgeTypeData} layout="vertical">
 									<CartesianGrid horizontal={false} />
@@ -331,7 +331,7 @@ function MetricsPage() {
 						</CardDescription>
 					</CardHeader>
 					<CardContent>
-						<ChartContainer config={chartConfig} className="h-[300px]">
+						<ChartContainer config={chartConfig} className="h-75">
 							<ResponsiveContainer width="100%" height="100%">
 								<BarChart
 									data={Object.entries(metrics.attemptDistribution).map(

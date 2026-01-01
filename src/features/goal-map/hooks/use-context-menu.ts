@@ -1,17 +1,13 @@
-import { useAtom, useAtomValue, useSetAtom } from "jotai";
-import { useCallback } from "react";
 import type { Connection, MarkerType, NodeMouseHandler } from "@xyflow/react";
 import { addEdge } from "@xyflow/react";
-import type {
-	ConnectorNodeData,
-	TextNodeData,
-} from "@/features/kitbuild/types";
+import { useAtom, useAtomValue, useSetAtom } from "jotai";
+import { useCallback } from "react";
 import {
 	connectionModeAtom,
 	contextMenuAtom,
 	directionEnabledAtom,
-	editNodeAtom,
 	edgesAtom,
+	editNodeAtom,
 	nodesAtom,
 } from "../lib/atoms";
 
@@ -30,19 +26,17 @@ export function useContextMenu() {
 		if (!node) return;
 
 		if (contextMenu.nodeType === "text") {
-			const data = node.data as TextNodeData;
 			setEditNode({
 				id: node.id,
 				type: "text",
-				label: data.label,
-				color: data.color,
+				label: node.data.label,
+				color: node.data.color,
 			});
 		} else {
-			const data = node.data as ConnectorNodeData;
 			setEditNode({
 				id: node.id,
 				type: "connector",
-				label: data.label,
+				label: node.data.label,
 			});
 		}
 		setContextMenu(null);

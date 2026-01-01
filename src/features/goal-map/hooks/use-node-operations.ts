@@ -1,10 +1,6 @@
 import { useAtom, useAtomValue, useSetAtom } from "jotai";
 import { useCallback } from "react";
 import type { TailwindColor } from "@/features/kitbuild/components/color-picker";
-import type {
-	ConnectorNodeData,
-	TextNodeData,
-} from "@/features/kitbuild/types";
 import { edgesAtom, nodesAtom, rfInstanceAtom } from "../lib/atoms";
 
 export function useNodeOperations() {
@@ -36,7 +32,7 @@ export function useNodeOperations() {
 					x: centerX + Math.random() * 50,
 					y: centerY + Math.random() * 50,
 				},
-				data: { label: label.trim(), color: color.value } as TextNodeData,
+				data: { label: label.trim(), color: color.value },
 			},
 		]);
 	};
@@ -59,14 +55,14 @@ export function useNodeOperations() {
 					x: centerX + Math.random() * 50,
 					y: centerY + Math.random() * 50,
 				},
-				data: { label: label.trim() } as ConnectorNodeData,
+				data: { label: label.trim() }
 			},
 		]);
 	};
 
 	const deleteSelected = () => {
-		setNodes((nds) => nds.filter((n) => !n.selected));
-		setEdges((eds) => eds.filter((e) => !e.selected));
+		setNodes((nodes) => nodes.filter((n) => !n.selected));
+		setEdges((edges) => edges.filter((e) => !e.selected));
 	};
 
 	const selectNode = (nodeId: string) => {

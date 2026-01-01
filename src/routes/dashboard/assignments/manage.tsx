@@ -27,7 +27,7 @@ import { SearchableSelect } from "@/components/ui/searchable-select";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Textarea } from "@/components/ui/textarea";
 import { AssignmentRpc } from "@/server/rpc/assignment";
-import { generateKit } from "@/server/rpc/kit";
+import { KitRpc } from "@/server/rpc/kit";
 
 export const Route = createFileRoute("/dashboard/assignments/manage")({
 	component: () => (
@@ -54,7 +54,7 @@ function ManageAssignmentsPage() {
 
 	const handleDelete = async (id: string) => {
 		if (confirm("Are you sure you want to delete this assignment?")) {
-			await deleteMutation.mutateAsync(id);
+			await deleteMutation.mutateAsync({ id });
 		}
 	};
 
@@ -162,12 +162,12 @@ function CreateAssignmentDialog({ onSuccess }: { onSuccess: () => void }) {
 	const [endDate, setEndDate] = useState("");
 	const [selectedCohorts, setSelectedCohorts] = useState<string[]>([]);
 	const [selectedUsers, setSelectedUsers] = useState<string[]>([]);
-	const [isGeneratingKit, setIsGeneratingKit] = useState(false);
 
 	const { data: goalMaps } = useQuery(AssignmentRpc.getTeacherGoalMaps());
 	const { data: cohorts } = useQuery(AssignmentRpc.getAvailableCohorts());
 	const { data: users } = useQuery(AssignmentRpc.getAvailableUsers());
 
+	const generateKitMutation = useMutation(KitRpc.generateKit());
 	const createMutation = useMutation(AssignmentRpc.createAssignment());
 
 	const steps = [
@@ -206,24 +206,18 @@ function CreateAssignmentDialog({ onSuccess }: { onSuccess: () => void }) {
 			return;
 		}
 
-		setIsGeneratingKit(true);
 		try {
-			const kitResult = await generateKit({
-				data: { goalMapId, layout: "random" },
+			await generateKitMutation.mutateAsync({
+				goalMapId,
+				layout: "random",
 			});
-			if (!kitResult.ok) {
-				alert("Failed to generate kit for goal map");
-				return;
-			}
 		} catch (error) {
 			console.error("Failed to generate kit:", error);
 			alert("Failed to generate kit for goal map");
 			return;
-		} finally {
-			setIsGeneratingKit(false);
 		}
 
-		const result = await createMutation.mutateAsync({
+		await createMutation.mutateAsync({
 			title: title.trim(),
 			description: description.trim() || undefined,
 			goalMapId,
@@ -233,18 +227,14 @@ function CreateAssignmentDialog({ onSuccess }: { onSuccess: () => void }) {
 			userIds: selectedUsers,
 		});
 
-		if (result.success) {
-			onSuccess();
-			setTitle("");
-			setDescription("");
-			setGoalMapId("");
-			setStartDate("");
-			setEndDate("");
-			setSelectedCohorts([]);
-			setSelectedUsers([]);
-		} else {
-			alert(result.error || "Failed to create assignment");
-		}
+		onSuccess();
+		setTitle("");
+		setDescription("");
+		setGoalMapId("");
+		setStartDate("");
+		setEndDate("");
+		setSelectedCohorts([]);
+		setSelectedUsers([]);
 	};
 
 	const toggleCohort = (cohortId: string) => {
@@ -263,7 +253,8 @@ function CreateAssignmentDialog({ onSuccess }: { onSuccess: () => void }) {
 		);
 	};
 
-	const isSubmitting = createMutation.isPending || isGeneratingKit;
+	const isSubmitting =
+		createMutation.isPending || generateKitMutation.isPending;
 
 	return (
 		<DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
@@ -463,7 +454,7 @@ function CreateAssignmentDialog({ onSuccess }: { onSuccess: () => void }) {
 								type="submit"
 								disabled={isSubmitting || !canProceedNext()}
 							>
-								{isGeneratingKit
+								{generateKitMutation.isPending
 									? "Generating Kit..."
 									: createMutation.isPending
 										? "Creating..."

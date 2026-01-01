@@ -1,7 +1,8 @@
-import { Effect, Schema } from "effect";
 import { and, desc, eq, inArray, or } from "drizzle-orm";
-import { compareMaps } from "./comparator";
-import { randomString } from "@/lib/utils";
+import { Effect, Schema } from "effect";
+import { PerLinkDiagnosisSchema } from "@/features/analyzer/lib/analytics-service";
+import { parseJson, randomString, safeParseJson } from "@/lib/utils";
+import { Database } from "@/server/db/client";
 import {
 	assignments,
 	assignmentTargets,
@@ -12,7 +13,7 @@ import {
 	texts,
 } from "@/server/db/schema/app-schema";
 import { cohortMembers } from "@/server/db/schema/auth-schema";
-import { Database } from "@/server/db/client";
+import { compareMaps, EdgeSchema, NodeSchema } from "./comparator";
 
 export const GetAssignmentForStudentInput = Schema.Struct({
 	assignmentId: Schema.NonEmptyString,
@@ -389,44 +390,49 @@ export const getDiagnosis = Effect.fn("getDiagnosis")(
 				return null;
 			}
 
-			const diagnosisData =
-				result.diagnosis?.perLink &&
-				typeof result.diagnosis.perLink === "object"
-					? (result.diagnosis.perLink as {
-							correct?: unknown[];
-							missing?: unknown[];
-							excessive?: unknown[];
-						})
-					: null;
+			const diagnosisData = result.diagnosis?.perLink
+				? yield* parseJson(result.diagnosis.perLink, PerLinkDiagnosisSchema)
+				: null;
+
+			const [learnerMapNodes, learnerMapEdges, goalMapNodes, goalMapEdges] =
+				yield* Effect.all(
+					[
+						safeParseJson(
+							result.learnerMap.nodes,
+							[],
+							Schema.Array(NodeSchema),
+						),
+						safeParseJson(
+							result.learnerMap.edges,
+							[],
+							Schema.Array(EdgeSchema),
+						),
+						safeParseJson(result.goalMap.nodes, [], Schema.Array(NodeSchema)),
+						safeParseJson(result.goalMap.edges, [], Schema.Array(EdgeSchema)),
+					],
+					{ concurrency: "unbounded" },
+				);
 
 			return {
 				learnerMap: {
 					id: result.learnerMap.id,
-					nodes: Array.isArray(result.learnerMap.nodes)
-						? result.learnerMap.nodes
-						: [],
-					edges: Array.isArray(result.learnerMap.edges)
-						? result.learnerMap.edges
-						: [],
+					nodes: learnerMapNodes,
+					edges: learnerMapEdges,
 					status: result.learnerMap.status,
 					attempt: result.learnerMap.attempt,
 				},
 				goalMap: {
-					nodes: Array.isArray(result.goalMap.nodes)
-						? result.goalMap.nodes
-						: [],
-					edges: Array.isArray(result.goalMap.edges)
-						? result.goalMap.edges
-						: [],
+					nodes: goalMapNodes,
+					edges: goalMapEdges,
 				},
 				diagnosis: result.diagnosis
 					? {
 							id: result.diagnosis.id,
 							summary: result.diagnosis.summary,
 							score: result.diagnosis.score,
-							correct: (diagnosisData?.correct as unknown[]) ?? [],
-							missing: (diagnosisData?.missing as unknown[]) ?? [],
-							excessive: (diagnosisData?.excessive as unknown[]) ?? [],
+							correct: diagnosisData?.correct ?? [],
+							missing: diagnosisData?.missing ?? [],
+							excessive: diagnosisData?.excessive ?? [],
 						}
 					: null,
 			};

@@ -1,19 +1,19 @@
 import { mutationOptions, queryOptions } from "@tanstack/react-query";
 import { createServerFn } from "@tanstack/react-start";
 import { Effect, Layer, Schema } from "effect";
-import { requireGoalMapOwner } from "@/lib/auth-authorization";
-import { authMiddleware } from "@/middlewares/auth";
 import {
-	getGoalMap,
-	saveGoalMap,
-	listGoalMaps,
-	listGoalMapsByTopic,
+	DeleteGoalMapInput,
 	deleteGoalMap,
 	GetGoalMapInput,
-	SaveGoalMapInput,
+	getGoalMap,
 	ListGoalMapsByTopicInput,
-	DeleteGoalMapInput,
+	listGoalMaps,
+	listGoalMapsByTopic,
+	SaveGoalMapInput,
+	saveGoalMap,
 } from "@/features/goal-map/lib/goal-map-service";
+import { requireGoalMapOwner } from "@/lib/auth-authorization";
+import { authMiddleware } from "@/middlewares/auth";
 import { DatabaseLive } from "../db/client";
 import { LoggerLive } from "../logger";
 import { logRpcError } from "./handler";
@@ -76,9 +76,7 @@ export const deleteGoalMapRpc = createServerFn()
 	.middleware([authMiddleware])
 	.inputValidator((raw) => Schema.decodeUnknownSync(DeleteGoalMapInput)(raw))
 	.handler(({ data, context }) =>
-		Effect.gen(function* () {
-			return yield* deleteGoalMap(context.user.id, data);
-		}).pipe(
+		deleteGoalMap(context.user.id, data).pipe(
 			Effect.tapError(logRpcError("deleteGoalMap")),
 			Effect.provide(Layer.mergeAll(DatabaseLive, LoggerLive)),
 			Effect.withSpan("deleteGoalMap"),

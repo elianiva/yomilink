@@ -3,7 +3,6 @@ import { useAtomValue } from "jotai";
 import { memo } from "react";
 import { contextMenuAtom } from "@/features/goal-map/lib/atoms";
 import { cn } from "@/lib/utils";
-import type { ConnectorNodeData } from "../types";
 
 // Small invisible handles at center - only used for edge anchoring, not for initiating connections
 const ANCHOR_HANDLE_STYLE =
@@ -12,7 +11,7 @@ const ANCHOR_HANDLE_STYLE =
 function ConnectorNodeComponent({
 	id,
 	data,
-}: NodeProps<Node<ConnectorNodeData>>) {
+}: NodeProps<Node<{ label: string }>>) {
 	const contextMenu = useAtomValue(contextMenuAtom);
 	const isActive = contextMenu?.nodeId === id;
 

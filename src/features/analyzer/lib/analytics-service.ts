@@ -1,17 +1,18 @@
-import { Data, Effect, Schema } from "effect";
 import { and, desc, eq } from "drizzle-orm";
+import { Data, Effect, Schema } from "effect";
+import Papa from "papaparse";
 import {
 	classifyEdges,
 	compareMaps,
 	type DiagnosisResult,
+	type Edge,
 	type EdgeClassification,
 	EdgeSchema,
-	type Edge,
-	NodeSchema,
 	type Node,
+	NodeSchema,
 } from "@/features/learner-map/lib/comparator";
 import { parseJson } from "@/lib/utils";
-import Papa from "papaparse";
+import { Database } from "@/server/db/client";
 import {
 	assignments,
 	diagnoses,
@@ -20,7 +21,6 @@ import {
 	learnerMaps,
 } from "@/server/db/schema/app-schema";
 import { user as usersTable } from "@/server/db/schema/auth-schema";
-import { Database } from "@/server/db/client";
 
 export const GetAnalyticsForAssignmentInput = Schema.Struct({
 	assignmentId: Schema.NonEmptyString,
@@ -43,8 +43,24 @@ export const ExportAnalyticsDataInput = Schema.Struct({
 
 export type ExportAnalyticsDataInput = typeof ExportAnalyticsDataInput.Type;
 
+export const LinkSchema = Schema.Struct({
+	source: Schema.String,
+	target: Schema.String,
+});
+
+export type Link = typeof LinkSchema.Type;
+
+export const PerLinkDiagnosisSchema = Schema.Struct({
+	correct: Schema.optional(Schema.Array(LinkSchema)),
+	missing: Schema.optional(Schema.Array(LinkSchema)),
+	excessive: Schema.optional(Schema.Array(LinkSchema)),
+	totalGoalEdges: Schema.optional(Schema.Number),
+});
+
+export type PerLinkDiagnosis = typeof PerLinkDiagnosisSchema.Type;
+
 export type LearnerMapResult = Awaited<
-	ReturnType<typeof getLearnerMapForAnalytics>
+	Effect.Effect.Success<ReturnType<typeof getLearnerMapForAnalytics>>
 >;
 
 class AssignmentNotFoundError extends Data.TaggedError(
@@ -217,9 +233,9 @@ export const getAnalyticsForAssignment = Effect.fn("getAnalyticsForAssignment")(
 
 			const assignment = assignmentRows[0];
 			if (!assignment) {
-				return yield* Effect.fail(
-					new AssignmentNotFoundError({ assignmentId: input.assignmentId }),
-				);
+				return yield* new AssignmentNotFoundError({
+					assignmentId: input.assignmentId,
+				});
 			}
 
 			const goalMapRows = yield* db
@@ -236,9 +252,9 @@ export const getAnalyticsForAssignment = Effect.fn("getAnalyticsForAssignment")(
 
 			const goalMap = goalMapRows[0];
 			if (!goalMap) {
-				return yield* Effect.fail(
-					new GoalMapNotFoundError({ goalMapId: assignment.goalMapId }),
-				);
+				return yield* new GoalMapNotFoundError({
+					goalMapId: assignment.goalMapId,
+				});
 			}
 
 			const parsedGoalMapNodes = yield* parseJson(
@@ -278,12 +294,7 @@ export const getAnalyticsForAssignment = Effect.fn("getAnalyticsForAssignment")(
 						if (lm.perLink) {
 							const parsed = yield* parseJson(
 								lm.perLink,
-								Schema.Struct({
-									correct: Schema.optional(Schema.Array(Schema.String)),
-									missing: Schema.optional(Schema.Array(Schema.String)),
-									excessive: Schema.optional(Schema.Array(Schema.String)),
-									totalGoalEdges: Schema.optional(Schema.Number),
-								}),
+								PerLinkDiagnosisSchema,
 							);
 							correct = parsed.correct?.length ?? 0;
 							missing = parsed.missing?.length ?? 0;
@@ -377,9 +388,9 @@ export const getLearnerMapForAnalytics = Effect.fn("getLearnerMapForAnalytics")(
 
 			const learnerMap = learnerMapRows[0];
 			if (!learnerMap) {
-				return yield* Effect.fail(
-					new LearnerMapNotFoundError({ learnerMapId: input.learnerMapId }),
-				);
+				return yield* new LearnerMapNotFoundError({
+					learnerMapId: input.learnerMapId,
+				});
 			}
 
 			const goalMapRows = yield* db
@@ -396,26 +407,25 @@ export const getLearnerMapForAnalytics = Effect.fn("getLearnerMapForAnalytics")(
 
 			const goalMap = goalMapRows[0];
 			if (!goalMap) {
-				return yield* Effect.fail(
-					new GoalMapNotFoundError({ goalMapId: learnerMap.goalMapId }),
-				);
+				return yield* new GoalMapNotFoundError({
+					goalMapId: learnerMap.goalMapId,
+				});
 			}
 
-			const parsedGoalMapNodes = yield* parseJson(
-				goalMap.nodes,
-				Schema.Array(NodeSchema),
+			const [
+				parsedGoalMapNodes,
+				parsedGoalMapEdges,
+				parsedLearnerMapNodes,
+				parsedLearnerMapEdges,
+			] = yield* Effect.all(
+				[
+					parseJson(goalMap.nodes, Schema.Array(NodeSchema)),
+					parseJson(goalMap.edges, Schema.Array(EdgeSchema)),
+					parseJson(learnerMap.nodes, Schema.Array(NodeSchema)),
+					parseJson(learnerMap.edges, Schema.Array(EdgeSchema)),
+				],
+				{ concurrency: "unbounded" },
 			);
-			const parsedGoalMapEdges = yield* parseJson(
-				goalMap.edges,
-				Schema.Array(EdgeSchema),
-			);
-
-			const parsedLearnerMapNodes = Array.isArray(learnerMap.nodes)
-				? learnerMap.nodes
-				: [];
-			const parsedLearnerMapEdges = Array.isArray(learnerMap.edges)
-				? learnerMap.edges
-				: [];
 
 			const diagnosis = compareMaps(parsedGoalMapEdges, parsedLearnerMapEdges);
 			const edgeClassifications = classifyEdges(

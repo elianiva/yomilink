@@ -1,17 +1,17 @@
 import { mutationOptions, queryOptions } from "@tanstack/react-query";
 import { createServerFn } from "@tanstack/react-start";
 import { Effect, Layer, Schema } from "effect";
-import { requireTeacher } from "@/lib/auth-authorization";
-import { authMiddleware } from "@/middlewares/auth";
 import {
-	listStudentKits,
-	getKit,
-	getKitStatus,
-	generateKit,
+	GenerateKitInput,
 	GetKitInput,
 	GetKitStatusInput,
-	GenerateKitInput,
+	generateKit,
+	getKit,
+	getKitStatus,
+	listStudentKits,
 } from "@/features/kit/lib/kit-service";
+import { requireTeacher } from "@/lib/auth-authorization";
+import { authMiddleware } from "@/middlewares/auth";
 import { DatabaseLive } from "../db/client";
 import { LoggerLive } from "../logger";
 import { logRpcError } from "./handler";

@@ -28,10 +28,6 @@ import { FloatingEdge } from "@/features/kitbuild/components/floating-edge";
 import { SearchNodesPanel } from "@/features/kitbuild/components/search-nodes-panel";
 import { TextNode } from "@/features/kitbuild/components/text-node";
 import { getLayoutedElements } from "@/features/kitbuild/lib/layout";
-import type {
-	Edge as MapEdge,
-	Node as MapNode,
-} from "@/features/learner-map/lib/comparator";
 import { LearnerToolbar } from "@/features/learner-map/components/learner-toolbar";
 import { MaterialDialog } from "@/features/learner-map/components/material-dialog";
 import {
@@ -52,6 +48,10 @@ import {
 	searchOpenAtom,
 	submissionStatusAtom,
 } from "@/features/learner-map/lib/atoms";
+import type {
+	Edge as MapEdge,
+	Node as MapNode,
+} from "@/features/learner-map/lib/comparator";
 import { arrangeNodesByType } from "@/features/learner-map/lib/grid-layout";
 import { cn } from "@/lib/utils";
 import { LearnerMapRpc } from "@/server/rpc/learner-map";
@@ -110,9 +110,8 @@ function LearnerMapEditor() {
 	const [isHydrated, setIsHydrated] = useState(false);
 	const [timeRemaining, setTimeRemaining] = useState<number | null>(null);
 
-	// Query
 	const { data: assignmentData, isLoading } = useQuery(
-		LearnerMapRpc.getAssignmentForStudent(assignmentId),
+		LearnerMapRpc.getAssignmentForStudent({ assignmentId }),
 	);
 
 	// Mutations
@@ -247,7 +246,6 @@ function LearnerMapEditor() {
 		[nodes, getNodeClassName],
 	);
 
-	// Auto-save with debouncing
 	useEffect(() => {
 		if (!isHydrated || status === "submitted") return;
 
@@ -714,7 +712,7 @@ function LearnerMapEditor() {
 				{/* Simple Context Menu for Connectors */}
 				{contextMenu && contextMenu.nodeType === "connector" && (
 					<div
-						className="absolute z-50 bg-background border rounded-lg shadow-lg p-1 min-w-[120px]"
+						className="absolute z-50 bg-background border rounded-lg shadow-lg p-1 min-w-30"
 						style={{
 							left: contextMenu.position.x,
 							top: contextMenu.position.y - 80,

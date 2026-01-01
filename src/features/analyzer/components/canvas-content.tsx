@@ -1,5 +1,7 @@
-import type { AssignmentAnalytics } from "@/features/analyzer/lib/analytics-service";
-import type { LearnerMapResult } from "@/features/analyzer/lib/analytics-service";
+import type {
+	AssignmentAnalytics,
+	LearnerMapResult,
+} from "@/features/analyzer/lib/analytics-service";
 import { AnalyticsCanvas } from "./canvas";
 
 export function CanvasContent({
@@ -50,9 +52,7 @@ export function CanvasContent({
 		return (
 			<div className="w-full h-full flex items-center justify-center">
 				<div className="text-sm text-muted-foreground px-4 text-center">
-					{learnerMapDetails && "error" in learnerMapDetails
-						? learnerMapDetails.error
-						: "Loading learner map details..."}
+					Loading learner map details...
 				</div>
 			</div>
 		);

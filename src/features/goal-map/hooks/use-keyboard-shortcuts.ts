@@ -1,10 +1,7 @@
 import { useSetAtom } from "jotai";
 import { useEffect } from "react";
-import {
-	contextMenuAtom,
-	connectionModeAtom,
-	saveOpenAtom,
-} from "../lib/atoms";
+import { connectionModeAtom, contextMenuAtom } from "../lib/atoms";
+import { useSaveDialog } from "./use-save-dialog";
 
 export function useKeyboardShortcuts(
 	saving: boolean,
@@ -15,7 +12,7 @@ export function useKeyboardShortcuts(
 ) {
 	const setContextMenu = useSetAtom(contextMenuAtom);
 	const setConnectionMode = useSetAtom(connectionModeAtom);
-	const setSaveOpen = useSetAtom(saveOpenAtom);
+	const { setSaveOpen } = useSaveDialog();
 
 	useEffect(() => {
 		const handleKeyDown = (e: KeyboardEvent) => {

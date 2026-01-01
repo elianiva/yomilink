@@ -37,9 +37,9 @@ import {
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Skeleton } from "@/components/ui/skeleton";
+import type { Topic } from "@/features/analyzer/lib/topic-service";
 import { cn, safeParseJson } from "@/lib/utils";
 import { GoalMapRpc } from "@/server/rpc/goal-map";
-import type { Topic } from "@/features/analyzer/lib/topic-service";
 import { TopicRpc } from "@/server/rpc/topic";
 
 export const Route = createFileRoute("/dashboard/")({
@@ -254,7 +254,7 @@ function DashboardHome() {
 
 								return (
 									<div
-										key={goalMap.goalMapId}
+										key={goalMap.id}
 										className="group relative flex flex-col p-4 bg-card border rounded-xl hover:border-primary/30 hover:shadow-md transition-all duration-200"
 									>
 										{/* Card content */}
@@ -287,7 +287,7 @@ function DashboardHome() {
 											)}
 											{goalMap.updatedAt && (
 												<span className="ml-auto">
-													{formatRelativeTime(goalMap.updatedAt)}
+													{formatRelativeTime(goalMap.updatedAt.toString())}
 												</span>
 											)}
 										</div>
@@ -302,7 +302,7 @@ function DashboardHome() {
 											>
 												<Link
 													to="/dashboard/goal-map/$goalMapId"
-													params={{ goalMapId: goalMap.goalMapId }}
+													params={{ goalMapId: goalMap.id }}
 												>
 													<Edit className="size-4" />
 													<span className="sr-only">Edit</span>
@@ -310,8 +310,7 @@ function DashboardHome() {
 											</Button>
 											<AlertDialog
 												open={
-													deleteConfirmOpen &&
-													goalMapToDelete === goalMap.goalMapId
+													deleteConfirmOpen && goalMapToDelete === goalMap.id
 												}
 											>
 												<AlertDialogTrigger asChild>
@@ -319,7 +318,7 @@ function DashboardHome() {
 														variant="secondary"
 														size="icon"
 														className="size-8"
-														onClick={() => handleDelete(goalMap.goalMapId)}
+														onClick={() => handleDelete(goalMap.id)}
 														disabled={deleteMutation.isPending}
 													>
 														<Trash2 className="size-4" />

@@ -1,5 +1,5 @@
-import { Effect } from "effect";
 import { SqlClient } from "@effect/sql/SqlClient";
+import { Effect } from "effect";
 
 export const setupDatabase = Effect.gen(function* () {
 	const sql = yield* SqlClient;

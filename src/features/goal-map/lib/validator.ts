@@ -34,7 +34,10 @@ export const ValidationResultSchema = Schema.Struct({
 
 export type ValidationResult = typeof ValidationResultSchema.Type;
 
-const composePropositions = Effect.fn(function* (nodes: Node[], edges: Edge[]) {
+const composePropositions = Effect.fn(function* (
+	nodes: Readonly<Node[]>,
+	edges: Readonly<Edge[]>,
+) {
 	const concepts = new Map(
 		nodes
 			.filter((n): n is ConceptNode => n.type === "text" || n.type === "image")
@@ -225,8 +228,8 @@ export const validateNodes = Effect.fn(function* (
 });
 
 export function findConnectedComponents(
-	nodes: Node[],
-	edges: Edge[],
+	nodes: Readonly<Node[]>,
+	edges: Readonly<Edge[]>,
 ): Node[][] {
 	const visited = new Set<string>();
 	const components: Node[][] = [];
@@ -259,7 +262,10 @@ export function findConnectedComponents(
 	return components;
 }
 
-export function detectCycles(nodes: Node[], edges: Edge[]): boolean {
+export function detectCycles(
+	nodes: Readonly<Node[]>,
+	edges: Readonly<Edge[]>,
+): boolean {
 	const visited = new Set<string>();
 	const recursionStack = new Set<string>();
 

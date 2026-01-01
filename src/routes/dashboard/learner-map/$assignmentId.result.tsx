@@ -45,17 +45,17 @@ function ResultPage() {
 	);
 
 	const { data, isLoading } = useQuery(
-		LearnerMapRpc.getDiagnosis(assignmentId),
+		LearnerMapRpc.getDiagnosis({ assignmentId }),
 	);
 
 	const { data: peerStats } = useQuery(
-		LearnerMapRpc.getPeerStats(assignmentId),
+		LearnerMapRpc.getPeerStats({ assignmentId }),
 	);
 
 	const newAttemptMutation = useMutation(LearnerMapRpc.startNewAttempt());
 
 	const handleTryAgain = async () => {
-		const result = await newAttemptMutation.mutateAsync(assignmentId);
+		const result = await newAttemptMutation.mutateAsync({ assignmentId });
 		if (result.success) {
 			queryClient.invalidateQueries({
 				queryKey: LearnerMapRpc.learnerMaps(),
@@ -71,14 +71,10 @@ function ResultPage() {
 		if (!data?.diagnosis || !data?.learnerMap) return [];
 
 		const correctSet = new Set(
-			data.diagnosis.correct.map(
-				(e: { source: string; target: string }) => `${e.source}-${e.target}`,
-			),
+			data.diagnosis.correct.map((e) => `${e.source}-${e.target}`),
 		);
 		const excessiveSet = new Set(
-			data.diagnosis.excessive.map(
-				(e: { source: string; target: string }) => `${e.source}-${e.target}`,
-			),
+			data.diagnosis.excessive.map((e) => `${e.source}-${e.target}`),
 		);
 
 		// Color-code learner edges
@@ -107,7 +103,7 @@ function ResultPage() {
 
 		// Add missing edges as dashed lines
 		const missingEdges: Edge[] = data.diagnosis.missing.map(
-			(missing: { source: string; target: string }, index: number) => {
+			(missing, index) => {
 				const style = getEdgeStyleByType("missing");
 				return {
 					id: `missing-${index}`,
