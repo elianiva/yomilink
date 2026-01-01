@@ -1,6 +1,5 @@
 import { Data, Effect, Schema } from "effect";
 import { desc, eq } from "drizzle-orm";
-import { requireTeacher } from "@/lib/auth-authorization";
 import { goalMaps, kits } from "@/server/db/schema/app-schema";
 import { Database } from "@/server/db/client";
 
@@ -162,11 +161,9 @@ export const getKitStatus = Effect.fn("getKitStatus")(
 );
 
 export const generateKit = Effect.fn("generateKit")(
-	(userId: string, input: GenerateKitInput) =>
+	(_userId: string, input: GenerateKitInput) =>
 		Effect.gen(function* () {
 			const db = yield* Database;
-
-			yield* requireTeacher(userId);
 
 			const gmRows = yield* db
 				.select()

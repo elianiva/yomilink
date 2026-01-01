@@ -1,6 +1,5 @@
 import { Data, Effect, Schema } from "effect";
 import { desc, eq, sql } from "drizzle-orm";
-import { requireTeacher } from "@/lib/auth-authorization";
 import { randomString } from "@/lib/utils";
 import {
 	assignments,
@@ -42,11 +41,9 @@ class AssignmentNotFoundError extends Data.TaggedError(
 }> {}
 
 export const createAssignment = Effect.fn("createAssignment")(
-	(userId: string, data: CreateAssignmentInput) =>
+	(_userId: string, data: CreateAssignmentInput) =>
 		Effect.gen(function* () {
 			const db = yield* Database;
-
-			yield* requireTeacher(userId);
 
 			const kitRows = yield* db
 				.select()
@@ -56,9 +53,7 @@ export const createAssignment = Effect.fn("createAssignment")(
 
 			const kit = kitRows[0];
 			if (!kit) {
-				return yield* Effect.fail(
-					new KitNotFoundError({ goalMapId: data.goalMapId }),
-				);
+				return yield* new KitNotFoundError({ goalMapId: data.goalMapId });
 			}
 
 			const assignmentId = randomString();
@@ -145,8 +140,6 @@ export const deleteAssignment = Effect.fn("deleteAssignment")(
 		Effect.gen(function* () {
 			const db = yield* Database;
 
-			yield* requireTeacher(userId);
-
 			const assignmentRows = yield* db
 				.select({ createdBy: assignments.createdBy })
 				.from(assignments)
@@ -155,9 +148,7 @@ export const deleteAssignment = Effect.fn("deleteAssignment")(
 
 			const assignment = assignmentRows[0];
 			if (!assignment || assignment.createdBy !== userId) {
-				return yield* Effect.fail(
-					new AssignmentNotFoundError({ assignmentId: input.id }),
-				);
+				return yield* new AssignmentNotFoundError({ assignmentId: input.id });
 			}
 
 			yield* db.delete(assignments).where(eq(assignments.id, input.id));

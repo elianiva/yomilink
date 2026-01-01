@@ -1,8 +1,7 @@
 import { mutationOptions, queryOptions } from "@tanstack/react-query";
 import { createServerFn } from "@tanstack/react-start";
 import { Effect, Layer, Schema } from "effect";
-import { requireTeacher } from "@/lib/auth-authorization";
-import { authMiddleware } from "@/middlewares/auth";
+import { requireRoleMiddleware } from "@/middlewares/auth";
 import {
 	createAssignment,
 	listTeacherAssignments,
@@ -18,13 +17,10 @@ import { LoggerLive } from "../logger";
 import { logRpcError } from "./handler";
 
 export const createAssignmentRpc = createServerFn()
-	.middleware([authMiddleware])
+	.middleware([requireRoleMiddleware("teacher", "admin")])
 	.inputValidator((raw) => Schema.decodeUnknownSync(CreateAssignmentInput)(raw))
-	.handler(async ({ data, context }) =>
-		Effect.gen(function* () {
-			yield* requireTeacher(context.user.id);
-			return yield* createAssignment(context.user.id, data);
-		}).pipe(
+	.handler(({ data, context }) =>
+		createAssignment(context.user.id, data).pipe(
 			Effect.tapError(logRpcError("createAssignment")),
 			Effect.provide(Layer.mergeAll(DatabaseLive, LoggerLive)),
 			Effect.withSpan("createAssignment"),
@@ -33,7 +29,7 @@ export const createAssignmentRpc = createServerFn()
 	);
 
 export const listTeacherAssignmentsRpc = createServerFn()
-	.middleware([authMiddleware])
+	.middleware([requireRoleMiddleware("teacher", "admin")])
 	.handler(({ context }) =>
 		listTeacherAssignments(context.user.id).pipe(
 			Effect.tapError(logRpcError("listTeacherAssignments")),
@@ -44,13 +40,10 @@ export const listTeacherAssignmentsRpc = createServerFn()
 	);
 
 export const deleteAssignmentRpc = createServerFn()
-	.middleware([authMiddleware])
+	.middleware([requireRoleMiddleware("teacher", "admin")])
 	.inputValidator((raw) => Schema.decodeUnknownSync(DeleteAssignmentInput)(raw))
-	.handler(async ({ data, context }) =>
-		Effect.gen(function* () {
-			yield* requireTeacher(context.user.id);
-			return yield* deleteAssignment(context.user.id, data);
-		}).pipe(
+	.handler(({ data, context }) =>
+		deleteAssignment(context.user.id, data).pipe(
 			Effect.tapError(logRpcError("deleteAssignment")),
 			Effect.provide(Layer.mergeAll(DatabaseLive, LoggerLive)),
 			Effect.withSpan("deleteAssignment"),
@@ -59,7 +52,7 @@ export const deleteAssignmentRpc = createServerFn()
 	);
 
 export const getAvailableCohortsRpc = createServerFn()
-	.middleware([authMiddleware])
+	.middleware([requireRoleMiddleware("teacher", "admin")])
 	.handler(() =>
 		getAvailableCohorts().pipe(
 			Effect.tapError(logRpcError("getAvailableCohorts")),
@@ -70,7 +63,7 @@ export const getAvailableCohortsRpc = createServerFn()
 	);
 
 export const getAvailableUsersRpc = createServerFn()
-	.middleware([authMiddleware])
+	.middleware([requireRoleMiddleware("teacher", "admin")])
 	.handler(() =>
 		getAvailableUsers().pipe(
 			Effect.tapError(logRpcError("getAvailableUsers")),
@@ -81,7 +74,7 @@ export const getAvailableUsersRpc = createServerFn()
 	);
 
 export const getTeacherGoalMapsRpc = createServerFn()
-	.middleware([authMiddleware])
+	.middleware([requireRoleMiddleware("teacher", "admin")])
 	.handler(() =>
 		getTeacherGoalMaps().pipe(
 			Effect.tapError(logRpcError("getTeacherGoalMaps")),

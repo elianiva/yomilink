@@ -34,7 +34,7 @@ export const isGoalMapOwner = (userId: string, goalMapId: string) =>
 		);
 
 		if (!goalMap) {
-			return yield* Effect.fail(new GoalMapNotFoundError({ goalMapId }));
+			return yield* new GoalMapNotFoundError({ goalMapId });
 		}
 
 		return goalMap.teacherId === userId;
@@ -53,7 +53,7 @@ export const canAccessGoalMap = (userId: string, goalMapId: string) =>
 		);
 
 		if (!goalMap) {
-			return yield* Effect.fail(new GoalMapNotFoundError({ goalMapId }));
+			return yield* new GoalMapNotFoundError({ goalMapId });
 		}
 
 		if (goalMap.teacherId === userId) {
@@ -122,7 +122,7 @@ export const canAccessAssignment = (userId: string, assignmentId: string) =>
 		);
 
 		if (!assignment) {
-			return yield* Effect.fail(new AssignmentNotFoundError({ assignmentId }));
+			return yield* new AssignmentNotFoundError({ assignmentId });
 		}
 
 		if (assignment.createdBy === userId) {
@@ -189,11 +189,9 @@ export const requireGoalMapOwner = (userId: string, goalMapId: string) =>
 		const isOwner = yield* isGoalMapOwner(userId, goalMapId);
 
 		if (!isOwner) {
-			return yield* Effect.fail(
-				new ForbiddenError({
-					message: "You must be the owner of this goal map",
-				}),
-			);
+			return yield* new ForbiddenError({
+				message: "You must be the owner of this goal map",
+			});
 		}
 
 		return userId;
@@ -204,11 +202,9 @@ export const requireGoalMapAccess = (userId: string, goalMapId: string) =>
 		const hasAccess = yield* canAccessGoalMap(userId, goalMapId);
 
 		if (!hasAccess) {
-			return yield* Effect.fail(
-				new ForbiddenError({
-					message: "You do not have access to this goal map",
-				}),
-			);
+			return yield* new ForbiddenError({
+				message: "You do not have access to this goal map",
+			});
 		}
 
 		return userId;
@@ -219,11 +215,9 @@ export const requireRole = (role: string) => (userId: string) =>
 		const hasRole = yield* isRole(userId, role);
 
 		if (!hasRole) {
-			return yield* Effect.fail(
-				new ForbiddenError({
-					message: `You must be a ${role} to perform this action`,
-				}),
-			);
+			return yield* new ForbiddenError({
+				message: `You must be a ${role} to perform this action`,
+			});
 		}
 
 		return userId;
@@ -242,18 +236,13 @@ export const requireAnyRole =
 			);
 
 			if (!userRecord || !userRecord.role || !roles.includes(userRecord.role)) {
-				return yield* Effect.fail(
-					new ForbiddenError({
-						message: `You must be one of: ${roles.join(", ")}`,
-					}),
-				);
+				return yield* new ForbiddenError({
+					message: `You must be one of: ${roles.join(", ")}`,
+				});
 			}
 
 			return userId;
 		});
-
-export const requireTeacher = requireAnyRole("teacher", "admin");
-export const requireAdmin = requireRole("admin");
 
 /**
  * Create standardized error response

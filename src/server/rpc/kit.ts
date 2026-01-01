@@ -10,14 +10,13 @@ import {
 	getKitStatus,
 	listStudentKits,
 } from "@/features/kit/lib/kit-service";
-import { requireTeacher } from "@/lib/auth-authorization";
-import { authMiddleware } from "@/middlewares/auth";
+import { requireRoleMiddleware } from "@/middlewares/auth";
 import { DatabaseLive } from "../db/client";
 import { LoggerLive } from "../logger";
 import { logRpcError } from "./handler";
 
 export const listStudentKitsRpc = createServerFn()
-	.middleware([authMiddleware])
+	.middleware([requireRoleMiddleware("teacher", "admin")])
 	.handler(() =>
 		listStudentKits().pipe(
 			Effect.tapError(logRpcError("listStudentKits")),
@@ -28,7 +27,7 @@ export const listStudentKitsRpc = createServerFn()
 	);
 
 export const getKitRpc = createServerFn()
-	.middleware([authMiddleware])
+	.middleware([requireRoleMiddleware("teacher", "admin")])
 	.inputValidator((raw) => Schema.decodeUnknownSync(GetKitInput)(raw))
 	.handler(({ data }) =>
 		getKit(data).pipe(
@@ -40,7 +39,7 @@ export const getKitRpc = createServerFn()
 	);
 
 export const getKitStatusRpc = createServerFn()
-	.middleware([authMiddleware])
+	.middleware([requireRoleMiddleware("teacher", "admin")])
 	.inputValidator((raw) => Schema.decodeUnknownSync(GetKitStatusInput)(raw))
 	.handler(({ data }) =>
 		getKitStatus(data).pipe(
@@ -52,13 +51,10 @@ export const getKitStatusRpc = createServerFn()
 	);
 
 export const generateKitRpc = createServerFn()
-	.middleware([authMiddleware])
+	.middleware([requireRoleMiddleware("teacher", "admin")])
 	.inputValidator((raw) => Schema.decodeUnknownSync(GenerateKitInput)(raw))
-	.handler(async ({ data, context }) =>
-		Effect.gen(function* () {
-			yield* requireTeacher(context.user.id);
-			return yield* generateKit(context.user.id, data);
-		}).pipe(
+	.handler(({ data, context }) =>
+		generateKit(context.user.id, data).pipe(
 			Effect.tapError(logRpcError("generateKit")),
 			Effect.provide(Layer.mergeAll(DatabaseLive, LoggerLive)),
 			Effect.withSpan("generateKit"),

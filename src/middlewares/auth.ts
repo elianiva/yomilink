@@ -1,6 +1,10 @@
 import { redirect } from "@tanstack/react-router";
 import { createMiddleware } from "@tanstack/react-start";
+import { Effect, Layer } from "effect";
 import { getServerUser } from "@/lib/auth";
+import { DatabaseLive } from "@/server/db/client";
+import { LoggerLive } from "@/server/logger";
+import { requireAnyRole } from "@/lib/auth-authorization";
 
 /**
  * Auth middleware that redirects to /login if not authenticated.
@@ -33,3 +37,35 @@ export const authMiddlewareOptional = createMiddleware().server(
 		});
 	},
 );
+
+/**
+ * Creates a middleware that requires specific roles.
+ * Uses Effect internally for authorization logic but converts errors to plain errors for TanStack Start.
+ *
+ * @param roles - Array of role names that are allowed
+ * @returns A middleware that checks user roles
+ *
+ * @example
+ * ```ts
+ * export const myRpc = createServerFn()
+ *   .middleware([requireRoleMiddleware("teacher", "admin")])
+ *   .handler(...)
+ * ```
+ */
+export const requireRoleMiddleware = (...roles: string[]) =>
+	createMiddleware()
+		.middleware([authMiddleware])
+		.server(async ({ next, context }) => {
+			try {
+				await requireAnyRole(...roles)(context.user.id).pipe(
+					Effect.provide(Layer.mergeAll(DatabaseLive, LoggerLive)),
+					Effect.runPromise,
+				);
+			} catch (error) {
+				throw new Error(
+					(error as { message: string })?.message || "Authorization failed",
+				);
+			}
+
+			return next({ context });
+		});
