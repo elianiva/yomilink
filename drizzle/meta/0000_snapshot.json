@@ -1,7 +1,7 @@
 {
   "version": "6",
   "dialect": "sqlite",
-  "id": "f3464f33-53e7-485d-820d-63ebdbbef55c",
+  "id": "03a4b5ea-4dc5-478f-b7b2-f9f4aa4e5973",
   "prevId": "00000000-0000-0000-0000-000000000000",
   "tables": {
     "assignment_targets": {
@@ -820,7 +820,7 @@
         },
         "nodes": {
           "name": "nodes",
-          "type": "text(1000000)",
+          "type": "text",
           "primaryKey": false,
           "notNull": true,
           "autoincrement": false,
@@ -828,7 +828,7 @@
         },
         "edges": {
           "name": "edges",
-          "type": "text(1000000)",
+          "type": "text",
           "primaryKey": false,
           "notNull": true,
           "autoincrement": false,
@@ -953,14 +953,14 @@
         },
         "nodes": {
           "name": "nodes",
-          "type": "text(1000000)",
+          "type": "text",
           "primaryKey": false,
           "notNull": true,
           "autoincrement": false
         },
         "edges": {
           "name": "edges",
-          "type": "text(1000000)",
+          "type": "text",
           "primaryKey": false,
           "notNull": true,
           "autoincrement": false
