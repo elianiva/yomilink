@@ -1,7 +1,7 @@
+import { env } from "cloudflare:workers";
 import { mutationOptions } from "@tanstack/react-query";
 import { createServerFn } from "@tanstack/react-start";
 import { Effect, Schema } from "effect";
-import { env } from "cloudflare:workers";
 import { authMiddleware } from "@/middlewares/auth";
 import { LoggerLive } from "../logger";
 import { logRpcError } from "./handler";
@@ -47,7 +47,7 @@ export const uploadMaterialImage = createServerFn()
 					() =>
 						InvalidFileTypeError.make({
 							type: data.file.type,
-							allowed: allowedTypes as any,
+							allowed: allowedTypes,
 						}),
 				),
 			);

@@ -2,16 +2,18 @@ import type { Edge, MarkerType, Node } from "@xyflow/react";
 import { Background, MiniMap, ReactFlow, useReactFlow } from "@xyflow/react";
 import { ZoomIn, ZoomOut } from "lucide-react";
 import { useMemo } from "react";
+import { Effect } from "effect";
 import { ConnectorNode } from "@/features/kitbuild/components/connector-node";
 import { FloatingEdge } from "@/features/kitbuild/components/floating-edge";
 import { TextNode } from "@/features/kitbuild/components/text-node";
+import { safeParseJson } from "@/lib/utils";
 
 interface AnalyticsCanvasProps {
 	goalMap: {
 		id: string;
 		title: string;
-		nodes: any;
-		edges: any;
+		nodes: string | Node[];
+		edges: Edge[];
 		direction: "bi" | "uni" | "multi";
 	};
 	learnerMap: {
@@ -21,8 +23,8 @@ interface AnalyticsCanvasProps {
 		status: string;
 		attempt: number;
 		submittedAt: number | null;
-		nodes: any;
-		edges: any;
+		nodes: string | Node[];
+		edges: Edge[];
 	};
 	edgeClassifications: Array<{
 		edge: Edge;
@@ -84,11 +86,7 @@ export function AnalyticsCanvas({
 	const { zoomIn, zoomOut, fitView } = useReactFlow();
 
 	const goalMapNodes = useMemo(() => {
-		const nodes: Node[] = Array.isArray(goalMap.nodes)
-			? goalMap.nodes
-			: typeof goalMap.nodes === "string"
-				? JSON.parse(goalMap.nodes)
-				: goalMap.nodes;
+		const nodes: Node[] = Effect.runSync(safeParseJson(goalMap.nodes, []));
 
 		if (!visibility.showGoalMap) return [];
 
@@ -110,11 +108,7 @@ export function AnalyticsCanvas({
 	const learnerMapNodes = useMemo(() => {
 		if (!visibility.showLearnerMap) return [];
 
-		const nodes: Node[] = Array.isArray(learnerMap.nodes)
-			? learnerMap.nodes
-			: typeof learnerMap.nodes === "string"
-				? JSON.parse(learnerMap.nodes)
-				: learnerMap.nodes;
+		const nodes: Node[] = Effect.runSync(safeParseJson(learnerMap.nodes, []));
 
 		return nodes;
 	}, [learnerMap.nodes, visibility.showLearnerMap]);

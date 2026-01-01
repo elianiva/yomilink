@@ -175,16 +175,14 @@ export const generateKit = createServerFn()
 
 			const gm = gmRows[0];
 			if (!gm) {
-				return yield* Effect.fail(
-					new GoalMapNotFoundError({ goalMapId: data.goalMapId }),
-				);
+				return yield* new GoalMapNotFoundError({ goalMapId: data.goalMapId });
 			}
 
 			const nodes = Array.isArray(gm.nodes) ? gm.nodes : [];
 
 			// Kit includes ALL nodes from goal map: concepts AND connectors
 			// Students will only draw edges, not create new nodes
-			const kitNodes = (nodes as any[]).filter(
+			const kitNodes = nodes.filter(
 				(n) => n?.type === "text" || n?.type === "connector",
 			);
 

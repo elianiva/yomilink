@@ -34,12 +34,9 @@ export const SubmitLearnerMapSchema = Schema.Struct({
 export const listStudentAssignments = createServerFn()
 	.middleware([authMiddleware])
 	.handler(async ({ context }) => {
-		const user = context.user;
-		if (!user) throw new Error("Unauthorized");
-
 		return Effect.gen(function* () {
 			const db = yield* Database;
-			const userId = user.id;
+			const userId = context.user.id;
 
 			const userCohorts = yield* db
 				.select({ cohortId: cohortMembers.cohortId })
@@ -121,12 +118,9 @@ export const getAssignmentForStudent = createServerFn()
 		)(raw),
 	)
 	.handler(async ({ data, context }) => {
-		const user = context.user;
-		if (!user) throw new Error("Unauthorized");
-
 		return Effect.gen(function* () {
 			const db = yield* Database;
-			const userId = user.id;
+			const userId = context.user.id;
 
 			const results = yield* db
 				.select({
@@ -213,12 +207,9 @@ export const saveLearnerMap = createServerFn()
 	.middleware([authMiddleware])
 	.inputValidator((raw) => Schema.decodeUnknownSync(SaveLearnerMapSchema)(raw))
 	.handler(async ({ data, context }) => {
-		const user = context.user;
-		if (!user) throw new Error("Unauthorized");
-
 		return Effect.gen(function* () {
 			const db = yield* Database;
-			const userId = user.id;
+			const userId = context.user.id;
 
 			// Get assignment details
 			const assignmentRows = yield* db
@@ -300,12 +291,9 @@ export const submitLearnerMap = createServerFn()
 		Schema.decodeUnknownSync(SubmitLearnerMapSchema)(raw),
 	)
 	.handler(async ({ data, context }) => {
-		const user = context.user;
-		if (!user) throw new Error("Unauthorized");
-
 		return Effect.gen(function* () {
 			const db = yield* Database;
-			const userId = user.id;
+			const userId = context.user.id;
 
 			// Get learner map
 			const learnerMapRows = yield* db
@@ -391,12 +379,9 @@ export const getDiagnosis = createServerFn()
 		)(raw),
 	)
 	.handler(async ({ data, context }) => {
-		const user = context.user;
-		if (!user) throw new Error("Unauthorized");
-
 		return Effect.gen(function* () {
 			const db = yield* Database;
-			const userId = user.id;
+			const userId = context.user.id;
 
 			const results = yield* db
 				.select({
@@ -472,9 +457,9 @@ export const getDiagnosis = createServerFn()
 							id: result.diagnosis.id,
 							summary: result.diagnosis.summary,
 							score: result.diagnosis.score,
-							correct: (diagnosisData?.correct ?? []) as any[],
-							missing: (diagnosisData?.missing ?? []) as any[],
-							excessive: (diagnosisData?.excessive ?? []) as any[],
+							correct: diagnosisData?.correct ?? [],
+							missing: diagnosisData?.missing ?? [],
+							excessive: diagnosisData?.excessive ?? [],
 						}
 					: null,
 			};
@@ -495,12 +480,9 @@ export const startNewAttempt = createServerFn()
 		)(raw),
 	)
 	.handler(async ({ data, context }) => {
-		const user = context.user;
-		if (!user) throw new Error("Unauthorized");
-
 		return Effect.gen(function* () {
 			const db = yield* Database;
-			const userId = user.id;
+			const userId = context.user.id;
 
 			// Get existing learner map
 			const existingRows = yield* db
@@ -553,10 +535,7 @@ export const getPeerStats = createServerFn()
 			Schema.Struct({ assignmentId: Schema.NonEmptyString }),
 		)(raw),
 	)
-	.handler(async ({ data, context }) => {
-		const user = context.user;
-		if (!user) throw new Error("Unauthorized");
-
+	.handler(async ({ data }) => {
 		return Effect.gen(function* () {
 			const db = yield* Database;
 

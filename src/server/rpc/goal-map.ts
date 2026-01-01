@@ -2,11 +2,13 @@ import { mutationOptions, queryOptions } from "@tanstack/react-query";
 import { createServerFn } from "@tanstack/react-start";
 import { desc, eq, isNull } from "drizzle-orm";
 import { Effect, Layer, Schema } from "effect";
-import { authMiddleware } from "@/middlewares/auth";
+import { validateNodes } from "@/features/goal-map/lib/validator";
+import { EdgeSchema, NodeSchema } from "@/features/learner-map/lib/comparator";
 import { requireGoalMapOwner } from "@/lib/auth-authorization";
+import { authMiddleware } from "@/middlewares/auth";
+import { safeParseJson } from "@/lib/utils";
 import { goalMaps, kits, texts } from "@/server/db/schema/app-schema";
 import { Database, DatabaseLive } from "../db/client";
-import { validateNodes } from "@/features/goal-map/lib/validator";
 import { LoggerLive } from "../logger";
 import { logRpcError, rpcErrorResponses } from "./handler";
 
@@ -21,16 +23,8 @@ const JsonArraySchema = Schema.transform(
 	{
 		decode: (input) => {
 			if (input === null || input === undefined) return [];
-			if (Array.isArray(input)) return input;
-			if (typeof input === "string") {
-				try {
-					const parsed = JSON.parse(input);
-					return Array.isArray(parsed) ? parsed : [];
-				} catch {
-					return [];
-				}
-			}
-			return [];
+			const parsed = Effect.runSync(safeParseJson(input, []));
+			return Array.isArray(parsed) ? parsed : [];
 		},
 		encode: (input) => input,
 	},
@@ -105,8 +99,8 @@ const SaveGoalMapSchema = Schema.Struct({
 	goalMapId: Schema.NonEmptyString,
 	title: Schema.NonEmptyString,
 	description: Schema.optionalWith(Schema.NonEmptyString, { nullable: true }),
-	nodes: Schema.Array(Schema.Any),
-	edges: Schema.Array(Schema.Any),
+	nodes: Schema.Array(NodeSchema),
+	edges: Schema.Array(EdgeSchema),
 	topicId: Schema.optionalWith(Schema.NonEmptyString, { nullable: true }),
 	materialText: Schema.optionalWith(Schema.String, { nullable: true }),
 	materialImages: Schema.optionalWith(
@@ -137,10 +131,7 @@ export const saveGoalMap = createServerFn()
 			}
 
 			// Validate goal map structure
-			const validationResult = yield* validateNodes(
-				data.nodes as any[],
-				data.edges as any[],
-			);
+			const validationResult = yield* validateNodes(data.nodes, data.edges);
 
 			// If validation fails, return errors
 			if (!validationResult.isValid) {

@@ -140,10 +140,7 @@ export interface ExportResult {
 
 export const getTeacherAssignmentsForAnalytics = createServerFn()
 	.middleware([authMiddleware])
-	.handler(async ({ context }) => {
-		const user = context.user;
-		if (!user) throw new Error("Unauthorized");
-
+	.handler(async () => {
 		return Effect.gen(function* () {
 			const db = yield* Database;
 
@@ -201,14 +198,11 @@ export const getAnalyticsForAssignment = createServerFn()
 		Schema.decodeUnknownSync(GetAnalyticsForAssignmentSchema)(raw),
 	)
 	.handler(async ({ data, context }) => {
-		const user = context.user;
-		if (!user) throw new Error("Unauthorized");
-
 		return Effect.gen(function* () {
 			const db = yield* Database;
 
 			// Verify user is a teacher
-			yield* requireTeacher(user.id);
+			yield* requireTeacher(context.user.id);
 
 			const assignmentRows = yield* db
 				.select({
@@ -390,10 +384,7 @@ export const getLearnerMapForAnalytics = createServerFn()
 	.inputValidator((raw) =>
 		Schema.decodeUnknownSync(GetLearnerMapForAnalyticsSchema)(raw),
 	)
-	.handler(async ({ data, context }) => {
-		const user = context.user;
-		if (!user) throw new Error("Unauthorized");
-
+	.handler(async ({ data }) => {
 		return Effect.gen(function* () {
 			const db = yield* Database;
 
@@ -507,10 +498,7 @@ export const getLearnerMapForAnalytics = createServerFn()
 export const exportAnalyticsData = createServerFn()
 	.middleware([authMiddleware])
 	.inputValidator((raw) => Schema.decodeUnknownSync(ExportAnalyticsSchema)(raw))
-	.handler(async ({ data, context }) => {
-		const user = context.user;
-		if (!user) throw new Error("Unauthorized");
-
+	.handler(async ({ data }) => {
 		const analyticsResult = await getAnalyticsForAssignment({
 			data,
 		});

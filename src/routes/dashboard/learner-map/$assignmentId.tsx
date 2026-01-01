@@ -128,7 +128,7 @@ function LearnerMapEditor() {
 				setNodes(assignmentData.learnerMap.nodes);
 				setEdges(assignmentData.learnerMap.edges);
 				setLearnerMapId(assignmentData.learnerMap.id);
-				setStatus(assignmentData.learnerMap.status as any);
+				setStatus(assignmentData.learnerMap.status);
 				setAttempt(assignmentData.learnerMap.attempt);
 				setLastSavedSnapshot(
 					JSON.stringify({
@@ -491,7 +491,7 @@ function LearnerMapEditor() {
 	const autoLayout = () => {
 		if (status === "submitted") return;
 		const { nodes: layoutedNodes, edges: layoutedEdges } = getLayoutedElements(
-			nodes as any,
+			nodes,
 			edges,
 			"LR",
 		);
@@ -532,7 +532,7 @@ function LearnerMapEditor() {
 			});
 			// Navigate to result page
 			navigate({
-				to: `/dashboard/learner-map/${assignmentId}/result` as any,
+				to: `/dashboard/learner-map/${assignmentId}/result`,
 			});
 		}
 	};
@@ -669,7 +669,7 @@ function LearnerMapEditor() {
 					<Background gap={16} />
 					<SearchNodesPanel
 						open={searchOpen}
-						nodes={nodes as any}
+						nodes={nodes}
 						onClose={() => setSearchOpen(false)}
 						onSelectNode={selectNode}
 					/>

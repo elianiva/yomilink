@@ -61,7 +61,7 @@ function ResultPage() {
 				queryKey: LearnerMapRpc.learnerMaps(),
 			});
 			navigate({
-				to: `/dashboard/learner-map/${assignmentId}` as any,
+				to: `/dashboard/learner-map/${assignmentId}`,
 			});
 		}
 	};

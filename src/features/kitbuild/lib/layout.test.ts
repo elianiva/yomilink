@@ -1,10 +1,10 @@
-import type { AnyNode } from "../types";
 import { describe, expect, it } from "vitest";
+import type { Node } from "@/features/learner-map/lib/comparator";
 import { getLayoutedElements } from "./layout";
 
 describe("getLayoutedElements", () => {
 	it("should layout nodes in left-to-right direction", () => {
-		const nodes: AnyNode[] = [
+		const nodes: Node[] = [
 			{ id: "1", type: "text", position: { x: 0, y: 0 }, data: { label: "A" } },
 			{ id: "2", type: "text", position: { x: 0, y: 0 }, data: { label: "B" } },
 		];
@@ -13,11 +13,12 @@ describe("getLayoutedElements", () => {
 		const result = getLayoutedElements(nodes, edges, "LR");
 
 		expect(result.nodes).toHaveLength(2);
-		expect(result.nodes[0].position.x).toBeLessThan(result.nodes[1].position.x);
+		// biome-ignore lint/style/noNonNullAssertion: false positive
+		expect(result.nodes[0].position!.x).toBeLessThan(result.nodes[1].position!.x);
 	});
 
 	it("should layout nodes in top-to-bottom direction", () => {
-		const nodes: AnyNode[] = [
+		const nodes: Node[] = [
 			{ id: "1", type: "text", position: { x: 0, y: 0 }, data: { label: "A" } },
 			{ id: "2", type: "text", position: { x: 0, y: 0 }, data: { label: "B" } },
 		];
@@ -26,11 +27,12 @@ describe("getLayoutedElements", () => {
 		const result = getLayoutedElements(nodes, edges, "TB");
 
 		expect(result.nodes).toHaveLength(2);
-		expect(result.nodes[0].position.y).toBeLessThan(result.nodes[1].position.y);
+		// biome-ignore lint/style/noNonNullAssertion: false positive
+		expect(result.nodes[0].position!.y).toBeLessThan(result.nodes[1].position!.y);
 	});
 
 	it("should handle multiple connected nodes", () => {
-		const nodes: AnyNode[] = [
+		const nodes: Node[] = [
 			{ id: "1", type: "text", position: { x: 0, y: 0 }, data: { label: "A" } },
 			{ id: "2", type: "text", position: { x: 0, y: 0 }, data: { label: "B" } },
 			{ id: "3", type: "text", position: { x: 0, y: 0 }, data: { label: "C" } },
@@ -47,7 +49,7 @@ describe("getLayoutedElements", () => {
 	});
 
 	it("should preserve node data", () => {
-		const nodes: AnyNode[] = [
+		const nodes: Node[] = [
 			{
 				id: "1",
 				type: "text",
@@ -70,7 +72,7 @@ describe("getLayoutedElements", () => {
 	});
 
 	it("should handle disconnected nodes", () => {
-		const nodes: AnyNode[] = [
+		const nodes: Node[] = [
 			{ id: "1", type: "text", position: { x: 0, y: 0 }, data: { label: "A" } },
 			{ id: "2", type: "text", position: { x: 0, y: 0 }, data: { label: "B" } },
 		];
@@ -83,7 +85,7 @@ describe("getLayoutedElements", () => {
 	});
 
 	it("should use default LR direction when not specified", () => {
-		const nodes: AnyNode[] = [
+		const nodes: Node[] = [
 			{ id: "1", type: "text", position: { x: 0, y: 0 }, data: { label: "A" } },
 			{ id: "2", type: "text", position: { x: 0, y: 0 }, data: { label: "B" } },
 		];
@@ -95,7 +97,7 @@ describe("getLayoutedElements", () => {
 	});
 
 	it("should preserve edges", () => {
-		const nodes: AnyNode[] = [
+		const nodes: Node[] = [
 			{ id: "1", type: "text", position: { x: 0, y: 0 }, data: { label: "A" } },
 			{ id: "2", type: "text", position: { x: 0, y: 0 }, data: { label: "B" } },
 		];

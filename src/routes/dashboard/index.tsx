@@ -37,7 +37,8 @@ import {
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Skeleton } from "@/components/ui/skeleton";
-import { cn } from "@/lib/utils";
+import { type Node, NodeSchema } from "@/features/learner-map/lib/comparator";
+import { cn, safeParseJson } from "@/lib/utils";
 import { GoalMapRpc } from "@/server/rpc/goal-map";
 import { type Topic, TopicRpc } from "@/server/rpc/topic";
 
@@ -77,8 +78,10 @@ function parseGoalMapStats(nodes: unknown, edges: unknown) {
 	let edgeCount = 0;
 
 	try {
-		const parsedNodes = typeof nodes === "string" ? JSON.parse(nodes) : nodes;
-		const parsedEdges = typeof edges === "string" ? JSON.parse(edges) : edges;
+		const parsedNodes =
+			typeof nodes === "string" ? safeParseJson(nodes, []) : nodes;
+		const parsedEdges =
+			typeof edges === "string" ? safeParseJson(edges, []) : edges;
 
 		if (Array.isArray(parsedNodes)) {
 			nodeCount = parsedNodes.length;

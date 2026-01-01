@@ -1,7 +1,7 @@
-import type { Edge, EdgeChange, NodeChange } from "@xyflow/react";
-import type { AnyNode } from "@/features/kitbuild/types";
+import type { EdgeChange, NodeChange } from "@xyflow/react";
 import { useAtom } from "jotai";
 import { useCallback } from "react";
+import type { Edge, Node } from "@/features/learner-map/lib/comparator";
 import { edgesAtom, nodesAtom } from "../lib/atoms";
 
 export function useGraphHandlers() {
@@ -9,7 +9,7 @@ export function useGraphHandlers() {
 	const [edges, setEdges] = useAtom(edgesAtom);
 
 	const onNodesChange = useCallback(
-		(changes: NodeChange<AnyNode>[]) => {
+		(changes: NodeChange<Node>[]) => {
 			setNodes((nds) => {
 				return changes.reduce((acc, change) => {
 					if (change.type === "remove") {

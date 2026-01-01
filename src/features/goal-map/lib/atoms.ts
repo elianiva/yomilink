@@ -1,31 +1,13 @@
-import type { Edge, ReactFlowInstance } from "@xyflow/react";
+import type { ReactFlowInstance } from "@xyflow/react";
 import { atom } from "jotai";
-import type { AnyNode } from "@/features/kitbuild/types";
-import {
-	saveMetaAtom,
-	saveOpenAtom,
-	saveAsOpenAtom,
-	saveErrorAtom,
-	saveWarningsAtom,
-	lastSavedSnapshotAtom,
-} from "../hooks/use-save-dialog";
-
-// Re-export save atoms for components
-export {
-	saveMetaAtom,
-	saveOpenAtom,
-	saveAsOpenAtom,
-	saveErrorAtom,
-	saveWarningsAtom,
-	lastSavedSnapshotAtom,
-};
+import type { Edge, Node } from "@/features/learner-map/lib/comparator";
 
 // Core state atoms
-export const nodesAtom = atom<AnyNode[]>([]);
+export const nodesAtom = atom<Node[]>([]);
 export const edgesAtom = atom<Edge[]>([]);
 
 // ReactFlow instance
-export const rfInstanceAtom = atom<ReactFlowInstance<AnyNode, Edge> | null>(
+export const rfInstanceAtom = atom<ReactFlowInstance<Node, Edge> | null>(
 	null,
 );
 
@@ -56,7 +38,7 @@ export const imagesAtom = atom<
 >([]);
 
 // History state atoms
-export const historyAtom = atom<Array<{ nodes: AnyNode[]; edges: Edge[] }>>([
+export const historyAtom = atom<Array<{ nodes: Node[]; edges: Edge[] }>>([
 	{ nodes: [], edges: [] },
 ]);
 export const historyPointerAtom = atom(0);

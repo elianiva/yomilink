@@ -1,15 +1,14 @@
-import type { Edge } from "@xyflow/react";
 import dagre from "dagre";
-import type { AnyNode } from "../types";
+import type { Edge, Node } from "@/features/learner-map/lib/comparator";
 
 /**
  * Auto-layout nodes using dagre graph layout algorithm
  */
 export function getLayoutedElements(
-	nodes: AnyNode[],
+	nodes: Node[],
 	edges: Edge[],
 	direction = "LR",
-): { nodes: AnyNode[]; edges: Edge[] } {
+): { nodes: Node[]; edges: Edge[] } {
 	const dagreGraph = new dagre.graphlib.Graph();
 	dagreGraph.setDefaultEdgeLabel(() => ({}));
 

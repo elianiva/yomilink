@@ -73,8 +73,8 @@ const composePropositions = Effect.fn(function* (nodes: Node[], edges: Edge[]) {
 });
 
 export const validateNodes = Effect.fn(function* (
-	nodes: Node[],
-	edges: Edge[],
+	nodes: Readonly<Node[]>,
+	edges: Readonly<Edge[]>,
 ) {
 	const errors: string[] = [];
 	const warnings: string[] = [];

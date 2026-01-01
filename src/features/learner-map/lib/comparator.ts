@@ -2,13 +2,11 @@ import { Match, Schema } from "effect";
 
 export const NodeSchema = Schema.Struct({
 	id: Schema.String,
-	data: Schema.optional(Schema.Any),
-	position: Schema.optional(
-		Schema.Struct({
-			x: Schema.Number,
-			y: Schema.Number,
-		}),
-	),
+	data: Schema.Any,
+	position: Schema.Struct({
+		x: Schema.Number,
+		y: Schema.Number,
+	}),
 	type: Schema.optional(Schema.String),
 });
 
