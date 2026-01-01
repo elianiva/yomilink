@@ -1,5 +1,5 @@
-import type { AssignmentAnalytics } from "@/server/rpc/analytics";
-import type { LearnerMapResult } from "@/server/rpc/analytics";
+import type { AssignmentAnalytics } from "@/features/analyzer/lib/analytics-service";
+import type { LearnerMapResult } from "@/features/analyzer/lib/analytics-service";
 import { AnalyticsCanvas } from "./canvas";
 
 export function CanvasContent({

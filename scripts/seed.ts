@@ -1192,3 +1192,278 @@ const program = Effect.gen(function* () {
 );
 
 Effect.runPromise(program);
+
+export const seedDatabase = Effect.fn("seedDatabase")(
+	(databaseLayer: typeof DatabaseLive) =>
+		Effect.gen(function* () {
+			const authService = yield* Auth;
+			const db = yield* databaseLayer;
+
+			yield* Effect.log("Seeding database...");
+
+			// Track user IDs by email for later use
+			const userIdsByEmail: Record<string, string> = {};
+			let teacherId = "";
+
+			// Seed users first
+			yield* Effect.log(`Seeding ${DEFAULT_USERS.length} users...`);
+
+			const userResults = yield* Effect.all(
+				DEFAULT_USERS.map((seedUser) =>
+					Effect.gen(function* () {
+						// Try to find existing user first
+						const existingUser = yield* db
+							.select()
+							.from(user)
+							.where(eq(user.email, seedUser.email))
+							.limit(1);
+
+						let userId = "";
+						if (existingUser[0]) {
+							userId = existingUser[0].id;
+							yield* Effect.log(`User ${seedUser.email} already exists`);
+						} else {
+							// Create new user
+							const result = yield* Effect.tryPromise(() =>
+								authService.api.signUpEmail({
+									body: {
+										email: seedUser.email,
+										password: seedUser.password,
+										name: seedUser.name as string,
+									},
+								}),
+							);
+
+							if (result.user) {
+								userId = result.user.id;
+								yield* Effect.log(`Created user: ${seedUser.email}`);
+							}
+						}
+
+						// Set user's role
+						if (userId && seedUser.roles?.[0]) {
+							yield* db
+								.update(user)
+								.set({ role: seedUser.roles?.[0] })
+								.where(eq(user.id, userId));
+							yield* Effect.log(
+								`Set role '${seedUser.roles?.[0]}' for ${seedUser.email}`,
+							);
+						}
+
+						// Return result for tracking
+						return {
+							email: seedUser.email,
+							userId,
+							roles: seedUser.roles,
+						};
+					}),
+				),
+				{ concurrency: 10 },
+			);
+
+			// Build lookup objects from results
+			for (const result of userResults) {
+				userIdsByEmail[result.email] = result.userId;
+				if (result.roles?.includes("teacher")) {
+					teacherId = result.userId;
+				}
+			}
+
+			// Seed topics and goal maps from materials
+			yield* Effect.log(
+				`Seeding ${TOPICS.length} topics with ${MATERIALS.length} goal maps...`,
+			);
+
+			// Track goal map IDs by title for later use
+			const goalMapIdsByTitle: Record<string, string> = {};
+			const goalMapDataByTitle: Record<
+				string,
+				{ nodes: MaterialData["nodes"]; edges: MaterialData["edges"] }
+			> = {};
+
+			// Create topics in parallel
+			const topicResults = yield* Effect.all(
+				TOPICS.map((topicData) =>
+					Effect.gen(function* () {
+						// Check if topic exists by title
+						const existingTopic = yield* db
+							.select()
+							.from(topics)
+							.where(eq(topics.title, topicData.title))
+							.limit(1);
+
+						let topicId: string;
+						if (existingTopic[0]) {
+							topicId = existingTopic[0].id;
+							yield* db
+								.update(topics)
+								.set({ description: topicData.description })
+								.where(eq(topics.id, topicId));
+							yield* Effect.log(`Updated topic: ${topicData.title}`);
+						} else {
+							topicId = randomString();
+							yield* db.insert(topics).values({
+								id: topicId,
+								title: topicData.title,
+								description: topicData.description,
+							});
+							yield* Effect.log(`Created topic: ${topicData.title}`);
+						}
+
+						// Insert goal maps for this topic from materials (in parallel)
+						const goalMapResults = yield* Effect.all(
+							topicData.goalMapTitles.map((mapTitle) =>
+								Effect.gen(function* () {
+									const material = GOAL_MAP_TO_MATERIAL[mapTitle];
+
+									if (!material) {
+										yield* Effect.log(`No material found for: ${mapTitle}`);
+										return null;
+									}
+
+									// Check if text exists by title
+									const existingText = yield* db
+										.select()
+										.from(texts)
+										.where(eq(texts.title, material.title))
+										.limit(1);
+
+									let textId: string;
+									if (existingText[0]) {
+										textId = existingText[0].id;
+										yield* db
+											.update(texts)
+											.set({ content: material.content })
+											.where(eq(texts.id, textId));
+									} else {
+										textId = randomString();
+										yield* db.insert(texts).values({
+											id: textId,
+											title: material.title,
+											content: material.content,
+										});
+									}
+
+									// Check if goal map exists by title
+									const existingGoalMap = yield* db
+										.select()
+										.from(goalMaps)
+										.where(eq(goalMaps.title, material.title))
+										.limit(1);
+
+									let goalMapId: string;
+									if (existingGoalMap[0]) {
+										goalMapId = existingGoalMap[0].id;
+										yield* db
+											.update(goalMaps)
+											.set({
+												description: material.description,
+												nodes: material.nodes,
+												edges: material.edges,
+											})
+											.where(eq(goalMaps.id, goalMapId));
+										yield* Effect.log(`  Updated goal map: ${material.title}`);
+									} else {
+										goalMapId = randomString();
+										yield* db.insert(goalMaps).values({
+											id: goalMapId,
+											teacherId: teacherId,
+											title: material.title,
+											description: material.description,
+											nodes: material.nodes,
+											edges: material.edges,
+											topicId: topicId,
+											textId: textId,
+										});
+										yield* Effect.log(`  Created goal map: ${material.title}`);
+									}
+
+									// Return tracking data
+									return {
+										title: material.title,
+										goalMapId,
+										material,
+									};
+								}),
+							),
+							{ concurrency: 10 },
+						);
+
+						return {
+							topicId,
+							goalMapResults,
+						};
+					}),
+				),
+				{ concurrency: 10 },
+			);
+
+			// Build lookup objects from results
+			for (const topicResult of topicResults) {
+				for (const result of topicResult.goalMapResults) {
+					if (result) {
+						goalMapIdsByTitle[result.title] = result.goalMapId;
+						goalMapDataByTitle[result.title] = {
+							nodes: result.material.nodes,
+							edges: result.material.edges,
+						};
+					}
+				}
+			}
+
+			// Create minimal seed data for tests
+			yield* Effect.log("Creating minimal test data...");
+
+			// Create one test topic
+			const testTopicId = randomString();
+			yield* db.insert(topics).values({
+				id: testTopicId,
+				title: "Test Topic",
+				description: "Test Description",
+			});
+
+			// Create one test goal map
+			const testGoalMapId = randomString();
+			yield* db.insert(goalMaps).values({
+				id: testGoalMapId,
+				teacherId: teacherId,
+				title: "Test Goal Map",
+				description: "Test Description",
+				nodes: JSON.stringify([]),
+				edges: JSON.stringify([]),
+				topicId: testTopicId,
+				textId: null,
+			});
+
+			// Create one test kit
+			const testKitId = randomString();
+			yield* db.insert(kits).values({
+				id: testKitId,
+				kitId: testKitId,
+				name: "Test Kit",
+				goalMapId: testGoalMapId,
+				teacherId: teacherId,
+				textId: null,
+				nodes: "[]",
+				edges: "[]",
+				layout: "preset",
+				enabled: true,
+			});
+
+			// Create one test assignment
+			const testAssignmentId = randomString();
+			yield* db.insert(assignments).values({
+				id: testAssignmentId,
+				goalMapId: testGoalMapId,
+				kitId: testKitId,
+				title: "Test Assignment",
+				description: "Test Description",
+				startDate: new Date(),
+				dueAt: null,
+				createdBy: teacherId,
+			});
+
+			yield* Effect.log("Database seeding completed");
+		}),
+);

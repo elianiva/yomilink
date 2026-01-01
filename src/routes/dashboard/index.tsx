@@ -37,10 +37,10 @@ import {
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Skeleton } from "@/components/ui/skeleton";
-import { type Node, NodeSchema } from "@/features/learner-map/lib/comparator";
 import { cn, safeParseJson } from "@/lib/utils";
 import { GoalMapRpc } from "@/server/rpc/goal-map";
-import { type Topic, TopicRpc } from "@/server/rpc/topic";
+import type { Topic } from "@/features/analyzer/lib/topic-service";
+import { TopicRpc } from "@/server/rpc/topic";
 
 export const Route = createFileRoute("/dashboard/")({
 	component: DashboardHome,

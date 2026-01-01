@@ -1,5 +1,5 @@
 import { cn } from "@/lib/utils";
-import type { LearnerAnalytics } from "@/server/rpc/analytics";
+import type { LearnerAnalytics } from "@/features/analyzer/lib/analytics-service";
 
 export function LearnerList({
 	learners,

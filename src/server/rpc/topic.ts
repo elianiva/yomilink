@@ -1,36 +1,20 @@
 import { mutationOptions, queryOptions } from "@tanstack/react-query";
 import { createServerFn } from "@tanstack/react-start";
 import { Effect, Layer, Schema } from "effect";
-import { randomString } from "@/lib/utils";
 import { authMiddleware } from "@/middlewares/auth";
-import { Database, DatabaseLive } from "../db/client";
-import { topics } from "../db/schema/app-schema";
+import {
+	listTopics,
+	createTopic,
+	CreateTopicInput,
+} from "@/features/analyzer/lib/topic-service";
+import { DatabaseLive } from "../db/client";
 import { LoggerLive } from "../logger";
 import { logRpcError } from "./handler";
 
-const TopicSchema = Schema.Struct({
-	id: Schema.NonEmptyString,
-	title: Schema.NonEmptyString,
-	description: Schema.optionalWith(Schema.NonEmptyString, { nullable: true }),
-});
-export type Topic = typeof TopicSchema.Type;
-
-export const listTopics = createServerFn()
+export const listTopicsRpc = createServerFn()
 	.middleware([authMiddleware])
 	.handler(() =>
-		Effect.gen(function* () {
-			const db = yield* Database;
-			const rows = yield* db
-				.select({
-					id: topics.id,
-					title: topics.title,
-					description: topics.description,
-				})
-				.from(topics)
-				.orderBy(topics.title);
-
-			return yield* Schema.decodeUnknown(Schema.Array(TopicSchema))(rows);
-		}).pipe(
+		listTopics().pipe(
 			Effect.tapError(logRpcError("listTopics")),
 			Effect.provide(Layer.mergeAll(DatabaseLive, LoggerLive)),
 			Effect.withSpan("listTopics"),
@@ -38,23 +22,11 @@ export const listTopics = createServerFn()
 		),
 	);
 
-const CreateTopicSchema = Schema.Struct({
-	title: Schema.NonEmptyString,
-	description: Schema.optionalWith(Schema.NonEmptyString, { nullable: true }),
-});
-
-export const createTopic = createServerFn()
+export const createTopicRpc = createServerFn()
 	.middleware([authMiddleware])
-	.inputValidator((raw) => Schema.decodeUnknownSync(CreateTopicSchema)(raw))
+	.inputValidator((raw) => Schema.decodeUnknownSync(CreateTopicInput)(raw))
 	.handler(({ data }) =>
-		Effect.gen(function* () {
-			const db = yield* Database;
-			yield* db.insert(topics).values({
-				id: randomString(),
-				title: data.title,
-				description: data.description,
-			});
-		}).pipe(
+		createTopic(data).pipe(
 			Effect.tapError(logRpcError("createTopic")),
 			Effect.provide(Layer.mergeAll(DatabaseLive, LoggerLive)),
 			Effect.withSpan("createTopic"),
@@ -67,12 +39,11 @@ export const TopicRpc = {
 	listTopics: () =>
 		queryOptions({
 			queryKey: [...TopicRpc.topics()],
-			queryFn: () => listTopics(),
+			queryFn: () => listTopicsRpc(),
 		}),
 	createTopic: () =>
 		mutationOptions({
 			mutationKey: [...TopicRpc.topics()],
-			mutationFn: (data: typeof CreateTopicSchema.Type) =>
-				createTopic({ data }),
+			mutationFn: (data: CreateTopicInput) => createTopicRpc({ data }),
 		}),
 };
