@@ -1,6 +1,12 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
-import type { Connection, MarkerType, NodeMouseHandler } from "@xyflow/react";
+import type {
+	Connection,
+	EdgeChange,
+	MarkerType,
+	NodeChange,
+	NodeMouseHandler,
+} from "@xyflow/react";
 import { addEdge, Background, MiniMap, ReactFlow } from "@xyflow/react";
 import "@xyflow/react/dist/style.css";
 import { useAtom, useAtomValue, useSetAtom } from "jotai";
@@ -22,6 +28,10 @@ import { FloatingEdge } from "@/features/kitbuild/components/floating-edge";
 import { SearchNodesPanel } from "@/features/kitbuild/components/search-nodes-panel";
 import { TextNode } from "@/features/kitbuild/components/text-node";
 import { getLayoutedElements } from "@/features/kitbuild/lib/layout";
+import type {
+	Edge as MapEdge,
+	Node as MapNode,
+} from "@/features/learner-map/lib/comparator";
 import { LearnerToolbar } from "@/features/learner-map/components/learner-toolbar";
 import { MaterialDialog } from "@/features/learner-map/components/material-dialog";
 import {
@@ -408,25 +418,25 @@ function LearnerMapEditor() {
 
 	// Node/edge change handlers
 	const onNodesChange = useCallback(
-		(changes: any) => {
+		(changes: NodeChange<MapNode>[]) => {
 			if (status === "submitted") return;
 			setNodes((nds) => {
-				return changes.reduce((acc: any, change: any) => {
+				return changes.reduce((acc, change) => {
 					if (change.type === "position") {
-						return acc.map((n: any) =>
+						return acc.map((n) =>
 							n.id === change.id
 								? { ...n, position: change.position || n.position }
 								: n,
 						);
 					}
 					if (change.type === "select") {
-						return acc.map((n: any) =>
+						return acc.map((n) =>
 							n.id === change.id ? { ...n, selected: change.selected } : n,
 						);
 					}
 					if (change.type === "dimensions") {
-						return acc.map((n: any) =>
-							n.id === change.id
+						return acc.map((n) =>
+							n.id === change.id && change.dimensions
 								? {
 										...n,
 										measured: {
@@ -445,15 +455,15 @@ function LearnerMapEditor() {
 	);
 
 	const onEdgesChange = useCallback(
-		(changes: any) => {
+		(changes: EdgeChange<MapEdge>[]) => {
 			if (status === "submitted") return;
 			setEdges((eds) => {
-				return changes.reduce((acc: any, change: any) => {
+				return changes.reduce((acc, change) => {
 					if (change.type === "remove") {
-						return acc.filter((e: any) => e.id !== change.id);
+						return acc.filter((e) => e.id !== change.id);
 					}
 					if (change.type === "select") {
-						return acc.map((e: any) =>
+						return acc.map((e) =>
 							e.id === change.id ? { ...e, selected: change.selected } : e,
 						);
 					}

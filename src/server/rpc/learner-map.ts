@@ -2,9 +2,28 @@ import { mutationOptions, queryOptions } from "@tanstack/react-query";
 import { createServerFn } from "@tanstack/react-start";
 import { and, desc, eq, inArray, or, sql } from "drizzle-orm";
 import { Effect, Layer, Schema } from "effect";
-import { compareMaps } from "@/features/learner-map/lib/comparator";
+import {
+	compareMaps,
+	type DiagnosisResult,
+} from "@/features/learner-map/lib/comparator";
 import { randomString } from "@/lib/utils";
 import { authMiddleware } from "@/middlewares/auth";
+
+export interface DiagnosisData {
+	learnerMap: {
+		id: string;
+		nodes: unknown[];
+		edges: unknown[];
+		status: string;
+		attempt: number;
+	};
+	goalMap: {
+		nodes: unknown[];
+		edges: unknown[];
+	};
+	diagnosis: DiagnosisResult | null;
+}
+
 import {
 	assignments,
 	assignmentTargets,
@@ -457,9 +476,9 @@ export const getDiagnosis = createServerFn()
 							id: result.diagnosis.id,
 							summary: result.diagnosis.summary,
 							score: result.diagnosis.score,
-							correct: diagnosisData?.correct ?? [],
-							missing: diagnosisData?.missing ?? [],
-							excessive: diagnosisData?.excessive ?? [],
+							correct: (diagnosisData?.correct as unknown[]) ?? [],
+							missing: (diagnosisData?.missing as unknown[]) ?? [],
+							excessive: (diagnosisData?.excessive as unknown[]) ?? [],
 						}
 					: null,
 			};
@@ -535,9 +554,10 @@ export const getPeerStats = createServerFn()
 			Schema.Struct({ assignmentId: Schema.NonEmptyString }),
 		)(raw),
 	)
-	.handler(async ({ data }) => {
+	.handler(async ({ data, context }) => {
 		return Effect.gen(function* () {
 			const db = yield* Database;
+			const userId = context.user.id;
 
 			// Get all submitted learner maps for this assignment
 			const allSubmittedMaps = yield* db
@@ -558,9 +578,9 @@ export const getPeerStats = createServerFn()
 
 			// Separate current user's maps from peers
 			const currentUserMaps = allSubmittedMaps.filter(
-				(m) => m.userId === user.id,
+				(m) => m.userId === userId,
 			);
-			const peerMaps = allSubmittedMaps.filter((m) => m.userId !== user.id);
+			const peerMaps = allSubmittedMaps.filter((m) => m.userId !== userId);
 
 			// Calculate stats from peerMaps
 			const peerScores = peerMaps

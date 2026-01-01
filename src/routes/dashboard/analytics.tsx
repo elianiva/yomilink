@@ -441,7 +441,7 @@ function AnalyticsPage() {
 							selectedAssignmentId={selectedAssignmentId}
 							selectedLearnerMapId={selectedLearnerMapId}
 							analyticsData={analyticsData as AssignmentAnalytics | null}
-							learnerMapDetails={learnerMapDetails}
+							learnerMapDetails={learnerMapDetails ?? null}
 							visibility={{
 								showGoalMap,
 								showLearnerMap,

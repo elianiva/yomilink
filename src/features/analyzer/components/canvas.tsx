@@ -2,18 +2,16 @@ import type { Edge, MarkerType, Node } from "@xyflow/react";
 import { Background, MiniMap, ReactFlow, useReactFlow } from "@xyflow/react";
 import { ZoomIn, ZoomOut } from "lucide-react";
 import { useMemo } from "react";
-import { Effect } from "effect";
 import { ConnectorNode } from "@/features/kitbuild/components/connector-node";
 import { FloatingEdge } from "@/features/kitbuild/components/floating-edge";
 import { TextNode } from "@/features/kitbuild/components/text-node";
-import { safeParseJson } from "@/lib/utils";
 
 interface AnalyticsCanvasProps {
 	goalMap: {
 		id: string;
 		title: string;
-		nodes: string | Node[];
-		edges: Edge[];
+		nodes: ReadonlyArray<Node>;
+		edges: ReadonlyArray<Edge>;
 		direction: "bi" | "uni" | "multi";
 	};
 	learnerMap: {
@@ -23,10 +21,10 @@ interface AnalyticsCanvasProps {
 		status: string;
 		attempt: number;
 		submittedAt: number | null;
-		nodes: string | Node[];
-		edges: Edge[];
+		nodes: ReadonlyArray<Node>;
+		edges: ReadonlyArray<Edge>;
 	};
-	edgeClassifications: Array<{
+	edgeClassifications: ReadonlyArray<{
 		edge: Edge;
 		type: "correct" | "missing" | "excessive" | "neutral";
 	}>;
@@ -86,11 +84,9 @@ export function AnalyticsCanvas({
 	const { zoomIn, zoomOut, fitView } = useReactFlow();
 
 	const goalMapNodes = useMemo(() => {
-		const nodes: Node[] = Effect.runSync(safeParseJson(goalMap.nodes, []));
-
 		if (!visibility.showGoalMap) return [];
 
-		return nodes.map((node) => ({
+		return goalMap.nodes.map((node) => ({
 			...node,
 			style: {
 				...node.style,
@@ -108,9 +104,7 @@ export function AnalyticsCanvas({
 	const learnerMapNodes = useMemo(() => {
 		if (!visibility.showLearnerMap) return [];
 
-		const nodes: Node[] = Effect.runSync(safeParseJson(learnerMap.nodes, []));
-
-		return nodes;
+		return [...learnerMap.nodes];
 	}, [learnerMap.nodes, visibility.showLearnerMap]);
 
 	const combinedNodes = useMemo(() => {
@@ -161,7 +155,7 @@ export function AnalyticsCanvas({
 				};
 			});
 
-		return edges;
+		return [...edges];
 	}, [
 		edgeClassifications,
 		visibility.showCorrectEdges,

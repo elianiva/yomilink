@@ -9,7 +9,9 @@ import {
 	type DiagnosisResult,
 	type EdgeClassification,
 	EdgeSchema,
+	type Edge,
 	NodeSchema,
+	type Node,
 } from "@/features/learner-map/lib/comparator";
 import { requireTeacher } from "@/lib/auth-authorization";
 import { parseJson } from "@/lib/utils";
@@ -94,11 +96,11 @@ export interface AssignmentAnalytics {
 	goalMap: {
 		id: string;
 		title: string;
-		nodes: unknown;
-		edges: unknown;
+		nodes: ReadonlyArray<Node>;
+		edges: ReadonlyArray<Edge>;
 		direction: "bi" | "uni" | "multi";
 	};
-	learners: LearnerAnalytics[];
+	learners: ReadonlyArray<LearnerAnalytics>;
 	summary: {
 		totalLearners: number;
 		submittedCount: number;
@@ -118,19 +120,26 @@ export interface LearnerMapDetails {
 		status: string;
 		attempt: number;
 		submittedAt: number | null;
-		nodes: unknown;
-		edges: unknown;
+		nodes: ReadonlyArray<Node>;
+		edges: ReadonlyArray<Edge>;
 	};
 	goalMap: {
 		id: string;
 		title: string;
-		nodes: unknown;
-		edges: unknown;
+		nodes: ReadonlyArray<Node>;
+		edges: ReadonlyArray<Edge>;
 		direction: "bi" | "uni" | "multi";
 	};
 	diagnosis: DiagnosisResult;
-	edgeClassifications: EdgeClassification[];
+	edgeClassifications: ReadonlyArray<EdgeClassification>;
 }
+
+export interface LearnerMapError {
+	success: false;
+	error: string;
+}
+
+export type LearnerMapResult = LearnerMapDetails | LearnerMapError;
 
 export interface ExportResult {
 	filename: string;
@@ -140,9 +149,12 @@ export interface ExportResult {
 
 export const getTeacherAssignmentsForAnalytics = createServerFn()
 	.middleware([authMiddleware])
-	.handler(async () => {
+	.handler(async ({ context }) => {
 		return Effect.gen(function* () {
 			const db = yield* Database;
+
+			// Verify user is a teacher
+			yield* requireTeacher(context.user.id);
 
 			const assignmentsWithStats = yield* db
 				.select({
@@ -161,7 +173,7 @@ export const getTeacherAssignmentsForAnalytics = createServerFn()
 				.leftJoin(kits, eq(assignments.kitId, kits.id))
 				.leftJoin(learnerMaps, eq(learnerMaps.assignmentId, assignments.id))
 				.leftJoin(diagnoses, eq(diagnoses.goalMapId, assignments.goalMapId))
-				.where(eq(assignments.createdBy, user.id))
+				.where(eq(assignments.createdBy, context.user.id))
 				.groupBy(
 					assignments.id,
 					goalMaps.title,
@@ -217,7 +229,7 @@ export const getAnalyticsForAssignment = createServerFn()
 				.where(
 					and(
 						eq(assignments.id, data.assignmentId),
-						eq(assignments.createdBy, user.id),
+						eq(assignments.createdBy, context.user.id),
 					),
 				)
 				.limit(1);

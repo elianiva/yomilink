@@ -1,4 +1,5 @@
 import type { AssignmentAnalytics } from "@/server/rpc/analytics";
+import type { LearnerMapResult } from "@/server/rpc/analytics";
 import { AnalyticsCanvas } from "./canvas";
 
 export function CanvasContent({
@@ -11,7 +12,7 @@ export function CanvasContent({
 	selectedAssignmentId: string | null;
 	selectedLearnerMapId: string | null;
 	analyticsData: AssignmentAnalytics | null | undefined;
-	learnerMapDetails: any;
+	learnerMapDetails: LearnerMapResult | null;
 	visibility: {
 		showGoalMap: boolean;
 		showLearnerMap: boolean;
