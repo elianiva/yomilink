@@ -5,6 +5,10 @@ export default defineConfig({
 		environment: "jsdom",
 		alias: {
 			"@": new URL("./src/", import.meta.url).pathname,
+			"cloudflare:workers": new URL(
+				"./src/__tests__/mocks/cloudflare-workers.ts",
+				import.meta.url,
+			).pathname,
 		},
 		setupFiles: ["./src/__tests__/setup/index.ts"],
 		globals: true,

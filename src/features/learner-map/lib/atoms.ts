@@ -21,9 +21,9 @@ export const materialTextAtom = atom<string>("");
 export const learnerNodesAtom = atom<Node[]>([]);
 export const learnerEdgesAtom = atom<Edge[]>([]);
 export const learnerMapIdAtom = atom<string | null>(null);
-export const submissionStatusAtom = atom<"draft" | "submitted" | "not_started" | "graded">(
-	"not_started",
-);
+export const submissionStatusAtom = atom<
+	"draft" | "submitted" | "not_started" | "graded"
+>("not_started");
 export const attemptAtom = atom<number>(0);
 
 // UI state

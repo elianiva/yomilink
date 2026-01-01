@@ -1,5 +1,9 @@
 import { Effect } from "effect";
-import type { NotFoundError, UnauthorizedError, ValidationError } from "./errors";
+import type {
+	NotFoundError,
+	UnauthorizedError,
+	ValidationError,
+} from "./errors";
 
 /**
  * Standard error response type for RPC handlers.

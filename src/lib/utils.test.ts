@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { Effect, Schema } from "effect";
+import { Effect, Exit, Schema } from "effect";
 import { cn, parseJson, safeParseJson, randomString } from "./utils";
 
 describe("cn", () => {
@@ -98,7 +98,7 @@ describe("parseJson", () => {
 
 	it("should fail on invalid JSON string", () => {
 		const result = Effect.runSyncExit(parseJson("invalid json"));
-		expect(result._tag).toBe("Failure");
+		expect(Exit.isFailure(result)).toBe(true);
 	});
 
 	it("should parse and validate with schema", () => {
@@ -120,7 +120,7 @@ describe("parseJson", () => {
 		const result = Effect.runSyncExit(
 			parseJson('{"name":"John","age":"thirty"}', schema),
 		);
-		expect(result._tag).toBe("Failure");
+		expect(Exit.isFailure(result)).toBe(true);
 	});
 
 	it("should handle nested objects with schema", () => {

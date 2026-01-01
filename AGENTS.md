@@ -26,7 +26,6 @@
 - Use class-variance-authority for component variants
 - Prefer Radix UI primitives for accessible components
 
-<!-- effect-solutions:start -->
 ## Effect Best Practices
 
 **Before implementing Effect features**, run `effect-solutions list` and read the relevant guide.
@@ -35,4 +34,9 @@ Topics include: services and layers, data modeling, error handling, configuratio
 
 **Effect Source Reference:** `~/.local/share/effect-solutions/effect`
 Search here for real implementations when docs aren't enough.
-<!-- effect-solutions:end -->
+
+## Issue Tracking
+- `bd` to see help commands
+- `bd quickstart` to check for commonly used commands
+- `bd ready` to check for ready tasks
+- `bd graph task-id` to see task dependencies

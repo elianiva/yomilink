@@ -7,9 +7,7 @@ export const nodesAtom = atom<Node[]>([]);
 export const edgesAtom = atom<Edge[]>([]);
 
 // ReactFlow instance
-export const rfInstanceAtom = atom<ReactFlowInstance<Node, Edge> | null>(
-	null,
-);
+export const rfInstanceAtom = atom<ReactFlowInstance<Node, Edge> | null>(null);
 
 // Toolbar state atoms
 export const conceptDialogOpenAtom = atom(false);

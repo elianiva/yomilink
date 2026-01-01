@@ -8,7 +8,7 @@ export const NodeSchema = Schema.Struct({
 		y: Schema.Number,
 	}),
 	type: Schema.optional(Schema.String),
-  selected: Schema.optional(Schema.Boolean),
+	selected: Schema.optional(Schema.Boolean),
 });
 
 export type Node = Schema.Schema.Type<typeof NodeSchema>;
@@ -32,7 +32,7 @@ export const EdgeSchema = Schema.Struct({
 			strokeWidth: Schema.optional(Schema.Number),
 		}),
 	),
-  selected: Schema.optional(Schema.Boolean),
+	selected: Schema.optional(Schema.Boolean),
 });
 
 export type Edge = Schema.Schema.Type<typeof EdgeSchema>;

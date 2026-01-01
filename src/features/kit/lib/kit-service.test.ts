@@ -1,5 +1,5 @@
 import { assert, beforeEach, describe, it } from "@effect/vitest";
-import { Effect } from "effect";
+import { Effect, Either } from "effect";
 import {
 	createTestGoalMap,
 	createTestKit,
@@ -198,7 +198,7 @@ describe("kit-service", () => {
 						}),
 					);
 
-					assert.isTrue(result._tag === "Left");
+					assert.isTrue(Either.isLeft(result));
 				}).pipe(Effect.provide(DatabaseTest)),
 		);
 

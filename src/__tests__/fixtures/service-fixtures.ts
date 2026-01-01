@@ -2,8 +2,10 @@ import { eq } from "drizzle-orm";
 import { Effect } from "effect";
 import {
 	assignments,
+	diagnoses,
 	goalMaps,
 	kits,
+	learnerMaps,
 	topics,
 } from "@/server/db/schema/app-schema";
 import { user } from "@/server/db/schema/auth-schema";
@@ -142,4 +144,69 @@ export const cleanupTestAssignment = (assignmentId: string) =>
 	Effect.gen(function* () {
 		const db = yield* Database;
 		yield* db.delete(assignments).where(eq(assignments.id, assignmentId));
+	});
+
+export const createTestLearnerMap = (
+	userId: string,
+	assignmentId: string,
+	goalMapId: string,
+	kitId: string,
+	overrides = {},
+) =>
+	Effect.gen(function* () {
+		const db = yield* Database;
+		const learnerMapData = {
+			id: crypto.randomUUID(),
+			userId,
+			assignmentId,
+			goalMapId,
+			kitId,
+			nodes: "[]",
+			edges: "[]",
+			status: "draft" as const,
+			attempt: 1,
+			submittedAt: null,
+			...overrides,
+		};
+
+		yield* db
+			.insert(learnerMaps)
+			.values(learnerMapData as typeof learnerMaps.$inferInsert);
+		return learnerMapData as typeof learnerMaps.$inferInsert;
+	});
+
+export const createTestDiagnosis = (
+	goalMapId: string,
+	learnerMapId: string,
+	overrides = {},
+) =>
+	Effect.gen(function* () {
+		const db = yield* Database;
+		const diagnosisData = {
+			id: crypto.randomUUID(),
+			goalMapId,
+			learnerMapId,
+			summary: null,
+			perLink: null,
+			score: null,
+			rubricVersion: null,
+			...overrides,
+		};
+
+		yield* db
+			.insert(diagnoses)
+			.values(diagnosisData as typeof diagnoses.$inferInsert);
+		return diagnosisData as typeof diagnoses.$inferInsert;
+	});
+
+export const cleanupTestLearnerMap = (learnerMapId: string) =>
+	Effect.gen(function* () {
+		const db = yield* Database;
+		yield* db.delete(learnerMaps).where(eq(learnerMaps.id, learnerMapId));
+	});
+
+export const cleanupTestDiagnosis = (diagnosisId: string) =>
+	Effect.gen(function* () {
+		const db = yield* Database;
+		yield* db.delete(diagnoses).where(eq(diagnoses.id, diagnosisId));
 	});

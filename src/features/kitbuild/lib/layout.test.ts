@@ -14,7 +14,9 @@ describe("getLayoutedElements", () => {
 
 		expect(result.nodes).toHaveLength(2);
 		// biome-ignore lint/style/noNonNullAssertion: false positive
-		expect(result.nodes[0].position!.x).toBeLessThan(result.nodes[1].position!.x);
+		expect(result.nodes[0].position!.x).toBeLessThan(
+			result.nodes[1].position!.x,
+		);
 	});
 
 	it("should layout nodes in top-to-bottom direction", () => {
@@ -28,7 +30,9 @@ describe("getLayoutedElements", () => {
 
 		expect(result.nodes).toHaveLength(2);
 		// biome-ignore lint/style/noNonNullAssertion: false positive
-		expect(result.nodes[0].position!.y).toBeLessThan(result.nodes[1].position!.y);
+		expect(result.nodes[0].position!.y).toBeLessThan(
+			result.nodes[1].position!.y,
+		);
 	});
 
 	it("should handle multiple connected nodes", () => {

@@ -243,21 +243,3 @@ export const requireAnyRole =
 
 			return userId;
 		});
-
-/**
- * Create standardized error response
- */
-export const errorResponse = (message: string) =>
-	({
-		success: false,
-		error: message,
-	}) as const;
-
-/**
- * Create standardized success response
- */
-export const successResponse = <T extends Record<string, unknown>>(data: T) =>
-	({
-		success: true,
-		...data,
-	}) as const;

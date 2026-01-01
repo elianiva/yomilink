@@ -6,7 +6,9 @@ import { Database } from "@/server/db/client";
 export const TopicSchema = Schema.Struct({
 	id: Schema.NonEmptyString,
 	title: Schema.NonEmptyString,
-	description: Schema.optionalWith(Schema.NullOr(Schema.NonEmptyString), { exact: true }),
+	description: Schema.optionalWith(Schema.NullOr(Schema.NonEmptyString), {
+		exact: true,
+	}),
 });
 
 export type Topic = typeof TopicSchema.Type;

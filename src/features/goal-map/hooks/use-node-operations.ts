@@ -55,7 +55,7 @@ export function useNodeOperations() {
 					x: centerX + Math.random() * 50,
 					y: centerY + Math.random() * 50,
 				},
-				data: { label: label.trim() }
+				data: { label: label.trim() },
 			},
 		]);
 	};
