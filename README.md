@@ -192,6 +192,10 @@ The application will be available at http://localhost:5173
 | `bun run serve` | Preview production build |
 | `bun run test` | Run all tests |
 | `bun run test <file>` | Run specific test file |
+| `bun run test:watch` | Run tests in watch mode |
+| `bun run test:ui` | Run tests with vitest UI |
+| `bun run coverage` | Run tests and generate coverage report |
+| `bun run coverage:ui` | Run tests and open coverage UI |
 | `bun run lint` | Run Biome linter with auto-fix |
 | `bun run format` | Format code with Biome |
 | `bun run check` | Run all Biome checks (lint + format) |
@@ -249,7 +253,25 @@ Run a specific test file:
 bun run test src/features/analyzer/lib/edge-styles.test.ts
 ```
 
-Tests use Vitest with jsdom environment and Testing Library for component testing.
+Run tests in watch mode:
+
+```bash
+bun run test:watch
+```
+
+Generate coverage report:
+
+```bash
+bun run coverage
+```
+
+Open coverage UI:
+
+```bash
+bun run coverage:ui
+```
+
+Tests use Vitest with jsdom environment and Testing Library for component testing. Coverage is powered by @vitest/coverage-v8.
 
 ## Deployment
 

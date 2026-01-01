@@ -5,6 +5,10 @@
 - `bun run build` - Build for production
 - `bun run test` - Run all tests with vitest
 - `bun run test <filename>` - Run single test file (e.g., `npm run test saveDialog.test.tsx`)
+- `bun run test:watch` - Run tests in watch mode
+- `bun run test:ui` - Run tests with vitest UI
+- `bun run coverage` - Run tests and generate coverage report
+- `bun run coverage:ui` - Run tests and open coverage UI
 - `bun run lint` - Run biome linter with auto-fix
 - `bun run format` - Format code with biome
 - `bun run check` - Run all biome checks (lint + format)
