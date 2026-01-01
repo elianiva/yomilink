@@ -1,12 +1,14 @@
 import { mutationOptions, queryOptions } from "@tanstack/react-query";
 import { createServerFn } from "@tanstack/react-start";
 import { desc, eq, isNull } from "drizzle-orm";
-import { Effect, Schema } from "effect";
+import { Effect, Layer, Schema } from "effect";
 import { authMiddleware } from "@/middlewares/auth";
 import { requireGoalMapOwner } from "@/lib/auth-authorization";
 import { goalMaps, kits, texts } from "@/server/db/schema/app-schema";
 import { Database, DatabaseLive } from "../db/client";
 import { validateNodes } from "@/features/goal-map/lib/validator";
+import { LoggerLive } from "../logger";
+import { logRpcError, rpcErrorResponses } from "./handler";
 
 const GetGoalMapSchema = Schema.Struct({
 	id: Schema.NonEmptyString,
@@ -68,31 +70,32 @@ export const getGoalMap = createServerFn()
 	.handler(({ data }) =>
 		Effect.gen(function* () {
 			const db = yield* Database;
-			const row = yield* Effect.tryPromise(() =>
-				db
-					.select({
-						goalMapId: goalMaps.id,
-						title: goalMaps.title,
-						description: goalMaps.description,
-						nodes: goalMaps.nodes,
-						edges: goalMaps.edges,
-						teacherId: goalMaps.teacherId,
-						topicId: goalMaps.topicId,
-						textId: goalMaps.textId,
-						materialText: texts.content,
-						materialImages: texts.images,
-					})
-					.from(goalMaps)
-					.leftJoin(texts, eq(goalMaps.textId, texts.id))
-					.where(eq(goalMaps.id, data.id))
-					.get(),
-			);
+			const rows = yield* db
+				.select({
+					goalMapId: goalMaps.id,
+					title: goalMaps.title,
+					description: goalMaps.description,
+					nodes: goalMaps.nodes,
+					edges: goalMaps.edges,
+					teacherId: goalMaps.teacherId,
+					topicId: goalMaps.topicId,
+					textId: goalMaps.textId,
+					materialText: texts.content,
+					materialImages: texts.images,
+				})
+				.from(goalMaps)
+				.leftJoin(texts, eq(goalMaps.textId, texts.id))
+				.where(eq(goalMaps.id, data.id))
+				.limit(1);
+
+			const row = rows[0];
 			if (!row) return null;
 
 			const result = yield* Schema.decodeUnknown(GoalMapResultSchema)(row);
 			return result;
 		}).pipe(
-			Effect.provide(DatabaseLive),
+			Effect.tapError(logRpcError("getGoalMap")),
+			Effect.provide(Layer.mergeAll(DatabaseLive, LoggerLive)),
 			Effect.withSpan("getGoalMap"),
 			Effect.runPromise,
 		),
@@ -156,48 +159,39 @@ export const saveGoalMap = createServerFn()
 
 			if (hasMaterial) {
 				// Check if goalmap already has a text linked
-				const existing = yield* Effect.tryPromise(() =>
-					db
-						.select({ textId: goalMaps.textId })
-						.from(goalMaps)
-						.where(eq(goalMaps.id, data.goalMapId))
-						.get(),
-				);
+				const existingRows = yield* db
+					.select({ textId: goalMaps.textId })
+					.from(goalMaps)
+					.where(eq(goalMaps.id, data.goalMapId))
+					.limit(1);
 
+				const existing = existingRows[0];
 				if (existing?.textId) {
 					// Update existing text record
 					textId = existing.textId;
-					yield* Effect.tryPromise(() =>
-						db
-							.update(texts)
-							.set({
-								content: data.materialText || "",
-								images:
-									data.materialImages && data.materialImages.length > 0
-										? JSON.stringify(data.materialImages)
-										: null,
-								updatedAt: new Date(),
-							})
-							.where(eq(texts.id, textId as string))
-							.run(),
-					);
+					yield* db
+						.update(texts)
+						.set({
+							content: data.materialText || "",
+							images:
+								data.materialImages && data.materialImages.length > 0
+									? JSON.stringify(data.materialImages)
+									: null,
+							updatedAt: new Date(),
+						})
+						.where(eq(texts.id, textId as string));
 				} else {
 					// Create new text record
 					textId = crypto.randomUUID();
-					yield* Effect.tryPromise(() =>
-						db
-							.insert(texts)
-							.values({
-								id: textId as string,
-								title: `Material for ${data.title}`,
-								content: data.materialText || "",
-								images:
-									data.materialImages && data.materialImages.length > 0
-										? JSON.stringify(data.materialImages)
-										: null,
-							})
-							.run(),
-					);
+					yield* db.insert(texts).values({
+						id: textId as string,
+						title: `Material for ${data.title}`,
+						content: data.materialText || "",
+						images:
+							data.materialImages && data.materialImages.length > 0
+								? JSON.stringify(data.materialImages)
+								: null,
+					});
 				}
 			}
 
@@ -214,17 +208,14 @@ export const saveGoalMap = createServerFn()
 				textId,
 			};
 
-			yield* Effect.tryPromise(() =>
-				db
-					.insert(goalMaps)
-					.values(payload)
-					.onConflictDoUpdate({
-						where: eq(goalMaps.id, data.goalMapId),
-						target: goalMaps.id,
-						set: payload,
-					})
-					.run(),
-			);
+			yield* db
+				.insert(goalMaps)
+				.values(payload)
+				.onConflictDoUpdate({
+					where: eq(goalMaps.id, data.goalMapId),
+					target: goalMaps.id,
+					set: payload,
+				});
 
 			return {
 				success: true,
@@ -233,8 +224,12 @@ export const saveGoalMap = createServerFn()
 				propositions: validationResult.propositions,
 			} as const;
 		}).pipe(
+			Effect.tapError(logRpcError("saveGoalMap")),
+			Effect.catchTags({
+				ForbiddenError: rpcErrorResponses.ForbiddenError,
+			}),
+			Effect.provide(Layer.mergeAll(DatabaseLive, LoggerLive)),
 			Effect.withSpan("saveGoalMap"),
-			Effect.provide(DatabaseLive),
 			Effect.runPromise,
 		),
 	);
@@ -244,27 +239,26 @@ export const listGoalMaps = createServerFn()
 	.handler(({ context }) =>
 		Effect.gen(function* () {
 			const db = yield* Database;
-			const rows = yield* Effect.tryPromise(() =>
-				db
-					.select({
-						goalMapId: goalMaps.id,
-						title: goalMaps.title,
-						description: goalMaps.description,
-						teacherId: goalMaps.teacherId,
-						topicId: goalMaps.topicId,
-						createdAt: goalMaps.createdAt,
-						updatedAt: goalMaps.updatedAt,
-					})
-					.from(goalMaps)
-					.where(eq(goalMaps.teacherId, context.user.id))
-					.orderBy(desc(goalMaps.updatedAt))
-					.all(),
-			);
+			const rows = yield* db
+				.select({
+					goalMapId: goalMaps.id,
+					title: goalMaps.title,
+					description: goalMaps.description,
+					teacherId: goalMaps.teacherId,
+					topicId: goalMaps.topicId,
+					createdAt: goalMaps.createdAt,
+					updatedAt: goalMaps.updatedAt,
+				})
+				.from(goalMaps)
+				.where(eq(goalMaps.teacherId, context.user.id))
+				.orderBy(desc(goalMaps.updatedAt));
+
 			return yield* Schema.decodeUnknown(Schema.Array(GoalMapResultSchema))(
 				rows,
 			);
 		}).pipe(
-			Effect.provide(DatabaseLive),
+			Effect.tapError(logRpcError("listGoalMaps")),
+			Effect.provide(Layer.mergeAll(DatabaseLive, LoggerLive)),
 			Effect.withSpan("listGoalMaps"),
 			Effect.runPromise,
 		),
@@ -304,14 +298,14 @@ export const listGoalMapsByTopic = createServerFn()
 				query.where(isNull(goalMaps.topicId));
 			}
 
-			const rows = yield* Effect.tryPromise(() =>
-				query.orderBy(desc(goalMaps.updatedAt)).all(),
-			);
+			const rows = yield* query.orderBy(desc(goalMaps.updatedAt));
+
 			return yield* Schema.decodeUnknown(Schema.Array(GoalMapResultSchema))(
 				rows,
 			);
 		}).pipe(
-			Effect.provide(DatabaseLive),
+			Effect.tapError(logRpcError("listGoalMapsByTopic")),
+			Effect.provide(Layer.mergeAll(DatabaseLive, LoggerLive)),
 			Effect.withSpan("listGoalMapsByTopic"),
 			Effect.runPromise,
 		),
@@ -331,12 +325,15 @@ export const deleteGoalMap = createServerFn()
 			// Check ownership
 			yield* requireGoalMapOwner(context.user.id, data.goalMapId);
 
-			yield* Effect.tryPromise(() =>
-				db.delete(goalMaps).where(eq(goalMaps.id, data.goalMapId)).run(),
-			);
+			yield* db.delete(goalMaps).where(eq(goalMaps.id, data.goalMapId));
+
 			return { success: true } as const;
 		}).pipe(
-			Effect.provide(DatabaseLive),
+			Effect.tapError(logRpcError("deleteGoalMap")),
+			Effect.catchTags({
+				ForbiddenError: rpcErrorResponses.ForbiddenError,
+			}),
+			Effect.provide(Layer.mergeAll(DatabaseLive, LoggerLive)),
 			Effect.withSpan("deleteGoalMap"),
 			Effect.runPromise,
 		),

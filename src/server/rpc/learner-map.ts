@@ -1,7 +1,7 @@
 import { mutationOptions, queryOptions } from "@tanstack/react-query";
 import { createServerFn } from "@tanstack/react-start";
 import { and, desc, eq, inArray, or, sql } from "drizzle-orm";
-import { Effect, Schema } from "effect";
+import { Effect, Layer, Schema } from "effect";
 import { compareMaps } from "@/features/learner-map/lib/comparator";
 import { randomString } from "@/lib/utils";
 import { authMiddleware } from "@/middlewares/auth";
@@ -16,6 +16,8 @@ import {
 } from "@/server/db/schema/app-schema";
 import { cohortMembers } from "@/server/db/schema/auth-schema";
 import { Database, DatabaseLive } from "../db/client";
+import { LoggerLive } from "../logger";
+import { logRpcError } from "./handler";
 
 // Types
 export const SaveLearnerMapSchema = Schema.Struct({
@@ -39,55 +41,49 @@ export const listStudentAssignments = createServerFn()
 			const db = yield* Database;
 			const userId = user.id;
 
-			const userCohorts = yield* Effect.tryPromise(() =>
-				db
-					.select({ cohortId: cohortMembers.cohortId })
-					.from(cohortMembers)
-					.where(eq(cohortMembers.userId, userId))
-					.all(),
-			);
+			const userCohorts = yield* db
+				.select({ cohortId: cohortMembers.cohortId })
+				.from(cohortMembers)
+				.where(eq(cohortMembers.userId, userId));
 
 			const cohortIds = userCohorts.map((c) => c.cohortId);
 
-			const assignmentsData = yield* Effect.tryPromise(() =>
-				db
-					.select({
-						id: assignments.id,
-						title: assignments.title,
-						description: assignments.description,
-						goalMapId: assignments.goalMapId,
-						kitId: assignments.kitId,
-						dueAt: assignments.dueAt,
-						createdAt: assignments.createdAt,
-						goalMapTitle: goalMaps.title,
-						learnerMapStatus: learnerMaps.status,
-						learnerMapAttempt: learnerMaps.attempt,
-						learnerMapUpdatedAt: learnerMaps.updatedAt,
-					})
-					.from(assignments)
-					.leftJoin(
-						assignmentTargets,
-						eq(assignmentTargets.assignmentId, assignments.id),
-					)
-					.leftJoin(goalMaps, eq(assignments.goalMapId, goalMaps.id))
-					.leftJoin(
-						learnerMaps,
-						and(
-							eq(learnerMaps.assignmentId, assignments.id),
-							eq(learnerMaps.userId, userId),
-						),
-					)
-					.where(
-						or(
-							eq(assignmentTargets.userId, userId),
-							cohortIds.length > 0
-								? inArray(assignmentTargets.cohortId, cohortIds)
-								: sql`1 = 0`,
-						),
-					)
-					.orderBy(desc(assignments.createdAt))
-					.all(),
-			);
+			const assignmentsData = yield* db
+				.select({
+					id: assignments.id,
+					title: assignments.title,
+					description: assignments.description,
+					goalMapId: assignments.goalMapId,
+					kitId: assignments.kitId,
+					dueAt: assignments.dueAt,
+					createdAt: assignments.createdAt,
+					goalMapTitle: goalMaps.title,
+					learnerMapStatus: learnerMaps.status,
+					learnerMapAttempt: learnerMaps.attempt,
+					learnerMapUpdatedAt: learnerMaps.updatedAt,
+				})
+				.from(assignments)
+				.leftJoin(
+					assignmentTargets,
+					eq(assignmentTargets.assignmentId, assignments.id),
+				)
+				.leftJoin(goalMaps, eq(assignments.goalMapId, goalMaps.id))
+				.leftJoin(
+					learnerMaps,
+					and(
+						eq(learnerMaps.assignmentId, assignments.id),
+						eq(learnerMaps.userId, userId),
+					),
+				)
+				.where(
+					or(
+						eq(assignmentTargets.userId, userId),
+						cohortIds.length > 0
+							? inArray(assignmentTargets.cohortId, cohortIds)
+							: sql`1 = 0`,
+					),
+				)
+				.orderBy(desc(assignments.createdAt));
 
 			const uniqueAssignments = new Map(
 				assignmentsData.map((row) => [
@@ -109,7 +105,8 @@ export const listStudentAssignments = createServerFn()
 
 			return Array.from(uniqueAssignments.values());
 		}).pipe(
-			Effect.provide(DatabaseLive),
+			Effect.tapError(logRpcError("listStudentAssignments")),
+			Effect.provide(Layer.mergeAll(DatabaseLive, LoggerLive)),
 			Effect.withSpan("listStudentAssignments"),
 			Effect.runPromise,
 		);
@@ -131,48 +128,47 @@ export const getAssignmentForStudent = createServerFn()
 			const db = yield* Database;
 			const userId = user.id;
 
-			const result = yield* Effect.tryPromise(() =>
-				db
-					.select({
-						assignment: {
-							id: assignments.id,
-							title: assignments.title,
-							description: assignments.description,
-							readingMaterial: assignments.readingMaterial,
-							timeLimitMinutes: assignments.timeLimitMinutes,
-							goalMapId: assignments.goalMapId,
-							kitId: assignments.kitId,
-							dueAt: assignments.dueAt,
-						},
-						kit: {
-							id: kits.id,
-							nodes: kits.nodes,
-							edges: kits.edges,
-							textId: kits.textId,
-						},
-						materialText: texts.content,
-						learnerMap: {
-							id: learnerMaps.id,
-							nodes: learnerMaps.nodes,
-							edges: learnerMaps.edges,
-							status: learnerMaps.status,
-							attempt: learnerMaps.attempt,
-						},
-					})
-					.from(assignments)
-					.leftJoin(kits, eq(kits.id, assignments.kitId))
-					.leftJoin(texts, eq(texts.id, kits.textId))
-					.leftJoin(
-						learnerMaps,
-						and(
-							eq(learnerMaps.assignmentId, assignments.id),
-							eq(learnerMaps.userId, userId),
-						),
-					)
-					.where(eq(assignments.id, data.assignmentId))
-					.get(),
-			);
+			const results = yield* db
+				.select({
+					assignment: {
+						id: assignments.id,
+						title: assignments.title,
+						description: assignments.description,
+						readingMaterial: assignments.readingMaterial,
+						timeLimitMinutes: assignments.timeLimitMinutes,
+						goalMapId: assignments.goalMapId,
+						kitId: assignments.kitId,
+						dueAt: assignments.dueAt,
+					},
+					kit: {
+						id: kits.id,
+						nodes: kits.nodes,
+						edges: kits.edges,
+						textId: kits.textId,
+					},
+					materialText: texts.content,
+					learnerMap: {
+						id: learnerMaps.id,
+						nodes: learnerMaps.nodes,
+						edges: learnerMaps.edges,
+						status: learnerMaps.status,
+						attempt: learnerMaps.attempt,
+					},
+				})
+				.from(assignments)
+				.leftJoin(kits, eq(kits.id, assignments.kitId))
+				.leftJoin(texts, eq(texts.id, kits.textId))
+				.leftJoin(
+					learnerMaps,
+					and(
+						eq(learnerMaps.assignmentId, assignments.id),
+						eq(learnerMaps.userId, userId),
+					),
+				)
+				.where(eq(assignments.id, data.assignmentId))
+				.limit(1);
 
+			const result = results[0];
 			if (!result || !result.kit) return null;
 
 			const kitNodes = Array.isArray(result.kit.nodes) ? result.kit.nodes : [];
@@ -205,7 +201,8 @@ export const getAssignmentForStudent = createServerFn()
 					: null,
 			};
 		}).pipe(
-			Effect.provide(DatabaseLive),
+			Effect.tapError(logRpcError("getAssignmentForStudent")),
+			Effect.provide(Layer.mergeAll(DatabaseLive, LoggerLive)),
 			Effect.withSpan("getAssignmentForStudent"),
 			Effect.runPromise,
 		);
@@ -224,36 +221,34 @@ export const saveLearnerMap = createServerFn()
 			const userId = user.id;
 
 			// Get assignment details
-			const assignment = yield* Effect.tryPromise(() =>
-				db
-					.select({
-						id: assignments.id,
-						goalMapId: assignments.goalMapId,
-						kitId: assignments.kitId,
-					})
-					.from(assignments)
-					.where(eq(assignments.id, data.assignmentId))
-					.get(),
-			);
+			const assignmentRows = yield* db
+				.select({
+					id: assignments.id,
+					goalMapId: assignments.goalMapId,
+					kitId: assignments.kitId,
+				})
+				.from(assignments)
+				.where(eq(assignments.id, data.assignmentId))
+				.limit(1);
 
+			const assignment = assignmentRows[0];
 			if (!assignment) {
 				return { success: false, error: "Assignment not found" } as const;
 			}
 
 			// Check if learner map exists
-			const existing = yield* Effect.tryPromise(() =>
-				db
-					.select({ id: learnerMaps.id, status: learnerMaps.status })
-					.from(learnerMaps)
-					.where(
-						and(
-							eq(learnerMaps.assignmentId, data.assignmentId),
-							eq(learnerMaps.userId, userId),
-						),
-					)
-					.get(),
-			);
+			const existingRows = yield* db
+				.select({ id: learnerMaps.id, status: learnerMaps.status })
+				.from(learnerMaps)
+				.where(
+					and(
+						eq(learnerMaps.assignmentId, data.assignmentId),
+						eq(learnerMaps.userId, userId),
+					),
+				)
+				.limit(1);
 
+			const existing = existingRows[0];
 			if (existing) {
 				// Don't allow editing submitted maps
 				if (existing.status === "submitted") {
@@ -264,42 +259,35 @@ export const saveLearnerMap = createServerFn()
 				}
 
 				// Update existing
-				yield* Effect.tryPromise(() =>
-					db
-						.update(learnerMaps)
-						.set({
-							nodes: data.nodes,
-							edges: data.edges,
-						})
-						.where(eq(learnerMaps.id, existing.id))
-						.run(),
-				);
+				yield* db
+					.update(learnerMaps)
+					.set({
+						nodes: data.nodes,
+						edges: data.edges,
+					})
+					.where(eq(learnerMaps.id, existing.id));
 
 				return { success: true, learnerMapId: existing.id } as const;
 			}
 
 			// Create new learner map
 			const learnerMapId = randomString();
-			yield* Effect.tryPromise(() =>
-				db
-					.insert(learnerMaps)
-					.values({
-						id: learnerMapId,
-						assignmentId: data.assignmentId,
-						goalMapId: assignment.goalMapId,
-						kitId: assignment.kitId,
-						userId,
-						nodes: data.nodes,
-						edges: data.edges,
-						status: "draft",
-						attempt: 1,
-					})
-					.run(),
-			);
+			yield* db.insert(learnerMaps).values({
+				id: learnerMapId,
+				assignmentId: data.assignmentId,
+				goalMapId: assignment.goalMapId,
+				kitId: assignment.kitId,
+				userId,
+				nodes: data.nodes,
+				edges: data.edges,
+				status: "draft",
+				attempt: 1,
+			});
 
 			return { success: true, learnerMapId } as const;
 		}).pipe(
-			Effect.provide(DatabaseLive),
+			Effect.tapError(logRpcError("saveLearnerMap")),
+			Effect.provide(Layer.mergeAll(DatabaseLive, LoggerLive)),
 			Effect.withSpan("saveLearnerMap"),
 			Effect.runPromise,
 		);
@@ -320,19 +308,18 @@ export const submitLearnerMap = createServerFn()
 			const userId = user.id;
 
 			// Get learner map
-			const learnerMap = yield* Effect.tryPromise(() =>
-				db
-					.select()
-					.from(learnerMaps)
-					.where(
-						and(
-							eq(learnerMaps.assignmentId, data.assignmentId),
-							eq(learnerMaps.userId, userId),
-						),
-					)
-					.get(),
-			);
+			const learnerMapRows = yield* db
+				.select()
+				.from(learnerMaps)
+				.where(
+					and(
+						eq(learnerMaps.assignmentId, data.assignmentId),
+						eq(learnerMaps.userId, userId),
+					),
+				)
+				.limit(1);
 
+			const learnerMap = learnerMapRows[0];
 			if (!learnerMap) {
 				return { success: false, error: "Learner map not found" } as const;
 			}
@@ -342,14 +329,13 @@ export const submitLearnerMap = createServerFn()
 			}
 
 			// Get goal map edges for comparison
-			const goalMap = yield* Effect.tryPromise(() =>
-				db
-					.select({ edges: goalMaps.edges })
-					.from(goalMaps)
-					.where(eq(goalMaps.id, learnerMap.goalMapId))
-					.get(),
-			);
+			const goalMapRows = yield* db
+				.select({ edges: goalMaps.edges })
+				.from(goalMaps)
+				.where(eq(goalMaps.id, learnerMap.goalMapId))
+				.limit(1);
 
+			const goalMap = goalMapRows[0];
 			if (!goalMap) {
 				return { success: false, error: "Goal map not found" } as const;
 			}
@@ -363,33 +349,25 @@ export const submitLearnerMap = createServerFn()
 			const diagnosis = compareMaps(goalMapEdges, learnerEdges);
 
 			// Update learner map status
-			yield* Effect.tryPromise(() =>
-				db
-					.update(learnerMaps)
-					.set({
-						status: "submitted",
-						submittedAt: new Date(),
-					})
-					.where(eq(learnerMaps.id, learnerMap.id))
-					.run(),
-			);
+			yield* db
+				.update(learnerMaps)
+				.set({
+					status: "submitted",
+					submittedAt: new Date(),
+				})
+				.where(eq(learnerMaps.id, learnerMap.id));
 
 			// Create diagnosis record
 			const diagnosisId = randomString();
-			yield* Effect.tryPromise(() =>
-				db
-					.insert(diagnoses)
-					.values({
-						id: diagnosisId,
-						goalMapId: learnerMap.goalMapId,
-						learnerMapId: learnerMap.id,
-						summary: `Correct: ${diagnosis.correct.length}, Missing: ${diagnosis.missing.length}, Excessive: ${diagnosis.excessive.length}`,
-						perLink: JSON.stringify(diagnosis),
-						score: diagnosis.score,
-						rubricVersion: "1.0",
-					})
-					.run(),
-			);
+			yield* db.insert(diagnoses).values({
+				id: diagnosisId,
+				goalMapId: learnerMap.goalMapId,
+				learnerMapId: learnerMap.id,
+				summary: `Correct: ${diagnosis.correct.length}, Missing: ${diagnosis.missing.length}, Excessive: ${diagnosis.excessive.length}`,
+				perLink: JSON.stringify(diagnosis),
+				score: diagnosis.score,
+				rubricVersion: "1.0",
+			});
 
 			return {
 				success: true,
@@ -397,7 +375,8 @@ export const submitLearnerMap = createServerFn()
 				diagnosis,
 			} as const;
 		}).pipe(
-			Effect.provide(DatabaseLive),
+			Effect.tapError(logRpcError("submitLearnerMap")),
+			Effect.provide(Layer.mergeAll(DatabaseLive, LoggerLive)),
 			Effect.withSpan("submitLearnerMap"),
 			Effect.runPromise,
 		);
@@ -419,43 +398,41 @@ export const getDiagnosis = createServerFn()
 			const db = yield* Database;
 			const userId = user.id;
 
-			const result = yield* Effect.tryPromise(() =>
-				db
-					.select({
-						learnerMap: {
-							id: learnerMaps.id,
-							nodes: learnerMaps.nodes,
-							edges: learnerMaps.edges,
-							status: learnerMaps.status,
-							attempt: learnerMaps.attempt,
-							goalMapId: learnerMaps.goalMapId,
-						},
-						goalMap: {
-							nodes: goalMaps.nodes,
-							edges: goalMaps.edges,
-						},
-						diagnosis: {
-							id: diagnoses.id,
-							summary: diagnoses.summary,
-							score: diagnoses.score,
-							perLink: diagnoses.perLink,
-							createdAt: diagnoses.createdAt,
-						},
-					})
-					.from(learnerMaps)
-					.innerJoin(goalMaps, eq(goalMaps.id, learnerMaps.goalMapId))
-					.leftJoin(diagnoses, eq(diagnoses.learnerMapId, learnerMaps.id))
-					.where(
-						and(
-							eq(learnerMaps.assignmentId, data.assignmentId),
-							eq(learnerMaps.userId, userId),
-						),
-					)
-					.orderBy(desc(diagnoses.createdAt))
-					.limit(1)
-					.get(),
-			);
+			const results = yield* db
+				.select({
+					learnerMap: {
+						id: learnerMaps.id,
+						nodes: learnerMaps.nodes,
+						edges: learnerMaps.edges,
+						status: learnerMaps.status,
+						attempt: learnerMaps.attempt,
+						goalMapId: learnerMaps.goalMapId,
+					},
+					goalMap: {
+						nodes: goalMaps.nodes,
+						edges: goalMaps.edges,
+					},
+					diagnosis: {
+						id: diagnoses.id,
+						summary: diagnoses.summary,
+						score: diagnoses.score,
+						perLink: diagnoses.perLink,
+						createdAt: diagnoses.createdAt,
+					},
+				})
+				.from(learnerMaps)
+				.innerJoin(goalMaps, eq(goalMaps.id, learnerMaps.goalMapId))
+				.leftJoin(diagnoses, eq(diagnoses.learnerMapId, learnerMaps.id))
+				.where(
+					and(
+						eq(learnerMaps.assignmentId, data.assignmentId),
+						eq(learnerMaps.userId, userId),
+					),
+				)
+				.orderBy(desc(diagnoses.createdAt))
+				.limit(1);
 
+			const result = results[0];
 			if (!result) {
 				return null;
 			}
@@ -502,7 +479,8 @@ export const getDiagnosis = createServerFn()
 					: null,
 			};
 		}).pipe(
-			Effect.provide(DatabaseLive),
+			Effect.tapError(logRpcError("getDiagnosis")),
+			Effect.provide(Layer.mergeAll(DatabaseLive, LoggerLive)),
 			Effect.withSpan("getDiagnosis"),
 			Effect.runPromise,
 		);
@@ -525,19 +503,18 @@ export const startNewAttempt = createServerFn()
 			const userId = user.id;
 
 			// Get existing learner map
-			const existing = yield* Effect.tryPromise(() =>
-				db
-					.select()
-					.from(learnerMaps)
-					.where(
-						and(
-							eq(learnerMaps.assignmentId, data.assignmentId),
-							eq(learnerMaps.userId, userId),
-						),
-					)
-					.get(),
-			);
+			const existingRows = yield* db
+				.select()
+				.from(learnerMaps)
+				.where(
+					and(
+						eq(learnerMaps.assignmentId, data.assignmentId),
+						eq(learnerMaps.userId, userId),
+					),
+				)
+				.limit(1);
 
+			const existing = existingRows[0];
 			if (!existing) {
 				return { success: false, error: "No previous attempt found" } as const;
 			}
@@ -550,21 +527,19 @@ export const startNewAttempt = createServerFn()
 			}
 
 			// Reset to draft and increment attempt
-			yield* Effect.tryPromise(() =>
-				db
-					.update(learnerMaps)
-					.set({
-						status: "draft",
-						attempt: existing.attempt + 1,
-						submittedAt: null,
-					})
-					.where(eq(learnerMaps.id, existing.id))
-					.run(),
-			);
+			yield* db
+				.update(learnerMaps)
+				.set({
+					status: "draft",
+					attempt: existing.attempt + 1,
+					submittedAt: null,
+				})
+				.where(eq(learnerMaps.id, existing.id));
 
 			return { success: true, attempt: existing.attempt + 1 } as const;
 		}).pipe(
-			Effect.provide(DatabaseLive),
+			Effect.tapError(logRpcError("startNewAttempt")),
+			Effect.provide(Layer.mergeAll(DatabaseLive, LoggerLive)),
 			Effect.withSpan("startNewAttempt"),
 			Effect.runPromise,
 		);
@@ -586,24 +561,21 @@ export const getPeerStats = createServerFn()
 			const db = yield* Database;
 
 			// Get all submitted learner maps for this assignment
-			const allSubmittedMaps = yield* Effect.tryPromise(() =>
-				db
-					.select({
-						id: learnerMaps.id,
-						userId: learnerMaps.userId,
-						score: diagnoses.score,
-						attempt: learnerMaps.attempt,
-					})
-					.from(learnerMaps)
-					.leftJoin(diagnoses, eq(diagnoses.learnerMapId, learnerMaps.id))
-					.where(
-						and(
-							eq(learnerMaps.assignmentId, data.assignmentId),
-							eq(learnerMaps.status, "submitted"),
-						),
-					)
-					.all(),
-			);
+			const allSubmittedMaps = yield* db
+				.select({
+					id: learnerMaps.id,
+					userId: learnerMaps.userId,
+					score: diagnoses.score,
+					attempt: learnerMaps.attempt,
+				})
+				.from(learnerMaps)
+				.leftJoin(diagnoses, eq(diagnoses.learnerMapId, learnerMaps.id))
+				.where(
+					and(
+						eq(learnerMaps.assignmentId, data.assignmentId),
+						eq(learnerMaps.status, "submitted"),
+					),
+				);
 
 			// Separate current user's maps from peers
 			const currentUserMaps = allSubmittedMaps.filter(
@@ -653,7 +625,8 @@ export const getPeerStats = createServerFn()
 				userPercentile: Math.round(userPercentile * 10) / 10,
 			};
 		}).pipe(
-			Effect.provide(DatabaseLive),
+			Effect.tapError(logRpcError("getPeerStats")),
+			Effect.provide(Layer.mergeAll(DatabaseLive, LoggerLive)),
 			Effect.withSpan("getPeerStats"),
 			Effect.runPromise,
 		);

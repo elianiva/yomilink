@@ -1,7 +1,7 @@
 import { queryOptions } from "@tanstack/react-query";
 import { createServerFn } from "@tanstack/react-start";
 import { and, desc, eq, sql } from "drizzle-orm";
-import { Data, Effect, Schema } from "effect";
+import { Data, Effect, Layer, Schema } from "effect";
 import Papa from "papaparse";
 import {
 	classifyEdges,
@@ -23,6 +23,8 @@ import {
 } from "@/server/db/schema/app-schema";
 import { user as usersTable } from "@/server/db/schema/auth-schema";
 import { Database, DatabaseLive } from "../db/client";
+import { LoggerLive } from "../logger";
+import { logRpcError, rpcErrorResponses } from "./handler";
 
 class AssignmentNotFoundError extends Data.TaggedError(
 	"AssignmentNotFoundError",
@@ -145,43 +147,32 @@ export const getTeacherAssignmentsForAnalytics = createServerFn()
 		return Effect.gen(function* () {
 			const db = yield* Database;
 
-			const assignmentsWithStats = yield* Effect.tryPromise({
-				try: () =>
-					db
-						.select({
-							id: assignments.id,
-							title: assignments.title,
-							goalMapId: assignments.goalMapId,
-							goalMapTitle: goalMaps.title,
-							kitId: kits.id,
-							createdAt: assignments.createdAt,
-							dueAt: assignments.dueAt,
-							submissionCount: db.$count(learnerMaps.id),
-							avgScore: sql<number>`AVG(${diagnoses.score})`,
-						})
-						.from(assignments)
-						.leftJoin(goalMaps, eq(assignments.goalMapId, goalMaps.id))
-						.leftJoin(kits, eq(assignments.kitId, kits.id))
-						.leftJoin(learnerMaps, eq(learnerMaps.assignmentId, assignments.id))
-						.leftJoin(diagnoses, eq(diagnoses.goalMapId, assignments.goalMapId))
-						.where(eq(assignments.createdBy, user.id))
-						.groupBy(
-							assignments.id,
-							goalMaps.title,
-							kits.id,
-							assignments.createdAt,
-							assignments.dueAt,
-						)
-						.orderBy(desc(assignments.createdAt))
-						.all(),
-				catch: (error) => {
-					console.error(
-						"[getTeacherAssignmentsForAnalytics] Database query failed:",
-						error,
-					);
-					return error;
-				},
-			});
+			const assignmentsWithStats = yield* db
+				.select({
+					id: assignments.id,
+					title: assignments.title,
+					goalMapId: assignments.goalMapId,
+					goalMapTitle: goalMaps.title,
+					kitId: kits.id,
+					createdAt: assignments.createdAt,
+					dueAt: assignments.dueAt,
+					submissionCount: db.$count(learnerMaps.id),
+					avgScore: sql<number>`AVG(${diagnoses.score})`,
+				})
+				.from(assignments)
+				.leftJoin(goalMaps, eq(assignments.goalMapId, goalMaps.id))
+				.leftJoin(kits, eq(assignments.kitId, kits.id))
+				.leftJoin(learnerMaps, eq(learnerMaps.assignmentId, assignments.id))
+				.leftJoin(diagnoses, eq(diagnoses.goalMapId, assignments.goalMapId))
+				.where(eq(assignments.createdBy, user.id))
+				.groupBy(
+					assignments.id,
+					goalMaps.title,
+					kits.id,
+					assignments.createdAt,
+					assignments.dueAt,
+				)
+				.orderBy(desc(assignments.createdAt));
 
 			const result = assignmentsWithStats.map((row) => ({
 				id: row.id,
@@ -197,16 +188,9 @@ export const getTeacherAssignmentsForAnalytics = createServerFn()
 
 			return result as TeacherAssignment[];
 		}).pipe(
-			Effect.provide(DatabaseLive),
+			Effect.tapError(logRpcError("getTeacherAssignmentsForAnalytics")),
+			Effect.provide(Layer.mergeAll(DatabaseLive, LoggerLive)),
 			Effect.withSpan("getTeacherAssignmentsForAnalytics"),
-			Effect.tapError((error) =>
-				Effect.sync(() =>
-					console.error(
-						"[getTeacherAssignmentsForAnalytics] Effect error:",
-						error,
-					),
-				),
-			),
 			Effect.runPromise,
 		);
 	});
@@ -226,46 +210,44 @@ export const getAnalyticsForAssignment = createServerFn()
 			// Verify user is a teacher
 			yield* requireTeacher(user.id);
 
-			const assignment = yield* Effect.tryPromise(() =>
-				db
-					.select({
-						id: assignments.id,
-						title: assignments.title,
-						goalMapId: assignments.goalMapId,
-						kitId: assignments.kitId,
-						createdAt: assignments.createdAt,
-						dueAt: assignments.dueAt,
-					})
-					.from(assignments)
-					.where(
-						and(
-							eq(assignments.id, data.assignmentId),
-							eq(assignments.createdBy, user.id),
-						),
-					)
-					.get(),
-			);
+			const assignmentRows = yield* db
+				.select({
+					id: assignments.id,
+					title: assignments.title,
+					goalMapId: assignments.goalMapId,
+					kitId: assignments.kitId,
+					createdAt: assignments.createdAt,
+					dueAt: assignments.dueAt,
+				})
+				.from(assignments)
+				.where(
+					and(
+						eq(assignments.id, data.assignmentId),
+						eq(assignments.createdBy, user.id),
+					),
+				)
+				.limit(1);
 
+			const assignment = assignmentRows[0];
 			if (!assignment) {
 				return yield* Effect.fail(
 					new AssignmentNotFoundError({ assignmentId: data.assignmentId }),
 				);
 			}
 
-			const goalMap = yield* Effect.tryPromise(() =>
-				db
-					.select({
-						id: goalMaps.id,
-						title: goalMaps.title,
-						nodes: goalMaps.nodes,
-						edges: goalMaps.edges,
-						direction: goalMaps.direction,
-					})
-					.from(goalMaps)
-					.where(eq(goalMaps.id, assignment.goalMapId))
-					.get(),
-			);
+			const goalMapRows = yield* db
+				.select({
+					id: goalMaps.id,
+					title: goalMaps.title,
+					nodes: goalMaps.nodes,
+					edges: goalMaps.edges,
+					direction: goalMaps.direction,
+				})
+				.from(goalMaps)
+				.where(eq(goalMaps.id, assignment.goalMapId))
+				.limit(1);
 
+			const goalMap = goalMapRows[0];
 			if (!goalMap) {
 				return yield* Effect.fail(
 					new GoalMapNotFoundError({ goalMapId: assignment.goalMapId }),
@@ -281,25 +263,22 @@ export const getAnalyticsForAssignment = createServerFn()
 				Schema.Array(EdgeSchema),
 			);
 
-			const learnerMapsData = yield* Effect.tryPromise(() =>
-				db
-					.select({
-						id: learnerMaps.id,
-						userId: learnerMaps.userId,
-						status: learnerMaps.status,
-						attempt: learnerMaps.attempt,
-						submittedAt: learnerMaps.submittedAt,
-						score: diagnoses.score,
-						perLink: diagnoses.perLink,
-						userName: usersTable.name,
-					})
-					.from(learnerMaps)
-					.innerJoin(usersTable, eq(learnerMaps.userId, usersTable.id))
-					.leftJoin(diagnoses, eq(diagnoses.learnerMapId, learnerMaps.id))
-					.where(eq(learnerMaps.assignmentId, data.assignmentId))
-					.orderBy(desc(learnerMaps.attempt), desc(learnerMaps.updatedAt))
-					.all(),
-			);
+			const learnerMapsData = yield* db
+				.select({
+					id: learnerMaps.id,
+					userId: learnerMaps.userId,
+					status: learnerMaps.status,
+					attempt: learnerMaps.attempt,
+					submittedAt: learnerMaps.submittedAt,
+					score: diagnoses.score,
+					perLink: diagnoses.perLink,
+					userName: usersTable.name,
+				})
+				.from(learnerMaps)
+				.innerJoin(usersTable, eq(learnerMaps.userId, usersTable.id))
+				.leftJoin(diagnoses, eq(diagnoses.learnerMapId, learnerMaps.id))
+				.where(eq(learnerMaps.assignmentId, data.assignmentId))
+				.orderBy(desc(learnerMaps.attempt), desc(learnerMaps.updatedAt));
 
 			const finalLearners = yield* Effect.all(
 				learnerMapsData.map((lm) =>
@@ -385,25 +364,23 @@ export const getAnalyticsForAssignment = createServerFn()
 				summary,
 			};
 		}).pipe(
-			Effect.provide(DatabaseLive),
-			Effect.withSpan("getAnalyticsForAssignment"),
+			Effect.tapError(logRpcError("getAnalyticsForAssignment")),
 			Effect.catchTags({
-				AssignmentNotFoundError: () =>
+				ForbiddenError: rpcErrorResponses.ForbiddenError,
+				AssignmentNotFoundError: (e) =>
 					Effect.succeed({
 						success: false,
-						error: "Assignment not found",
+						error: `Assignment not found: ${e.assignmentId}`,
 					} as const),
-				GoalMapNotFoundError: () =>
+				GoalMapNotFoundError: (e) =>
 					Effect.succeed({
 						success: false,
-						error: "Goal map not found",
+						error: `Goal map not found: ${e.goalMapId}`,
 					} as const),
-				UnknownException: () =>
-					Effect.succeed({
-						success: false,
-						error: "Unknown error",
-					} as const),
+				ParseJsonError: rpcErrorResponses.ParseError,
 			}),
+			Effect.provide(Layer.mergeAll(DatabaseLive, LoggerLive)),
+			Effect.withSpan("getAnalyticsForAssignment"),
 			Effect.runPromise,
 		);
 	});
@@ -420,45 +397,43 @@ export const getLearnerMapForAnalytics = createServerFn()
 		return Effect.gen(function* () {
 			const db = yield* Database;
 
-			const learnerMap = yield* Effect.tryPromise(() =>
-				db
-					.select({
-						id: learnerMaps.id,
-						userId: learnerMaps.userId,
-						goalMapId: learnerMaps.goalMapId,
-						status: learnerMaps.status,
-						attempt: learnerMaps.attempt,
-						submittedAt: learnerMaps.submittedAt,
-						nodes: learnerMaps.nodes,
-						edges: learnerMaps.edges,
-						userName: usersTable.name,
-					})
-					.from(learnerMaps)
-					.innerJoin(usersTable, eq(learnerMaps.userId, usersTable.id))
-					.where(eq(learnerMaps.id, data.learnerMapId))
-					.get(),
-			);
+			const learnerMapRows = yield* db
+				.select({
+					id: learnerMaps.id,
+					userId: learnerMaps.userId,
+					goalMapId: learnerMaps.goalMapId,
+					status: learnerMaps.status,
+					attempt: learnerMaps.attempt,
+					submittedAt: learnerMaps.submittedAt,
+					nodes: learnerMaps.nodes,
+					edges: learnerMaps.edges,
+					userName: usersTable.name,
+				})
+				.from(learnerMaps)
+				.innerJoin(usersTable, eq(learnerMaps.userId, usersTable.id))
+				.where(eq(learnerMaps.id, data.learnerMapId))
+				.limit(1);
 
+			const learnerMap = learnerMapRows[0];
 			if (!learnerMap) {
 				return yield* Effect.fail(
 					new LearnerMapNotFoundError({ learnerMapId: data.learnerMapId }),
 				);
 			}
 
-			const goalMap = yield* Effect.tryPromise(() =>
-				db
-					.select({
-						id: goalMaps.id,
-						title: goalMaps.title,
-						nodes: goalMaps.nodes,
-						edges: goalMaps.edges,
-						direction: goalMaps.direction,
-					})
-					.from(goalMaps)
-					.where(eq(goalMaps.id, learnerMap.goalMapId))
-					.get(),
-			);
+			const goalMapRows = yield* db
+				.select({
+					id: goalMaps.id,
+					title: goalMaps.title,
+					nodes: goalMaps.nodes,
+					edges: goalMaps.edges,
+					direction: goalMaps.direction,
+				})
+				.from(goalMaps)
+				.where(eq(goalMaps.id, learnerMap.goalMapId))
+				.limit(1);
 
+			const goalMap = goalMapRows[0];
 			if (!goalMap) {
 				return yield* Effect.fail(
 					new GoalMapNotFoundError({ goalMapId: learnerMap.goalMapId }),
@@ -509,7 +484,21 @@ export const getLearnerMapForAnalytics = createServerFn()
 				edgeClassifications,
 			};
 		}).pipe(
-			Effect.provide(DatabaseLive),
+			Effect.tapError(logRpcError("getLearnerMapForAnalytics")),
+			Effect.catchTags({
+				LearnerMapNotFoundError: (e) =>
+					Effect.succeed({
+						success: false,
+						error: `Learner map not found: ${e.learnerMapId}`,
+					} as const),
+				GoalMapNotFoundError: (e) =>
+					Effect.succeed({
+						success: false,
+						error: `Goal map not found: ${e.goalMapId}`,
+					} as const),
+				ParseJsonError: rpcErrorResponses.ParseError,
+			}),
+			Effect.provide(Layer.mergeAll(DatabaseLive, LoggerLive)),
 			Effect.withSpan("getLearnerMapForAnalytics"),
 			Effect.runPromise,
 		);
@@ -528,7 +517,7 @@ export const exportAnalyticsData = createServerFn()
 
 		if (!analyticsResult || !("learners" in analyticsResult)) {
 			return {
-				filename: `KB-Analytics.csv`,
+				filename: "KB-Analytics.csv",
 				data: "",
 				contentType: "text/csv" as const,
 			};
@@ -557,7 +546,14 @@ export const exportAnalyticsData = createServerFn()
 				],
 			];
 
-			for (const learner of analyticsResult.learners) {
+			const learners = analyticsResult.learners as LearnerAnalytics[];
+			const assignment = (
+				analyticsResult as unknown as {
+					assignment: { title: string };
+				}
+			).assignment;
+
+			for (const learner of learners) {
 				csvData.push([
 					learner.userId,
 					learner.userName,
@@ -572,7 +568,7 @@ export const exportAnalyticsData = createServerFn()
 					learner.submittedAt
 						? new Date(learner.submittedAt).toISOString()
 						: "",
-					analyticsResult.assignment.title,
+					assignment.title,
 				]);
 			}
 
@@ -586,10 +582,11 @@ export const exportAnalyticsData = createServerFn()
 		}
 
 		const jsonData = {
-			assignment: analyticsResult.assignment,
-			goalMap: analyticsResult.goalMap,
+			assignment: (analyticsResult as unknown as AssignmentAnalytics)
+				.assignment,
+			goalMap: (analyticsResult as unknown as AssignmentAnalytics).goalMap,
 			learners: analyticsResult.learners,
-			summary: analyticsResult.summary,
+			summary: (analyticsResult as unknown as AssignmentAnalytics).summary,
 			exportedAt: new Date().toISOString(),
 		};
 

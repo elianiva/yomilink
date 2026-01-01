@@ -21,7 +21,9 @@ import {
 	TooltipContent,
 	TooltipProvider,
 } from "@/components/ui/tooltip";
-import { cn } from "@/lib/utils";
+import { AssignmentSelectContent } from "@/features/analyzer/components/assignment-select-content";
+import { CanvasContent } from "@/features/analyzer/components/canvas-content";
+import { LearnerList } from "@/features/analyzer/components/learner-list";
 import type { ExportResult } from "@/server/rpc/analytics";
 import {
 	AnalyticsRpc,
@@ -29,7 +31,6 @@ import {
 	exportAnalyticsData as exportAnalyticsDataFn,
 	type LearnerAnalytics,
 } from "@/server/rpc/analytics";
-import { AnalyticsCanvas } from "@/features/analyzer/components/canvas";
 
 export const Route = createFileRoute("/dashboard/analytics")({
 	component: () => (
@@ -195,22 +196,10 @@ function AnalyticsPage() {
 									<SelectValue placeholder="Select assignment" />
 								</SelectTrigger>
 								<SelectContent>
-									{assignmentsLoading ? (
-										<div className="px-2 py-2 text-xs text-muted-foreground">
-											Loading...
-										</div>
-									) : assignments && assignments.length > 0 ? (
-										assignments.map((assignment) => (
-											<SelectItem key={assignment.id} value={assignment.id}>
-												{assignment.title} ({assignment.totalSubmissions}{" "}
-												submissions)
-											</SelectItem>
-										))
-									) : (
-										<div className="px-2 py-2 text-xs text-muted-foreground">
-											No assignments
-										</div>
-									)}
+									<AssignmentSelectContent
+										assignments={assignments}
+										isLoading={assignmentsLoading}
+									/>
 								</SelectContent>
 							</Select>
 						</div>
@@ -287,35 +276,12 @@ function AnalyticsPage() {
 									<div>Name</div>
 									<div>Score</div>
 								</div>
-								{analyticsLoading ? (
-									<div className="px-3 py-6 text-center text-xs text-muted-foreground">
-										Loading...
-									</div>
-								) : filteredLearners.length === 0 ? (
-									<div className="px-3 py-6 text-center text-xs text-muted-foreground">
-										No learners found
-									</div>
-								) : (
-									filteredLearners.map((learner: LearnerAnalytics) => (
-										<button
-											type="button"
-											key={learner.learnerMapId}
-											className={cn(
-												"flex w-full items-center justify-between px-3 py-2 border-b last:border-b-0 text-left hover:bg-muted/50",
-												selectedLearnerMapId === learner.learnerMapId &&
-													"bg-muted",
-											)}
-											onClick={() =>
-												setSelectedLearnerMapId(learner.learnerMapId)
-											}
-										>
-											<span className="text-sm">{learner.userName}</span>
-											<span className="text-xs font-semibold tabular-nums">
-												{learner.score !== null ? `${learner.score}%` : "-"}
-											</span>
-										</button>
-									))
-								)}
+								<LearnerList
+									learners={filteredLearners}
+									isLoading={analyticsLoading}
+									selectedLearnerMapId={selectedLearnerMapId}
+									onSelectLearner={setSelectedLearnerMapId}
+								/>
 							</div>
 						</div>
 					</div>
@@ -471,41 +437,20 @@ function AnalyticsPage() {
 
 					{/* Canvas */}
 					<div className="flex-1 m-3 rounded-md border">
-						{!selectedAssignmentId ? (
-							<div className="w-full h-full flex items-center justify-center">
-								<div className="text-sm text-muted-foreground px-4 text-center">
-									Select an assignment to view analytics
-								</div>
-							</div>
-						) : !selectedLearnerMapId ||
-							!analyticsData ||
-							!("goalMap" in analyticsData) ? (
-							<div className="w-full h-full flex items-center justify-center">
-								<div className="text-sm text-muted-foreground px-4 text-center">
-									Select a learner to view their map
-								</div>
-							</div>
-						) : !learnerMapDetails ? (
-							<div className="w-full h-full flex items-center justify-center">
-								<div className="text-sm text-muted-foreground px-4 text-center">
-									Loading learner map details...
-								</div>
-							</div>
-						) : (
-							<AnalyticsCanvas
-								goalMap={analyticsData.goalMap}
-								learnerMap={learnerMapDetails.learnerMap}
-								edgeClassifications={learnerMapDetails.edgeClassifications}
-								visibility={{
-									showGoalMap,
-									showLearnerMap,
-									showCorrectEdges,
-									showMissingEdges,
-									showExcessiveEdges,
-									showNeutralEdges,
-								}}
-							/>
-						)}
+						<CanvasContent
+							selectedAssignmentId={selectedAssignmentId}
+							selectedLearnerMapId={selectedLearnerMapId}
+							analyticsData={analyticsData as AssignmentAnalytics | null}
+							learnerMapDetails={learnerMapDetails}
+							visibility={{
+								showGoalMap,
+								showLearnerMap,
+								showCorrectEdges,
+								showMissingEdges,
+								showExcessiveEdges,
+								showNeutralEdges,
+							}}
+						/>
 					</div>
 				</section>
 			</div>

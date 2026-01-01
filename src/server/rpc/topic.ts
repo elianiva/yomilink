@@ -1,10 +1,12 @@
 import { mutationOptions, queryOptions } from "@tanstack/react-query";
 import { createServerFn } from "@tanstack/react-start";
-import { Effect, Schema } from "effect";
+import { Effect, Layer, Schema } from "effect";
 import { randomString } from "@/lib/utils";
 import { authMiddleware } from "@/middlewares/auth";
 import { Database, DatabaseLive } from "../db/client";
 import { topics } from "../db/schema/app-schema";
+import { LoggerLive } from "../logger";
+import { logRpcError } from "./handler";
 
 const TopicSchema = Schema.Struct({
 	id: Schema.NonEmptyString,
@@ -18,20 +20,19 @@ export const listTopics = createServerFn()
 	.handler(() =>
 		Effect.gen(function* () {
 			const db = yield* Database;
-			const rows = yield* Effect.tryPromise(() =>
-				db
-					.select({
-						id: topics.id,
-						title: topics.title,
-						description: topics.description,
-					})
-					.from(topics)
-					.orderBy(topics.title)
-					.all(),
-			);
+			const rows = yield* db
+				.select({
+					id: topics.id,
+					title: topics.title,
+					description: topics.description,
+				})
+				.from(topics)
+				.orderBy(topics.title);
+
 			return yield* Schema.decodeUnknown(Schema.Array(TopicSchema))(rows);
 		}).pipe(
-			Effect.provide(DatabaseLive),
+			Effect.tapError(logRpcError("listTopics")),
+			Effect.provide(Layer.mergeAll(DatabaseLive, LoggerLive)),
 			Effect.withSpan("listTopics"),
 			Effect.runPromise,
 		),
@@ -48,18 +49,14 @@ export const createTopic = createServerFn()
 	.handler(({ data }) =>
 		Effect.gen(function* () {
 			const db = yield* Database;
-			yield* Effect.tryPromise(() =>
-				db
-					.insert(topics)
-					.values({
-						id: randomString(),
-						title: data.title,
-						description: data.description,
-					})
-					.run(),
-			);
+			yield* db.insert(topics).values({
+				id: randomString(),
+				title: data.title,
+				description: data.description,
+			});
 		}).pipe(
-			Effect.provide(DatabaseLive),
+			Effect.tapError(logRpcError("createTopic")),
+			Effect.provide(Layer.mergeAll(DatabaseLive, LoggerLive)),
 			Effect.withSpan("createTopic"),
 			Effect.runPromise,
 		),

@@ -3,6 +3,8 @@ import { createServerFn } from "@tanstack/react-start";
 import { Effect, Schema } from "effect";
 import { env } from "cloudflare:workers";
 import { authMiddleware } from "@/middlewares/auth";
+import { LoggerLive } from "../logger";
+import { logRpcError } from "./handler";
 
 class InvalidFileTypeError extends Schema.TaggedError<InvalidFileTypeError>()(
 	"InvalidFileTypeError",
@@ -92,6 +94,7 @@ export const uploadMaterialImage = createServerFn()
 				image: imageMetadata,
 			} as const;
 		}).pipe(
+			Effect.tapError(logRpcError("uploadMaterialImage")),
 			Effect.catchTags({
 				InvalidFileTypeError: () =>
 					Effect.succeed({
@@ -104,6 +107,7 @@ export const uploadMaterialImage = createServerFn()
 						error: "File too large. Maximum size is 5MB",
 					} as const),
 			}),
+			Effect.provide(LoggerLive),
 			Effect.runPromise,
 		),
 	);

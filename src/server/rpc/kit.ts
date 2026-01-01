@@ -1,11 +1,17 @@
 import { mutationOptions, queryOptions } from "@tanstack/react-query";
 import { createServerFn } from "@tanstack/react-start";
 import { desc, eq } from "drizzle-orm";
-import { Effect, Schema } from "effect";
+import { Data, Effect, Layer, Schema } from "effect";
 import { authMiddleware } from "@/middlewares/auth";
 import { requireTeacher } from "@/lib/auth-authorization";
 import { goalMaps, kits } from "@/server/db/schema/app-schema";
 import { Database, DatabaseLive } from "../db/client";
+import { LoggerLive } from "../logger";
+import { logRpcError } from "./handler";
+
+class GoalMapNotFoundError extends Data.TaggedError("GoalMapNotFoundError")<{
+	readonly goalMapId: string;
+}> {}
 
 export const StudentKitSchema = Schema.Struct({
 	goalMapId: Schema.NonEmptyString,
@@ -20,23 +26,22 @@ export const listStudentKits = createServerFn()
 	.handler(() =>
 		Effect.gen(function* () {
 			const db = yield* Database;
-			const rows = yield* Effect.tryPromise(() =>
-				db
-					.select({
-						goalMapId: goalMaps.id,
-						title: goalMaps.title,
-						description: goalMaps.description,
-						updatedAt: goalMaps.updatedAt,
-						teacherId: goalMaps.teacherId,
-					})
-					.from(goalMaps)
-					.leftJoin(kits, eq(kits.goalMapId, goalMaps.id))
-					.orderBy(desc(goalMaps.updatedAt))
-					.all(),
-			);
+			const rows = yield* db
+				.select({
+					goalMapId: goalMaps.id,
+					title: goalMaps.title,
+					description: goalMaps.description,
+					updatedAt: goalMaps.updatedAt,
+					teacherId: goalMaps.teacherId,
+				})
+				.from(goalMaps)
+				.leftJoin(kits, eq(kits.goalMapId, goalMaps.id))
+				.orderBy(desc(goalMaps.updatedAt));
+
 			return yield* Schema.decodeUnknown(Schema.Array(StudentKitSchema))(rows);
 		}).pipe(
-			Effect.provide(DatabaseLive),
+			Effect.tapError(logRpcError("listStudentKits")),
+			Effect.provide(Layer.mergeAll(DatabaseLive, LoggerLive)),
 			Effect.withSpan("listStudentKits"),
 			Effect.runPromise,
 		),
@@ -58,18 +63,18 @@ export const getKit = createServerFn()
 	.handler(({ data }) =>
 		Effect.gen(function* () {
 			const db = yield* Database;
-			const row = yield* Effect.tryPromise(() =>
-				db
-					.select({
-						goalMapId: goalMaps.id,
-						nodes: kits.nodes,
-						edges: kits.edges,
-					})
-					.from(kits)
-					.leftJoin(goalMaps, eq(kits.goalMapId, goalMaps.id))
-					.where(eq(kits.goalMapId, data.kitId))
-					.get(),
-			);
+			const rows = yield* db
+				.select({
+					goalMapId: goalMaps.id,
+					nodes: kits.nodes,
+					edges: kits.edges,
+				})
+				.from(kits)
+				.leftJoin(goalMaps, eq(kits.goalMapId, goalMaps.id))
+				.where(eq(kits.goalMapId, data.kitId))
+				.limit(1);
+
+			const row = rows[0];
 			if (!row) return null;
 
 			const nodes = Array.isArray(row.nodes) ? row.nodes : [];
@@ -82,7 +87,8 @@ export const getKit = createServerFn()
 			});
 			return result;
 		}).pipe(
-			Effect.provide(DatabaseLive),
+			Effect.tapError(logRpcError("getKit")),
+			Effect.provide(Layer.mergeAll(DatabaseLive, LoggerLive)),
 			Effect.withSpan("getKit"),
 			Effect.runPromise,
 		),
@@ -107,27 +113,26 @@ export const getKitStatus = createServerFn()
 		Effect.gen(function* () {
 			const db = yield* Database;
 
-			const [kit, goalMap] = yield* Effect.all([
-				Effect.tryPromise(() =>
-					db
-						.select({
-							id: kits.id,
-							layout: kits.layout,
-							nodes: kits.nodes,
-							updatedAt: kits.updatedAt,
-						})
-						.from(kits)
-						.where(eq(kits.goalMapId, data.goalMapId))
-						.get(),
-				),
-				Effect.tryPromise(() =>
-					db
-						.select({ updatedAt: goalMaps.updatedAt })
-						.from(goalMaps)
-						.where(eq(goalMaps.id, data.goalMapId))
-						.get(),
-				),
+			const [kitRows, goalMapRows] = yield* Effect.all([
+				db
+					.select({
+						id: kits.id,
+						layout: kits.layout,
+						nodes: kits.nodes,
+						updatedAt: kits.updatedAt,
+					})
+					.from(kits)
+					.where(eq(kits.goalMapId, data.goalMapId))
+					.limit(1),
+				db
+					.select({ updatedAt: goalMaps.updatedAt })
+					.from(goalMaps)
+					.where(eq(goalMaps.id, data.goalMapId))
+					.limit(1),
 			]);
+
+			const kit = kitRows[0];
+			const goalMap = goalMapRows[0];
 
 			const kitNodes = kit && Array.isArray(kit.nodes) ? kit.nodes : [];
 			const nodeCount = kitNodes.length;
@@ -145,7 +150,8 @@ export const getKitStatus = createServerFn()
 						: true,
 			};
 		}).pipe(
-			Effect.provide(DatabaseLive),
+			Effect.tapError(logRpcError("getKitStatus")),
+			Effect.provide(Layer.mergeAll(DatabaseLive, LoggerLive)),
 			Effect.withSpan("getKitStatus"),
 			Effect.runPromise,
 		),
@@ -161,10 +167,18 @@ export const generateKit = createServerFn()
 			// Verify user is a teacher
 			yield* requireTeacher(context.user.id);
 
-			const gm = yield* Effect.tryPromise(() =>
-				db.select().from(goalMaps).where(eq(goalMaps.id, data.goalMapId)).get(),
-			);
-			if (!gm) return { ok: false } as const;
+			const gmRows = yield* db
+				.select()
+				.from(goalMaps)
+				.where(eq(goalMaps.id, data.goalMapId))
+				.limit(1);
+
+			const gm = gmRows[0];
+			if (!gm) {
+				return yield* Effect.fail(
+					new GoalMapNotFoundError({ goalMapId: data.goalMapId }),
+				);
+			}
 
 			const nodes = Array.isArray(gm.nodes) ? gm.nodes : [];
 
@@ -189,35 +203,38 @@ export const generateKit = createServerFn()
 				textId: gm.textId,
 			};
 
-			const existing = yield* Effect.tryPromise(() =>
-				db
-					.select({ id: kits.id })
-					.from(kits)
-					.where(eq(kits.goalMapId, data.goalMapId))
-					.get(),
-			);
+			const existingRows = yield* db
+				.select({ id: kits.id })
+				.from(kits)
+				.where(eq(kits.goalMapId, data.goalMapId))
+				.limit(1);
 
+			const existing = existingRows[0];
 			if (existing) {
-				yield* Effect.tryPromise(() =>
-					db
-						.update(kits)
-						.set({
-							name: payload.name,
-							teacherId: payload.teacherId,
-							layout: payload.layout,
-							nodes: payload.nodes,
-							edges: payload.edges,
-							textId: payload.textId,
-						})
-						.where(eq(kits.goalMapId, data.goalMapId))
-						.run(),
-				);
+				yield* db
+					.update(kits)
+					.set({
+						name: payload.name,
+						teacherId: payload.teacherId,
+						layout: payload.layout,
+						nodes: payload.nodes,
+						edges: payload.edges,
+						textId: payload.textId,
+					})
+					.where(eq(kits.goalMapId, data.goalMapId));
 			} else {
-				yield* Effect.tryPromise(() => db.insert(kits).values(payload).run());
+				yield* db.insert(kits).values(payload);
 			}
 			return { ok: true, kitId: data.goalMapId } as const;
 		}).pipe(
-			Effect.provide(DatabaseLive),
+			Effect.tapError(logRpcError("generateKit")),
+			Effect.catchTags({
+				GoalMapNotFoundError: () =>
+					Effect.succeed({ ok: false, error: "Goal map not found" } as const),
+				ForbiddenError: (e) =>
+					Effect.succeed({ ok: false, error: e.message } as const),
+			}),
+			Effect.provide(Layer.mergeAll(DatabaseLive, LoggerLive)),
 			Effect.withSpan("generateKit"),
 			Effect.runPromise,
 		),

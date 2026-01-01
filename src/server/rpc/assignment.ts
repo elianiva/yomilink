@@ -1,7 +1,7 @@
 import { mutationOptions, queryOptions } from "@tanstack/react-query";
 import { createServerFn } from "@tanstack/react-start";
 import { desc, eq } from "drizzle-orm";
-import { Effect, Schema } from "effect";
+import { Data, Effect, Layer, Schema } from "effect";
 import { requireTeacher } from "@/lib/auth-authorization";
 import { randomString } from "@/lib/utils";
 import { authMiddleware } from "@/middlewares/auth";
@@ -13,6 +13,18 @@ import {
 } from "@/server/db/schema/app-schema";
 import { cohortMembers, cohorts, user } from "@/server/db/schema/auth-schema";
 import { Database, DatabaseLive } from "../db/client";
+import { LoggerLive } from "../logger";
+import { logRpcError, rpcErrorResponses } from "./handler";
+
+class KitNotFoundError extends Data.TaggedError("KitNotFoundError")<{
+	readonly goalMapId: string;
+}> {}
+
+class AssignmentNotFoundError extends Data.TaggedError(
+	"AssignmentNotFoundError",
+)<{
+	readonly assignmentId: string;
+}> {}
 
 // Types
 export const CreateAssignmentSchema = Schema.Struct({
@@ -39,37 +51,34 @@ export const createAssignment = createServerFn()
 			yield* requireTeacher(context.user.id);
 
 			// Check if kit exists for goal map
-			const kit = yield* Effect.tryPromise(() =>
-				db.select().from(kits).where(eq(kits.goalMapId, data.goalMapId)).get(),
-			);
+			const kitRows = yield* db
+				.select()
+				.from(kits)
+				.where(eq(kits.goalMapId, data.goalMapId))
+				.limit(1);
 
+			const kit = kitRows[0];
 			if (!kit) {
-				return {
-					success: false,
-					error: "No kit found for this goal map",
-				} as const;
+				return yield* Effect.fail(
+					new KitNotFoundError({ goalMapId: data.goalMapId }),
+				);
 			}
 
 			const assignmentId = randomString();
 
 			// Create assignment
-			yield* Effect.tryPromise(() =>
-				db
-					.insert(assignments)
-					.values({
-						id: assignmentId,
-						goalMapId: data.goalMapId,
-						kitId: kit.id,
-						title: data.title,
-						description: data.description,
-						readingMaterial: null,
-						timeLimitMinutes: null,
-						startDate: data.startDate ? new Date(data.startDate) : new Date(),
-						dueAt: data.endDate ? new Date(data.endDate) : null,
-						createdBy: kit.teacherId,
-					})
-					.run(),
-			);
+			yield* db.insert(assignments).values({
+				id: assignmentId,
+				goalMapId: data.goalMapId,
+				kitId: kit.id,
+				title: data.title,
+				description: data.description,
+				readingMaterial: null,
+				timeLimitMinutes: null,
+				startDate: data.startDate ? new Date(data.startDate) : new Date(),
+				dueAt: data.endDate ? new Date(data.endDate) : null,
+				createdBy: kit.teacherId,
+			});
 
 			// Create targets
 			const targets: Array<{
@@ -98,14 +107,22 @@ export const createAssignment = createServerFn()
 			}
 
 			if (targets.length > 0) {
-				yield* Effect.tryPromise(() =>
-					db.insert(assignmentTargets).values(targets).run(),
-				);
+				yield* db.insert(assignmentTargets).values(targets);
 			}
 
 			return { success: true, assignmentId } as const;
 		}).pipe(
-			Effect.provide(DatabaseLive),
+			Effect.tapError(logRpcError("createAssignment")),
+			Effect.catchTags({
+				KitNotFoundError: () =>
+					Effect.succeed({
+						success: false,
+						error: "No kit found for this goal map",
+					} as const),
+				ForbiddenError: rpcErrorResponses.ForbiddenError,
+				SqlError: rpcErrorResponses.SqlError,
+			}),
+			Effect.provide(Layer.mergeAll(DatabaseLive, LoggerLive)),
 			Effect.withSpan("createAssignment"),
 			Effect.runPromise,
 		),
@@ -116,27 +133,24 @@ export const listTeacherAssignments = createServerFn()
 	.handler(({ context }) =>
 		Effect.gen(function* () {
 			const db = yield* Database;
-			const rows = yield* Effect.tryPromise(() =>
-				db
-					.select({
-						id: assignments.id,
-						title: assignments.title,
-						description: assignments.description,
-						goalMapId: assignments.goalMapId,
-						kitId: assignments.kitId,
-						startDate: assignments.startDate,
-						dueAt: assignments.dueAt,
-						createdAt: assignments.createdAt,
-						updatedAt: assignments.updatedAt,
-						goalMapTitle: goalMaps.title,
-						goalMapDescription: goalMaps.description,
-					})
-					.from(assignments)
-					.leftJoin(goalMaps, eq(assignments.goalMapId, goalMaps.id))
-					.where(eq(assignments.createdBy, context.user.id))
-					.orderBy(desc(assignments.createdAt))
-					.all(),
-			);
+			const rows = yield* db
+				.select({
+					id: assignments.id,
+					title: assignments.title,
+					description: assignments.description,
+					goalMapId: assignments.goalMapId,
+					kitId: assignments.kitId,
+					startDate: assignments.startDate,
+					dueAt: assignments.dueAt,
+					createdAt: assignments.createdAt,
+					updatedAt: assignments.updatedAt,
+					goalMapTitle: goalMaps.title,
+					goalMapDescription: goalMaps.description,
+				})
+				.from(assignments)
+				.leftJoin(goalMaps, eq(assignments.goalMapId, goalMaps.id))
+				.where(eq(assignments.createdBy, context.user.id))
+				.orderBy(desc(assignments.createdAt));
 
 			return rows.map((row) => ({
 				...row,
@@ -146,7 +160,8 @@ export const listTeacherAssignments = createServerFn()
 				updatedAt: row.updatedAt?.getTime(),
 			}));
 		}).pipe(
-			Effect.provide(DatabaseLive),
+			Effect.tapError(logRpcError("listTeacherAssignments")),
+			Effect.provide(Layer.mergeAll(DatabaseLive, LoggerLive)),
 			Effect.withSpan("listTeacherAssignments"),
 			Effect.runPromise,
 		),
@@ -165,29 +180,35 @@ export const deleteAssignment = createServerFn()
 			yield* requireTeacher(context.user.id);
 
 			// Check ownership
-			const assignment = yield* Effect.tryPromise(() =>
-				db
-					.select({ createdBy: assignments.createdBy })
-					.from(assignments)
-					.where(eq(assignments.id, data.id))
-					.get(),
-			);
+			const assignmentRows = yield* db
+				.select({ createdBy: assignments.createdBy })
+				.from(assignments)
+				.where(eq(assignments.id, data.id))
+				.limit(1);
 
+			const assignment = assignmentRows[0];
 			if (!assignment || assignment.createdBy !== context.user.id) {
-				return {
-					success: false,
-					error: "Assignment not found or access denied",
-				} as const;
+				return yield* Effect.fail(
+					new AssignmentNotFoundError({ assignmentId: data.id }),
+				);
 			}
 
 			// Delete assignment (cascade will delete targets)
-			yield* Effect.tryPromise(() =>
-				db.delete(assignments).where(eq(assignments.id, data.id)).run(),
-			);
+			yield* db.delete(assignments).where(eq(assignments.id, data.id));
 
 			return { success: true } as const;
 		}).pipe(
-			Effect.provide(DatabaseLive),
+			Effect.tapError(logRpcError("deleteAssignment")),
+			Effect.catchTags({
+				AssignmentNotFoundError: () =>
+					Effect.succeed({
+						success: false,
+						error: "Assignment not found or access denied",
+					} as const),
+				ForbiddenError: rpcErrorResponses.ForbiddenError,
+				SqlError: rpcErrorResponses.SqlError,
+			}),
+			Effect.provide(Layer.mergeAll(DatabaseLive, LoggerLive)),
 			Effect.withSpan("deleteAssignment"),
 			Effect.runPromise,
 		),
@@ -200,27 +221,25 @@ export const getAvailableCohorts = createServerFn()
 		Effect.gen(function* () {
 			const db = yield* Database;
 
-			const cohortRows = yield* Effect.tryPromise(() =>
-				db
-					.select({
-						id: cohorts.id,
-						name: cohorts.name,
-						description: cohorts.description,
-						memberCount: db.$count(cohortMembers.id),
-					})
-					.from(cohorts)
-					.leftJoin(cohortMembers, eq(cohortMembers.cohortId, cohorts.id))
-					.groupBy(cohorts.id, cohorts.name, cohorts.description)
-					.orderBy(cohorts.name)
-					.all(),
-			);
+			const cohortRows = yield* db
+				.select({
+					id: cohorts.id,
+					name: cohorts.name,
+					description: cohorts.description,
+					memberCount: db.$count(cohortMembers.id),
+				})
+				.from(cohorts)
+				.leftJoin(cohortMembers, eq(cohortMembers.cohortId, cohorts.id))
+				.groupBy(cohorts.id, cohorts.name, cohorts.description)
+				.orderBy(cohorts.name);
 
 			return cohortRows.map((row) => ({
 				...row,
 				memberCount: Number(row.memberCount ?? 0),
 			}));
 		}).pipe(
-			Effect.provide(DatabaseLive),
+			Effect.tapError(logRpcError("getAvailableCohorts")),
+			Effect.provide(Layer.mergeAll(DatabaseLive, LoggerLive)),
 			Effect.withSpan("getAvailableCohorts"),
 			Effect.runPromise,
 		),
@@ -231,22 +250,20 @@ export const getAvailableUsers = createServerFn()
 	.handler(() =>
 		Effect.gen(function* () {
 			const db = yield* Database;
-			const rows = yield* Effect.tryPromise(() =>
-				db
-					.select({
-						id: user.id,
-						name: user.name,
-						email: user.email,
-						role: user.role,
-					})
-					.from(user)
-					.orderBy(user.name)
-					.all(),
-			);
+			const rows = yield* db
+				.select({
+					id: user.id,
+					name: user.name,
+					email: user.email,
+					role: user.role,
+				})
+				.from(user)
+				.orderBy(user.name);
 
 			return rows;
 		}).pipe(
-			Effect.provide(DatabaseLive),
+			Effect.tapError(logRpcError("getAvailableUsers")),
+			Effect.provide(Layer.mergeAll(DatabaseLive, LoggerLive)),
 			Effect.withSpan("getAvailableUsers"),
 			Effect.runPromise,
 		),
@@ -257,19 +274,16 @@ export const getTeacherGoalMaps = createServerFn()
 	.handler(() =>
 		Effect.gen(function* () {
 			const db = yield* Database;
-			const rows = yield* Effect.tryPromise(() =>
-				db
-					.select({
-						id: goalMaps.id,
-						title: goalMaps.title,
-						description: goalMaps.description,
-						createdAt: goalMaps.createdAt,
-						updatedAt: goalMaps.updatedAt,
-					})
-					.from(goalMaps)
-					.orderBy(desc(goalMaps.updatedAt))
-					.all(),
-			);
+			const rows = yield* db
+				.select({
+					id: goalMaps.id,
+					title: goalMaps.title,
+					description: goalMaps.description,
+					createdAt: goalMaps.createdAt,
+					updatedAt: goalMaps.updatedAt,
+				})
+				.from(goalMaps)
+				.orderBy(desc(goalMaps.updatedAt));
 
 			return rows.map((row) => ({
 				...row,
@@ -277,7 +291,8 @@ export const getTeacherGoalMaps = createServerFn()
 				updatedAt: row.updatedAt?.getTime(),
 			}));
 		}).pipe(
-			Effect.provide(DatabaseLive),
+			Effect.tapError(logRpcError("getTeacherGoalMaps")),
+			Effect.provide(Layer.mergeAll(DatabaseLive, LoggerLive)),
 			Effect.withSpan("getTeacherGoalMaps"),
 			Effect.runPromise,
 		),
