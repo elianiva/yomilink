@@ -204,10 +204,9 @@ const TOPICS = [
 		goalMapTitles: ["Basic Greetings", "Self Introduction"],
 	},
 	{
-		title: "Hiragana & Katakana",
-		description:
-			"Master the Japanese phonetic alphabets - hiragana and katakana",
-		goalMapTitles: ["Hiragana Vowels", "Hiragana Basic Syllables"],
+		title: "Daily Life & Culture",
+		description: "Learn about daily routines and seasonal traditions in Japan",
+		goalMapTitles: ["Japanese Daily Life", "Japanese Seasons"],
 	},
 	{
 		title: "Basic Grammar Patterns",
@@ -222,26 +221,23 @@ for (const material of MATERIALS) {
 	GOAL_MAP_TO_MATERIAL[material.title] = material;
 }
 
-// Hiragana Vowels goal map has 18 edges (e1-e18)
+// Japanese Daily Life goal map has 15 edges (e1-e15)
 // Full edges list for reference:
-// e1: vowels -> a
-// e2: vowels -> i
-// e3: vowels -> u
-// e4: vowels -> e
-// e5: vowels -> o
-// e6: a -> pronunciation
-// e7: i -> pronunciation
-// e8: u -> pronunciation
-// e9: e -> pronunciation
-// e10: o -> pronunciation
-// e11: a -> writing
-// e12: i -> writing
-// e13: u -> writing
-// e14: e -> writing
-// e15: o -> writing
-// e16: pronunciation -> practice
-// e17: writing -> practice
-// e18: practice -> memory
+// e1: daily-life -> morning
+// e2: daily-life -> afternoon
+// e3: daily-life -> evening
+// e4: morning -> wake-up
+// e5: morning -> breakfast
+// e6: afternoon -> work
+// e7: afternoon -> lunch
+// e8: evening -> dinner
+// e9: evening -> sleep
+// e10: wake-up -> commute
+// e11: breakfast -> commute
+// e12: commute -> work
+// e13: work -> free-time
+// e14: dinner -> free-time
+// e15: free-time -> sleep
 
 // Learner map configurations for demo
 // Each config specifies which edges to include (correct edges)
@@ -278,14 +274,11 @@ const LEARNER_MAP_CONFIGS: LearnerMapConfig[] = [
 			"e13",
 			"e14",
 			"e15",
-			"e16",
-			"e17",
-			"e18",
 		],
 		excessiveEdges: [],
-		expectedScore: 1.0, // 18/18 = 100%
+		expectedScore: 1.0, // 15/15 = 100%
 	},
-	// 2. Suzuki Hana - Near perfect (94%, 17/18)
+	// 2. Suzuki Hana - Near perfect (93%, 14/15)
 	{
 		studentEmail: "suzuki@demo.local",
 		attempt: 1,
@@ -304,15 +297,12 @@ const LEARNER_MAP_CONFIGS: LearnerMapConfig[] = [
 			"e12",
 			"e13",
 			"e14",
-			"e15",
-			"e16",
-			"e17",
-			// Missing e18 (practice -> memory)
+			// Missing e15 (free-time -> sleep)
 		],
 		excessiveEdges: [],
-		expectedScore: 0.94, // 17/18
+		expectedScore: 0.93, // 14/15
 	},
-	// 3. Yamamoto Kenji - Good (83%, 15/18)
+	// 3. Yamamoto Kenji - Good (80%, 12/15)
 	{
 		studentEmail: "yamamoto@demo.local",
 		attempt: 1,
@@ -329,15 +319,12 @@ const LEARNER_MAP_CONFIGS: LearnerMapConfig[] = [
 			"e10",
 			"e11",
 			"e12",
-			"e13",
-			"e14",
-			"e15",
-			// Missing e16, e17, e18
+			// Missing e13, e14, e15
 		],
 		excessiveEdges: [],
-		expectedScore: 0.83, // 15/18
+		expectedScore: 0.8, // 12/15
 	},
-	// 4. Watanabe Mei - Good with some extras (78%, 14/18)
+	// 4. Watanabe Mei - Good with some extras (73%, 11/15)
 	{
 		studentEmail: "watanabe@demo.local",
 		attempt: 1,
@@ -353,17 +340,14 @@ const LEARNER_MAP_CONFIGS: LearnerMapConfig[] = [
 			"e9",
 			"e10",
 			"e11",
-			"e12",
-			"e13",
-			"e14",
-			// Missing e15, e16, e17, e18
+			// Missing e12, e13, e14, e15
 		],
 		excessiveEdges: [
-			{ source: "vowels", target: "practice" }, // Wrong direct connection
+			{ source: "daily-life", target: "commute" }, // Wrong direct connection
 		],
-		expectedScore: 0.78, // 14/18
+		expectedScore: 0.73, // 11/15
 	},
-	// 5. Takahashi Ryo - First attempt (56%, 10/18)
+	// 5. Takahashi Ryo - First attempt (60%, 9/15)
 	{
 		studentEmail: "takahashi@demo.local",
 		attempt: 1,
@@ -377,15 +361,14 @@ const LEARNER_MAP_CONFIGS: LearnerMapConfig[] = [
 			"e7",
 			"e8",
 			"e9",
-			"e10",
-			// Missing e11-e18
+			// Missing e10-e15
 		],
 		excessiveEdges: [
-			{ source: "a", target: "memory" }, // Wrong connection
+			{ source: "morning", target: "sleep" }, // Wrong connection
 		],
-		expectedScore: 0.56, // 10/18
+		expectedScore: 0.6, // 9/15
 	},
-	// 6. Takahashi Ryo - Second attempt improved (89%, 16/18)
+	// 6. Takahashi Ryo - Second attempt improved (87%, 13/15)
 	{
 		studentEmail: "takahashi@demo.local",
 		attempt: 2,
@@ -403,15 +386,12 @@ const LEARNER_MAP_CONFIGS: LearnerMapConfig[] = [
 			"e11",
 			"e12",
 			"e13",
-			"e14",
-			"e15",
-			"e16",
-			// Missing e17, e18
+			// Missing e14, e15
 		],
 		excessiveEdges: [],
-		expectedScore: 0.89, // 16/18
+		expectedScore: 0.87, // 13/15
 	},
-	// 7. Ito Sakura - Average (67%, 12/18)
+	// 7. Ito Sakura - Average (67%, 10/15)
 	{
 		studentEmail: "ito@demo.local",
 		attempt: 1,
@@ -426,14 +406,12 @@ const LEARNER_MAP_CONFIGS: LearnerMapConfig[] = [
 			"e8",
 			"e9",
 			"e10",
-			"e11",
-			"e12",
-			// Missing e13-e18
+			// Missing e11-e15
 		],
 		excessiveEdges: [],
-		expectedScore: 0.67, // 12/18
+		expectedScore: 0.67, // 10/15
 	},
-	// 8. Nakamura Sota - Below average (61%, 11/18)
+	// 8. Nakamura Sota - Below average (53%, 8/15)
 	{
 		studentEmail: "nakamura@demo.local",
 		attempt: 1,
@@ -446,17 +424,14 @@ const LEARNER_MAP_CONFIGS: LearnerMapConfig[] = [
 			"e6",
 			"e7",
 			"e8",
-			"e9",
-			"e10",
-			"e11",
-			// Missing e12-e18
+			// Missing e9-e15
 		],
 		excessiveEdges: [
-			{ source: "pronunciation", target: "memory" }, // Skipped practice
+			{ source: "work", target: "sleep" }, // Skipped free-time
 		],
-		expectedScore: 0.61, // 11/18
+		expectedScore: 0.53, // 8/15
 	},
-	// 9. Kobayashi Rin - Struggling (39%, 7/18)
+	// 9. Kobayashi Rin - Struggling (40%, 6/15)
 	{
 		studentEmail: "kobayashi@demo.local",
 		attempt: 1,
@@ -467,16 +442,15 @@ const LEARNER_MAP_CONFIGS: LearnerMapConfig[] = [
 			"e4",
 			"e5",
 			"e6",
-			"e7",
-			// Missing e8-e18
+			// Missing e7-e15
 		],
 		excessiveEdges: [
-			{ source: "vowels", target: "memory" }, // Wrong direct connection
-			{ source: "a", target: "practice" }, // Wrong connection
+			{ source: "daily-life", target: "sleep" }, // Wrong direct connection
+			{ source: "morning", target: "free-time" }, // Wrong connection
 		],
-		expectedScore: 0.39, // 7/18
+		expectedScore: 0.4, // 6/15
 	},
-	// 10. Kato Haruto - Good (72%, 13/18)
+	// 10. Kato Haruto - Good (73%, 11/15)
 	{
 		studentEmail: "kato@demo.local",
 		attempt: 1,
@@ -492,14 +466,12 @@ const LEARNER_MAP_CONFIGS: LearnerMapConfig[] = [
 			"e9",
 			"e10",
 			"e11",
-			"e12",
-			"e13",
-			// Missing e14-e18
+			// Missing e12-e15
 		],
 		excessiveEdges: [],
-		expectedScore: 0.72, // 13/18
+		expectedScore: 0.73, // 11/15
 	},
-	// 11. Matsumoto Yui - Good (78%, 14/18)
+	// 11. Matsumoto Yui - Good (80%, 12/15)
 	{
 		studentEmail: "matsumoto@demo.local",
 		attempt: 1,
@@ -513,15 +485,13 @@ const LEARNER_MAP_CONFIGS: LearnerMapConfig[] = [
 			"e7",
 			"e8",
 			"e9",
-			"e10",
-			"e16",
-			"e17",
-			"e18",
-			"e11",
-			// Missing e12, e13, e14, e15
+			"e13",
+			"e14",
+			"e15",
+			// Missing e10, e11, e12
 		],
 		excessiveEdges: [],
-		expectedScore: 0.78, // 14/18
+		expectedScore: 0.8, // 12/15
 	},
 ];
 
@@ -810,26 +780,26 @@ const program = Effect.gen(function* () {
 		{ concurrency: 10 },
 	);
 
-	// 3. Create Kit for Hiragana Vowels goal map
-	yield* Effect.log("Creating kit for Hiragana Vowels...");
-	const hiraganaVowelsGoalMapId = goalMapIdsByTitle["Hiragana Vowels"];
-	const hiraganaVowelsData = goalMapDataByTitle["Hiragana Vowels"];
+	// 3. Create Kit for Japanese Daily Life goal map
+	yield* Effect.log("Creating kit for Japanese Daily Life...");
+	const dailyLifeGoalMapId = goalMapIdsByTitle["Japanese Daily Life"];
+	const dailyLifeData = goalMapDataByTitle["Japanese Daily Life"];
 
-	if (!hiraganaVowelsGoalMapId || !hiraganaVowelsData) {
-		yield* Effect.log("Hiragana Vowels goal map not found!");
+	if (!dailyLifeGoalMapId || !dailyLifeData) {
+		yield* Effect.log("Japanese Daily Life goal map not found!");
 		return;
 	}
 
 	// Get textId for the goal map
-	const hiraganaVowelsGoalMap = yield* db
+	const dailyLifeGoalMap = yield* db
 		.select()
 		.from(goalMaps)
-		.where(eq(goalMaps.id, hiraganaVowelsGoalMapId))
+		.where(eq(goalMaps.id, dailyLifeGoalMapId))
 		.limit(1);
 
-	const hiraganaVowelsTextId = hiraganaVowelsGoalMap[0]?.textId || null;
+	const dailyLifeTextId = dailyLifeGoalMap[0]?.textId || null;
 
-	const kitName = "Hiragana Vowels Kit";
+	const kitName = "Japanese Daily Life Kit";
 	const existingKit = yield* db
 		.select()
 		.from(kits)
@@ -850,11 +820,11 @@ const program = Effect.gen(function* () {
 			name: kitName,
 			layout: "preset",
 			enabled: true,
-			goalMapId: hiraganaVowelsGoalMapId,
+			goalMapId: dailyLifeGoalMapId,
 			teacherId: teacherId,
-			textId: hiraganaVowelsTextId,
+			textId: dailyLifeTextId,
 			// Nodes from goal map (for students to arrange)
-			nodes: JSON.stringify(hiraganaVowelsData.nodes),
+			nodes: JSON.stringify(dailyLifeData.nodes),
 			// Empty edges (students need to create these)
 			edges: "[]",
 		});
@@ -863,7 +833,7 @@ const program = Effect.gen(function* () {
 
 	// 4. Create Assignment
 	yield* Effect.log("Creating assignment...");
-	const assignmentTitle = "Hiragana Vowels Quiz";
+	const assignmentTitle = "Japanese Daily Life Quiz";
 
 	const existingAssignment = yield* db
 		.select()
@@ -884,11 +854,11 @@ const program = Effect.gen(function* () {
 
 		yield* db.insert(assignments).values({
 			id: demoAssignmentId,
-			goalMapId: hiraganaVowelsGoalMapId,
+			goalMapId: dailyLifeGoalMapId,
 			kitId: demoKitId,
 			title: assignmentTitle,
 			description:
-				"Learn the five basic hiragana vowels by creating a concept map.",
+				"Learn about daily routines in Japan by creating a concept map.",
 			timeLimitMinutes: 30,
 			startDate: twoWeeksAgo,
 			dueAt: oneWeekAgo,
@@ -921,7 +891,7 @@ const program = Effect.gen(function* () {
 	yield* Effect.log("Creating learner maps and diagnoses...");
 
 	// Build edge lookup from goal map
-	const goalEdges = hiraganaVowelsData.edges;
+	const goalEdges = dailyLifeData.edges;
 	const edgeById: Record<string, { source: string; target: string }> = {};
 	for (const edge of goalEdges) {
 		edgeById[edge.id] = { source: edge.source, target: edge.target };
@@ -994,10 +964,10 @@ const program = Effect.gen(function* () {
 				yield* db.insert(learnerMaps).values({
 					id: learnerMapId,
 					assignmentId: demoAssignmentId,
-					goalMapId: hiraganaVowelsGoalMapId,
+					goalMapId: dailyLifeGoalMapId,
 					kitId: demoKitId,
 					userId: studentId,
-					nodes: JSON.stringify(hiraganaVowelsData.nodes),
+					nodes: JSON.stringify(dailyLifeData.nodes),
 					edges: JSON.stringify(learnerEdges),
 					status: "submitted",
 					attempt: config.attempt,
@@ -1009,7 +979,7 @@ const program = Effect.gen(function* () {
 
 				// Calculate actual score
 				const correctCount = config.correctEdgeIds.length;
-				const totalGoalEdges = 18; // Hiragana Vowels has 18 edges
+				const totalGoalEdges = 15; // Japanese Daily Life has 15 edges
 				const score = Math.round((correctCount / totalGoalEdges) * 100) / 100;
 
 				// Build per-link diagnosis data
@@ -1039,7 +1009,7 @@ const program = Effect.gen(function* () {
 				// Create diagnosis
 				yield* db.insert(diagnoses).values({
 					id: randomString(),
-					goalMapId: hiraganaVowelsGoalMapId,
+					goalMapId: dailyLifeGoalMapId,
 					learnerMapId: learnerMapId,
 					summary: `Score: ${Math.round(score * 100)}% (${correctCount}/${totalGoalEdges} correct edges)`,
 					perLink: perLink,
