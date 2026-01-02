@@ -24,10 +24,7 @@ describe("analytics-service", () => {
 		Effect.runPromise(resetDatabase.pipe(Effect.provide(DatabaseTest))),
 	);
 
-	// NOTE: getTeacherAssignments tests are skipped because the function has a bug
-	// with db.$count(learnerMaps.id) usage that generates invalid SQL.
-	// The function should be fixed to use proper count subqueries.
-	describe.skip("getTeacherAssignments", () => {
+	describe("getTeacherAssignments", () => {
 		it.effect("should return empty array when no assignments exist", () =>
 			Effect.gen(function* () {
 				const teacher = yield* createTestUser();

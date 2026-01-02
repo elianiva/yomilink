@@ -1,4 +1,4 @@
-import { and, desc, eq } from "drizzle-orm";
+import { and, avg, count, desc, eq } from "drizzle-orm";
 import { Data, Effect, Schema } from "effect";
 import Papa from "papaparse";
 import {
@@ -176,14 +176,14 @@ export const getTeacherAssignments = Effect.fn("getTeacherAssignments")(
 					kitId: kits.id,
 					createdAt: assignments.createdAt,
 					dueAt: assignments.dueAt,
-					submissionCount: db.$count(learnerMaps.id),
-					avgScore: db.$count(learnerMaps.id),
+					submissionCount: count(learnerMaps.id),
+					avgScore: avg(diagnoses.score),
 				})
 				.from(assignments)
 				.leftJoin(goalMaps, eq(assignments.goalMapId, goalMaps.id))
 				.leftJoin(kits, eq(assignments.kitId, kits.id))
 				.leftJoin(learnerMaps, eq(learnerMaps.assignmentId, assignments.id))
-				.leftJoin(diagnoses, eq(diagnoses.goalMapId, assignments.goalMapId))
+				.leftJoin(diagnoses, eq(diagnoses.learnerMapId, learnerMaps.id))
 				.where(eq(assignments.createdBy, userId))
 				.groupBy(
 					assignments.id,
