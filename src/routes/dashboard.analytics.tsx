@@ -24,16 +24,16 @@ import {
 import { AssignmentSelectContent } from "@/features/analyzer/components/assignment-select-content";
 import { CanvasContent } from "@/features/analyzer/components/canvas-content";
 import { LearnerList } from "@/features/analyzer/components/learner-list";
+import type {
+	AssignmentAnalytics,
+	ExportResult,
+	LearnerAnalytics,
+	LearnerMapResult,
+} from "@/features/analyzer/lib/analytics-service";
 import {
 	AnalyticsRpc,
 	exportAnalyticsDataRpc as exportAnalyticsDataFn,
 } from "@/server/rpc/analytics";
-import type {
-	AssignmentAnalytics,
-	LearnerAnalytics,
-	LearnerMapResult,
-	ExportResult,
-} from "@/features/analyzer/lib/analytics-service";
 
 export const Route = createFileRoute("/dashboard/analytics")({
 	component: () => (

@@ -29,10 +29,7 @@ import {
 	ChartTooltip,
 	ChartTooltipContent,
 } from "@/components/ui/chart";
-import type {
-	AssignmentAnalytics,
-	LearnerAnalytics,
-} from "@/features/analyzer/lib/analytics-service";
+import type { LearnerAnalytics } from "@/features/analyzer/lib/analytics-service";
 import { cn } from "@/lib/utils";
 import { AnalyticsRpc } from "@/server/rpc/analytics";
 
@@ -88,8 +85,7 @@ function MetricsPage() {
 			return null;
 		}
 
-		const data = analyticsData as AssignmentAnalytics;
-		const { learners, summary } = data;
+		const { learners, summary } = analyticsData;
 
 		const scoreDistribution = learners
 			.filter((l) => l.score !== null)
@@ -162,7 +158,7 @@ function MetricsPage() {
 			.slice(0, 5);
 
 		return {
-			data,
+			data: analyticsData,
 			scoreDistribution,
 			statusBreakdown,
 			edgeTypeData,
