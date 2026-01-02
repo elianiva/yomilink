@@ -21,9 +21,12 @@ export const Route = createFileRoute("/dashboard/assignments/")({
 });
 
 function AssignmentsPage() {
-	const { data: assignments = [] } = useQuery(
+	const { data: assignmentsRaw } = useQuery(
 		LearnerMapRpc.listStudentAssignments(),
 	);
+
+	// Filter out error responses and ensure array type
+	const assignments = Array.isArray(assignmentsRaw) ? assignmentsRaw : [];
 
 	const getStatusInfo = (
 		status: string,

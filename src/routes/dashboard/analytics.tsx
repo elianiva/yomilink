@@ -31,6 +31,7 @@ import {
 import type {
 	AssignmentAnalytics,
 	LearnerAnalytics,
+	LearnerMapResult,
 	ExportResult,
 } from "@/features/analyzer/lib/analytics-service";
 
@@ -83,9 +84,24 @@ function AnalyticsPage() {
 	const [showNeutralEdges, setShowNeutralEdges] = useState(true);
 
 	// Fetch assignments
-	const { data: assignments, isLoading: assignmentsLoading } = useQuery(
+	const { data: assignmentsRaw, isLoading: assignmentsLoading } = useQuery(
 		AnalyticsRpc.getTeacherAssignments(),
 	);
+
+	// Filter out error responses for assignments
+	const assignments = useMemo(() => {
+		if (
+			!assignmentsRaw ||
+			("success" in assignmentsRaw && !assignmentsRaw.success)
+		) {
+			return undefined;
+		}
+		return assignmentsRaw as Array<{
+			id: string;
+			title: string;
+			totalSubmissions: number;
+		}>;
+	}, [assignmentsRaw]);
 
 	// Fetch analytics data for selected assignment
 	const { data: analyticsData, isLoading: analyticsLoading } = useQuery({
@@ -95,11 +111,22 @@ function AnalyticsPage() {
 	});
 
 	// Fetch learner map details for selected learner
-	const { data: learnerMapDetails } = useQuery({
+	const { data: learnerMapDetailsRaw } = useQuery({
 		...AnalyticsRpc.getLearnerMapForAnalytics(selectedLearnerMapId ?? ""),
 		enabled: !!selectedLearnerMapId,
 		refetchOnWindowFocus: false,
 	});
+
+	// Filter out error responses for learner map details
+	const learnerMapDetails = useMemo((): LearnerMapResult | null => {
+		if (
+			!learnerMapDetailsRaw ||
+			("success" in learnerMapDetailsRaw && !learnerMapDetailsRaw.success)
+		) {
+			return null;
+		}
+		return learnerMapDetailsRaw as LearnerMapResult;
+	}, [learnerMapDetailsRaw]);
 
 	// Filter learners
 	const filteredLearners = useMemo(() => {
@@ -143,11 +170,16 @@ function AnalyticsPage() {
 	}, [selectedAssignmentId]);
 
 	const exportMutation = useMutation({
-		mutationFn: (format: "csv" | "json") =>
-			exportAnalyticsDataFn({
-				data: { assignmentId: selectedAssignmentId ?? "", format },
-			}),
-		onSuccess: (result: ExportResult) => {
+		mutationFn: async (format: "csv" | "json") => {
+			const result = await exportAnalyticsDataFn({
+				data: { analytics: analyticsData, format },
+			});
+			if ("success" in result && result.success === false) {
+				throw new Error(result.error);
+			}
+			return result as ExportResult;
+		},
+		onSuccess: (result) => {
 			const blob = new Blob([result.data], {
 				type: result.contentType,
 			});

@@ -103,16 +103,22 @@ function DashboardHome() {
 	const [selectedTopic, setSelectedTopic] = useState<Topic | null>(null);
 
 	const {
-		data: topics = [],
+		data: topicsRaw = [],
 		isLoading: topicsLoading,
 		error: topicsError,
 	} = useQuery(TopicRpc.listTopics());
 
+	// Filter out error responses and ensure array type
+	const topics = Array.isArray(topicsRaw) ? topicsRaw : [];
+
 	const {
-		data: goalMaps = [],
+		data: goalMapsRaw = [],
 		isLoading: goalMapsLoading,
 		error: goalMapsError,
 	} = useQuery(GoalMapRpc.listGoalMapsByTopic({ topicId: selectedTopic?.id }));
+
+	// Filter out error responses and ensure array type
+	const goalMaps = Array.isArray(goalMapsRaw) ? goalMapsRaw : [];
 
 	const deleteMutation = useMutation(GoalMapRpc.deleteGoalMap());
 

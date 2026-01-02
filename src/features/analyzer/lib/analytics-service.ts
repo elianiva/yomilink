@@ -4,11 +4,7 @@ import Papa from "papaparse";
 import {
 	classifyEdges,
 	compareMaps,
-	type DiagnosisResult,
-	type Edge,
-	type EdgeClassification,
 	EdgeSchema,
-	type Node,
 	NodeSchema,
 } from "@/features/learner-map/lib/comparator";
 import { parseJson } from "@/lib/utils";
@@ -20,7 +16,7 @@ import {
 	kits,
 	learnerMaps,
 } from "@/server/db/schema/app-schema";
-import { user as usersTable } from "@/server/db/schema/auth-schema";
+import { user } from "@/server/db/schema/auth-schema";
 
 export const GetAnalyticsForAssignmentInput = Schema.Struct({
 	assignmentId: Schema.NonEmptyString,
@@ -35,6 +31,12 @@ export const GetLearnerMapForAnalyticsInput = Schema.Struct({
 
 export type GetLearnerMapForAnalyticsInput =
 	typeof GetLearnerMapForAnalyticsInput.Type;
+
+export const MapStatusSchema = Schema.Union(
+	Schema.Literal("draft"),
+	Schema.Literal("submitted"),
+	Schema.Literal("graded"),
+);
 
 export const ExportAnalyticsDataInput = Schema.Struct({
 	analytics: Schema.Any,
@@ -79,88 +81,114 @@ class LearnerMapNotFoundError extends Data.TaggedError(
 	readonly learnerMapId: string;
 }> {}
 
-export interface TeacherAssignment {
-	id: string;
-	title: string;
-	goalMapId: string;
-	goalMapTitle: string | null;
-	kitId: string | null;
-	totalSubmissions: number;
-	avgScore: number | null;
-	createdAt: number;
-	dueAt: number | null;
-}
+export const TeacherAssignmentSchema = Schema.Struct({
+	id: Schema.String,
+	title: Schema.String,
+	goalMapId: Schema.String,
+	goalMapTitle: Schema.optional(Schema.String),
+	kitId: Schema.optional(Schema.String),
+	totalSubmissions: Schema.Number,
+	avgScore: Schema.optional(Schema.Number),
+	createdAt: Schema.Number,
+	dueAt: Schema.optional(Schema.Number),
+});
 
-export interface LearnerAnalytics {
-	userId: string;
-	userName: string;
-	learnerMapId: string;
-	status: "draft" | "submitted";
-	score: number | null;
-	attempt: number;
-	submittedAt: number | null;
-	correct: number;
-	missing: number;
-	excessive: number;
-	totalGoalEdges: number;
-}
+export type TeacherAssignment = typeof TeacherAssignmentSchema.Type;
 
-export interface AssignmentAnalytics {
-	assignment: {
-		id: string;
-		title: string;
-		goalMapId: string;
-		goalMapTitle: string | null;
-		kitId: string | null;
-		createdAt: number;
-		dueAt: number | null;
-	};
-	goalMap: {
-		id: string;
-		title: string;
-		nodes: ReadonlyArray<Node>;
-		edges: ReadonlyArray<Edge>;
-		direction: "bi" | "uni" | "multi";
-	};
-	learners: ReadonlyArray<LearnerAnalytics>;
-	summary: {
-		totalLearners: number;
-		submittedCount: number;
-		draftCount: number;
-		avgScore: number | null;
-		medianScore: number | null;
-		highestScore: number | null;
-		lowestScore: number | null;
-	};
-}
+export const LearnerAnalyticsSchema = Schema.Struct({
+	userId: Schema.String,
+	userName: Schema.String,
+	learnerMapId: Schema.String,
+	status: MapStatusSchema,
+	score: Schema.NullOr(Schema.Number),
+	attempt: Schema.Number,
+	submittedAt: Schema.NullOr(Schema.Number),
+	correct: Schema.Number,
+	missing: Schema.Number,
+	excessive: Schema.Number,
+	totalGoalEdges: Schema.Number,
+});
 
-export interface LearnerMapDetails {
-	learnerMap: {
-		id: string;
-		userId: string;
-		userName: string;
-		status: string;
-		attempt: number;
-		submittedAt: number | null;
-		nodes: ReadonlyArray<Node>;
-		edges: ReadonlyArray<Edge>;
-	};
-	goalMap: {
-		id: string;
-		title: string;
-		nodes: ReadonlyArray<Node>;
-		edges: ReadonlyArray<Edge>;
-		direction: "bi" | "uni" | "multi";
-	};
-	diagnosis: DiagnosisResult;
-	edgeClassifications: ReadonlyArray<EdgeClassification>;
-}
+export type LearnerAnalytics = typeof LearnerAnalyticsSchema.Type;
 
-export interface ExportResult {
-	filename: string;
-	data: string;
-	contentType: "text/csv" | "application/json";
-}
+export const GoalMapDirectionSchema = Schema.Union(
+	Schema.Literal("bi"),
+	Schema.Literal("uni"),
+	Schema.Literal("multi"),
+);
+
+export const GoalMapSchema = Schema.Struct({
+	id: Schema.String,
+	title: Schema.String,
+	nodes: Schema.Array(NodeSchema),
+	edges: Schema.Array(EdgeSchema),
+	direction: GoalMapDirectionSchema,
+});
+
+export const AssignmentSummarySchema = Schema.Struct({
+	totalLearners: Schema.Number,
+	submittedCount: Schema.Number,
+	draftCount: Schema.Number,
+	avgScore: Schema.optional(Schema.Number),
+	medianScore: Schema.optional(Schema.Number),
+	highestScore: Schema.optional(Schema.Number),
+	lowestScore: Schema.optional(Schema.Number),
+});
+
+export const AssignmentAnalyticsSchema = Schema.Struct({
+	assignment: TeacherAssignmentSchema,
+	goalMap: GoalMapSchema,
+	learners: Schema.Array(LearnerAnalyticsSchema),
+	summary: AssignmentSummarySchema,
+});
+
+export type AssignmentAnalytics = typeof AssignmentAnalyticsSchema.Type;
+
+export const LearnerMapSchema = Schema.Struct({
+	id: Schema.String,
+	userId: Schema.String,
+	userName: Schema.String,
+	status: MapStatusSchema,
+	attempt: Schema.Number,
+	submittedAt: Schema.optional(Schema.Number),
+	nodes: Schema.Array(NodeSchema),
+	edges: Schema.Array(EdgeSchema),
+});
+
+export const DiagnosisResultSchema = Schema.Struct({
+	correct: Schema.optional(Schema.Array(LinkSchema)),
+	missing: Schema.optional(Schema.Array(LinkSchema)),
+	excessive: Schema.optional(Schema.Array(LinkSchema)),
+	totalGoalEdges: Schema.optional(Schema.Number),
+});
+
+export const EdgeClassificationSchema = Schema.Struct({
+	source: Schema.String,
+	target: Schema.String,
+	correct: Schema.Boolean,
+	missing: Schema.Boolean,
+	excessive: Schema.Boolean,
+});
+
+export const LearnerMapDetailsSchema = Schema.Struct({
+	learnerMap: LearnerMapSchema,
+	goalMap: GoalMapSchema,
+	diagnosis: DiagnosisResultSchema,
+	edgeClassifications: Schema.Array(EdgeClassificationSchema),
+});
+
+export type LearnerMapDetails = typeof LearnerMapDetailsSchema.Type;
+
+export const ExportResultSchema = Schema.Struct({
+	filename: Schema.String,
+	data: Schema.String,
+	contentType: Schema.Union(
+		Schema.Literal("text/csv"),
+		Schema.Literal("application/json"),
+	),
+});
+
+export type ExportResult = typeof ExportResultSchema.Type;
 
 export const getTeacherAssignments = Effect.fn("getTeacherAssignments")(
 	(userId: string) =>
@@ -257,13 +285,12 @@ export const getAnalyticsForAssignment = Effect.fn("getAnalyticsForAssignment")(
 				});
 			}
 
-			const parsedGoalMapNodes = yield* parseJson(
-				goalMap.nodes,
-				Schema.Array(NodeSchema),
-			);
-			const parsedGoalMapEdges = yield* parseJson(
-				goalMap.edges,
-				Schema.Array(EdgeSchema),
+			const [parsedGoalMapNodes, parsedGoalMapEdges] = yield* Effect.all(
+				[
+					parseJson(goalMap.nodes, Schema.Array(NodeSchema)),
+					parseJson(goalMap.edges, Schema.Array(EdgeSchema)),
+				],
+				{ concurrency: "unbounded" },
 			);
 
 			const learnerMapsData = yield* db
@@ -275,10 +302,10 @@ export const getAnalyticsForAssignment = Effect.fn("getAnalyticsForAssignment")(
 					submittedAt: learnerMaps.submittedAt,
 					score: diagnoses.score,
 					perLink: diagnoses.perLink,
-					userName: usersTable.name,
+					userName: user.name,
 				})
 				.from(learnerMaps)
-				.innerJoin(usersTable, eq(learnerMaps.userId, usersTable.id))
+				.innerJoin(user, eq(learnerMaps.userId, user.id))
 				.leftJoin(diagnoses, eq(diagnoses.learnerMapId, learnerMaps.id))
 				.where(eq(learnerMaps.assignmentId, input.assignmentId))
 				.orderBy(desc(learnerMaps.attempt), desc(learnerMaps.updatedAt));
@@ -302,7 +329,7 @@ export const getAnalyticsForAssignment = Effect.fn("getAnalyticsForAssignment")(
 							totalGoalEdges = parsed.totalGoalEdges ?? 0;
 						}
 
-						return {
+						return yield* Schema.encode(LearnerAnalyticsSchema)({
 							userId: lm.userId,
 							userName: lm.userName,
 							learnerMapId: lm.id,
@@ -314,7 +341,7 @@ export const getAnalyticsForAssignment = Effect.fn("getAnalyticsForAssignment")(
 							missing,
 							excessive,
 							totalGoalEdges,
-						} as LearnerAnalytics;
+						});
 					}),
 				),
 				{ concurrency: 10 },
@@ -356,7 +383,9 @@ export const getAnalyticsForAssignment = Effect.fn("getAnalyticsForAssignment")(
 					title: goalMap.title,
 					nodes: parsedGoalMapNodes,
 					edges: parsedGoalMapEdges,
-					direction: goalMap.direction as "bi" | "uni" | "multi",
+					direction: yield* Schema.encode(GoalMapDirectionSchema)(
+						goalMap.direction,
+					),
 				},
 				learners: finalLearners,
 				summary,
@@ -379,10 +408,10 @@ export const getLearnerMapForAnalytics = Effect.fn("getLearnerMapForAnalytics")(
 					submittedAt: learnerMaps.submittedAt,
 					nodes: learnerMaps.nodes,
 					edges: learnerMaps.edges,
-					userName: usersTable.name,
+					userName: user.name,
 				})
 				.from(learnerMaps)
-				.innerJoin(usersTable, eq(learnerMaps.userId, usersTable.id))
+				.innerJoin(user, eq(learnerMaps.userId, user.id))
 				.where(eq(learnerMaps.id, input.learnerMapId))
 				.limit(1);
 
@@ -449,7 +478,9 @@ export const getLearnerMapForAnalytics = Effect.fn("getLearnerMapForAnalytics")(
 					title: goalMap.title,
 					nodes: parsedGoalMapNodes,
 					edges: parsedGoalMapEdges,
-					direction: goalMap.direction as "bi" | "uni" | "multi",
+					direction: yield* Schema.encode(GoalMapDirectionSchema)(
+						goalMap.direction,
+					),
 				},
 				diagnosis,
 				edgeClassifications,
@@ -457,69 +488,72 @@ export const getLearnerMapForAnalytics = Effect.fn("getLearnerMapForAnalytics")(
 		}),
 );
 
-export const exportAnalyticsData = (
-	input: ExportAnalyticsDataInput,
-): ExportResult => {
-	const timestamp = new Date()
-		.toISOString()
-		.replace(/[:.]/g, "")
-		.substring(0, 15);
+export const exportAnalyticsData = Effect.fn("exportAnalyticsData")(
+	(input: ExportAnalyticsDataInput) =>
+		Effect.gen(function* () {
+			const timestamp = new Date()
+				.toISOString()
+				.replace(/[:.]/g, "")
+				.substring(0, 15);
 
-	if (input.format === "csv") {
-		const csvData = [
-			[
-				"UserID",
-				"UserName",
-				"LearnerMapID",
-				"Status",
-				"Attempt",
-				"Score",
-				"Correct",
-				"Missing",
-				"Excessive",
-				"TotalGoalEdges",
-				"SubmittedAt",
-				"AssignmentTitle",
-			],
-		];
+			if (input.format === "csv") {
+				const csvData = [
+					[
+						"UserID",
+						"UserName",
+						"LearnerMapID",
+						"Status",
+						"Attempt",
+						"Score",
+						"Correct",
+						"Missing",
+						"Excessive",
+						"TotalGoalEdges",
+						"SubmittedAt",
+						"AssignmentTitle",
+					],
+				];
 
-		for (const learner of input.analytics.learners) {
-			csvData.push([
-				learner.userId,
-				learner.userName,
-				learner.learnerMapId,
-				learner.status,
-				learner.attempt.toString(),
-				learner.score?.toString() ?? "0",
-				learner.correct.toString(),
-				learner.missing.toString(),
-				learner.excessive.toString(),
-				learner.totalGoalEdges.toString(),
-				learner.submittedAt ? new Date(learner.submittedAt).toISOString() : "",
-				input.analytics.assignment.title,
-			]);
-		}
+				for (const learner of input.analytics.learners) {
+					csvData.push([
+						learner.userId,
+						learner.userName,
+						learner.learnerMapId,
+						learner.status,
+						learner.attempt.toString(),
+						learner.score?.toString() ?? "0",
+						learner.correct.toString(),
+						learner.missing.toString(),
+						learner.excessive.toString(),
+						learner.totalGoalEdges.toString(),
+						learner.submittedAt
+							? new Date(learner.submittedAt).toISOString()
+							: "",
+						input.analytics.assignment.title,
+					]);
+				}
 
-		const csv = Papa.unparse(csvData, { header: false });
+				const csv = Papa.unparse(csvData, { header: false });
 
-		return {
-			filename: `KB-Analytics-${timestamp}.csv`,
-			data: csv,
-			contentType: "text/csv" as const,
-		};
-	}
+				return yield* Schema.encode(ExportResultSchema)({
+					filename: `KB-Analytics-${timestamp}.csv`,
+					data: csv,
+					contentType: "text/csv",
+				});
+			}
 
-	const jsonData = {
-		assignment: input.analytics.assignment,
-		goalMap: input.analytics.goalMap,
-		learners: input.analytics.learners,
-		summary: input.analytics.summary,
-		exportedAt: new Date().toISOString(),
-	};
+			const jsonData = {
+				assignment: input.analytics.assignment,
+				goalMap: input.analytics.goalMap,
+				learners: input.analytics.learners,
+				summary: input.analytics.summary,
+				exportedAt: new Date().toISOString(),
+			};
 
-	return {
-		filename: `KB-Analytics-${timestamp}.json`,
-		data: JSON.stringify(jsonData, null, 2),
-		contentType: "application/json" as const,
-	};
-};
+			return yield* Schema.encode(ExportResultSchema)({
+				filename: `KB-Analytics-${timestamp}.json`,
+				data: JSON.stringify(jsonData, null, 2),
+				contentType: "application/json",
+			});
+		}),
+);

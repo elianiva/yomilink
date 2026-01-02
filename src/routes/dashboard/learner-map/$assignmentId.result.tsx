@@ -45,13 +45,25 @@ function ResultPage() {
 		[],
 	);
 
-	const { data, isLoading } = useQuery(
+	const { data: dataRaw, isLoading } = useQuery(
 		LearnerMapRpc.getDiagnosis({ assignmentId }),
 	);
 
-	const { data: peerStats } = useQuery(
+	// Filter out error responses
+	const data =
+		dataRaw && !("success" in dataRaw && !dataRaw.success)
+			? (dataRaw as Exclude<typeof dataRaw, { success: false }>)
+			: undefined;
+
+	const { data: peerStatsRaw } = useQuery(
 		LearnerMapRpc.getPeerStats({ assignmentId }),
 	);
+
+	// Filter out error responses for peer stats
+	const peerStats =
+		peerStatsRaw && !("success" in peerStatsRaw && !peerStatsRaw.success)
+			? (peerStatsRaw as Exclude<typeof peerStatsRaw, { success: false }>)
+			: undefined;
 
 	const newAttemptMutation = useMutation(LearnerMapRpc.startNewAttempt());
 

@@ -660,189 +660,207 @@ describe("analytics-service", () => {
 			},
 		});
 
-		it("should export to CSV format", () => {
-			const analytics = createMockAnalytics();
+		it.effect("should export to CSV format", () =>
+			Effect.gen(function* () {
+				const analytics = createMockAnalytics();
 
-			const result = exportAnalyticsData({
-				analytics,
-				format: "csv",
-			});
+				const result = yield* exportAnalyticsData({
+					analytics,
+					format: "csv",
+				});
 
-			assert.strictEqual(result.contentType, "text/csv");
-			assert.isTrue(result.filename.startsWith("KB-Analytics-"));
-			assert.isTrue(result.filename.endsWith(".csv"));
+				assert.strictEqual(result.contentType, "text/csv");
+				assert.isTrue(result.filename.startsWith("KB-Analytics-"));
+				assert.isTrue(result.filename.endsWith(".csv"));
 
-			// Verify CSV content
-			assert.isTrue(result.data.includes("UserID"));
-			assert.isTrue(result.data.includes("UserName"));
-			assert.isTrue(result.data.includes("LearnerMapID"));
-			assert.isTrue(result.data.includes("Status"));
-			assert.isTrue(result.data.includes("Score"));
-			assert.isTrue(result.data.includes("Correct"));
-			assert.isTrue(result.data.includes("Missing"));
-			assert.isTrue(result.data.includes("Excessive"));
-			assert.isTrue(result.data.includes("TotalGoalEdges"));
-			assert.isTrue(result.data.includes("AssignmentTitle"));
+				// Verify CSV content
+				assert.isTrue(result.data.includes("UserID"));
+				assert.isTrue(result.data.includes("UserName"));
+				assert.isTrue(result.data.includes("LearnerMapID"));
+				assert.isTrue(result.data.includes("Status"));
+				assert.isTrue(result.data.includes("Score"));
+				assert.isTrue(result.data.includes("Correct"));
+				assert.isTrue(result.data.includes("Missing"));
+				assert.isTrue(result.data.includes("Excessive"));
+				assert.isTrue(result.data.includes("TotalGoalEdges"));
+				assert.isTrue(result.data.includes("AssignmentTitle"));
 
-			// Verify data rows
-			assert.isTrue(result.data.includes("Student One"));
-			assert.isTrue(result.data.includes("Student Two"));
-			assert.isTrue(result.data.includes("submitted"));
-			assert.isTrue(result.data.includes("draft"));
-		});
+				// Verify data rows
+				assert.isTrue(result.data.includes("Student One"));
+				assert.isTrue(result.data.includes("Student Two"));
+				assert.isTrue(result.data.includes("submitted"));
+				assert.isTrue(result.data.includes("draft"));
+			}),
+		);
 
-		it("should export to JSON format", () => {
-			const analytics = createMockAnalytics();
+		it.effect("should export to JSON format", () =>
+			Effect.gen(function* () {
+				const analytics = createMockAnalytics();
 
-			const result = exportAnalyticsData({
-				analytics,
-				format: "json",
-			});
+				const result = yield* exportAnalyticsData({
+					analytics,
+					format: "json",
+				});
 
-			assert.strictEqual(result.contentType, "application/json");
-			assert.isTrue(result.filename.startsWith("KB-Analytics-"));
-			assert.isTrue(result.filename.endsWith(".json"));
+				assert.strictEqual(result.contentType, "application/json");
+				assert.isTrue(result.filename.startsWith("KB-Analytics-"));
+				assert.isTrue(result.filename.endsWith(".json"));
 
-			// Verify JSON content
-			const parsed = JSON.parse(result.data);
-			assert.strictEqual(parsed.assignment.id, "assign-1");
-			assert.strictEqual(parsed.assignment.title, "Test Assignment");
-			assert.strictEqual(parsed.learners.length, 2);
-			assert.strictEqual(parsed.summary.totalLearners, 2);
-			assert.isDefined(parsed.exportedAt);
-		});
+				// Verify JSON content
+				const parsed = JSON.parse(result.data);
+				assert.strictEqual(parsed.assignment.id, "assign-1");
+				assert.strictEqual(parsed.assignment.title, "Test Assignment");
+				assert.strictEqual(parsed.learners.length, 2);
+				assert.strictEqual(parsed.summary.totalLearners, 2);
+				assert.isDefined(parsed.exportedAt);
+			}),
+		);
 
-		it("should handle empty learners array", () => {
-			const analytics = createMockAnalytics();
-			analytics.learners = [];
-			analytics.summary = {
-				totalLearners: 0,
-				submittedCount: 0,
-				draftCount: 0,
-				avgScore: null,
-				medianScore: null,
-				highestScore: null,
-				lowestScore: null,
-			};
+		it.effect("should handle empty learners array", () =>
+			Effect.gen(function* () {
+				const analytics = createMockAnalytics();
+				analytics.learners = [];
+				analytics.summary = {
+					totalLearners: 0,
+					submittedCount: 0,
+					draftCount: 0,
+					avgScore: null,
+					medianScore: null,
+					highestScore: null,
+					lowestScore: null,
+				};
 
-			const csvResult = exportAnalyticsData({
-				analytics,
-				format: "csv",
-			});
-			const jsonResult = exportAnalyticsData({
-				analytics,
-				format: "json",
-			});
+				const csvResult = yield* exportAnalyticsData({
+					analytics,
+					format: "csv",
+				});
+				const jsonResult = yield* exportAnalyticsData({
+					analytics,
+					format: "json",
+				});
 
-			// CSV should have header row
-			assert.isTrue(csvResult.data.includes("UserID"));
+				// CSV should have header row
+				assert.isTrue(csvResult.data.includes("UserID"));
 
-			// JSON should have empty learners array
-			const parsed = JSON.parse(jsonResult.data);
-			assert.strictEqual(parsed.learners.length, 0);
-		});
+				// JSON should have empty learners array
+				const parsed = JSON.parse(jsonResult.data);
+				assert.strictEqual(parsed.learners.length, 0);
+			}),
+		);
 
-		it("should handle null score values in CSV", () => {
-			const analytics = createMockAnalytics();
-			analytics.learners = [
-				{
-					userId: "user-1",
-					userName: "Student",
-					learnerMapId: "lm-1",
-					status: "draft",
-					score: null,
-					attempt: 1,
-					submittedAt: null,
-					correct: 0,
-					missing: 0,
-					excessive: 0,
-					totalGoalEdges: 0,
-				},
-			];
+		it.effect("should handle null score values in CSV", () =>
+			Effect.gen(function* () {
+				const analytics = createMockAnalytics();
+				analytics.learners = [
+					{
+						userId: "user-1",
+						userName: "Student",
+						learnerMapId: "lm-1",
+						status: "draft",
+						score: null,
+						attempt: 1,
+						submittedAt: null,
+						correct: 0,
+						missing: 0,
+						excessive: 0,
+						totalGoalEdges: 0,
+					},
+				];
 
-			const result = exportAnalyticsData({
-				analytics,
-				format: "csv",
-			});
+				const result = yield* exportAnalyticsData({
+					analytics,
+					format: "csv",
+				});
 
-			// Score null should become "0"
-			assert.isTrue(result.data.includes(",0,"));
-		});
+				// Score null should become "0"
+				assert.isTrue(result.data.includes(",0,"));
+			}),
+		);
 
-		it("should format timestamp in filename correctly", () => {
-			const analytics = createMockAnalytics();
+		it.effect("should format timestamp in filename correctly", () =>
+			Effect.gen(function* () {
+				const analytics = createMockAnalytics();
 
-			const csvResult = exportAnalyticsData({
-				analytics,
-				format: "csv",
-			});
-			const jsonResult = exportAnalyticsData({
-				analytics,
-				format: "json",
-			});
+				const csvResult = yield* exportAnalyticsData({
+					analytics,
+					format: "csv",
+				});
+				const jsonResult = yield* exportAnalyticsData({
+					analytics,
+					format: "json",
+				});
 
-			// Filename format: KB-Analytics-YYYY-MM-DDTHHMM (15 chars from ISO string with colons/periods removed)
-			// ISO: "2026-01-01T16:05:39.123Z" -> replace ":" and "." -> "2026-01-01T160539123Z" -> substring(0,15) -> "2026-01-01T1605"
-			const filenamePattern =
-				/KB-Analytics-\d{4}-\d{2}-\d{2}T\d{4}\.(csv|json)/;
-			assert.isTrue(
-				filenamePattern.test(csvResult.filename),
-				`CSV filename ${csvResult.filename} should match pattern`,
-			);
-			assert.isTrue(
-				filenamePattern.test(jsonResult.filename),
-				`JSON filename ${jsonResult.filename} should match pattern`,
-			);
-		});
+				// Filename format: KB-Analytics-YYYY-MM-DDTHHMM (15 chars from ISO string with colons/periods removed)
+				// ISO: "2026-01-01T16:05:39.123Z" -> replace ":" and "." -> "2026-01-01T160539123Z" -> substring(0,15) -> "2026-01-01T1605"
+				const filenamePattern =
+					/KB-Analytics-\d{4}-\d{2}-\d{2}T\d{4}\.(csv|json)/;
+				assert.isTrue(
+					filenamePattern.test(csvResult.filename),
+					`CSV filename ${csvResult.filename} should match pattern`,
+				);
+				assert.isTrue(
+					filenamePattern.test(jsonResult.filename),
+					`JSON filename ${jsonResult.filename} should match pattern`,
+				);
+			}),
+		);
 
-		it("should include submittedAt as ISO string in CSV when present", () => {
-			const analytics = createMockAnalytics();
+		it.effect(
+			"should include submittedAt as ISO string in CSV when present",
+			() =>
+				Effect.gen(function* () {
+					const analytics = createMockAnalytics();
 
-			const result = exportAnalyticsData({
-				analytics,
-				format: "csv",
-			});
+					const result = yield* exportAnalyticsData({
+						analytics,
+						format: "csv",
+					});
 
-			// Student One has submittedAt
-			assert.isTrue(result.data.includes("2024-01-01T"));
-		});
+					// Student One has submittedAt
+					assert.isTrue(result.data.includes("2024-01-01T"));
+				}),
+		);
 
-		it("should include all learner data in JSON export", () => {
-			const analytics = createMockAnalytics();
+		it.effect("should include all learner data in JSON export", () =>
+			Effect.gen(function* () {
+				const analytics = createMockAnalytics();
 
-			const result = exportAnalyticsData({
-				analytics,
-				format: "json",
-			});
+				const result = yield* exportAnalyticsData({
+					analytics,
+					format: "json",
+				});
 
-			const parsed = JSON.parse(result.data);
-			const learner = parsed.learners[0];
+				const parsed = JSON.parse(result.data);
+				const learner = parsed.learners[0];
 
-			assert.strictEqual(learner.userId, "user-1");
-			assert.strictEqual(learner.userName, "Student One");
-			assert.strictEqual(learner.learnerMapId, "lm-1");
-			assert.strictEqual(learner.status, "submitted");
-			assert.strictEqual(learner.score, 0.8);
-			assert.strictEqual(learner.attempt, 1);
-			assert.strictEqual(learner.correct, 4);
-			assert.strictEqual(learner.missing, 1);
-			assert.strictEqual(learner.excessive, 0);
-			assert.strictEqual(learner.totalGoalEdges, 5);
-		});
+				assert.strictEqual(learner.userId, "user-1");
+				assert.strictEqual(learner.userName, "Student One");
+				assert.strictEqual(learner.learnerMapId, "lm-1");
+				assert.strictEqual(learner.status, "submitted");
+				assert.strictEqual(learner.score, 0.8);
+				assert.strictEqual(learner.attempt, 1);
+				assert.strictEqual(learner.correct, 4);
+				assert.strictEqual(learner.missing, 1);
+				assert.strictEqual(learner.excessive, 0);
+				assert.strictEqual(learner.totalGoalEdges, 5);
+			}),
+		);
 
-		it("should include goal map in JSON export", () => {
-			const analytics = createMockAnalytics();
+		it.effect("should include goal map in JSON export", () =>
+			Effect.gen(function* () {
+				const analytics = createMockAnalytics();
 
-			const result = exportAnalyticsData({
-				analytics,
-				format: "json",
-			});
+				const result = yield* exportAnalyticsData({
+					analytics,
+					format: "json",
+				});
 
-			const parsed = JSON.parse(result.data);
+				const parsed = JSON.parse(result.data);
 
-			assert.strictEqual(parsed.goalMap.id, "goal-1");
-			assert.strictEqual(parsed.goalMap.title, "Test Goal Map");
-			assert.strictEqual(parsed.goalMap.direction, "bi");
-		});
+				assert.strictEqual(parsed.goalMap.id, "goal-1");
+				assert.strictEqual(parsed.goalMap.title, "Test Goal Map");
+				assert.strictEqual(parsed.goalMap.direction, "bi");
+			}),
+		);
 	});
 });

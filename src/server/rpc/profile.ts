@@ -4,9 +4,7 @@ import { authMiddlewareOptional } from "@/middlewares/auth";
 
 export const getMe = createServerFn()
 	.middleware([authMiddlewareOptional])
-	.handler(async ({ context }) => {
-		return context.user;
-	});
+	.handler(async ({ context }) => context.user);
 
 export const ProfileRpc = {
 	me: () => ["me"],

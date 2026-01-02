@@ -111,9 +111,19 @@ function LearnerMapEditor() {
 	const [isHydrated, setIsHydrated] = useState(false);
 	const [timeRemaining, setTimeRemaining] = useState<number | null>(null);
 
-	const { data: assignmentData, isLoading } = useQuery(
+	const { data: assignmentDataRaw, isLoading } = useQuery(
 		LearnerMapRpc.getAssignmentForStudent({ assignmentId }),
 	);
+
+	// Filter out error responses
+	const assignmentData =
+		assignmentDataRaw &&
+		!("success" in assignmentDataRaw && !assignmentDataRaw.success)
+			? (assignmentDataRaw as Exclude<
+					typeof assignmentDataRaw,
+					{ success: false }
+				>)
+			: undefined;
 
 	// Mutations
 	const saveMutation = useMutation(LearnerMapRpc.saveLearnerMap());

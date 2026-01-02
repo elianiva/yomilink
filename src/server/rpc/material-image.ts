@@ -7,7 +7,7 @@ import {
 	UploadMaterialImageInput,
 } from "@/features/analyzer/lib/material-image-service";
 import { LoggerLive } from "../logger";
-import { logRpcError } from "./handler";
+import { errorResponse, logRpcError } from "../rpc-helper";
 
 export const uploadMaterialImageRpc = createServerFn()
 	.middleware([authMiddleware])
@@ -16,9 +16,20 @@ export const uploadMaterialImageRpc = createServerFn()
 	)
 	.handler(({ data }) =>
 		uploadMaterialImage(data).pipe(
-			Effect.tapError(logRpcError("uploadMaterialImage")),
-			Effect.provide(LoggerLive),
 			Effect.withSpan("uploadMaterialImage"),
+			Effect.tapError(logRpcError("uploadMaterialImage")),
+			Effect.catchTags({
+				InvalidFileTypeError: (e) =>
+					errorResponse(
+						`Invalid file type: ${e.type}. Allowed: ${e.allowed.join(", ")}`,
+					),
+				FileTooLargeError: (e) =>
+					errorResponse(
+						`File too large: ${e.size} bytes. Max: ${e.maxSize} bytes`,
+					),
+				UnknownException: () => errorResponse("Failed to upload image"),
+			}),
+			Effect.provide(LoggerLive),
 			Effect.runPromise,
 		),
 	);

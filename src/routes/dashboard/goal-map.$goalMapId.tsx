@@ -96,16 +96,32 @@ function TeacherGoalMapEditor() {
 	const { goalMapId } = Route.useParams();
 	const navigate = useNavigate();
 
-	const { data: existing } = useQuery({
+	const { data: existingRaw } = useQuery({
 		...GoalMapRpc.getGoalMap({ goalMapId }),
 		enabled: goalMapId !== "new",
 	});
 
-	const { data: topics = [], isLoading: topicsLoading } = useQuery(
+	// Filter out error responses
+	const existing =
+		existingRaw && !("success" in existingRaw && !existingRaw.success)
+			? (existingRaw as Exclude<typeof existingRaw, { success: false }>)
+			: undefined;
+
+	const { data: topicsRaw = [], isLoading: topicsLoading } = useQuery(
 		TopicRpc.listTopics(),
 	);
 
-	const { data: kitStatus } = useQuery(KitRpc.getKitStatus(goalMapId));
+	// Filter out error responses and ensure array type
+	const topics = Array.isArray(topicsRaw) ? topicsRaw : [];
+
+	const { data: kitStatusRaw } = useQuery(KitRpc.getKitStatus(goalMapId));
+
+	// Filter out error responses for kit status
+	const kitStatus =
+		kitStatusRaw && !("success" in kitStatusRaw && !kitStatusRaw.success)
+			? (kitStatusRaw as Exclude<typeof kitStatusRaw, { success: false }>)
+			: undefined;
+
 	const generateKitMutation = useMutation(KitRpc.generateKit());
 
 	const isNewMap = goalMapId === "new";
@@ -366,7 +382,13 @@ function TeacherGoalMapEditor() {
 								});
 							},
 							onSuccess: (data) => {
-								if (data?.ok) {
+								// Check if it's not an error response and has ok property
+								if (
+									data &&
+									!("success" in data && !data.success) &&
+									"ok" in data &&
+									data.ok
+								) {
 									const message =
 										kitStatus?.exists && !kitStatus.isOutdated
 											? "Kit updated successfully"

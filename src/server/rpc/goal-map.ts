@@ -16,16 +16,17 @@ import { requireGoalMapOwner } from "@/lib/auth-authorization";
 import { authMiddleware } from "@/middlewares/auth";
 import { DatabaseLive } from "../db/client";
 import { LoggerLive } from "../logger";
-import { logRpcError } from "./handler";
+import { errorResponse, logRpcError } from "../rpc-helper";
 
 export const getGoalMapRpc = createServerFn()
 	.middleware([authMiddleware])
 	.inputValidator((raw) => Schema.decodeUnknownSync(GetGoalMapInput)(raw))
 	.handler(({ data }) =>
 		getGoalMap(data).pipe(
-			Effect.tapError(logRpcError("getGoalMap")),
-			Effect.provide(Layer.mergeAll(DatabaseLive, LoggerLive)),
 			Effect.withSpan("getGoalMap"),
+			Effect.tapError(logRpcError("getGoalMap")),
+			Effect.catchAll(() => errorResponse("Internal server error")),
+			Effect.provide(Layer.mergeAll(DatabaseLive, LoggerLive)),
 			Effect.runPromise,
 		),
 	);
@@ -40,9 +41,15 @@ export const saveGoalMapRpc = createServerFn()
 			}
 			return yield* saveGoalMap(context.user.id, data);
 		}).pipe(
-			Effect.tapError(logRpcError("saveGoalMap")),
-			Effect.provide(Layer.mergeAll(DatabaseLive, LoggerLive)),
 			Effect.withSpan("saveGoalMap"),
+			Effect.tapError(logRpcError("saveGoalMap")),
+			Effect.catchTags({
+				GoalMapNotFoundError: (e) =>
+					errorResponse(`Goal map ${e.goalMapId} not found`),
+				ForbiddenError: (e) => errorResponse(e.message),
+			}),
+			Effect.catchAll(() => errorResponse("Internal server error")),
+			Effect.provide(Layer.mergeAll(DatabaseLive, LoggerLive)),
 			Effect.runPromise,
 		),
 	);
@@ -51,9 +58,8 @@ export const listGoalMapsRpc = createServerFn()
 	.middleware([authMiddleware])
 	.handler(({ context }) =>
 		listGoalMaps(context.user.id).pipe(
-			Effect.tapError(logRpcError("listGoalMaps")),
-			Effect.provide(Layer.mergeAll(DatabaseLive, LoggerLive)),
 			Effect.withSpan("listGoalMaps"),
+			Effect.provide(Layer.mergeAll(DatabaseLive, LoggerLive)),
 			Effect.runPromise,
 		),
 	);
@@ -65,9 +71,10 @@ export const listGoalMapsByTopicRpc = createServerFn()
 	)
 	.handler(({ data }) =>
 		listGoalMapsByTopic(data).pipe(
-			Effect.tapError(logRpcError("listGoalMapsByTopic")),
-			Effect.provide(Layer.mergeAll(DatabaseLive, LoggerLive)),
 			Effect.withSpan("listGoalMapsByTopic"),
+			Effect.tapError(logRpcError("listGoalMapsByTopic")),
+			Effect.catchAll(() => errorResponse("Internal server error")),
+			Effect.provide(Layer.mergeAll(DatabaseLive, LoggerLive)),
 			Effect.runPromise,
 		),
 	);
@@ -77,9 +84,15 @@ export const deleteGoalMapRpc = createServerFn()
 	.inputValidator((raw) => Schema.decodeUnknownSync(DeleteGoalMapInput)(raw))
 	.handler(({ data, context }) =>
 		deleteGoalMap(context.user.id, data).pipe(
-			Effect.tapError(logRpcError("deleteGoalMap")),
-			Effect.provide(Layer.mergeAll(DatabaseLive, LoggerLive)),
 			Effect.withSpan("deleteGoalMap"),
+			Effect.tapError(logRpcError("deleteGoalMap")),
+			Effect.catchTags({
+				GoalMapNotFoundError: (e) =>
+					errorResponse(`Goal map ${e.goalMapId} not found`),
+				ForbiddenError: (e) => errorResponse(e.message),
+			}),
+			Effect.catchAll(() => errorResponse("Internal server error")),
+			Effect.provide(Layer.mergeAll(DatabaseLive, LoggerLive)),
 			Effect.runPromise,
 		),
 	);

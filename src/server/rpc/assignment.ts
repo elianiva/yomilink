@@ -14,16 +14,21 @@ import {
 } from "@/features/assignment/lib/assignment-service";
 import { DatabaseLive } from "../db/client";
 import { LoggerLive } from "../logger";
-import { logRpcError } from "./handler";
+import { errorResponse, logRpcError } from "../rpc-helper";
 
 export const createAssignmentRpc = createServerFn()
 	.middleware([requireRoleMiddleware("teacher", "admin")])
 	.inputValidator((raw) => Schema.decodeUnknownSync(CreateAssignmentInput)(raw))
 	.handler(({ data, context }) =>
 		createAssignment(context.user.id, data).pipe(
+			Effect.withSpan("createAssignment"),
 			Effect.tapError(logRpcError("createAssignment")),
 			Effect.provide(Layer.mergeAll(DatabaseLive, LoggerLive)),
-			Effect.withSpan("createAssignment"),
+			Effect.catchTags({
+				KitNotFoundError: (e) =>
+					errorResponse(`Kit not found for goal map: ${e.goalMapId}`),
+			}),
+			Effect.catchAll(() => errorResponse("Internal server error")),
 			Effect.runPromise,
 		),
 	);
@@ -32,9 +37,10 @@ export const listTeacherAssignmentsRpc = createServerFn()
 	.middleware([requireRoleMiddleware("teacher", "admin")])
 	.handler(({ context }) =>
 		listTeacherAssignments(context.user.id).pipe(
-			Effect.tapError(logRpcError("listTeacherAssignments")),
-			Effect.provide(Layer.mergeAll(DatabaseLive, LoggerLive)),
 			Effect.withSpan("listTeacherAssignments"),
+			Effect.tapError(logRpcError("listTeacherAssignments")),
+			Effect.catchAll(() => errorResponse("Internal server error")),
+			Effect.provide(Layer.mergeAll(DatabaseLive, LoggerLive)),
 			Effect.runPromise,
 		),
 	);
@@ -44,9 +50,14 @@ export const deleteAssignmentRpc = createServerFn()
 	.inputValidator((raw) => Schema.decodeUnknownSync(DeleteAssignmentInput)(raw))
 	.handler(({ data, context }) =>
 		deleteAssignment(context.user.id, data).pipe(
-			Effect.tapError(logRpcError("deleteAssignment")),
-			Effect.provide(Layer.mergeAll(DatabaseLive, LoggerLive)),
 			Effect.withSpan("deleteAssignment"),
+			Effect.tapError(logRpcError("deleteAssignment")),
+			Effect.catchTags({
+				AssignmentNotFoundError: (e) =>
+					errorResponse(`Assignment not found: ${e.assignmentId}`),
+			}),
+			Effect.catchAll(() => errorResponse("Internal server error")),
+			Effect.provide(Layer.mergeAll(DatabaseLive, LoggerLive)),
 			Effect.runPromise,
 		),
 	);
@@ -55,9 +66,10 @@ export const getAvailableCohortsRpc = createServerFn()
 	.middleware([requireRoleMiddleware("teacher", "admin")])
 	.handler(() =>
 		getAvailableCohorts().pipe(
-			Effect.tapError(logRpcError("getAvailableCohorts")),
-			Effect.provide(Layer.mergeAll(DatabaseLive, LoggerLive)),
 			Effect.withSpan("getAvailableCohorts"),
+			Effect.tapError(logRpcError("getAvailableCohorts")),
+			Effect.catchAll(() => errorResponse("Internal server error")),
+			Effect.provide(Layer.mergeAll(DatabaseLive, LoggerLive)),
 			Effect.runPromise,
 		),
 	);
@@ -66,9 +78,10 @@ export const getAvailableUsersRpc = createServerFn()
 	.middleware([requireRoleMiddleware("teacher", "admin")])
 	.handler(() =>
 		getAvailableUsers().pipe(
-			Effect.tapError(logRpcError("getAvailableUsers")),
-			Effect.provide(Layer.mergeAll(DatabaseLive, LoggerLive)),
 			Effect.withSpan("getAvailableUsers"),
+			Effect.tapError(logRpcError("getAvailableUsers")),
+			Effect.catchAll(() => errorResponse("Internal server error")),
+			Effect.provide(Layer.mergeAll(DatabaseLive, LoggerLive)),
 			Effect.runPromise,
 		),
 	);
@@ -77,9 +90,10 @@ export const getTeacherGoalMapsRpc = createServerFn()
 	.middleware([requireRoleMiddleware("teacher", "admin")])
 	.handler(() =>
 		getTeacherGoalMaps().pipe(
-			Effect.tapError(logRpcError("getTeacherGoalMaps")),
-			Effect.provide(Layer.mergeAll(DatabaseLive, LoggerLive)),
 			Effect.withSpan("getTeacherGoalMaps"),
+			Effect.tapError(logRpcError("getTeacherGoalMaps")),
+			Effect.catchAll(() => errorResponse("Internal server error")),
+			Effect.provide(Layer.mergeAll(DatabaseLive, LoggerLive)),
 			Effect.runPromise,
 		),
 	);

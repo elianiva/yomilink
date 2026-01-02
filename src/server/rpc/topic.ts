@@ -9,15 +9,16 @@ import {
 } from "@/features/analyzer/lib/topic-service";
 import { DatabaseLive } from "../db/client";
 import { LoggerLive } from "../logger";
-import { logRpcError } from "./handler";
+import { errorResponse, logRpcError } from "../rpc-helper";
 
 export const listTopicsRpc = createServerFn()
 	.middleware([authMiddleware])
 	.handler(() =>
 		listTopics().pipe(
-			Effect.tapError(logRpcError("listTopics")),
-			Effect.provide(Layer.mergeAll(DatabaseLive, LoggerLive)),
 			Effect.withSpan("listTopics"),
+			Effect.tapError(logRpcError("listTopics")),
+			Effect.catchAll(() => errorResponse("Internal server error")),
+			Effect.provide(Layer.mergeAll(DatabaseLive, LoggerLive)),
 			Effect.runPromise,
 		),
 	);
@@ -27,9 +28,10 @@ export const createTopicRpc = createServerFn()
 	.inputValidator((raw) => Schema.decodeUnknownSync(CreateTopicInput)(raw))
 	.handler(({ data }) =>
 		createTopic(data).pipe(
-			Effect.tapError(logRpcError("createTopic")),
-			Effect.provide(Layer.mergeAll(DatabaseLive, LoggerLive)),
 			Effect.withSpan("createTopic"),
+			Effect.tapError(logRpcError("createTopic")),
+			Effect.catchAll(() => errorResponse("Internal server error")),
+			Effect.provide(Layer.mergeAll(DatabaseLive, LoggerLive)),
 			Effect.runPromise,
 		),
 	);

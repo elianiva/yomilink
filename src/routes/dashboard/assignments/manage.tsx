@@ -42,9 +42,12 @@ function ManageAssignmentsPage() {
 	const queryClient = useQueryClient();
 	const [createDialogOpen, setCreateDialogOpen] = useState(false);
 
-	const { data: assignments, isLoading } = useQuery(
+	const { data: assignmentsRaw, isLoading } = useQuery(
 		AssignmentRpc.listTeacherAssignments(),
 	);
+
+	// Filter out error responses and ensure array type
+	const assignments = Array.isArray(assignmentsRaw) ? assignmentsRaw : [];
 
 	const deleteMutation = useMutation({
 		...AssignmentRpc.deleteAssignment(),
@@ -174,9 +177,14 @@ function CreateAssignmentDialog({ onSuccess }: { onSuccess: () => void }) {
 	const [selectedCohorts, setSelectedCohorts] = useState<string[]>([]);
 	const [selectedUsers, setSelectedUsers] = useState<string[]>([]);
 
-	const { data: goalMaps } = useQuery(AssignmentRpc.getTeacherGoalMaps());
-	const { data: cohorts } = useQuery(AssignmentRpc.getAvailableCohorts());
-	const { data: users } = useQuery(AssignmentRpc.getAvailableUsers());
+	const { data: goalMapsRaw } = useQuery(AssignmentRpc.getTeacherGoalMaps());
+	const { data: cohortsRaw } = useQuery(AssignmentRpc.getAvailableCohorts());
+	const { data: usersRaw } = useQuery(AssignmentRpc.getAvailableUsers());
+
+	// Filter out error responses and ensure array types
+	const goalMaps = Array.isArray(goalMapsRaw) ? goalMapsRaw : [];
+	const cohorts = Array.isArray(cohortsRaw) ? cohortsRaw : [];
+	const users = Array.isArray(usersRaw) ? usersRaw : [];
 
 	const generateKitMutation = useMutation(KitRpc.generateKit());
 	const createMutation = useMutation(AssignmentRpc.createAssignment());

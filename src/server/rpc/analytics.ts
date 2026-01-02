@@ -13,15 +13,16 @@ import {
 import { authMiddleware } from "@/middlewares/auth";
 import { DatabaseLive } from "../db/client";
 import { LoggerLive } from "../logger";
-import { logRpcError } from "./handler";
+import { errorResponse, logRpcError } from "../rpc-helper";
 
 export const getTeacherAssignmentsRpc = createServerFn()
 	.middleware([authMiddleware])
 	.handler(({ context }) =>
 		getTeacherAssignments(context.user.id).pipe(
-			Effect.tapError(logRpcError("getTeacherAssignments")),
-			Effect.provide(Layer.mergeAll(DatabaseLive, LoggerLive)),
 			Effect.withSpan("getTeacherAssignments"),
+			Effect.tapError(logRpcError("getTeacherAssignments")),
+			Effect.catchAll(() => errorResponse("Internal server error")),
+			Effect.provide(Layer.mergeAll(DatabaseLive, LoggerLive)),
 			Effect.runPromise,
 		),
 	);
@@ -33,9 +34,16 @@ export const getAnalyticsForAssignmentRpc = createServerFn()
 	)
 	.handler(({ data, context }) =>
 		getAnalyticsForAssignment(context.user.id, data).pipe(
-			Effect.tapError(logRpcError("getAnalyticsForAssignment")),
-			Effect.provide(Layer.mergeAll(DatabaseLive, LoggerLive)),
 			Effect.withSpan("getAnalyticsForAssignment"),
+			Effect.tapError(logRpcError("getAnalyticsForAssignment")),
+			Effect.catchTags({
+				AssignmentNotFoundError: (e) =>
+					errorResponse(`Assignment not found: ${e.assignmentId}`),
+				GoalMapNotFoundError: (e) =>
+					errorResponse(`Goal map not found: ${e.goalMapId}`),
+			}),
+			Effect.catchAll(() => errorResponse("Internal server error")),
+			Effect.provide(Layer.mergeAll(DatabaseLive, LoggerLive)),
 			Effect.runPromise,
 		),
 	);
@@ -47,9 +55,16 @@ export const getLearnerMapForAnalyticsRpc = createServerFn()
 	)
 	.handler(({ data }) =>
 		getLearnerMapForAnalytics(data).pipe(
+			Effect.withSpan("getLearnerMapForAnalytics"),
 			Effect.tapError(logRpcError("getLearnerMapForAnalytics")),
 			Effect.provide(Layer.mergeAll(DatabaseLive, LoggerLive)),
-			Effect.withSpan("getLearnerMapForAnalytics"),
+			Effect.catchTags({
+				LearnerMapNotFoundError: (e) =>
+					errorResponse(`Learner map not found: ${e.learnerMapId}`),
+				GoalMapNotFoundError: (e) =>
+					errorResponse(`Goal map not found: ${e.goalMapId}`),
+			}),
+			Effect.catchAll(() => errorResponse("Internal server error")),
 			Effect.runPromise,
 		),
 	);
@@ -60,10 +75,11 @@ export const exportAnalyticsDataRpc = createServerFn()
 		Schema.decodeUnknownSync(ExportAnalyticsDataInput)(raw),
 	)
 	.handler(({ data }) =>
-		Effect.succeed(exportAnalyticsData(data)).pipe(
-			Effect.tapError(logRpcError("exportAnalyticsData")),
-			Effect.provide(Layer.mergeAll(DatabaseLive, LoggerLive)),
+		exportAnalyticsData(data).pipe(
 			Effect.withSpan("exportAnalyticsData"),
+			Effect.tapError(logRpcError("exportAnalyticsData")),
+			Effect.catchAll(() => errorResponse("Internal server error")),
+			Effect.provide(Layer.mergeAll(DatabaseLive, LoggerLive)),
 			Effect.runPromise,
 		),
 	);
