@@ -295,4 +295,4 @@ This uses Wrangler to deploy the application. Ensure your environment variables 
 
 ## License
 
-[Add your license here]
+See [LICENSE](./LICENSE)
