@@ -2,6 +2,10 @@ import { readdirSync, readFileSync } from "node:fs";
 import { join } from "node:path";
 import { eq } from "drizzle-orm";
 import { Effect, Layer, Logger, Schema } from "effect";
+
+// Use Bun's built-in YAML parser
+// @ts-expect-error - Bun global is available at runtime
+const YAML: { parse: (input: string) => unknown } = globalThis.Bun.YAML;
 import { Auth } from "@/lib/auth";
 import { randomString } from "@/lib/utils";
 import { Database, DatabaseLive } from "@/server/db/client";
@@ -162,138 +166,9 @@ function parseFrontmatter(content: string): ParsedMaterial {
 	}
 
 	const [, rawFrontmatter, markdownContent] = match;
-	const frontmatter: Partial<MaterialData> = {};
 
-	// Simple key-value parser for frontmatter
-	const lines = rawFrontmatter.split("\n");
-	let currentKey: string | null = null;
-	let currentValue: any = null;
-	let inArray = false;
-	let inObject = false;
-	let objectDepth = 0;
-
-	for (const line of lines) {
-		const trimmedLine = line.trim();
-
-		// Skip empty lines
-		if (!trimmedLine) {
-			continue;
-		}
-
-		// Check for array or object
-		if (trimmedLine.startsWith("- ") || trimmedLine.match(/^- id:/)) {
-			inArray = true;
-		}
-
-		if (trimmedLine.includes("{") && !trimmedLine.includes("}")) {
-			inObject = true;
-			objectDepth++;
-		}
-		if (trimmedLine.includes("}") && !trimmedLine.includes("{")) {
-			objectDepth--;
-			if (objectDepth === 0) {
-				inObject = false;
-			}
-		}
-
-		const colonIndex = trimmedLine.indexOf(":");
-
-		if (colonIndex !== -1 && !inObject && !inArray) {
-			// Save previous value if exists
-			if (currentKey !== null) {
-				frontmatter[currentKey as keyof MaterialData] = currentValue;
-			}
-
-			currentKey = trimmedLine.slice(0, colonIndex).trim();
-			const value = trimmedLine.slice(colonIndex + 1).trim();
-
-			if (value.startsWith('"') && value.endsWith('"')) {
-				currentValue = value.slice(1, -1);
-			} else {
-				currentValue = value;
-			}
-			inArray = false;
-		} else if (colonIndex !== -1 && inArray) {
-			// Array item with key
-			const key = trimmedLine.slice(0, colonIndex).trim();
-			const value = trimmedLine.slice(colonIndex + 1).trim();
-
-			if (!Array.isArray(currentValue)) {
-				currentValue = [];
-			}
-			const item: Record<string, any> = {};
-
-			if (value.startsWith('"') && value.endsWith('"')) {
-				item[key] = value.slice(1, -1);
-			} else if (value.startsWith("{") && value.endsWith("}")) {
-				try {
-					item[key] = JSON.parse(value);
-				} catch {
-					item[key] = value;
-				}
-			} else {
-				item[key] = value;
-			}
-
-			currentValue.push(item);
-			if (key === "id" || key === "type") {
-				inArray = false;
-			}
-		} else if (trimmedLine.startsWith("- ") && inArray) {
-			// Array item without key (continuation)
-			const value = trimmedLine.slice(2).trim();
-			if (typeof currentValue === "object" && currentValue !== null) {
-				const lastItem = currentValue[currentValue.length - 1];
-				if (lastItem) {
-					if (value.startsWith("{") && value.endsWith("}")) {
-						try {
-							Object.assign(lastItem, JSON.parse(value));
-						} catch {
-							lastItem.data = value;
-						}
-					}
-				}
-			}
-		} else if (inArray && trimmedLine.startsWith("id:")) {
-			// Start new array item
-			const id = trimmedLine.slice(3).trim();
-			if (!Array.isArray(currentValue)) {
-				currentValue = [];
-			}
-			currentValue.push({ id });
-		} else if (
-			inArray &&
-			(trimmedLine.startsWith("type:") ||
-				trimmedLine.startsWith("position:") ||
-				trimmedLine.startsWith("data:") ||
-				trimmedLine.startsWith("source:") ||
-				trimmedLine.startsWith("target:"))
-		) {
-			// Add property to last array item
-			if (Array.isArray(currentValue) && currentValue.length > 0) {
-				const colonIdx = trimmedLine.indexOf(":");
-				const key = trimmedLine.slice(0, colonIdx).trim();
-				const value = trimmedLine.slice(colonIdx + 1).trim();
-				const lastItem = currentValue[currentValue.length - 1];
-				if (value.startsWith("{") && value.endsWith("}")) {
-					try {
-						lastItem[key] = JSON.parse(value);
-					} catch {
-						lastItem[key] = value;
-					}
-				} else if (value.startsWith('"') && value.endsWith('"')) {
-					lastItem[key] = value.slice(1, -1);
-				} else {
-					lastItem[key] = value;
-				}
-			}
-		}
-	}
-
-	// Save last value
-	if (currentKey !== null) {
-		frontmatter[currentKey as keyof MaterialData] = currentValue;
-	}
+	// Use Bun's built-in YAML parser for proper YAML parsing
+	const frontmatter = YAML.parse(rawFrontmatter) as Partial<MaterialData>;
 
 	return { frontmatter, content: markdownContent || content };
 }
