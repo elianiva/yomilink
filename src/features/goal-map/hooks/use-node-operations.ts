@@ -1,12 +1,13 @@
-import { useAtom, useAtomValue, useSetAtom } from "jotai";
+import { useAtom, useSetAtom } from "jotai";
 import { useCallback } from "react";
+import { useReactFlow } from "@xyflow/react";
 import type { TailwindColor } from "@/features/kitbuild/components/color-picker";
-import { edgesAtom, nodesAtom, rfInstanceAtom } from "../lib/atoms";
+import { edgesAtom, nodesAtom } from "../lib/atoms";
 
 export function useNodeOperations() {
 	const [nodes, setNodes] = useAtom(nodesAtom);
 	const setEdges = useSetAtom(edgesAtom);
-	const rfInstance = useAtomValue(rfInstanceAtom);
+	const { setCenter } = useReactFlow();
 
 	const getNodeType = useCallback(
 		(id?: string | null) => nodes.find((n) => n.id === id)?.type,
@@ -67,9 +68,9 @@ export function useNodeOperations() {
 
 	const selectNode = (nodeId: string) => {
 		const node = nodes.find((n) => n.id === nodeId);
-		if (node && rfInstance) {
+		if (node) {
 			// Center on the node
-			rfInstance.setCenter(node.position.x + 75, node.position.y + 25, {
+			setCenter(node.position.x + 75, node.position.y + 25, {
 				zoom: 1.5,
 				duration: 500,
 			});

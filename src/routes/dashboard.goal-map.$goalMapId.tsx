@@ -1,6 +1,12 @@
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import type { Connection, MarkerType } from "@xyflow/react";
-import { Background, MiniMap, ReactFlow } from "@xyflow/react";
+import {
+	Background,
+	MiniMap,
+	ReactFlow,
+	ReactFlowProvider,
+	useReactFlow,
+} from "@xyflow/react";
 import { useAtom, useAtomValue, useSetAtom } from "jotai";
 import { isErrorResponse } from "@/hooks/use-rpc-error";
 import { useRpcMutation, useRpcQuery } from "@/hooks/use-rpc-query";
@@ -34,7 +40,6 @@ import {
 	isHydratedAtom,
 	linkDialogOpenAtom,
 	materialTextAtom,
-	rfInstanceAtom,
 	searchOpenAtom,
 } from "@/features/goal-map/lib/atoms";
 import {
@@ -56,7 +61,9 @@ import { TopicRpc } from "@/server/rpc/topic";
 export const Route = createFileRoute("/dashboard/goal-map/$goalMapId")({
 	component: () => (
 		<Guard roles={["teacher", "admin"]}>
-			<TeacherGoalMapEditor />
+			<ReactFlowProvider>
+				<TeacherGoalMapEditor />
+			</ReactFlowProvider>
 		</Guard>
 	),
 });
@@ -77,7 +84,7 @@ function TeacherGoalMapEditor() {
 		[],
 	);
 
-	const [rfInstance, setRfInstance] = useAtom(rfInstanceAtom);
+	const { getViewport } = useReactFlow();
 	const setPageTitle = useSetAtom(pageTitleAtom);
 	const [conceptDialogOpen, setConceptDialogOpen] = useAtom(
 		conceptDialogOpenAtom,
@@ -311,13 +318,13 @@ function TeacherGoalMapEditor() {
 	]);
 
 	const handleAddConcept = (data: { label: string; color: TailwindColor }) => {
-		const viewport = rfInstance?.getViewport();
+		const viewport = getViewport();
 		addTextNode(data.label, data.color, viewport);
 		setConceptDialogOpen(false);
 	};
 
 	const handleAddLink = (data: { label: string }) => {
-		const viewport = rfInstance?.getViewport();
+		const viewport = getViewport();
 		addConnectorNode(data.label, viewport);
 		setLinkDialogOpen(false);
 	};
@@ -511,9 +518,6 @@ function TeacherGoalMapEditor() {
 					onPaneClick={onPaneClick}
 					defaultEdgeOptions={edgeOptions}
 					connectionLineComponent={FloatingConnectionLine}
-					onInit={(instance) => {
-						setRfInstance(instance);
-					}}
 					fitView
 				>
 					<MiniMap />

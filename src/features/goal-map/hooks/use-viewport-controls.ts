@@ -1,12 +1,7 @@
-import { useAtom, useAtomValue } from "jotai";
+import { useAtom } from "jotai";
 import { useCallback } from "react";
-import type { MarkerType } from "@xyflow/react";
-import {
-	edgesAtom,
-	nodesAtom,
-	rfInstanceAtom,
-	directionEnabledAtom,
-} from "../lib/atoms";
+import { useReactFlow, type MarkerType } from "@xyflow/react";
+import { edgesAtom, nodesAtom, directionEnabledAtom } from "../lib/atoms";
 import { getLayoutedElements } from "@/features/kitbuild/lib/layout";
 
 const LAYOUT_TIMEOUT_MS = 50;
@@ -15,24 +10,24 @@ const FIT_PADDING = 0.2;
 export function useViewportControls() {
 	const [nodes, setNodes] = useAtom(nodesAtom);
 	const [edges, setEdges] = useAtom(edgesAtom);
-	const rfInstance = useAtomValue(rfInstanceAtom);
+	const { zoomIn: rfZoomIn, zoomOut: rfZoomOut, fitView } = useReactFlow();
 	const [directionEnabled, setDirectionEnabled] = useAtom(directionEnabledAtom);
 
 	const zoomIn = useCallback(() => {
-		rfInstance?.zoomIn?.();
-	}, [rfInstance]);
+		rfZoomIn();
+	}, [rfZoomIn]);
 
 	const zoomOut = useCallback(() => {
-		rfInstance?.zoomOut?.();
-	}, [rfInstance]);
+		rfZoomOut();
+	}, [rfZoomOut]);
 
 	const fit = useCallback(() => {
-		rfInstance?.fitView?.({ padding: FIT_PADDING });
-	}, [rfInstance]);
+		fitView({ padding: FIT_PADDING });
+	}, [fitView]);
 
 	const centerMap = useCallback(() => {
-		rfInstance?.fitView?.({ padding: FIT_PADDING });
-	}, [rfInstance]);
+		fitView({ padding: FIT_PADDING });
+	}, [fitView]);
 
 	const toggleDirection = useCallback(() => {
 		setDirectionEnabled((prev) => !prev);
@@ -47,9 +42,9 @@ export function useViewportControls() {
 		setNodes(layoutedNodes);
 		setEdges(layoutedEdges);
 		setTimeout(() => {
-			rfInstance?.fitView?.({ padding: FIT_PADDING });
+			fitView({ padding: FIT_PADDING });
 		}, LAYOUT_TIMEOUT_MS);
-	}, [nodes, edges, setNodes, setEdges, rfInstance]);
+	}, [nodes, edges, setNodes, setEdges, fitView]);
 
 	const updateEdgeMarkers = useCallback(() => {
 		setEdges((eds) =>

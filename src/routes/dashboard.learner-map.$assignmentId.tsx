@@ -7,7 +7,14 @@ import type {
 	NodeChange,
 	NodeMouseHandler,
 } from "@xyflow/react";
-import { addEdge, Background, MiniMap, ReactFlow } from "@xyflow/react";
+import {
+	addEdge,
+	Background,
+	MiniMap,
+	ReactFlow,
+	ReactFlowProvider,
+	useReactFlow,
+} from "@xyflow/react";
 import "@xyflow/react/dist/style.css";
 import { useAtom, useAtomValue, useSetAtom } from "jotai";
 import { useCallback, useEffect, useMemo, useState } from "react";
@@ -46,7 +53,6 @@ import {
 	learnerNodesAtom,
 	materialDialogOpenAtom,
 	materialTextAtom,
-	rfInstanceAtom,
 	searchOpenAtom,
 	submissionStatusAtom,
 } from "@/features/learner-map/lib/atoms";
@@ -61,7 +67,9 @@ import { LearnerMapRpc } from "@/server/rpc/learner-map";
 export const Route = createFileRoute("/dashboard/learner-map/$assignmentId")({
 	component: () => (
 		<Guard roles={["student"]}>
-			<LearnerMapEditor />
+			<ReactFlowProvider>
+				<LearnerMapEditor />
+			</ReactFlowProvider>
 		</Guard>
 	),
 });
@@ -89,7 +97,7 @@ function LearnerMapEditor() {
 	// Atom state
 	const [nodes, setNodes] = useAtom(learnerNodesAtom);
 	const [edges, setEdges] = useAtom(learnerEdgesAtom);
-	const [rfInstance, setRfInstance] = useAtom(rfInstanceAtom);
+	const { zoomIn: rfZoomIn, zoomOut: rfZoomOut, fitView } = useReactFlow();
 	const [searchOpen, setSearchOpen] = useAtom(searchOpenAtom);
 	const [materialOpen, setMaterialOpen] = useAtom(materialDialogOpenAtom);
 	const [connectionMode, setConnectionMode] = useAtom(connectionModeAtom);
@@ -498,9 +506,9 @@ function LearnerMapEditor() {
 	);
 
 	// Toolbar actions
-	const zoomIn = () => rfInstance?.zoomIn?.();
-	const zoomOut = () => rfInstance?.zoomOut?.();
-	const fit = () => rfInstance?.fitView?.({ padding: 0.2 });
+	const zoomIn = () => rfZoomIn();
+	const zoomOut = () => rfZoomOut();
+	const fit = () => fitView({ padding: 0.2 });
 
 	const autoLayout = () => {
 		if (status === "submitted") return;
@@ -511,13 +519,13 @@ function LearnerMapEditor() {
 		);
 		setNodes(layoutedNodes);
 		setEdges(layoutedEdges);
-		setTimeout(() => rfInstance?.fitView?.({ padding: 0.2 }), 50);
+		setTimeout(() => fitView({ padding: 0.2 }), 50);
 	};
 
 	const selectNode = (nodeId: string) => {
 		const node = nodes.find((n) => n.id === nodeId);
-		if (node && rfInstance) {
-			rfInstance.fitView({
+		if (node) {
+			fitView({
 				nodes: [node],
 				padding: 0.5,
 				duration: 500,
@@ -676,7 +684,6 @@ function LearnerMapEditor() {
 					onPaneClick={onPaneClick}
 					defaultEdgeOptions={edgeOptions}
 					connectionLineComponent={FloatingConnectionLine}
-					onInit={(instance) => setRfInstance(instance)}
 					fitView
 					nodesDraggable={status !== "submitted"}
 					nodesConnectable={status !== "submitted"}

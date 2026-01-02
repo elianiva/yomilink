@@ -1,5 +1,11 @@
 import type { Edge, MarkerType, Node } from "@xyflow/react";
-import { Background, MiniMap, ReactFlow, useReactFlow } from "@xyflow/react";
+import {
+	Background,
+	MiniMap,
+	ReactFlow,
+	ReactFlowProvider,
+	useReactFlow,
+} from "@xyflow/react";
 import { ZoomIn, ZoomOut } from "lucide-react";
 import { useMemo } from "react";
 import { ConnectorNode } from "@/features/kitbuild/components/connector-node";
@@ -75,7 +81,15 @@ function getEdgeStyleByType(
 	}
 }
 
-export function AnalyticsCanvas({
+export function AnalyticsCanvas(props: AnalyticsCanvasProps) {
+	return (
+		<ReactFlowProvider>
+			<AnalyticsCanvasInner {...props} />
+		</ReactFlowProvider>
+	);
+}
+
+function AnalyticsCanvasInner({
 	goalMap,
 	learnerMap,
 	edgeClassifications,

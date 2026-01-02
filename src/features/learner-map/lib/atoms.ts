@@ -55,9 +55,6 @@ export const historyAtom = atom<HistorySnapshot[]>([]);
 export const historyPointerAtom = atom(-1);
 export const isApplyingHistoryAtom = atom(false);
 
-// ReactFlow instance
-export const rfInstanceAtom = atom<any>(null);
-
 // Dirty state tracking
 export const lastSavedSnapshotAtom = atom<string | null>(null);
 

@@ -1,12 +1,12 @@
 import { useAtom, useAtomValue, useSetAtom } from "jotai";
 import { useCallback, useEffect } from "react";
+import { useReactFlow } from "@xyflow/react";
 import {
 	edgesAtom,
 	historyAtom,
 	historyPointerAtom,
 	isApplyingHistoryAtom,
 	nodesAtom,
-	rfInstanceAtom,
 } from "../lib/atoms";
 
 export function useHistory() {
@@ -15,7 +15,7 @@ export function useHistory() {
 	const [history, setHistory] = useAtom(historyAtom);
 	const [pointer, setPointer] = useAtom(historyPointerAtom);
 	const setIsApplying = useSetAtom(isApplyingHistoryAtom);
-	const rfInstance = useAtomValue(rfInstanceAtom);
+	const { setNodes, setEdges } = useReactFlow();
 
 	const undo = useCallback(() => {
 		if (pointer <= 0) return;
@@ -23,12 +23,12 @@ export function useHistory() {
 		setPointer(newPointer);
 		const snap = history[newPointer];
 		setIsApplying(true);
-		rfInstance?.setNodes(snap.nodes);
-		rfInstance?.setEdges(snap.edges);
+		setNodes(snap.nodes);
+		setEdges(snap.edges);
 		requestAnimationFrame(() => {
 			setIsApplying(false);
 		});
-	}, [pointer, history, setPointer, setIsApplying, rfInstance]);
+	}, [pointer, history, setPointer, setIsApplying, setNodes, setEdges]);
 
 	const redo = useCallback(() => {
 		if (pointer >= history.length - 1) return;
@@ -36,12 +36,12 @@ export function useHistory() {
 		setPointer(newPointer);
 		const snap = history[newPointer];
 		setIsApplying(true);
-		rfInstance?.setNodes(snap.nodes);
-		rfInstance?.setEdges(snap.edges);
+		setNodes(snap.nodes);
+		setEdges(snap.edges);
 		requestAnimationFrame(() => {
 			setIsApplying(false);
 		});
-	}, [pointer, history, setPointer, setIsApplying, rfInstance]);
+	}, [pointer, history, setPointer, setIsApplying, setNodes, setEdges]);
 
 	const isApplying = useAtomValue(isApplyingHistoryAtom);
 
