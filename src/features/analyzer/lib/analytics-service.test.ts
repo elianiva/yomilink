@@ -611,6 +611,7 @@ describe("analytics-service", () => {
 				goalMapId: "goal-1",
 				goalMapTitle: "Test Goal Map",
 				kitId: "kit-1",
+				totalSubmissions: 1,
 				createdAt: 1704067200000,
 				dueAt: 1704153600000,
 			},
@@ -718,16 +719,19 @@ describe("analytics-service", () => {
 
 		it.effect("should handle empty learners array", () =>
 			Effect.gen(function* () {
-				const analytics = createMockAnalytics();
-				analytics.learners = [];
-				analytics.summary = {
-					totalLearners: 0,
-					submittedCount: 0,
-					draftCount: 0,
-					avgScore: null,
-					medianScore: null,
-					highestScore: null,
-					lowestScore: null,
+				const baseAnalytics = createMockAnalytics();
+				const analytics = {
+					...baseAnalytics,
+					learners: [],
+					summary: {
+						totalLearners: 0,
+						submittedCount: 0,
+						draftCount: 0,
+						avgScore: null,
+						medianScore: null,
+						highestScore: null,
+						lowestScore: null,
+					},
 				};
 
 				const csvResult = yield* exportAnalyticsData({
@@ -750,22 +754,25 @@ describe("analytics-service", () => {
 
 		it.effect("should handle null score values in CSV", () =>
 			Effect.gen(function* () {
-				const analytics = createMockAnalytics();
-				analytics.learners = [
-					{
-						userId: "user-1",
-						userName: "Student",
-						learnerMapId: "lm-1",
-						status: "draft",
-						score: null,
-						attempt: 1,
-						submittedAt: null,
-						correct: 0,
-						missing: 0,
-						excessive: 0,
-						totalGoalEdges: 0,
-					},
-				];
+				const baseAnalytics = createMockAnalytics();
+				const analytics = {
+					...baseAnalytics,
+					learners: [
+						{
+							userId: "user-1",
+							userName: "Student",
+							learnerMapId: "lm-1",
+							status: "draft" as const,
+							score: null,
+							attempt: 1,
+							submittedAt: null,
+							correct: 0,
+							missing: 0,
+							excessive: 0,
+							totalGoalEdges: 0,
+						},
+					],
+				};
 
 				const result = yield* exportAnalyticsData({
 					analytics,

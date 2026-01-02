@@ -1,5 +1,5 @@
 import * as Sentry from "@sentry/tanstackstart-react";
-import { Cause, HashMap, Layer, Logger, LogLevel, Option } from "effect";
+import { Cause, HashMap, Logger, LogLevel, Option } from "effect";
 
 /**
  * Sentry logger that captures error-level logs as Sentry events.

@@ -375,6 +375,7 @@ export const getAnalyticsForAssignment = Effect.fn("getAnalyticsForAssignment")(
 					goalMapId: assignment.goalMapId,
 					goalMapTitle: goalMap.title,
 					kitId: assignment.kitId,
+					totalSubmissions: summary.submittedCount,
 					createdAt: assignment.createdAt?.getTime() ?? 0,
 					dueAt: assignment.dueAt?.getTime() ?? null,
 				},
