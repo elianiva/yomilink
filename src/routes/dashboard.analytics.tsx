@@ -361,7 +361,7 @@ function AnalyticsPage() {
 					{/* Visualization controls */}
 					<div className="border-b p-3 space-y-3">
 						<div className="flex items-center justify-between">
-							<SectionTitle>Map Visibility</SectionTitle>
+							<SectionTitle>Connector Visibility</SectionTitle>
 						</div>
 						<div className="flex items-center gap-4">
 							<div className="flex items-center gap-2 text-xs">

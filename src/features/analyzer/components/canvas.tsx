@@ -1,4 +1,4 @@
-import type { Edge, MarkerType, Node } from "@xyflow/react";
+import type { Edge, MarkerType, Node, NodeChange } from "@xyflow/react";
 import {
 	Background,
 	MiniMap,
@@ -7,7 +7,7 @@ import {
 	useReactFlow,
 } from "@xyflow/react";
 import { ZoomIn, ZoomOut } from "lucide-react";
-import { useMemo } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { ConnectorNode } from "@/features/kitbuild/components/connector-node";
 import { FloatingEdge } from "@/features/kitbuild/components/floating-edge";
 import { TextNode } from "@/features/kitbuild/components/text-node";
@@ -97,81 +97,179 @@ function AnalyticsCanvasInner({
 }: AnalyticsCanvasProps) {
 	const { zoomIn, zoomOut, fitView } = useReactFlow();
 
-	const goalMapNodes = useMemo(() => {
-		if (!visibility.showGoalMap) return [];
+	// Local state for nodes to enable dragging (session-only, resets on refresh)
+	const [nodes, setNodes] = useState<Node[]>([]);
 
-		return goalMap.nodes.map((node) => ({
-			...node,
-			style: {
-				...node.style,
-				opacity: 0.3,
-				borderStyle: "dashed",
-			},
-			data: {
-				...node.data,
-				opacity: 0.3,
-				dashed: true,
-			},
-		}));
-	}, [goalMap.nodes, visibility.showGoalMap]);
+	const isDragging = useRef(false);
 
-	const learnerMapNodes = useMemo(() => {
-		if (!visibility.showLearnerMap) return [];
+	// Compute merged nodes from goal map and learner map
+	const mergedNodes = useMemo(() => {
+		const nodeMap = new Map<string, Node>();
 
-		return [...learnerMap.nodes];
-	}, [learnerMap.nodes, visibility.showLearnerMap]);
-
-	const combinedNodes = useMemo(() => {
-		if (visibility.showGoalMap && visibility.showLearnerMap) {
-			return goalMapNodes;
+		// First, add all goal map nodes with their positions
+		for (const node of goalMap.nodes) {
+			nodeMap.set(node.id, {
+				...node,
+				data: {
+					...node.data,
+				},
+			});
 		}
-		if (visibility.showGoalMap) {
-			return goalMapNodes;
-		}
-		if (visibility.showLearnerMap) {
-			return learnerMapNodes;
-		}
-		return [];
-	}, [
-		goalMapNodes,
-		learnerMapNodes,
-		visibility.showGoalMap,
-		visibility.showLearnerMap,
-	]);
 
-	const filteredEdges = useMemo(() => {
-		const edges: Edge[] = edgeClassifications
-			.filter((classification) => {
+		// Then merge learner map nodes, keeping goal map position if exists
+		for (const node of learnerMap.nodes) {
+			const existingNode = nodeMap.get(node.id);
+			if (existingNode) {
+				// Node exists in goal map, keep goal map position
+				nodeMap.set(node.id, {
+					...node,
+					position: existingNode.position,
+				});
+			} else {
+				// Node only in learner map, add it
+				nodeMap.set(node.id, node);
+			}
+		}
+
+		return Array.from(nodeMap.values());
+	}, [goalMap.nodes, learnerMap.nodes]);
+
+	// Initialize nodes when merged nodes change (e.g., when selecting different learner)
+	// Skip resetting during drag to prevent flickering
+	useEffect(() => {
+		if (!isDragging.current) {
+			setNodes(mergedNodes);
+		}
+	}, [mergedNodes]);
+
+	// Handle node position changes during drag
+	const onNodesChange = useCallback((changes: NodeChange<Node>[]) => {
+		setNodes((nds) =>
+			changes.reduce((acc, change) => {
+				if (change.type === "position" && change.position) {
+					return acc.map((n) =>
+						n.id === change.id ? { ...n, position: change.position! } : n,
+					);
+				}
+				if (change.type === "select") {
+					return acc.map((n) =>
+						n.id === change.id ? { ...n, selected: change.selected } : n,
+					);
+				}
+				return acc;
+			}, nds),
+		);
+	}, []);
+
+	// Drag handlers to prevent node flickering
+	const onNodeDragStart = useCallback(() => {
+		isDragging.current = true;
+	}, []);
+
+	const onNodeDragStop = useCallback(() => {
+		isDragging.current = false;
+	}, []);
+
+	const { showGoalMap, showLearnerMap } = visibility;
+
+	const displayEdges = useMemo(() => {
+		const edgesToDisplay: Edge[] = [];
+		const seenEdges = new Set<string>();
+
+		const addEdge = (edge: Edge) => {
+			const key = `${edge.source}-${edge.target}`;
+			if (!seenEdges.has(key)) {
+				seenEdges.add(key);
+				edgesToDisplay.push(edge);
+			}
+		};
+
+		if (showGoalMap && showLearnerMap) {
+			// Show merged edges from edgeClassifications (learner's work vs goal)
+			for (const classification of edgeClassifications) {
+				let shouldShow = false;
 				switch (classification.type) {
 					case "correct":
-						return visibility.showCorrectEdges;
+						shouldShow = visibility.showCorrectEdges;
+						break;
 					case "missing":
-						return visibility.showMissingEdges;
+						shouldShow = visibility.showMissingEdges;
+						break;
 					case "excessive":
-						return visibility.showExcessiveEdges;
+						shouldShow = visibility.showExcessiveEdges;
+						break;
 					case "neutral":
-						return visibility.showNeutralEdges;
-					default:
-						return false;
+						shouldShow = visibility.showNeutralEdges;
+						break;
 				}
-			})
-			.map((classification) => {
-				const style = getEdgeStyleByType(classification.type);
-				return {
-					...classification.edge,
+				if (shouldShow) {
+					const style = getEdgeStyleByType(classification.type);
+					addEdge({
+						...classification.edge,
+						type: "floating",
+						style,
+						animated: classification.type === "missing",
+						markerEnd: {
+							type: "arrowclosed" as MarkerType,
+							color: style.stroke,
+						},
+					});
+				}
+			}
+		} else if (showGoalMap) {
+			// Show only goal map edges (uniform reference style)
+			for (const edge of goalMap.edges) {
+				addEdge({
+					...edge,
 					type: "floating",
-					style,
-					animated: classification.type === "missing",
+					style: {
+						stroke: "#64748b",
+						strokeWidth: 2,
+					},
 					markerEnd: {
 						type: "arrowclosed" as MarkerType,
-						color: style.stroke,
+						color: "#64748b",
 					},
-				};
-			});
+				});
+			}
+		} else if (showLearnerMap) {
+			// Show only learner map edges (correct/excessive/neutral, no missing)
+			for (const classification of edgeClassifications) {
+				if (classification.type === "missing") continue;
 
-		return [...edges];
+				let shouldShow = false;
+				switch (classification.type) {
+					case "correct":
+						shouldShow = visibility.showCorrectEdges;
+						break;
+					case "excessive":
+						shouldShow = visibility.showExcessiveEdges;
+						break;
+					case "neutral":
+						shouldShow = visibility.showNeutralEdges;
+						break;
+				}
+				if (shouldShow) {
+					const style = getEdgeStyleByType(classification.type);
+					addEdge({
+						...classification.edge,
+						type: "floating",
+						style,
+						markerEnd: {
+							type: "arrowclosed" as MarkerType,
+							color: style.stroke,
+						},
+					});
+				}
+			}
+		}
+
+		return edgesToDisplay;
 	}, [
+		showGoalMap,
+		showLearnerMap,
 		edgeClassifications,
+		goalMap.edges,
 		visibility.showCorrectEdges,
 		visibility.showMissingEdges,
 		visibility.showExcessiveEdges,
@@ -207,13 +305,16 @@ function AnalyticsCanvasInner({
 				</button>
 			</div>
 			<ReactFlow
-				nodes={combinedNodes}
-				edges={filteredEdges}
+				nodes={nodes}
+				edges={displayEdges}
 				nodeTypes={nodeTypes}
 				edgeTypes={edgeTypes}
-				nodesDraggable={false}
+				onNodesChange={onNodesChange}
+				onNodeDragStart={onNodeDragStart}
+				onNodeDragStop={onNodeDragStop}
+				nodesDraggable={true}
 				nodesConnectable={false}
-				elementsSelectable={false}
+				elementsSelectable={true}
 				panOnDrag
 				zoomOnScroll
 				fitView
