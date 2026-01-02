@@ -1,4 +1,4 @@
-import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { useQueryClient } from "@tanstack/react-query";
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import type {
 	Connection,
@@ -12,6 +12,8 @@ import "@xyflow/react/dist/style.css";
 import { useAtom, useAtomValue, useSetAtom } from "jotai";
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { Guard } from "@/components/auth/Guard";
+import { useRpcMutation, useRpcQuery } from "@/hooks/use-rpc-query";
+import { toast } from "@/lib/error-toast";
 import {
 	AlertDialog,
 	AlertDialogAction,
@@ -55,7 +57,6 @@ import type {
 import { arrangeNodesByType } from "@/features/learner-map/lib/grid-layout";
 import { cn } from "@/lib/utils";
 import { LearnerMapRpc } from "@/server/rpc/learner-map";
-import { toast } from "sonner";
 
 export const Route = createFileRoute("/dashboard/learner-map/$assignmentId")({
 	component: () => (
@@ -111,23 +112,17 @@ function LearnerMapEditor() {
 	const [isHydrated, setIsHydrated] = useState(false);
 	const [timeRemaining, setTimeRemaining] = useState<number | null>(null);
 
-	const { data: assignmentDataRaw, isLoading } = useQuery(
+	const { data: assignmentData, isLoading } = useRpcQuery(
 		LearnerMapRpc.getAssignmentForStudent({ assignmentId }),
 	);
 
-	// Filter out error responses
-	const assignmentData =
-		assignmentDataRaw &&
-		!("success" in assignmentDataRaw && !assignmentDataRaw.success)
-			? (assignmentDataRaw as Exclude<
-					typeof assignmentDataRaw,
-					{ success: false }
-				>)
-			: undefined;
-
 	// Mutations
-	const saveMutation = useMutation(LearnerMapRpc.saveLearnerMap());
-	const submitMutation = useMutation(LearnerMapRpc.submitLearnerMap());
+	const saveMutation = useRpcMutation(LearnerMapRpc.saveLearnerMap(), {
+		operation: "save learner map",
+	});
+	const submitMutation = useRpcMutation(LearnerMapRpc.submitLearnerMap(), {
+		operation: "submit learner map",
+	});
 
 	// Initialize from query data
 	useEffect(() => {
@@ -532,47 +527,31 @@ function LearnerMapEditor() {
 	};
 
 	// Submit handler
-	const handleSubmit = () => {
+	const handleSubmit = async () => {
 		// Save first
-		saveMutation.mutate(
-			{
-				assignmentId,
-				nodes: JSON.stringify(nodes),
-				edges: JSON.stringify(edges),
-			},
-			{
-				onError: () => {
-					toast.error("Failed to save map");
-				},
-				onSuccess: () => {
-					// Then submit
-					submitMutation.mutate(
-						{ assignmentId },
-						{
-							onError: () => {
-								toast.error("Failed to submit map");
-							},
-							onSuccess: (result) => {
-								if (result.success) {
-									setSubmitDialogOpen(false);
-									setStatus("submitted");
-									queryClient.invalidateQueries({
-										queryKey: LearnerMapRpc.learnerMaps(),
-									});
-									// Navigate to result page
-									navigate({
-										to: `/dashboard/learner-map/${assignmentId}/result`,
-									});
-									toast.success("Map submitted successfully");
-								} else {
-									toast.error("Failed to submit map");
-								}
-							},
-						},
-					);
-				},
-			},
-		);
+		const saveResult = await saveMutation.mutateAsync({
+			assignmentId,
+			nodes: JSON.stringify(nodes),
+			edges: JSON.stringify(edges),
+		});
+
+		if (!saveResult.success) return;
+
+		// Then submit
+		const submitResult = await submitMutation.mutateAsync({ assignmentId });
+
+		if (submitResult.success) {
+			setSubmitDialogOpen(false);
+			setStatus("submitted");
+			queryClient.invalidateQueries({
+				queryKey: LearnerMapRpc.learnerMaps(),
+			});
+			// Navigate to result page
+			navigate({
+				to: `/dashboard/learner-map/${assignmentId}/result`,
+			});
+			toast.success("Map submitted successfully");
+		}
 	};
 
 	// Edge options

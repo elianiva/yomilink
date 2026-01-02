@@ -1,4 +1,4 @@
-import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { useQueryClient } from "@tanstack/react-query";
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import type { Edge, MarkerType, Node } from "@xyflow/react";
 import { Background, MiniMap, ReactFlow } from "@xyflow/react";
@@ -12,8 +12,8 @@ import { FloatingEdge } from "@/features/kitbuild/components/floating-edge";
 import { TextNode } from "@/features/kitbuild/components/text-node";
 import { DiagnosisStats } from "@/features/learner-map/components/diagnosis/diagnosis-stats";
 import { getEdgeStyleByType } from "@/features/learner-map/lib/comparator";
+import { useRpcMutation, useRpcQuery } from "@/hooks/use-rpc-query";
 import { LearnerMapRpc } from "@/server/rpc/learner-map";
-import { toast } from "sonner";
 
 export const Route = createFileRoute(
 	"/dashboard/learner-map/$assignmentId/result",
@@ -45,50 +45,31 @@ function ResultPage() {
 		[],
 	);
 
-	const { data: dataRaw, isLoading } = useQuery(
+	const { data, isLoading } = useRpcQuery(
 		LearnerMapRpc.getDiagnosis({ assignmentId }),
 	);
 
-	// Filter out error responses
-	const data =
-		dataRaw && !("success" in dataRaw && !dataRaw.success)
-			? (dataRaw as Exclude<typeof dataRaw, { success: false }>)
-			: undefined;
-
-	const { data: peerStatsRaw } = useQuery(
+	const { data: peerStats } = useRpcQuery(
 		LearnerMapRpc.getPeerStats({ assignmentId }),
 	);
 
-	// Filter out error responses for peer stats
-	const peerStats =
-		peerStatsRaw && !("success" in peerStatsRaw && !peerStatsRaw.success)
-			? (peerStatsRaw as Exclude<typeof peerStatsRaw, { success: false }>)
-			: undefined;
+	const newAttemptMutation = useRpcMutation(LearnerMapRpc.startNewAttempt(), {
+		operation: "start new attempt",
+		showSuccess: true,
+		successMessage: "New attempt started successfully",
+	});
 
-	const newAttemptMutation = useMutation(LearnerMapRpc.startNewAttempt());
+	const handleTryAgain = async () => {
+		const result = await newAttemptMutation.mutateAsync({ assignmentId });
 
-	const handleTryAgain = () => {
-		newAttemptMutation.mutate(
-			{ assignmentId },
-			{
-				onSuccess: (result) => {
-					if (result.success) {
-						queryClient.invalidateQueries({
-							queryKey: LearnerMapRpc.learnerMaps(),
-						});
-						navigate({
-							to: `/dashboard/learner-map/${assignmentId}`,
-						});
-						toast.success("New attempt started successfully");
-					} else {
-						toast.error("Failed to start new attempt");
-					}
-				},
-				onError: (_error) => {
-					toast.error("Error starting new attempt");
-				},
-			},
-		);
+		if (result.success) {
+			queryClient.invalidateQueries({
+				queryKey: LearnerMapRpc.learnerMaps(),
+			});
+			navigate({
+				to: `/dashboard/learner-map/${assignmentId}`,
+			});
+		}
 	};
 
 	// Process edges for visualization

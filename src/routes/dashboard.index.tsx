@@ -1,5 +1,4 @@
 import { useForm } from "@tanstack/react-form";
-import { useMutation, useQuery } from "@tanstack/react-query";
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { Schema } from "effect";
 import {
@@ -38,6 +37,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Skeleton } from "@/components/ui/skeleton";
 import type { Topic } from "@/features/analyzer/lib/topic-service";
+import { useRpcMutation, useRpcQuery } from "@/hooks/use-rpc-query";
 import { cn, safeParseJson } from "@/lib/utils";
 import { GoalMapRpc } from "@/server/rpc/goal-map";
 import { TopicRpc } from "@/server/rpc/topic";
@@ -103,24 +103,36 @@ function DashboardHome() {
 	const [selectedTopic, setSelectedTopic] = useState<Topic | null>(null);
 
 	const {
-		data: topicsRaw = [],
+		data: topicsData,
 		isLoading: topicsLoading,
-		error: topicsError,
-	} = useQuery(TopicRpc.listTopics());
+		rpcError: topicsError,
+	} = useRpcQuery(TopicRpc.listTopics());
 
-	// Filter out error responses and ensure array type
-	const topics = Array.isArray(topicsRaw) ? topicsRaw : [];
+	// Ensure topics is always an array
+	const topics = useMemo(() => {
+		if (Array.isArray(topicsData)) return topicsData;
+		return [];
+	}, [topicsData]);
 
 	const {
-		data: goalMapsRaw = [],
+		data: goalMapsData,
 		isLoading: goalMapsLoading,
-		error: goalMapsError,
-	} = useQuery(GoalMapRpc.listGoalMapsByTopic({ topicId: selectedTopic?.id }));
+		rpcError: goalMapsError,
+	} = useRpcQuery(
+		GoalMapRpc.listGoalMapsByTopic({ topicId: selectedTopic?.id }),
+	);
 
-	// Filter out error responses and ensure array type
-	const goalMaps = Array.isArray(goalMapsRaw) ? goalMapsRaw : [];
+	// Ensure goal maps is always an array
+	const goalMaps = useMemo(() => {
+		if (Array.isArray(goalMapsData)) return goalMapsData;
+		return [];
+	}, [goalMapsData]);
 
-	const deleteMutation = useMutation(GoalMapRpc.deleteGoalMap());
+	const deleteMutation = useRpcMutation(GoalMapRpc.deleteGoalMap(), {
+		operation: "delete goal map",
+		showSuccess: true,
+		successMessage: "Goal map deleted successfully",
+	});
 
 	const isLoading = topicsLoading || goalMapsLoading;
 	const error = topicsError || goalMapsError;
@@ -387,8 +399,11 @@ const TopicSchema = Schema.Struct({
 function NewTopicDialog() {
 	const [isOpen, setIsOpen] = useState(false);
 	const [error, setError] = useState<string | null>(null);
-	const { mutate: createTopic, isPending } = useMutation(
+	const { mutate: createTopic, isPending } = useRpcMutation(
 		TopicRpc.createTopic(),
+		{
+			operation: "create topic",
+		},
 	);
 
 	const form = useForm({
@@ -411,7 +426,6 @@ function NewTopicDialog() {
 						setIsOpen(false);
 						form.reset();
 					},
-					onError: () => setError("Failed to create topic"),
 				},
 			);
 		},

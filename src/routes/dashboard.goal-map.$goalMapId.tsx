@@ -1,9 +1,10 @@
-import { useMutation, useQuery } from "@tanstack/react-query";
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import type { Connection, MarkerType } from "@xyflow/react";
 import { Background, MiniMap, ReactFlow } from "@xyflow/react";
 import { useAtom, useAtomValue, useSetAtom } from "jotai";
-import { toast } from "sonner";
+import { isErrorResponse } from "@/hooks/use-rpc-error";
+import { useRpcMutation, useRpcQuery } from "@/hooks/use-rpc-query";
+import { toast } from "@/lib/error-toast";
 import { pageTitleAtom } from "@/lib/page-title";
 import "@xyflow/react/dist/style.css";
 import { useCallback, useEffect, useMemo, useState } from "react";
@@ -96,33 +97,20 @@ function TeacherGoalMapEditor() {
 	const { goalMapId } = Route.useParams();
 	const navigate = useNavigate();
 
-	const { data: existingRaw } = useQuery({
+	const { data: existing } = useRpcQuery({
 		...GoalMapRpc.getGoalMap({ goalMapId }),
 		enabled: goalMapId !== "new",
 	});
 
-	// Filter out error responses
-	const existing =
-		existingRaw && !("success" in existingRaw && !existingRaw.success)
-			? (existingRaw as Exclude<typeof existingRaw, { success: false }>)
-			: undefined;
-
-	const { data: topicsRaw = [], isLoading: topicsLoading } = useQuery(
+	const { data: topics, isLoading: topicsLoading } = useRpcQuery(
 		TopicRpc.listTopics(),
 	);
 
-	// Filter out error responses and ensure array type
-	const topics = Array.isArray(topicsRaw) ? topicsRaw : [];
+	const { data: kitStatus } = useRpcQuery(KitRpc.getKitStatus(goalMapId));
 
-	const { data: kitStatusRaw } = useQuery(KitRpc.getKitStatus(goalMapId));
-
-	// Filter out error responses for kit status
-	const kitStatus =
-		kitStatusRaw && !("success" in kitStatusRaw && !kitStatusRaw.success)
-			? (kitStatusRaw as Exclude<typeof kitStatusRaw, { success: false }>)
-			: undefined;
-
-	const generateKitMutation = useMutation(KitRpc.generateKit());
+	const generateKitMutation = useRpcMutation(KitRpc.generateKit(), {
+		operation: "generate kit",
+	});
 
 	const isNewMap = goalMapId === "new";
 
@@ -197,7 +185,9 @@ function TeacherGoalMapEditor() {
 		generateNewId,
 	} = useSaveDialog();
 
-	const saveGoalMapMutation = useMutation(GoalMapRpc.saveGoalMap());
+	const saveGoalMapMutation = useRpcMutation(GoalMapRpc.saveGoalMap(), {
+		operation: "save goal map",
+	});
 	const saving = saveGoalMapMutation.isPending && !isSavingForKit;
 
 	const doSave = useCallback(
@@ -340,9 +330,9 @@ function TeacherGoalMapEditor() {
 				(sType === "text" && tType === "connector") ||
 				(sType === "connector" && tType === "text");
 			if (!ok) {
-				toast.error("Invalid connection", {
-					description: `${sType ?? "unknown"} -> ${tType ?? "unknown"}`,
-				});
+				toast.error(
+					`Invalid connection: ${sType ?? "unknown"} -> ${tType ?? "unknown"}`,
+				);
 				return;
 			}
 			onConnect(params, getNodeType);
@@ -377,26 +367,19 @@ function TeacherGoalMapEditor() {
 						{ goalMapId },
 						{
 							onError: (error: Error) => {
-								toast.error("Failed to generate kit", {
-									description: error.message,
-								});
+								toast.error(error, { operation: "generate kit" });
 							},
 							onSuccess: (data) => {
 								// Check if it's not an error response and has ok property
-								if (
-									data &&
-									!("success" in data && !data.success) &&
-									"ok" in data &&
-									data.ok
-								) {
+								if (data && !isErrorResponse(data) && "ok" in data && data.ok) {
 									const message =
 										kitStatus?.exists && !kitStatus.isOutdated
 											? "Kit updated successfully"
 											: "Kit created successfully";
 									toast.success(message);
 								} else {
-									toast.error("Failed to generate kit", {
-										description: "Goal map not found",
+									toast.error("Goal map not found", {
+										operation: "generate kit",
 									});
 								}
 							},
@@ -475,7 +458,7 @@ function TeacherGoalMapEditor() {
 			<SaveDialog
 				open={saveOpen}
 				saving={saving}
-				topics={topics}
+				topics={topics ?? []}
 				topicsLoading={topicsLoading}
 				defaultTopicId={saveMeta.topicId}
 				defaultName={saveMeta.name}
@@ -489,7 +472,7 @@ function TeacherGoalMapEditor() {
 			<SaveDialog
 				open={saveAsOpen}
 				saving={saving}
-				topics={topics}
+				topics={topics ?? []}
 				topicsLoading={topicsLoading}
 				defaultTopicId={saveMeta.topicId}
 				defaultName={saveMeta.name ? `${saveMeta.name} (copy)` : ""}

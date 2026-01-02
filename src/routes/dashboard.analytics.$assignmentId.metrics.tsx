@@ -1,4 +1,3 @@
-import { useQuery } from "@tanstack/react-query";
 import { createFileRoute, useRouter } from "@tanstack/react-router";
 import { ArrowLeft, BarChart3, TrendingUp } from "lucide-react";
 import { useMemo } from "react";
@@ -30,6 +29,7 @@ import {
 	ChartTooltipContent,
 } from "@/components/ui/chart";
 import type { LearnerAnalytics } from "@/features/analyzer/lib/analytics-service";
+import { useRpcQuery } from "@/hooks/use-rpc-query";
 import { cn } from "@/lib/utils";
 import { AnalyticsRpc } from "@/server/rpc/analytics";
 
@@ -70,18 +70,14 @@ function MetricsPage() {
 	const router = useRouter();
 	const { assignmentId } = Route.useParams();
 
-	const { data: analyticsData, isLoading } = useQuery({
+	const { data: analyticsData, isLoading } = useRpcQuery({
 		...AnalyticsRpc.getAnalyticsForAssignment(assignmentId),
 		enabled: !!assignmentId,
 		refetchOnWindowFocus: false,
 	});
 
 	const metrics = useMemo(() => {
-		if (
-			!analyticsData ||
-			"success" in analyticsData ||
-			!("learners" in analyticsData)
-		) {
+		if (!analyticsData || !("learners" in analyticsData)) {
 			return null;
 		}
 

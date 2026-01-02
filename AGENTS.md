@@ -80,3 +80,73 @@ bd list --due-after="next monday" # Due after next Monday
 bd list --overdue               # Due date in past (not closed)
 ```
 
+## Error Handling
+
+### Overview
+The codebase uses a layered error handling system for RPC operations that return `{ success: false, error: string }` responses.
+
+### Key Files
+- `src/hooks/use-rpc-error.ts` - Type guards and data extraction utilities
+- `src/lib/error-types.ts` - Error classification (network, not-found, forbidden, validation, server)
+- `src/lib/error-toast.ts` - Centralized toast notifications (Sonner-based)
+- `src/components/ui/error-card.tsx` - Error display component with retry support
+- `src/components/data-state.tsx` - Combined loading/error/empty state handler
+- `src/components/query-error-boundary.tsx` - React Query error boundary
+- `src/hooks/use-rpc-query.ts` - Custom useRpcQuery and useRpcMutation hooks
+
+### Usage Patterns
+
+**Basic query with error handling:**
+```tsx
+const { data, isLoading, rpcError, refetch, isRefetching } = useRpcQuery(
+  GoalMapRpc.getGoalMap(goalMapId)
+);
+
+return (
+  <DataState
+    loading={isLoading}
+    error={rpcError}
+    onRetry={refetch}
+    isRetrying={isRefetching}
+  >
+    <GoalMapEditor data={data} />
+  </DataState>
+);
+```
+
+**Mutation with automatic toasts:**
+```tsx
+const mutation = useRpcMutation(
+  AssignmentRpc.deleteAssignment(),
+  {
+    operation: "delete assignment",
+    showSuccess: true,
+    successMessage: "Assignment deleted",
+  }
+);
+```
+
+**Error classification:**
+```tsx
+import { categorizeError, getErrorDetails } from "@/lib/error-types";
+
+const details = getErrorDetails(error);
+// { category: "network", message: "...", isRetryable: true, showToUser: true }
+```
+
+**Manual toast:**
+```tsx
+import { showErrorToast, showSuccessToast } from "@/lib/error-toast";
+
+showErrorToast(error, { operation: "save document" });
+showSuccessToast("Document saved successfully");
+```
+
+### Error Categories
+- `network` - Connection issues, timeouts (retryable)
+- `not-found` - Resource not found (not retryable)
+- `forbidden` - Permission denied (not retryable)
+- `validation` - Invalid input (not retryable)
+- `server` - Server-side errors (retryable)
+- `unknown` - Unclassified errors (not retryable)
+

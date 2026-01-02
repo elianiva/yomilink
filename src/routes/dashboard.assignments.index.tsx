@@ -1,4 +1,3 @@
-import { useQuery } from "@tanstack/react-query";
 import { createFileRoute } from "@tanstack/react-router";
 import {
 	AlertCircleIcon,
@@ -10,6 +9,7 @@ import {
 } from "lucide-react";
 import { Guard } from "@/components/auth/Guard";
 import { Button } from "@/components/ui/button";
+import { useRpcQuery } from "@/hooks/use-rpc-query";
 import { LearnerMapRpc } from "@/server/rpc/learner-map";
 
 export const Route = createFileRoute("/dashboard/assignments/")({
@@ -21,12 +21,9 @@ export const Route = createFileRoute("/dashboard/assignments/")({
 });
 
 function AssignmentsPage() {
-	const { data: assignmentsRaw } = useQuery(
+	const { data: assignments } = useRpcQuery(
 		LearnerMapRpc.listStudentAssignments(),
 	);
-
-	// Filter out error responses and ensure array type
-	const assignments = Array.isArray(assignmentsRaw) ? assignmentsRaw : [];
 
 	const getStatusInfo = (
 		status: string,

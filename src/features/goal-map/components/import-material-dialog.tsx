@@ -18,9 +18,8 @@ import {
 	imagesAtom,
 } from "../lib/atoms";
 import { MaterialImageRpc } from "@/server/rpc/material-image";
-import { useMutation } from "@tanstack/react-query";
-import { useEffect } from "react";
-import { toast } from "sonner";
+import { useRpcMutation } from "@/hooks/use-rpc-query";
+import { toast } from "@/lib/error-toast";
 
 interface ImportMaterialDialogProps {
 	goalMapId: string;
@@ -35,28 +34,11 @@ function ImportMaterialDialogImpl({ goalMapId }: ImportMaterialDialogProps) {
 	const fileInputRef = useRef<HTMLInputElement>(null);
 	const textareaId = useId();
 
-	const uploadMutation = useMutation(MaterialImageRpc.upload());
-
-	useEffect(() => {
-		if (uploadMutation.isSuccess && uploadMutation.data) {
-			const result = uploadMutation.data;
-			if (result.success) {
-				setMaterialImages((prev) => [...prev, result.image]);
-				toast.success("Image uploaded successfully");
-			}
-		}
-	}, [uploadMutation.isSuccess, uploadMutation.data, setMaterialImages]);
-
-	useEffect(() => {
-		if (uploadMutation.isError) {
-			toast.error("Upload failed", {
-				description:
-					uploadMutation.error instanceof Error
-						? uploadMutation.error.message
-						: "Unknown error",
-			});
-		}
-	}, [uploadMutation.isError, uploadMutation.error]);
+	const uploadMutation = useRpcMutation(MaterialImageRpc.upload(), {
+		operation: "upload image",
+		showSuccess: true,
+		successMessage: "Image uploaded successfully",
+	});
 
 	const handleFileChange = async (files: FileList | null) => {
 		if (!files || files.length === 0) return;
@@ -76,27 +58,30 @@ function ImportMaterialDialogImpl({ goalMapId }: ImportMaterialDialogProps) {
 
 		if (isImageFile) {
 			if (file.size > 5 * 1024 * 1024) {
-				toast.error("File too large", {
-					description: "Maximum file size is 5MB",
-				});
+				toast.error("File too large. Maximum file size is 5MB");
 				return;
 			}
 
-			uploadMutation.mutate({ goalMapId, file });
+			uploadMutation.mutate(
+				{ goalMapId, file },
+				{
+					onSuccess: (data) => {
+						if (data.success) {
+							setMaterialImages((prev) => [...prev, data.image]);
+						}
+					},
+				},
+			);
 			return;
 		}
 
 		if (!isTextFile) {
-			toast.error("Unsupported file type", {
-				description: "Please upload text files or images",
-			});
+			toast.error("Unsupported file type. Please upload text files or images");
 			return;
 		}
 
 		if (file.size > 10 * 1024 * 1024) {
-			toast.error("File too large", {
-				description: "Maximum file size is 10MB",
-			});
+			toast.error("File too large. Maximum file size is 10MB");
 			return;
 		}
 

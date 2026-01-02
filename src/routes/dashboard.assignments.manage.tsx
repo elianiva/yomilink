@@ -1,4 +1,4 @@
-import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { useQueryClient } from "@tanstack/react-query";
 import { createFileRoute } from "@tanstack/react-router";
 import {
 	CalendarIcon,
@@ -26,9 +26,9 @@ import { Progress } from "@/components/ui/progress";
 import { SearchableSelect } from "@/components/ui/searchable-select";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Textarea } from "@/components/ui/textarea";
+import { useRpcMutation, useRpcQuery } from "@/hooks/use-rpc-query";
 import { AssignmentRpc } from "@/server/rpc/assignment";
 import { KitRpc } from "@/server/rpc/kit";
-import { toast } from "sonner";
 
 export const Route = createFileRoute("/dashboard/assignments/manage")({
 	component: () => (
@@ -42,18 +42,14 @@ function ManageAssignmentsPage() {
 	const queryClient = useQueryClient();
 	const [createDialogOpen, setCreateDialogOpen] = useState(false);
 
-	const { data: assignmentsRaw, isLoading } = useQuery(
+	const { data: assignments, isLoading } = useRpcQuery(
 		AssignmentRpc.listTeacherAssignments(),
 	);
 
-	// Filter out error responses and ensure array type
-	const assignments = Array.isArray(assignmentsRaw) ? assignmentsRaw : [];
-
-	const deleteMutation = useMutation({
-		...AssignmentRpc.deleteAssignment(),
-		onSuccess: () => {
-			queryClient.invalidateQueries({ queryKey: ["assignments"] });
-		},
+	const deleteMutation = useRpcMutation(AssignmentRpc.deleteAssignment(), {
+		operation: "delete assignment",
+		showSuccess: true,
+		successMessage: "Assignment deleted successfully",
 	});
 
 	const handleDelete = (id: string) => {
@@ -61,11 +57,8 @@ function ManageAssignmentsPage() {
 			deleteMutation.mutate(
 				{ id },
 				{
-					onError: () => {
-						toast.error("Failed to delete assignment");
-					},
 					onSuccess: () => {
-						toast.success("Assignment deleted successfully");
+						queryClient.invalidateQueries({ queryKey: ["assignments"] });
 					},
 				},
 			);
@@ -177,17 +170,18 @@ function CreateAssignmentDialog({ onSuccess }: { onSuccess: () => void }) {
 	const [selectedCohorts, setSelectedCohorts] = useState<string[]>([]);
 	const [selectedUsers, setSelectedUsers] = useState<string[]>([]);
 
-	const { data: goalMapsRaw } = useQuery(AssignmentRpc.getTeacherGoalMaps());
-	const { data: cohortsRaw } = useQuery(AssignmentRpc.getAvailableCohorts());
-	const { data: usersRaw } = useQuery(AssignmentRpc.getAvailableUsers());
+	const { data: goalMaps } = useRpcQuery(AssignmentRpc.getTeacherGoalMaps());
+	const { data: cohorts } = useRpcQuery(AssignmentRpc.getAvailableCohorts());
+	const { data: users } = useRpcQuery(AssignmentRpc.getAvailableUsers());
 
-	// Filter out error responses and ensure array types
-	const goalMaps = Array.isArray(goalMapsRaw) ? goalMapsRaw : [];
-	const cohorts = Array.isArray(cohortsRaw) ? cohortsRaw : [];
-	const users = Array.isArray(usersRaw) ? usersRaw : [];
-
-	const generateKitMutation = useMutation(KitRpc.generateKit());
-	const createMutation = useMutation(AssignmentRpc.createAssignment());
+	const generateKitMutation = useRpcMutation(KitRpc.generateKit(), {
+		operation: "generate kit for goal map",
+	});
+	const createMutation = useRpcMutation(AssignmentRpc.createAssignment(), {
+		operation: "create assignment",
+		showSuccess: true,
+		successMessage: "Assignment created successfully",
+	});
 
 	const steps = [
 		{
@@ -231,9 +225,6 @@ function CreateAssignmentDialog({ onSuccess }: { onSuccess: () => void }) {
 				layout: "random",
 			},
 			{
-				onError: () => {
-					toast.error("Failed to generate kit for goal map");
-				},
 				onSuccess: () => {
 					createMutation.mutate(
 						{
@@ -246,11 +237,7 @@ function CreateAssignmentDialog({ onSuccess }: { onSuccess: () => void }) {
 							userIds: selectedUsers,
 						},
 						{
-							onError: () => {
-								toast.error("Failed to create assignment");
-							},
 							onSuccess: () => {
-								toast.success("Assignment created successfully");
 								onSuccess();
 							},
 						},

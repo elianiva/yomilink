@@ -1,9 +1,12 @@
-import { useMutation, useQuery } from "@tanstack/react-query";
+import { useMutation } from "@tanstack/react-query";
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { Activity, Download, RefreshCw, Search } from "lucide-react";
 import { useCallback, useMemo, useState } from "react";
-import { toast } from "sonner";
 import { Guard } from "@/components/auth/Guard";
+import { ErrorCard } from "@/components/ui/error-card";
+import { isErrorResponse } from "@/hooks/use-rpc-error";
+import { useRpcQuery } from "@/hooks/use-rpc-query";
+import { toast } from "@/lib/error-toast";
 import { ToolbarButton } from "@/components/toolbar/toolbar-button";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -28,7 +31,6 @@ import type {
 	AssignmentAnalytics,
 	ExportResult,
 	LearnerAnalytics,
-	LearnerMapResult,
 } from "@/features/analyzer/lib/analytics-service";
 import {
 	AnalyticsRpc,
@@ -84,60 +86,40 @@ function AnalyticsPage() {
 	const [showNeutralEdges, setShowNeutralEdges] = useState(true);
 
 	// Fetch assignments
-	const { data: assignmentsRaw, isLoading: assignmentsLoading } = useQuery(
+	const { data: assignments, isLoading: assignmentsLoading } = useRpcQuery(
 		AnalyticsRpc.getTeacherAssignments(),
 	);
 
-	// Filter out error responses for assignments
-	const assignments = useMemo(() => {
-		if (
-			!assignmentsRaw ||
-			("success" in assignmentsRaw && !assignmentsRaw.success)
-		) {
-			return undefined;
-		}
-		return assignmentsRaw as Array<{
-			id: string;
-			title: string;
-			totalSubmissions: number;
-		}>;
-	}, [assignmentsRaw]);
-
 	// Fetch analytics data for selected assignment
-	const { data: analyticsData, isLoading: analyticsLoading } = useQuery({
+	const {
+		data: analyticsData,
+		isLoading: analyticsLoading,
+		refetch: refetchAnalytics,
+		isRefetching: isRefetchingAnalytics,
+		rpcError: analyticsError,
+	} = useRpcQuery({
 		...AnalyticsRpc.getAnalyticsForAssignment(selectedAssignmentId ?? ""),
 		enabled: !!selectedAssignmentId,
 		refetchOnWindowFocus: false,
 	});
 
 	// Fetch learner map details for selected learner
-	const { data: learnerMapDetailsRaw } = useQuery({
+	const {
+		data: learnerMapDetails,
+		refetch: refetchLearnerMap,
+		isRefetching: isRefetchingLearnerMap,
+		rpcError: learnerMapError,
+	} = useRpcQuery({
 		...AnalyticsRpc.getLearnerMapForAnalytics(selectedLearnerMapId ?? ""),
 		enabled: !!selectedLearnerMapId,
 		refetchOnWindowFocus: false,
 	});
 
-	// Filter out error responses for learner map details
-	const learnerMapDetails = useMemo((): LearnerMapResult | null => {
-		if (
-			!learnerMapDetailsRaw ||
-			("success" in learnerMapDetailsRaw && !learnerMapDetailsRaw.success)
-		) {
-			return null;
-		}
-		return learnerMapDetailsRaw as LearnerMapResult;
-	}, [learnerMapDetailsRaw]);
-
 	// Filter learners
 	const filteredLearners = useMemo(() => {
-		if (
-			!analyticsData ||
-			("success" in analyticsData && !analyticsData.success)
-		)
-			return [];
+		if (!analyticsData) return [];
 
-		const data = analyticsData as AssignmentAnalytics;
-		return data.learners.filter((learner: LearnerAnalytics) => {
+		return analyticsData.learners.filter((learner: LearnerAnalytics) => {
 			const matchesSearch =
 				!searchQuery ||
 				learner.userName.toLowerCase().includes(searchQuery.toLowerCase());
@@ -151,11 +133,7 @@ function AnalyticsPage() {
 
 	// Get selected learner
 	const selectedLearner = useMemo(() => {
-		if (
-			!analyticsData ||
-			!("learners" in analyticsData) ||
-			!selectedLearnerMapId
-		) {
+		if (!analyticsData || !selectedLearnerMapId) {
 			return null;
 		}
 		return analyticsData.learners.find(
@@ -174,7 +152,7 @@ function AnalyticsPage() {
 			const result = await exportAnalyticsDataFn({
 				data: { analytics: analyticsData, format },
 			});
-			if ("success" in result && result.success === false) {
+			if (isErrorResponse(result)) {
 				throw new Error(result.error);
 			}
 			return result as ExportResult;
@@ -193,22 +171,15 @@ function AnalyticsPage() {
 			URL.revokeObjectURL(url);
 			toast.success(`Exported ${result.filename}`);
 		},
-		onError: () => {
-			toast.error("Failed to export data");
+		onError: (error) => {
+			toast.error(error, { operation: "export analytics" });
 		},
 	});
 
 	const handleExport = useCallback(
 		(format: "csv" | "json") => {
 			if (!selectedAssignmentId) return;
-			exportMutation.mutate(format, {
-				onSuccess: () => {
-					toast.success(`Exported as ${format.toUpperCase()} successfully`);
-				},
-				onError: () => {
-					toast.error("Failed to export analytics");
-				},
-			});
+			exportMutation.mutate(format);
 		},
 		[selectedAssignmentId, exportMutation],
 	);
@@ -238,7 +209,7 @@ function AnalyticsPage() {
 								</SelectTrigger>
 								<SelectContent>
 									<AssignmentSelectContent
-										assignments={assignments}
+										assignments={assignments ?? undefined}
 										isLoading={assignmentsLoading}
 									/>
 								</SelectContent>
@@ -248,7 +219,7 @@ function AnalyticsPage() {
 						<Separator />
 
 						{/* Summary */}
-						{analyticsData && "summary" in analyticsData && (
+						{analyticsData && (
 							<div className="space-y-2">
 								<SectionTitle>Summary</SectionTitle>
 								<div className="grid grid-cols-2 gap-2 text-xs">
@@ -349,7 +320,7 @@ function AnalyticsPage() {
 									size="sm"
 									className="h-8 gap-1"
 									onClick={() => handleExport("csv")}
-									disabled={!selectedAssignmentId}
+									disabled={!selectedAssignmentId || exportMutation.isPending}
 								>
 									<Download className="size-4" />
 									Export CSV
@@ -359,7 +330,7 @@ function AnalyticsPage() {
 									size="sm"
 									className="h-8 gap-1"
 									onClick={() => handleExport("json")}
-									disabled={!selectedAssignmentId}
+									disabled={!selectedAssignmentId || exportMutation.isPending}
 								>
 									<Download className="size-4" />
 									Export JSON
@@ -372,7 +343,7 @@ function AnalyticsPage() {
 									label="Metrics"
 									onClick={() => {
 										if (!selectedAssignmentId) {
-											toast.error("Please select an assignment first");
+											toast.warning("Please select an assignment first");
 											return;
 										}
 										navigate({
@@ -478,20 +449,36 @@ function AnalyticsPage() {
 
 					{/* Canvas */}
 					<div className="flex-1 m-3 rounded-md border">
-						<CanvasContent
-							selectedAssignmentId={selectedAssignmentId}
-							selectedLearnerMapId={selectedLearnerMapId}
-							analyticsData={analyticsData as AssignmentAnalytics | null}
-							learnerMapDetails={learnerMapDetails ?? null}
-							visibility={{
-								showGoalMap,
-								showLearnerMap,
-								showCorrectEdges,
-								showMissingEdges,
-								showExcessiveEdges,
-								showNeutralEdges,
-							}}
-						/>
+						{analyticsError ? (
+							<ErrorCard
+								title="Failed to load analytics"
+								description={analyticsError}
+								onRetry={() => refetchAnalytics()}
+								isRetrying={isRefetchingAnalytics}
+							/>
+						) : learnerMapError && selectedLearnerMapId ? (
+							<ErrorCard
+								title="Failed to load learner map"
+								description={learnerMapError}
+								onRetry={() => refetchLearnerMap()}
+								isRetrying={isRefetchingLearnerMap}
+							/>
+						) : (
+							<CanvasContent
+								selectedAssignmentId={selectedAssignmentId}
+								selectedLearnerMapId={selectedLearnerMapId}
+								analyticsData={analyticsData as AssignmentAnalytics | null}
+								learnerMapDetails={learnerMapDetails ?? null}
+								visibility={{
+									showGoalMap,
+									showLearnerMap,
+									showCorrectEdges,
+									showMissingEdges,
+									showExcessiveEdges,
+									showNeutralEdges,
+								}}
+							/>
+						)}
 					</div>
 				</section>
 			</div>
