@@ -26,6 +26,7 @@ import { Progress } from "@/components/ui/progress";
 import { SearchableSelect } from "@/components/ui/searchable-select";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Textarea } from "@/components/ui/textarea";
+import { formatDate, parseDateInput } from "@/lib/date-utils";
 import { useRpcMutation, useRpcQuery } from "@/hooks/use-rpc-query";
 import { AssignmentRpc } from "@/server/rpc/assignment";
 import { KitRpc } from "@/server/rpc/kit";
@@ -126,17 +127,13 @@ function ManageAssignmentsPage() {
 								{assignment.startDate && (
 									<div className="flex items-center gap-1">
 										<CalendarIcon className="size-4" />
-										<span>
-											{new Date(assignment.startDate).toLocaleDateString()}
-										</span>
+										<span>{formatDate(assignment.startDate)}</span>
 									</div>
 								)}
 								{assignment.dueAt && (
 									<div className="flex items-center gap-1">
 										<CalendarIcon className="size-4" />
-										<span>
-											{new Date(assignment.dueAt).toLocaleDateString()}
-										</span>
+										<span>{formatDate(assignment.dueAt)}</span>
 									</div>
 								)}
 							</div>
@@ -231,8 +228,8 @@ function CreateAssignmentDialog({ onSuccess }: { onSuccess: () => void }) {
 							title: title.trim(),
 							description: description.trim() || undefined,
 							goalMapId,
-							startDate: startDate ? new Date(startDate).getTime() : Date.now(),
-							endDate: endDate ? new Date(endDate).getTime() : undefined,
+							startDate: parseDateInput(startDate) ?? Date.now(),
+							endDate: parseDateInput(endDate),
 							cohortIds: selectedCohorts,
 							userIds: selectedUsers,
 						},

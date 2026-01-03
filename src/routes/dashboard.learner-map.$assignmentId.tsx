@@ -19,6 +19,7 @@ import "@xyflow/react/dist/style.css";
 import { useAtom, useAtomValue, useSetAtom } from "jotai";
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { Guard } from "@/components/auth/Guard";
+import { formatDuration } from "@/lib/date-utils";
 import { useRpcMutation, useRpcQuery } from "@/hooks/use-rpc-query";
 import { toast } from "@/lib/error-toast";
 import {
@@ -297,13 +298,6 @@ function LearnerMapEditor() {
 
 		return () => clearInterval(timer);
 	}, [timeRemaining, status]);
-
-	// Format time as MM:SS
-	const formatTime = (seconds: number) => {
-		const mins = Math.floor(seconds / 60);
-		const secs = seconds % 60;
-		return `${mins}:${secs.toString().padStart(2, "0")}`;
-	};
 
 	// Handle node click - show context menu or complete connection
 	const onNodeClick: NodeMouseHandler = useCallback(
@@ -613,7 +607,7 @@ function LearnerMapEditor() {
 						timeRemaining < 60 && "text-red-600 border-red-200 animate-pulse",
 					)}
 				>
-					⏱ {formatTime(timeRemaining)}
+					⏱ {formatDuration(timeRemaining)}
 				</div>
 			)}
 

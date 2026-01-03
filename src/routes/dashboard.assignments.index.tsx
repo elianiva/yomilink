@@ -9,6 +9,7 @@ import {
 } from "lucide-react";
 import { Guard } from "@/components/auth/Guard";
 import { Button } from "@/components/ui/button";
+import { formatDate } from "@/lib/date-utils";
 import { useRpcQuery } from "@/hooks/use-rpc-query";
 import { LearnerMapRpc } from "@/server/rpc/learner-map";
 
@@ -104,9 +105,7 @@ function AssignmentsPage() {
 										{assignment.dueAt && (
 											<div className="flex items-center gap-1">
 												<CalendarIcon className="size-4" />
-												<span>
-													Due {new Date(assignment.dueAt).toLocaleDateString()}
-												</span>
+												<span>Due {formatDate(assignment.dueAt)}</span>
 											</div>
 										)}
 										{assignment.attempt > 0 && (
