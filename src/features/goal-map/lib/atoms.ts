@@ -1,5 +1,9 @@
 import { atom } from "jotai";
 import type { Edge, Node } from "@/features/learner-map/lib/comparator";
+import type {
+	ConnectionModeState,
+	ContextMenuState,
+} from "@/lib/react-flow-types";
 
 // Core state atoms
 export const nodesAtom = atom<Node[]>([]);
@@ -40,19 +44,9 @@ export const isApplyingHistoryAtom = atom(false);
 export const isHydratedAtom = atom(false);
 
 // Node context menu state
-export type ContextMenuState = {
-	nodeId: string;
-	nodeType: "text" | "connector";
-	position: { x: number; y: number };
-} | null;
 export const contextMenuAtom = atom<ContextMenuState>(null);
 
 // Connection mode state - for "Connect From/To" from link nodes
-export type ConnectionModeState = {
-	active: boolean;
-	linkNodeId: string;
-	direction: "to" | "from"; // "to" = link→concept, "from" = concept→link
-} | null;
 export const connectionModeAtom = atom<ConnectionModeState>(null);
 
 // Edit node dialog state

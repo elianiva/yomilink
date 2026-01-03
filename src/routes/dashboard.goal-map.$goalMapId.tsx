@@ -15,6 +15,8 @@ import { pageTitleAtom } from "@/lib/page-title";
 import "@xyflow/react/dist/style.css";
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { Guard } from "@/components/auth/Guard";
+import { ConnectionModeIndicator } from "@/components/ui/connection-mode-indicator";
+import { ContextMenuOverlay } from "@/components/ui/context-menu-overlay";
 import { AddConceptDialog } from "@/features/goal-map/components/add-concept-dialog";
 import { AddLinkDialog } from "@/features/goal-map/components/add-link-dialog";
 import { EditorToolbar } from "@/features/goal-map/components/editor-toolbar";
@@ -550,12 +552,7 @@ function TeacherGoalMapEditor() {
 					isGeneratingKit={generateKitMutation.isPending}
 				/>
 
-				{contextMenu && (
-					<div
-						className="absolute inset-0 bg-black/30 z-40 pointer-events-none animate-in fade-in duration-150"
-						aria-hidden="true"
-					/>
-				)}
+				<ContextMenuOverlay visible={contextMenu !== null} />
 
 				{contextMenu && (
 					<NodeContextMenu
@@ -576,21 +573,11 @@ function TeacherGoalMapEditor() {
 					/>
 				)}
 
-				{connectionMode?.active && (
-					<div className="absolute bottom-20 left-1/2 -translate-x-1/2 z-20 bg-blue-500 text-white border border-blue-600 rounded-lg px-3 py-1.5 shadow-lg text-sm flex items-center gap-2">
-						<span>
-							Click a concept to connect{" "}
-							{connectionMode.direction === "to" ? "to" : "from"}
-						</span>
-						<button
-							type="button"
-							onClick={() => setConnectionMode(null)}
-							className="text-xs text-white/80 hover:text-white underline"
-						>
-							Cancel
-						</button>
-					</div>
-				)}
+				<ConnectionModeIndicator
+					active={connectionMode?.active ?? false}
+					direction={connectionMode?.direction ?? "to"}
+					onCancel={() => setConnectionMode(null)}
+				/>
 			</div>
 		</div>
 	);

@@ -1,5 +1,10 @@
 import { atom } from "jotai";
 import type { Edge, Node } from "./comparator";
+import type {
+	ConnectionModeState,
+	ContextMenuState,
+	HistorySnapshot,
+} from "@/lib/react-flow-types";
 
 // Assignment data
 export const assignmentAtom = atom<{
@@ -32,25 +37,12 @@ export const submitDialogOpenAtom = atom(false);
 export const searchOpenAtom = atom(false);
 
 // Connection mode for manual edge creation
-export const connectionModeAtom = atom<{
-	active: boolean;
-	linkNodeId: string;
-	direction: "to" | "from";
-} | null>(null);
+export const connectionModeAtom = atom<ConnectionModeState>(null);
 
 // Context menu state
-export const contextMenuAtom = atom<{
-	nodeId: string;
-	nodeType: "text" | "connector";
-	position: { x: number; y: number };
-} | null>(null);
+export const contextMenuAtom = atom<ContextMenuState>(null);
 
 // History for undo/redo
-export interface HistorySnapshot {
-	nodes: Node[];
-	edges: Edge[];
-}
-
 export const historyAtom = atom<HistorySnapshot[]>([]);
 export const historyPointerAtom = atom(-1);
 export const isApplyingHistoryAtom = atom(false);

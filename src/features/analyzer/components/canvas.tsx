@@ -8,7 +8,7 @@ import {
 } from "@xyflow/react";
 import { ZoomIn, ZoomOut } from "lucide-react";
 import { useEffect, useMemo, useState } from "react";
-import { useGraphChangeHandlers } from "@/features/goal-map/hooks/use-graph-handlers";
+import { useGraphChangeHandlers } from "@/hooks/use-graph-change-handlers";
 import { ConnectorNode } from "@/features/kitbuild/components/connector-node";
 import { FloatingEdge } from "@/features/kitbuild/components/floating-edge";
 import { TextNode } from "@/features/kitbuild/components/text-node";

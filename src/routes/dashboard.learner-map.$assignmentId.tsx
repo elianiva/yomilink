@@ -1,12 +1,6 @@
 import { useQueryClient } from "@tanstack/react-query";
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
-import type {
-	Connection,
-	EdgeChange,
-	MarkerType,
-	NodeChange,
-	NodeMouseHandler,
-} from "@xyflow/react";
+import type { Connection, MarkerType, NodeMouseHandler } from "@xyflow/react";
 import {
 	addEdge,
 	Background,
@@ -19,6 +13,8 @@ import "@xyflow/react/dist/style.css";
 import { useAtom, useAtomValue, useSetAtom } from "jotai";
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { Guard } from "@/components/auth/Guard";
+import { ConnectionModeIndicator } from "@/components/ui/connection-mode-indicator";
+import { ContextMenuOverlay } from "@/components/ui/context-menu-overlay";
 import { formatDuration } from "@/lib/date-utils";
 import { useRpcMutation, useRpcQuery } from "@/hooks/use-rpc-query";
 import { toast } from "@/lib/error-toast";
@@ -45,9 +41,6 @@ import {
 	attemptAtom,
 	connectionModeAtom,
 	contextMenuAtom,
-	historyAtom,
-	historyPointerAtom,
-	isApplyingHistoryAtom,
 	lastSavedSnapshotAtom,
 	learnerEdgesAtom,
 	learnerMapIdAtom,
@@ -57,11 +50,10 @@ import {
 	searchOpenAtom,
 	submissionStatusAtom,
 } from "@/features/learner-map/lib/atoms";
-import type {
-	Edge as MapEdge,
-	Node as MapNode,
-} from "@/features/learner-map/lib/comparator";
 import { arrangeNodesByType } from "@/features/learner-map/lib/grid-layout";
+import { useGraphChangeHandlers } from "@/hooks/use-graph-change-handlers";
+import { useHistory } from "@/hooks/use-history";
+import { isValidConnection } from "@/lib/react-flow-types";
 import { cn } from "@/lib/utils";
 import { LearnerMapRpc } from "@/server/rpc/learner-map";
 
@@ -103,9 +95,6 @@ function LearnerMapEditor() {
 	const [materialOpen, setMaterialOpen] = useAtom(materialDialogOpenAtom);
 	const [connectionMode, setConnectionMode] = useAtom(connectionModeAtom);
 	const [contextMenu, setContextMenu] = useAtom(contextMenuAtom);
-	const [history, setHistory] = useAtom(historyAtom);
-	const [historyPointer, setHistoryPointer] = useAtom(historyPointerAtom);
-	const [isApplying, setIsApplying] = useAtom(isApplyingHistoryAtom);
 	const [lastSavedSnapshot, setLastSavedSnapshot] = useAtom(
 		lastSavedSnapshotAtom,
 	);
@@ -120,6 +109,20 @@ function LearnerMapEditor() {
 	const [submitDialogOpen, setSubmitDialogOpen] = useState(false);
 	const [isHydrated, setIsHydrated] = useState(false);
 	const [timeRemaining, setTimeRemaining] = useState<number | null>(null);
+
+	const isSubmitted = status === "submitted";
+
+	// Use shared hooks for graph changes and history
+	const { onNodesChange, onEdgesChange } = useGraphChangeHandlers(
+		setNodes,
+		setEdges,
+		{ disabled: isSubmitted },
+	);
+
+	const { undo, redo, canUndo, canRedo } = useHistory(nodes, edges, {
+		maxSnapshots: 50,
+		disabled: isSubmitted || !isHydrated,
+	});
 
 	const { data: assignmentData, isLoading } = useRpcQuery(
 		LearnerMapRpc.getAssignmentForStudent({ assignmentId }),
@@ -172,9 +175,6 @@ function LearnerMapEditor() {
 				);
 			}
 
-			// Initialize history
-			setHistory([{ nodes, edges }]);
-			setHistoryPointer(0);
 			setIsHydrated(true);
 		}
 	}, [
@@ -188,45 +188,7 @@ function LearnerMapEditor() {
 		setStatus,
 		setAttempt,
 		setLastSavedSnapshot,
-		setHistory,
-		setHistoryPointer,
-		nodes,
-		edges,
 		status,
-	]);
-
-	// History tracking
-	useEffect(() => {
-		if (isApplying || !isHydrated) return;
-
-		const timer = setTimeout(() => {
-			const snapshot = { nodes, edges };
-			const lastSnapshot = history[historyPointer];
-
-			if (
-				lastSnapshot &&
-				JSON.stringify(snapshot) === JSON.stringify(lastSnapshot)
-			) {
-				return;
-			}
-
-			const newHistory = history.slice(0, historyPointer + 1);
-			newHistory.push(snapshot);
-			if (newHistory.length > 50) newHistory.shift();
-			setHistory(newHistory);
-			setHistoryPointer(newHistory.length - 1);
-		}, 300);
-
-		return () => clearTimeout(timer);
-	}, [
-		nodes,
-		edges,
-		isApplying,
-		isHydrated,
-		history,
-		historyPointer,
-		setHistory,
-		setHistoryPointer,
 	]);
 
 	// Helper to get node styling based on connection mode
@@ -261,8 +223,9 @@ function LearnerMapEditor() {
 		[nodes, getNodeClassName],
 	);
 
+	// Auto-save effect
 	useEffect(() => {
-		if (!isHydrated || status === "submitted") return;
+		if (!isHydrated || isSubmitted) return;
 
 		const timer = setTimeout(() => {
 			const currentSnapshot = JSON.stringify({ nodes, edges });
@@ -281,7 +244,7 @@ function LearnerMapEditor() {
 		edges,
 		assignmentId,
 		isHydrated,
-		status,
+		isSubmitted,
 		lastSavedSnapshot,
 		saveMutation,
 		setLastSavedSnapshot,
@@ -289,20 +252,19 @@ function LearnerMapEditor() {
 
 	// Timer countdown
 	useEffect(() => {
-		if (timeRemaining === null || timeRemaining <= 0 || status === "submitted")
-			return;
+		if (timeRemaining === null || timeRemaining <= 0 || isSubmitted) return;
 
 		const timer = setInterval(() => {
 			setTimeRemaining((prev) => (prev !== null ? prev - 1 : null));
 		}, 1000);
 
 		return () => clearInterval(timer);
-	}, [timeRemaining, status]);
+	}, [timeRemaining, isSubmitted]);
 
 	// Handle node click - show context menu or complete connection
 	const onNodeClick: NodeMouseHandler = useCallback(
 		(_event, node) => {
-			if (status === "submitted") return;
+			if (isSubmitted) return;
 
 			// If in connection mode, try to complete the connection
 			if (connectionMode?.active) {
@@ -354,7 +316,7 @@ function LearnerMapEditor() {
 				}
 			}
 		},
-		[connectionMode, setEdges, setConnectionMode, setContextMenu, status],
+		[connectionMode, setEdges, setConnectionMode, setContextMenu, isSubmitted],
 	);
 
 	const onPaneClick = useCallback(() => {
@@ -383,120 +345,18 @@ function LearnerMapEditor() {
 		setContextMenu(null);
 	}, [contextMenu, setConnectionMode, setContextMenu]);
 
-	// Undo/redo
-	const undo = useCallback(() => {
-		if (historyPointer <= 0 || status === "submitted") return;
-		const newPointer = historyPointer - 1;
-		setHistoryPointer(newPointer);
-		const snap = history[newPointer];
-		setIsApplying(true);
-		setNodes(snap.nodes);
-		setEdges(snap.edges);
-		requestAnimationFrame(() => setIsApplying(false));
-	}, [
-		history,
-		historyPointer,
-		setHistoryPointer,
-		setIsApplying,
-		setNodes,
-		setEdges,
-		status,
-	]);
-
-	const redo = useCallback(() => {
-		if (historyPointer >= history.length - 1 || status === "submitted") return;
-		const newPointer = historyPointer + 1;
-		setHistoryPointer(newPointer);
-		const snap = history[newPointer];
-		setIsApplying(true);
-		setNodes(snap.nodes);
-		setEdges(snap.edges);
-		requestAnimationFrame(() => setIsApplying(false));
-	}, [
-		history,
-		historyPointer,
-		setHistoryPointer,
-		setIsApplying,
-		setNodes,
-		setEdges,
-		status,
-	]);
-
-	// Node/edge change handlers
-	const onNodesChange = useCallback(
-		(changes: NodeChange<MapNode>[]) => {
-			if (status === "submitted") return;
-			setNodes((nds) => {
-				return changes.reduce((acc, change) => {
-					if (change.type === "position") {
-						return acc.map((n) =>
-							n.id === change.id
-								? { ...n, position: change.position || n.position }
-								: n,
-						);
-					}
-					if (change.type === "select") {
-						return acc.map((n) =>
-							n.id === change.id ? { ...n, selected: change.selected } : n,
-						);
-					}
-					if (change.type === "dimensions") {
-						return acc.map((n) =>
-							n.id === change.id && change.dimensions
-								? {
-										...n,
-										measured: {
-											width: change.dimensions.width,
-											height: change.dimensions.height,
-										},
-									}
-								: n,
-						);
-					}
-					return acc;
-				}, nds);
-			});
-		},
-		[setNodes, status],
-	);
-
-	const onEdgesChange = useCallback(
-		(changes: EdgeChange<MapEdge>[]) => {
-			if (status === "submitted") return;
-			setEdges((eds) => {
-				return changes.reduce((acc, change) => {
-					if (change.type === "remove") {
-						return acc.filter((e) => e.id !== change.id);
-					}
-					if (change.type === "select") {
-						return acc.map((e) =>
-							e.id === change.id ? { ...e, selected: change.selected } : e,
-						);
-					}
-					return acc;
-				}, eds);
-			});
-		},
-		[setEdges, status],
-	);
-
 	const onConnect = useCallback(
 		(params: Connection) => {
-			if (status === "submitted") return;
+			if (isSubmitted) return;
 			const sourceNode = nodes.find((n) => n.id === params.source);
 			const targetNode = nodes.find((n) => n.id === params.target);
 
 			// Only allow: concept -> connector or connector -> concept
-			const sType = sourceNode?.type;
-			const tType = targetNode?.type;
-			const ok =
-				(sType === "text" && tType === "connector") ||
-				(sType === "connector" && tType === "text");
-			if (!ok) return;
+			if (!isValidConnection(sourceNode?.type, targetNode?.type)) return;
 
 			setEdges((eds) => addEdge(params, eds));
 		},
-		[nodes, setEdges, status],
+		[nodes, setEdges, isSubmitted],
 	);
 
 	// Toolbar actions
@@ -505,7 +365,7 @@ function LearnerMapEditor() {
 	const fit = () => fitView({ padding: 0.2 });
 
 	const autoLayout = () => {
-		if (status === "submitted") return;
+		if (isSubmitted) return;
 		const { nodes: layoutedNodes, edges: layoutedEdges } = getLayoutedElements(
 			nodes,
 			edges,
@@ -600,7 +460,7 @@ function LearnerMapEditor() {
 			</div>
 
 			{/* Timer */}
-			{timeRemaining !== null && status !== "submitted" && (
+			{timeRemaining !== null && !isSubmitted && (
 				<div
 					className={cn(
 						"absolute top-4 left-1/2 -translate-x-1/2 z-10 bg-background/80 backdrop-blur-sm border rounded-lg px-4 py-2 font-mono font-medium",
@@ -612,7 +472,7 @@ function LearnerMapEditor() {
 			)}
 
 			{/* Progress Indicator */}
-			{status !== "submitted" && (
+			{!isSubmitted && (
 				<div className="absolute top-4 right-4 z-10 bg-background/80 backdrop-blur-sm border rounded-lg px-4 py-2 w-48">
 					<div className="flex items-center justify-between text-xs mb-1">
 						<span className="text-muted-foreground">Progress</span>
@@ -679,9 +539,9 @@ function LearnerMapEditor() {
 					defaultEdgeOptions={edgeOptions}
 					connectionLineComponent={FloatingConnectionLine}
 					fitView
-					nodesDraggable={status !== "submitted"}
-					nodesConnectable={status !== "submitted"}
-					elementsSelectable={status !== "submitted"}
+					nodesDraggable={!isSubmitted}
+					nodesConnectable={!isSubmitted}
+					elementsSelectable={!isSubmitted}
 				>
 					<MiniMap />
 					<Background gap={16} />
@@ -704,20 +564,15 @@ function LearnerMapEditor() {
 					onMaterial={() => setMaterialOpen(true)}
 					onAutoLayout={autoLayout}
 					onSubmit={() => setSubmitDialogOpen(true)}
-					canUndo={historyPointer > 0}
-					canRedo={historyPointer < history.length - 1}
+					canUndo={canUndo}
+					canRedo={canRedo}
 					isSubmitting={submitMutation.isPending}
-					isSubmitted={status === "submitted"}
+					isSubmitted={isSubmitted}
 					hasMaterial={!!materialText}
 				/>
 
 				{/* Dark overlay when context menu is open */}
-				{contextMenu && (
-					<div
-						className="absolute inset-0 bg-black/30 z-40 pointer-events-none animate-in fade-in duration-150"
-						aria-hidden="true"
-					/>
-				)}
+				<ContextMenuOverlay visible={contextMenu !== null} />
 
 				{/* Simple Context Menu for Connectors */}
 				{contextMenu && contextMenu.nodeType === "connector" && (
@@ -754,21 +609,11 @@ function LearnerMapEditor() {
 				)}
 
 				{/* Connection Mode Indicator */}
-				{connectionMode?.active && (
-					<div className="absolute bottom-20 left-1/2 -translate-x-1/2 z-20 bg-blue-500 text-white border border-blue-600 rounded-lg px-3 py-1.5 shadow-lg text-sm flex items-center gap-2">
-						<span>
-							Click a concept to connect{" "}
-							{connectionMode.direction === "to" ? "to" : "from"}
-						</span>
-						<button
-							type="button"
-							onClick={() => setConnectionMode(null)}
-							className="text-xs text-white/80 hover:text-white underline"
-						>
-							Cancel
-						</button>
-					</div>
-				)}
+				<ConnectionModeIndicator
+					active={connectionMode?.active ?? false}
+					direction={connectionMode?.direction ?? "to"}
+					onCancel={() => setConnectionMode(null)}
+				/>
 			</div>
 		</div>
 	);
