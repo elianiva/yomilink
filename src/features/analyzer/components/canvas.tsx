@@ -1,4 +1,4 @@
-import type { Edge, MarkerType, Node, NodeChange } from "@xyflow/react";
+import type { Edge, MarkerType, Node } from "@xyflow/react";
 import {
 	Background,
 	MiniMap,
@@ -7,7 +7,8 @@ import {
 	useReactFlow,
 } from "@xyflow/react";
 import { ZoomIn, ZoomOut } from "lucide-react";
-import { useCallback, useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
+import { useGraphChangeHandlers } from "@/features/goal-map/hooks/use-graph-handlers";
 import { ConnectorNode } from "@/features/kitbuild/components/connector-node";
 import { FloatingEdge } from "@/features/kitbuild/components/floating-edge";
 import { TextNode } from "@/features/kitbuild/components/text-node";
@@ -118,6 +119,9 @@ function AnalyticsCanvasInner({
 	// Local state for nodes to enable dragging (session-only, resets on refresh)
 	const [nodes, setNodes] = useState<Node[]>([]);
 
+	// Use the shared graph change handlers
+	const { onNodesChange } = useGraphChangeHandlers(setNodes, () => {});
+
 	// Use single learner map or multiple learner maps
 	const currentLearnerMaps = useMemo(
 		() => (isMultiView ? learnerMaps || [] : learnerMap ? [learnerMap] : []),
@@ -167,40 +171,6 @@ function AnalyticsCanvasInner({
 	useEffect(() => {
 		setNodes(mergedNodes);
 	}, [mergedNodes]);
-
-	// Handle node changes including position, selection, and dimensions (required for node initialization)
-	const onNodesChange = useCallback((changes: NodeChange<Node>[]) => {
-		setNodes((nds) =>
-			changes.reduce((acc, change) => {
-				if (change.type === "position" && change.position) {
-					return acc.map((n) =>
-						// biome-ignore lint/style/noNonNullAssertion: position is checked above
-						n.id === change.id ? { ...n, position: change.position! } : n,
-					);
-				}
-				if (change.type === "select") {
-					return acc.map((n) =>
-						n.id === change.id ? { ...n, selected: change.selected } : n,
-					);
-				}
-				// Handle dimensions changes - required for ReactFlow node initialization
-				if (change.type === "dimensions" && change.dimensions) {
-					return acc.map((n) =>
-						n.id === change.id
-							? {
-									...n,
-									measured: {
-										width: change.dimensions?.width,
-										height: change.dimensions?.height,
-									},
-								}
-							: n,
-					);
-				}
-				return acc;
-			}, nds),
-		);
-	}, []);
 
 	const { showGoalMap, showLearnerMap } = visibility;
 
