@@ -86,6 +86,25 @@ function AnalyticsPage() {
 	const [showExcessiveEdges, setShowExcessiveEdges] = useState(true);
 	const [showNeutralEdges, setShowNeutralEdges] = useState(true);
 
+	const visibility = useMemo(
+		() => ({
+			showGoalMap,
+			showLearnerMap,
+			showCorrectEdges,
+			showMissingEdges,
+			showExcessiveEdges,
+			showNeutralEdges,
+		}),
+		[
+			showGoalMap,
+			showLearnerMap,
+			showCorrectEdges,
+			showMissingEdges,
+			showExcessiveEdges,
+			showNeutralEdges,
+		],
+	);
+
 	// Fetch assignments
 	const { data: assignments, isLoading: assignmentsLoading } = useRpcQuery(
 		AnalyticsRpc.getTeacherAssignments(),
@@ -522,14 +541,7 @@ function AnalyticsPage() {
 								analyticsData={analyticsData as AssignmentAnalytics | null}
 								multipleLearnerMapDetails={multipleLearnerMapDetails ?? null}
 								isLoadingLearnerMaps={multipleLearnerMapsLoading}
-								visibility={{
-									showGoalMap,
-									showLearnerMap,
-									showCorrectEdges,
-									showMissingEdges,
-									showExcessiveEdges,
-									showNeutralEdges,
-								}}
+								visibility={visibility}
 							/>
 						)}
 					</div>

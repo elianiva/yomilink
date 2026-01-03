@@ -39,6 +39,7 @@ function RootDocument({ children }: { children: React.ReactNode }) {
 		<html lang="en">
 			<head>
 				<HeadContent />
+				<script src="https://cdn.jsdelivr.net/npm/react-scan/dist/auto.global.js"></script>
 			</head>
 			<body>
 				<ProgressProvider

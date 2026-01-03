@@ -2,6 +2,7 @@ import type {
 	AssignmentAnalytics,
 	LearnerMapResult,
 } from "@/features/analyzer/lib/analytics-service";
+import { useMemo } from "react";
 import { AnalyticsCanvas } from "./canvas";
 
 export function CanvasContent({
@@ -26,6 +27,17 @@ export function CanvasContent({
 		showNeutralEdges: boolean;
 	};
 }) {
+	const mappedLearnerMaps = useMemo(
+		() => multipleLearnerMapDetails?.map((m) => m.learnerMap) ?? [],
+		[multipleLearnerMapDetails],
+	);
+
+	const allEdgeClassificationsMemo = useMemo(
+		() =>
+			multipleLearnerMapDetails?.flatMap((m) => m.edgeClassifications) ?? [],
+		[multipleLearnerMapDetails],
+	);
+
 	if (!selectedAssignmentId) {
 		return (
 			<div className="w-full h-full flex items-center justify-center">
@@ -63,10 +75,8 @@ export function CanvasContent({
 	return (
 		<AnalyticsCanvas
 			goalMap={analyticsData.goalMap}
-			learnerMaps={multipleLearnerMapDetails.map((m) => m.learnerMap)}
-			allEdgeClassifications={multipleLearnerMapDetails.flatMap(
-				(m) => m.edgeClassifications,
-			)}
+			learnerMaps={mappedLearnerMaps}
+			allEdgeClassifications={allEdgeClassificationsMemo}
 			visibility={visibility}
 			isMultiView={true}
 		/>

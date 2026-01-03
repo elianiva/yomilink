@@ -7,7 +7,7 @@ import {
 	useReactFlow,
 } from "@xyflow/react";
 import { ZoomIn, ZoomOut } from "lucide-react";
-import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import { ConnectorNode } from "@/features/kitbuild/components/connector-node";
 import { FloatingEdge } from "@/features/kitbuild/components/floating-edge";
 import { TextNode } from "@/features/kitbuild/components/text-node";
@@ -118,17 +118,16 @@ function AnalyticsCanvasInner({
 	// Local state for nodes to enable dragging (session-only, resets on refresh)
 	const [nodes, setNodes] = useState<Node[]>([]);
 
-	const isDragging = useRef(false);
-
 	// Use single learner map or multiple learner maps
-	const currentLearnerMaps = isMultiView
-		? learnerMaps || []
-		: learnerMap
-			? [learnerMap]
-			: [];
-	const currentEdgeClassifications = isMultiView
-		? allEdgeClassifications || []
-		: edgeClassifications || [];
+	const currentLearnerMaps = useMemo(
+		() => (isMultiView ? learnerMaps || [] : learnerMap ? [learnerMap] : []),
+		[isMultiView, learnerMaps, learnerMap],
+	);
+	const currentEdgeClassifications = useMemo(
+		() =>
+			isMultiView ? allEdgeClassifications || [] : edgeClassifications || [],
+		[isMultiView, allEdgeClassifications, edgeClassifications],
+	);
 
 	// Compute merged nodes from goal map and all learner maps
 	const mergedNodes = useMemo(() => {
@@ -165,19 +164,17 @@ function AnalyticsCanvasInner({
 	}, [goalMap.nodes, currentLearnerMaps]);
 
 	// Initialize nodes when merged nodes change (e.g., when selecting different learner)
-	// Skip resetting during drag to prevent flickering
 	useEffect(() => {
-		if (!isDragging.current) {
-			setNodes(mergedNodes);
-		}
+		setNodes(mergedNodes);
 	}, [mergedNodes]);
 
-	// Handle node position changes during drag
+	// Handle node changes including position, selection, and dimensions (required for node initialization)
 	const onNodesChange = useCallback((changes: NodeChange<Node>[]) => {
 		setNodes((nds) =>
 			changes.reduce((acc, change) => {
 				if (change.type === "position" && change.position) {
 					return acc.map((n) =>
+						// biome-ignore lint/style/noNonNullAssertion: position is checked above
 						n.id === change.id ? { ...n, position: change.position! } : n,
 					);
 				}
@@ -186,18 +183,23 @@ function AnalyticsCanvasInner({
 						n.id === change.id ? { ...n, selected: change.selected } : n,
 					);
 				}
+				// Handle dimensions changes - required for ReactFlow node initialization
+				if (change.type === "dimensions" && change.dimensions) {
+					return acc.map((n) =>
+						n.id === change.id
+							? {
+									...n,
+									measured: {
+										width: change.dimensions?.width,
+										height: change.dimensions?.height,
+									},
+								}
+							: n,
+					);
+				}
 				return acc;
 			}, nds),
 		);
-	}, []);
-
-	// Drag handlers to prevent node flickering
-	const onNodeDragStart = useCallback(() => {
-		isDragging.current = true;
-	}, []);
-
-	const onNodeDragStop = useCallback(() => {
-		isDragging.current = false;
 	}, []);
 
 	const { showGoalMap, showLearnerMap } = visibility;
@@ -483,8 +485,6 @@ function AnalyticsCanvasInner({
 				nodeTypes={nodeTypes}
 				edgeTypes={edgeTypes}
 				onNodesChange={onNodesChange}
-				onNodeDragStart={onNodeDragStart}
-				onNodeDragStop={onNodeDragStop}
 				nodesDraggable={true}
 				nodesConnectable={false}
 				elementsSelectable={true}
