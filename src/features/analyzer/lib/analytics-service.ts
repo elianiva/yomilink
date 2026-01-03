@@ -32,6 +32,13 @@ export const GetLearnerMapForAnalyticsInput = Schema.Struct({
 export type GetLearnerMapForAnalyticsInput =
 	typeof GetLearnerMapForAnalyticsInput.Type;
 
+export const GetMultipleLearnerMapsInput = Schema.Struct({
+	learnerMapIds: Schema.Array(Schema.NonEmptyString),
+});
+
+export type GetMultipleLearnerMapsInput =
+	typeof GetMultipleLearnerMapsInput.Type;
+
 export const MapStatusSchema = Schema.Union(
 	Schema.Literal("draft"),
 	Schema.Literal("submitted"),
@@ -486,6 +493,26 @@ export const getLearnerMapForAnalytics = Effect.fn("getLearnerMapForAnalytics")(
 				diagnosis,
 				edgeClassifications,
 			};
+		}),
+);
+
+export const getMultipleLearnerMaps = Effect.fn("getMultipleLearnerMaps")(
+	(input: GetMultipleLearnerMapsInput) =>
+		Effect.gen(function* () {
+			if (input.learnerMapIds.length === 0) {
+				return [];
+			}
+
+			const results = yield* Effect.all(
+				input.learnerMapIds.map((id) =>
+					getLearnerMapForAnalytics({ learnerMapId: id }).pipe(
+						Effect.catchAll(() => Effect.succeed(null)),
+					),
+				),
+				{ concurrency: 10 },
+			);
+
+			return results.filter((r) => r !== null);
 		}),
 );
 

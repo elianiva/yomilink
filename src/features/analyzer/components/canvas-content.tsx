@@ -6,15 +6,17 @@ import { AnalyticsCanvas } from "./canvas";
 
 export function CanvasContent({
 	selectedAssignmentId,
-	selectedLearnerMapId,
+	selectedLearnerMapIds,
 	analyticsData,
-	learnerMapDetails,
+	multipleLearnerMapDetails,
+	isLoadingLearnerMaps,
 	visibility,
 }: {
 	selectedAssignmentId: string | null;
-	selectedLearnerMapId: string | null;
+	selectedLearnerMapIds: Set<string>;
 	analyticsData: AssignmentAnalytics | null | undefined;
-	learnerMapDetails: LearnerMapResult | null;
+	multipleLearnerMapDetails: LearnerMapResult[] | null;
+	isLoadingLearnerMaps: boolean;
 	visibility: {
 		showGoalMap: boolean;
 		showLearnerMap: boolean;
@@ -35,24 +37,24 @@ export function CanvasContent({
 	}
 
 	if (
-		!selectedLearnerMapId ||
+		selectedLearnerMapIds.size === 0 ||
 		!analyticsData ||
 		!("goalMap" in analyticsData)
 	) {
 		return (
 			<div className="w-full h-full flex items-center justify-center">
 				<div className="text-sm text-muted-foreground px-4 text-center">
-					Select a learner to view their map
+					Select learners to view their maps
 				</div>
 			</div>
 		);
 	}
 
-	if (!learnerMapDetails || !("learnerMap" in learnerMapDetails)) {
+	if (isLoadingLearnerMaps || !multipleLearnerMapDetails) {
 		return (
 			<div className="w-full h-full flex items-center justify-center">
 				<div className="text-sm text-muted-foreground px-4 text-center">
-					Loading learner map details...
+					Loading learner maps...
 				</div>
 			</div>
 		);
@@ -61,9 +63,12 @@ export function CanvasContent({
 	return (
 		<AnalyticsCanvas
 			goalMap={analyticsData.goalMap}
-			learnerMap={learnerMapDetails.learnerMap}
-			edgeClassifications={learnerMapDetails.edgeClassifications}
+			learnerMaps={multipleLearnerMapDetails.map((m) => m.learnerMap)}
+			allEdgeClassifications={multipleLearnerMapDetails.flatMap(
+				(m) => m.edgeClassifications,
+			)}
 			visibility={visibility}
+			isMultiView={true}
 		/>
 	);
 }

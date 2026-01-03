@@ -6,8 +6,10 @@ import {
 	exportAnalyticsData,
 	GetAnalyticsForAssignmentInput,
 	GetLearnerMapForAnalyticsInput,
+	GetMultipleLearnerMapsInput,
 	getAnalyticsForAssignment,
 	getLearnerMapForAnalytics,
+	getMultipleLearnerMaps,
 	getTeacherAssignments,
 } from "@/features/analyzer/lib/analytics-service";
 import { authMiddleware } from "@/middlewares/auth";
@@ -69,6 +71,21 @@ export const getLearnerMapForAnalyticsRpc = createServerFn()
 		),
 	);
 
+export const getMultipleLearnerMapsRpc = createServerFn()
+	.middleware([authMiddleware])
+	.inputValidator((raw) =>
+		Schema.decodeUnknownSync(GetMultipleLearnerMapsInput)(raw),
+	)
+	.handler(({ data }) =>
+		getMultipleLearnerMaps(data).pipe(
+			Effect.withSpan("getMultipleLearnerMaps"),
+			Effect.tapError(logRpcError("getMultipleLearnerMaps")),
+			Effect.provide(Layer.mergeAll(DatabaseLive, LoggerLive)),
+			Effect.catchAll(() => errorResponse("Internal server error")),
+			Effect.runPromise,
+		),
+	);
+
 export const exportAnalyticsDataRpc = createServerFn()
 	.middleware([authMiddleware])
 	.inputValidator((raw) =>
@@ -100,6 +117,11 @@ export const AnalyticsRpc = {
 		queryOptions({
 			queryKey: [...AnalyticsRpc.analytics(), "learner-map", learnerMapId],
 			queryFn: () => getLearnerMapForAnalyticsRpc({ data: { learnerMapId } }),
+		}),
+	getMultipleLearnerMaps: (learnerMapIds: string[]) =>
+		queryOptions({
+			queryKey: [...AnalyticsRpc.analytics(), "learner-maps", ...learnerMapIds],
+			queryFn: () => getMultipleLearnerMapsRpc({ data: { learnerMapIds } }),
 		}),
 	exportAnalyticsData: () =>
 		mutationOptions({

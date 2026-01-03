@@ -3,6 +3,7 @@ import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { Activity, Download, RefreshCw, Search } from "lucide-react";
 import { useCallback, useMemo, useState } from "react";
 import { Guard } from "@/components/auth/Guard";
+import { Checkbox } from "@/components/ui/checkbox";
 import { ErrorCard } from "@/components/ui/error-card";
 import { isErrorResponse } from "@/hooks/use-rpc-error";
 import { useRpcQuery } from "@/hooks/use-rpc-query";
@@ -66,9 +67,9 @@ function AnalyticsPage() {
 	const [selectedAssignmentId, setSelectedAssignmentId] = useState<
 		string | null
 	>(null);
-	const [selectedLearnerMapId, setSelectedLearnerMapId] = useState<
-		string | null
-	>(null);
+	const [selectedLearnerMapIds, setSelectedLearnerMapIds] = useState<
+		Set<string>
+	>(new Set());
 	const [searchQuery, setSearchQuery] = useState("");
 	const [statusFilter, setStatusFilter] = useState<
 		"All" | "submitted" | "draft"
@@ -103,15 +104,16 @@ function AnalyticsPage() {
 		refetchOnWindowFocus: false,
 	});
 
-	// Fetch learner map details for selected learner
+	// Fetch learner map details for selected learners
 	const {
-		data: learnerMapDetails,
-		refetch: refetchLearnerMap,
-		isRefetching: isRefetchingLearnerMap,
-		rpcError: learnerMapError,
+		data: multipleLearnerMapDetails,
+		isLoading: multipleLearnerMapsLoading,
+		isRefetching: isRefetchingMultipleLearnerMaps,
+		rpcError: multipleLearnerMapsError,
+		refetch: refetchMultipleLearnerMaps,
 	} = useRpcQuery({
-		...AnalyticsRpc.getLearnerMapForAnalytics(selectedLearnerMapId ?? ""),
-		enabled: !!selectedLearnerMapId,
+		...AnalyticsRpc.getMultipleLearnerMaps(Array.from(selectedLearnerMapIds)),
+		enabled: selectedLearnerMapIds.size > 0,
 		refetchOnWindowFocus: false,
 	});
 
@@ -131,21 +133,55 @@ function AnalyticsPage() {
 		});
 	}, [analyticsData, searchQuery, statusFilter]);
 
-	// Get selected learner
-	const selectedLearner = useMemo(() => {
-		if (!analyticsData || !selectedLearnerMapId) {
-			return null;
+	// Get selected learners
+	const selectedLearners = useMemo(() => {
+		if (!analyticsData) {
+			return [];
 		}
-		return analyticsData.learners.find(
-			(l: LearnerAnalytics) => l.learnerMapId === selectedLearnerMapId,
+		return analyticsData.learners.filter((l: LearnerAnalytics) =>
+			selectedLearnerMapIds.has(l.learnerMapId),
 		);
-	}, [analyticsData, selectedLearnerMapId]);
+	}, [analyticsData, selectedLearnerMapIds]);
 
 	const handleRefresh = useCallback(() => {
 		if (selectedAssignmentId) {
 			window.location.reload();
 		}
 	}, [selectedAssignmentId]);
+
+	const handleToggleLearner = useCallback((learnerMapId: string) => {
+		setSelectedLearnerMapIds((prev) => {
+			const next = new Set(prev);
+			if (next.has(learnerMapId)) {
+				next.delete(learnerMapId);
+			} else {
+				next.add(learnerMapId);
+			}
+			return next;
+		});
+	}, []);
+
+	const handleToggleAll = useCallback(
+		(checked: boolean) => {
+			if (!analyticsData) return;
+			setSelectedLearnerMapIds(
+				checked
+					? new Set(filteredLearners.map((l) => l.learnerMapId))
+					: new Set(),
+			);
+		},
+		[analyticsData, filteredLearners],
+	);
+
+	const selectAllState = useMemo(() => {
+		if (filteredLearners.length === 0)
+			return { checked: false, indeterminate: false };
+		if (selectedLearnerMapIds.size === 0)
+			return { checked: false, indeterminate: false };
+		if (selectedLearnerMapIds.size === filteredLearners.length)
+			return { checked: true, indeterminate: false };
+		return { checked: false, indeterminate: true };
+	}, [filteredLearners.length, selectedLearnerMapIds.size]);
 
 	const exportMutation = useMutation({
 		mutationFn: async (format: "csv" | "json") => {
@@ -285,14 +321,24 @@ function AnalyticsPage() {
 
 							<div className="max-h-64 overflow-auto rounded-md border">
 								<div className="flex items-center justify-between text-xs text-muted-foreground px-3 py-2 border-b">
-									<div>Name</div>
+									<div className="flex items-center gap-2">
+										<Checkbox
+											checked={selectAllState.checked}
+											indeterminate={selectAllState.indeterminate}
+											onCheckedChange={handleToggleAll}
+										/>
+										<div className="text-xs">
+											{selectedLearnerMapIds.size} of {filteredLearners.length}{" "}
+											selected
+										</div>
+									</div>
 									<div>Score</div>
 								</div>
 								<LearnerList
 									learners={filteredLearners}
 									isLoading={analyticsLoading}
-									selectedLearnerMapId={selectedLearnerMapId}
-									onSelectLearner={setSelectedLearnerMapId}
+									selectedLearnerMapIds={selectedLearnerMapIds}
+									onToggleLearner={handleToggleLearner}
 								/>
 							</div>
 						</div>
@@ -420,28 +466,34 @@ function AnalyticsPage() {
 					</div>
 
 					{/* Selected learner stats */}
-					{selectedLearner && (
+					{selectedLearners.length > 0 && (
 						<div className="border-b px-3 py-2 flex items-center justify-between bg-muted/30">
 							<div className="text-sm font-medium">
-								{selectedLearner.userName}
+								{selectedLearners.length === 1
+									? selectedLearners[0]?.userName
+									: `${selectedLearners.length} learners selected`}
 							</div>
 							<div className="flex items-center gap-4 text-xs">
 								<div className="flex items-center gap-1.5">
 									<LegendDot color="#22c55e" />
-									<span>{selectedLearner.correct} correct</span>
+									<span>
+										{selectedLearners.reduce((sum, l) => sum + l.correct, 0)}{" "}
+										correct
+									</span>
 								</div>
 								<div className="flex items-center gap-1.5">
 									<LegendDot color="#ef4444" />
-									<span>{selectedLearner.missing} missing</span>
+									<span>
+										{selectedLearners.reduce((sum, l) => sum + l.missing, 0)}{" "}
+										missing
+									</span>
 								</div>
 								<div className="flex items-center gap-1.5">
 									<LegendDot color="#3b82f6" />
-									<span>{selectedLearner.excessive} excessive</span>
-								</div>
-								<div className="font-semibold tabular-nums">
-									{selectedLearner.score !== null
-										? `${selectedLearner.score}%`
-										: "N/A"}
+									<span>
+										{selectedLearners.reduce((sum, l) => sum + l.excessive, 0)}{" "}
+										excessive
+									</span>
 								</div>
 							</div>
 						</div>
@@ -456,19 +508,20 @@ function AnalyticsPage() {
 								onRetry={() => refetchAnalytics()}
 								isRetrying={isRefetchingAnalytics}
 							/>
-						) : learnerMapError && selectedLearnerMapId ? (
+						) : multipleLearnerMapsError ? (
 							<ErrorCard
-								title="Failed to load learner map"
-								description={learnerMapError}
-								onRetry={() => refetchLearnerMap()}
-								isRetrying={isRefetchingLearnerMap}
+								title="Failed to load learner maps"
+								description={multipleLearnerMapsError}
+								onRetry={() => refetchMultipleLearnerMaps()}
+								isRetrying={isRefetchingMultipleLearnerMaps}
 							/>
 						) : (
 							<CanvasContent
 								selectedAssignmentId={selectedAssignmentId}
-								selectedLearnerMapId={selectedLearnerMapId}
+								selectedLearnerMapIds={selectedLearnerMapIds}
 								analyticsData={analyticsData as AssignmentAnalytics | null}
-								learnerMapDetails={learnerMapDetails ?? null}
+								multipleLearnerMapDetails={multipleLearnerMapDetails ?? null}
+								isLoadingLearnerMaps={multipleLearnerMapsLoading}
 								visibility={{
 									showGoalMap,
 									showLearnerMap,
