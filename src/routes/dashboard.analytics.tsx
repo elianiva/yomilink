@@ -1,4 +1,3 @@
-import { useMutation } from "@tanstack/react-query";
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { Activity, Download, RefreshCw, Search } from "lucide-react";
 import { useCallback, useMemo, useState } from "react";
@@ -6,6 +5,7 @@ import { Guard } from "@/components/auth/Guard";
 import { Checkbox } from "@/components/ui/checkbox";
 import { ErrorCard } from "@/components/ui/error-card";
 import { isErrorResponse } from "@/hooks/use-rpc-error";
+import { useRpcMutation } from "@/hooks/use-rpc-query";
 import { useRpcQuery } from "@/hooks/use-rpc-query";
 import { toast } from "@/lib/error-toast";
 import { ToolbarButton } from "@/components/toolbar/toolbar-button";
@@ -30,13 +30,9 @@ import { CanvasContent } from "@/features/analyzer/components/canvas-content";
 import { LearnerList } from "@/features/analyzer/components/learner-list";
 import type {
 	AssignmentAnalytics,
-	ExportResult,
 	LearnerAnalytics,
 } from "@/features/analyzer/lib/analytics-service";
-import {
-	AnalyticsRpc,
-	exportAnalyticsDataRpc as exportAnalyticsDataFn,
-} from "@/server/rpc/analytics";
+import { AnalyticsRpc } from "@/server/rpc/analytics";
 
 export const Route = createFileRoute("/dashboard/analytics")({
 	component: () => (
@@ -202,41 +198,39 @@ function AnalyticsPage() {
 		return { checked: false, indeterminate: true };
 	}, [filteredLearners.length, selectedLearnerMapIds.size]);
 
-	const exportMutation = useMutation({
-		mutationFn: async (format: "csv" | "json") => {
-			const result = await exportAnalyticsDataFn({
-				data: { analytics: analyticsData, format },
-			});
-			if (isErrorResponse(result)) {
-				throw new Error(result.error);
-			}
-			return result as ExportResult;
+	const exportMutation = useRpcMutation(
+		{
+			...AnalyticsRpc.exportAnalyticsData(),
+			onSuccess: (result) => {
+				if (isErrorResponse(result)) {
+					return;
+				}
+				const blob = new Blob([result.data], {
+					type: result.contentType,
+				});
+				const url = URL.createObjectURL(blob);
+				const a = document.createElement("a");
+				a.href = url;
+				a.download = result.filename;
+				document.body.appendChild(a);
+				a.click();
+				document.body.removeChild(a);
+				URL.revokeObjectURL(url);
+				toast.success(`Exported ${result.filename}`);
+			},
 		},
-		onSuccess: (result) => {
-			const blob = new Blob([result.data], {
-				type: result.contentType,
-			});
-			const url = URL.createObjectURL(blob);
-			const a = document.createElement("a");
-			a.href = url;
-			a.download = result.filename;
-			document.body.appendChild(a);
-			a.click();
-			document.body.removeChild(a);
-			URL.revokeObjectURL(url);
-			toast.success(`Exported ${result.filename}`);
+		{
+			operation: "export analytics",
+			showSuccess: false,
 		},
-		onError: (error) => {
-			toast.error(error, { operation: "export analytics" });
-		},
-	});
+	);
 
 	const handleExport = useCallback(
 		(format: "csv" | "json") => {
-			if (!selectedAssignmentId) return;
-			exportMutation.mutate(format);
+			if (!selectedAssignmentId || !analyticsData) return;
+			exportMutation.mutate({ analytics: analyticsData, format });
 		},
-		[selectedAssignmentId, exportMutation],
+		[selectedAssignmentId, exportMutation, analyticsData],
 	);
 
 	return (
