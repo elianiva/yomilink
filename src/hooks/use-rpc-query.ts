@@ -88,26 +88,6 @@ const DEFAULT_RETRY_DELAYS = [1000, 2000, 4000];
  *   }
  * );
  * ```
- *
- * @example
- * ```tsx
- * // Using with DataState component
- * const { data, isLoading, rpcError, refetch, isRefetching } = useRpcQuery(
- *   AssignmentRpc.listAssignments()
- * );
- *
- * return (
- *   <DataState
- *     loading={isLoading}
- *     error={rpcError}
- *     empty={!data || data.length === 0}
- *     onRetry={refetch}
- *     isRetrying={isRefetching}
- *   >
- *     <AssignmentList items={data} />
- *   </DataState>
- * );
- * ```
  */
 export function useRpcQuery<
 	TData,
@@ -206,6 +186,8 @@ export type UseRpcMutationConfig = {
 	errorToastOptions?: Omit<ErrorToastOptions, "operation">;
 };
 
+// some other changes
+
 /**
  * Extended result type for useRpcMutation.
  */
@@ -286,6 +268,8 @@ export function useRpcMutation<TData, TVariables, TContext = unknown>(
 		errorToastOptions,
 	} = config;
 
+  // another changes
+
 	const mutationResult = useMutation<TData, Error, TVariables, TContext>({
 		...options,
 		onSuccess: (data, variables, onMutateResult, context) => {
@@ -322,6 +306,9 @@ export function useRpcMutation<TData, TVariables, TContext = unknown>(
 			options.onError?.(error, variables, onMutateResult, context);
 		},
 	});
+
+
+  // test changes
 
 	// Compute RPC error state
 	const { data } = mutationResult;
