@@ -18,6 +18,7 @@ import {
 	createForm,
 	deleteForm,
 	getFormById,
+	getFormResponses,
 	listForms,
 	publishForm,
 	submitFormResponse,
@@ -539,6 +540,136 @@ describe("form-service", () => {
 
 				assert.equal(responseRows.length, 2);
 			}).pipe(Effect.provide(DatabaseTest)),
+		);
+	});
+
+	describe("getFormResponses", () => {
+		it.effect("should return paginated responses with user info", () =>
+			Effect.gen(function* () {
+				const user = yield* createTestUser();
+				const form = yield* createTestForm(user.id);
+				yield* publishForm(form.id);
+
+				const student = yield* createTestUser({
+					name: "Student One",
+					email: "student1@test.com",
+				});
+
+				yield* submitFormResponse({
+					formId: form.id,
+					userId: student.id,
+					answers: { q1: "answer1", q2: "answer2" },
+					timeSpentSeconds: 120,
+				});
+
+				const result = yield* getFormResponses({ formId: form.id });
+
+				assert.equal(result.responses.length, 1);
+				assert.equal(result.responses[0]?.userId, student.id);
+				assert.equal(result.responses[0]?.user.name, "Student One");
+				assert.equal(result.responses[0]?.user.email, "student1@test.com");
+				assert.deepEqual(result.responses[0]?.answers, {
+					q1: "answer1",
+					q2: "answer2",
+				});
+				assert.equal(result.responses[0]?.timeSpentSeconds, 120);
+				assert.ok(result.pagination);
+				assert.equal(result.pagination.total, 1);
+				assert.equal(result.pagination.page, 1);
+				assert.equal(result.pagination.totalPages, 1);
+				assert.equal(result.pagination.hasNextPage, false);
+				assert.equal(result.pagination.hasPrevPage, false);
+			}).pipe(Effect.provide(DatabaseTest)),
+		);
+
+		it.effect("should return FormNotFoundError when form does not exist", () =>
+			Effect.gen(function* () {
+				const result = yield* Effect.either(
+					getFormResponses({ formId: "non-existent-id" }),
+				);
+
+				Either.match(result, {
+					onLeft: (error) =>
+						assert.strictEqual(error._tag, "FormNotFoundError"),
+					onRight: () => assert.fail("Expected Left but got Right"),
+				});
+			}).pipe(Effect.provide(DatabaseTest)),
+		);
+
+		it.effect("should paginate responses correctly", () =>
+			Effect.gen(function* () {
+				const user = yield* createTestUser();
+				const form = yield* createTestForm(user.id);
+				yield* publishForm(form.id);
+
+				// Create 5 responses
+				for (let i = 0; i < 5; i++) {
+					const student = yield* createTestUser({
+						name: `Student ${i + 1}`,
+						email: `student${i + 1}@test.com`,
+					});
+					yield* submitFormResponse({
+						formId: form.id,
+						userId: student.id,
+						answers: { q1: `answer${i + 1}` },
+					});
+				}
+
+				// Get page 1 with limit 2
+				const page1 = yield* getFormResponses({
+					formId: form.id,
+					page: 1,
+					limit: 2,
+				});
+
+				assert.equal(page1.responses.length, 2);
+				assert.equal(page1.pagination.total, 5);
+				assert.equal(page1.pagination.page, 1);
+				assert.equal(page1.pagination.totalPages, 3);
+				assert.equal(page1.pagination.hasNextPage, true);
+				assert.equal(page1.pagination.hasPrevPage, false);
+
+				// Get page 2
+				const page2 = yield* getFormResponses({
+					formId: form.id,
+					page: 2,
+					limit: 2,
+				});
+
+				assert.equal(page2.responses.length, 2);
+				assert.equal(page2.pagination.page, 2);
+				assert.equal(page2.pagination.hasNextPage, true);
+				assert.equal(page2.pagination.hasPrevPage, true);
+
+				// Get page 3 (last page)
+				const page3 = yield* getFormResponses({
+					formId: form.id,
+					page: 3,
+					limit: 2,
+				});
+
+				assert.equal(page3.responses.length, 1);
+				assert.equal(page3.pagination.page, 3);
+				assert.equal(page3.pagination.hasNextPage, false);
+				assert.equal(page3.pagination.hasPrevPage, true);
+			}).pipe(Effect.provide(DatabaseTest)),
+		);
+
+		it.effect(
+			"should return empty responses array when no responses exist",
+			() =>
+				Effect.gen(function* () {
+					const user = yield* createTestUser();
+					const form = yield* createTestForm(user.id);
+
+					const result = yield* getFormResponses({ formId: form.id });
+
+					assert.equal(result.responses.length, 0);
+					assert.equal(result.pagination.total, 0);
+					assert.equal(result.pagination.totalPages, 0);
+					assert.equal(result.pagination.hasNextPage, false);
+					assert.equal(result.pagination.hasPrevPage, false);
+				}).pipe(Effect.provide(DatabaseTest)),
 		);
 	});
 });

@@ -1,4 +1,4 @@
-import { and, eq } from "drizzle-orm";
+import { and, count, desc, eq } from "drizzle-orm";
 import { Data, Effect, Schema } from "effect";
 import { randomString } from "@/lib/utils";
 import { Database } from "@/server/db/client";
@@ -8,6 +8,7 @@ import {
 	forms,
 	questions,
 } from "@/server/db/schema/app-schema";
+import { user } from "@/server/db/schema/auth-schema";
 
 export const CreateFormInput = Schema.Struct({
 	title: Schema.NonEmptyString,
@@ -291,6 +292,85 @@ export const SubmitFormResponseInput = Schema.Struct({
 });
 
 export type SubmitFormResponseInput = typeof SubmitFormResponseInput.Type;
+
+export const GetFormResponsesInput = Schema.Struct({
+	formId: Schema.NonEmptyString,
+	page: Schema.optionalWith(Schema.Number, { default: () => 1 }),
+	limit: Schema.optionalWith(Schema.Number, { default: () => 20 }),
+});
+
+export type GetFormResponsesInput = {
+	formId: string;
+	page?: number;
+	limit?: number;
+};
+
+export const getFormResponses = Effect.fn("getFormResponses")(
+	(input: GetFormResponsesInput) =>
+		Effect.gen(function* () {
+			const db = yield* Database;
+
+			const formRows = yield* db
+				.select()
+				.from(forms)
+				.where(eq(forms.id, input.formId))
+				.limit(1);
+
+			const form = formRows[0];
+			if (!form) {
+				return yield* new FormNotFoundError({ formId: input.formId });
+			}
+
+			const page = Math.max(1, input.page ?? 1);
+			const limit = Math.min(100, Math.max(1, input.limit ?? 20));
+			const offset = (page - 1) * limit;
+
+			const [responseRows, countResult] = yield* Effect.all([
+				db
+					.select({
+						response: formResponses,
+						user: {
+							id: user.id,
+							name: user.name,
+							email: user.email,
+						},
+					})
+					.from(formResponses)
+					.where(eq(formResponses.formId, input.formId))
+					.innerJoin(user, eq(formResponses.userId, user.id))
+					.orderBy(desc(formResponses.submittedAt))
+					.limit(limit)
+					.offset(offset),
+				db
+					.select({ total: count() })
+					.from(formResponses)
+					.where(eq(formResponses.formId, input.formId)),
+			]);
+
+			const total = countResult[0]?.total ?? 0;
+			const totalPages = Math.ceil(total / limit);
+
+			return {
+				responses: responseRows.map((row) => ({
+					id: row.response.id,
+					formId: row.response.formId,
+					userId: row.response.userId,
+					answers: row.response.answers,
+					submittedAt: row.response.submittedAt,
+					timeSpentSeconds: row.response.timeSpentSeconds,
+					user: row.user,
+				})),
+				pagination: {
+					page,
+					limit,
+					total,
+					totalPages,
+					hasNextPage: page < totalPages,
+					hasPrevPage: page > 1,
+				},
+			};
+		}),
+);
 
 export const submitFormResponse = Effect.fn("submitFormResponse")(
 	(data: SubmitFormResponseInput) =>

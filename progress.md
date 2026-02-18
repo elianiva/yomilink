@@ -3,7 +3,16 @@
 ## 2026-02-19
 
 ### Completed Tasks
-1. **Create submitFormResponse endpoint** - Added submitFormResponse function to FormService that handles form submissions
+1. **Create getFormResponses endpoint** - Added getFormResponses function to FormService for querying form responses with pagination
+   - Returns paginated list of responses with user info (name, email)
+   - Supports configurable page and limit parameters (default: page 1, limit 20)
+   - Validates form exists before querying responses
+   - Includes pagination metadata (total, totalPages, hasNextPage, hasPrevPage)
+   - Joins with user table to include submitter information
+   - Added 4 comprehensive tests for pagination, error handling, and empty results
+   - All 26 form-service tests pass
+
+2. **Create submitFormResponse endpoint** - Added submitFormResponse function to FormService that handles form submissions
    - Validates form exists and is published before accepting submission
    - Prevents duplicate submissions from same user with FormAlreadySubmittedError
    - Stores response with answers JSON, timestamp, and time spent
