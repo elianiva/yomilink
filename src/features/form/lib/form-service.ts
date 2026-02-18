@@ -406,6 +406,81 @@ export const getFormResponses = Effect.fn("getFormResponses")(
 		}),
 );
 
+export const ReorderQuestionsInput = Schema.Struct({
+	formId: Schema.NonEmptyString,
+	questionIds: Schema.Array(Schema.NonEmptyString),
+});
+
+export type ReorderQuestionsInput = typeof ReorderQuestionsInput.Type;
+
+export const reorderQuestions = Effect.fn("reorderQuestions")(
+	(input: ReorderQuestionsInput) =>
+		Effect.gen(function* () {
+			const db = yield* Database;
+
+			const formRows = yield* db
+				.select()
+				.from(forms)
+				.where(eq(forms.id, input.formId))
+				.limit(1);
+
+			const form = formRows[0];
+			if (!form) {
+				return yield* new FormNotFoundError({ formId: input.formId });
+			}
+
+			const responseRows = yield* db
+				.select()
+				.from(formResponses)
+				.where(eq(formResponses.formId, input.formId));
+
+			if (responseRows.length > 0) {
+				return yield* new FormHasResponsesError({
+					formId: input.formId,
+					responseCount: responseRows.length,
+				});
+			}
+
+			const existingQuestions = yield* db
+				.select()
+				.from(questions)
+				.where(eq(questions.formId, input.formId));
+
+			const existingQuestionIds = new Set(existingQuestions.map((q) => q.id));
+			const providedQuestionIds = new Set(input.questionIds);
+
+			if (existingQuestionIds.size !== providedQuestionIds.size) {
+				return yield* new FormHasResponsesError({
+					formId: input.formId,
+					responseCount: 0,
+				});
+			}
+
+			for (const id of input.questionIds) {
+				if (!existingQuestionIds.has(id)) {
+					return yield* new FormHasResponsesError({
+						formId: input.formId,
+						responseCount: 0,
+					});
+				}
+			}
+
+			for (let i = 0; i < input.questionIds.length; i++) {
+				yield* db
+					.update(questions)
+					.set({ orderIndex: i })
+					.where(
+						and(
+							eq(questions.id, input.questionIds[i]),
+							eq(questions.formId, input.formId),
+						),
+					);
+			}
+
+			return { formId: input.formId, reordered: input.questionIds.length };
+		}),
+);
+
 export const submitFormResponse = Effect.fn("submitFormResponse")(
 	(data: SubmitFormResponseInput) =>
 		Effect.gen(function* () {

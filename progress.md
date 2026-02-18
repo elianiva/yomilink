@@ -3,7 +3,27 @@
 ## 2026-02-19
 
 ### Completed Tasks
-1. **Create QuestionList component** - Built component displaying questions with type badges and order numbers
+1. **Implement drag-drop question reordering** - Added drag-drop functionality using @dnd-kit
+   - Installed @dnd-kit/core, @dnd-kit/sortable, and @dnd-kit/utilities packages
+   - Updated QuestionList component with DndContext and SortableContext
+   - Created SortableQuestionItem component with useSortable hook
+   - Implemented handleDragEnd to calculate new order and call onReorder callback
+   - Updated orderIndex values when reordering (0, 1, 2, ...)
+   - Drag handles only shown when onReorder prop is provided
+   - Added 2 new tests for drag-drop reordering functionality
+   - All 28 QuestionList tests pass
+
+2. **Add reorderQuestions service function** - Added backend support for reordering questions
+   - Created ReorderQuestionsInput schema with formId and questionIds array
+   - Implemented reorderQuestions function in form-service.ts
+   - Validates form exists before reordering
+   - Blocks reordering when form has responses (immutability guard)
+   - Validates all provided question IDs exist and match existing questions
+   - Updates orderIndex for each question in database
+   - Added reorderQuestionsRpc to server/rpc/form.ts
+   - Added reorderQuestions mutation to FormRpc object
+
+3. **Create QuestionList component** - Built component displaying questions with type badges and order numbers
    - Created `QuestionList` component with support for MCQ, Likert, and Text question types
    - Displays questions sorted by orderIndex with sequential numbering (1, 2, 3, ...)
    - Type badges with color coding (blue for MCQ, purple for Likert, green for Text)

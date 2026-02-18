@@ -301,4 +301,28 @@ describe("QuestionList", () => {
 			expect(container.querySelector(".custom-class")).toBeInTheDocument();
 		});
 	});
+
+	describe("drag-drop reordering", () => {
+		it("wraps list in DndContext when onReorder is provided", () => {
+			const { container } = render(
+				<QuestionList questions={mockQuestions} onReorder={() => {}} />,
+			);
+
+			expect(
+				container.querySelector('[data-testid="question-list"]'),
+			).toBeInTheDocument();
+			expect(screen.getByTestId("question-drag-handle-q1")).toBeInTheDocument();
+		});
+
+		it("renders without DndContext when onReorder is not provided", () => {
+			const { container } = render(<QuestionList questions={mockQuestions} />);
+
+			expect(
+				container.querySelector('[data-testid="question-list"]'),
+			).toBeInTheDocument();
+			expect(
+				screen.queryByTestId("question-drag-handle-q1"),
+			).not.toBeInTheDocument();
+		});
+	});
 });

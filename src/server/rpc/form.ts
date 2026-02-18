@@ -10,6 +10,8 @@ import {
 	getFormResponses,
 	listForms,
 	publishForm,
+	ReorderQuestionsInput,
+	reorderQuestions,
 	SubmitFormResponseInput,
 	submitFormResponse,
 	unpublishForm,
@@ -151,6 +153,26 @@ export const submitFormResponseRpc = createServerFn()
 		),
 	);
 
+export const reorderQuestionsRpc = createServerFn()
+	.middleware([requireRoleMiddleware("teacher", "admin")])
+	.inputValidator((raw) => Schema.decodeUnknownSync(ReorderQuestionsInput)(raw))
+	.handler(({ data }) =>
+		reorderQuestions(data).pipe(
+			Effect.withSpan("reorderQuestions"),
+			Effect.tapError(logRpcError("reorderQuestions")),
+			Effect.provide(Layer.mergeAll(DatabaseLive, LoggerLive)),
+			Effect.catchTags({
+				FormNotFoundError: () => errorResponse("Form not found"),
+				FormHasResponsesError: () =>
+					errorResponse(
+						"Cannot reorder questions: form has responses or invalid question IDs",
+					),
+			}),
+			Effect.catchAll(() => errorResponse("Internal server error")),
+			Effect.runPromise,
+		),
+	);
+
 export const FormRpc = {
 	forms: () => ["forms"],
 	createForm: () =>
@@ -198,5 +220,11 @@ export const FormRpc = {
 			mutationKey: [...FormRpc.forms(), "submit"],
 			mutationFn: (data: SubmitFormResponseInput) =>
 				submitFormResponseRpc({ data }),
+		}),
+	reorderQuestions: () =>
+		mutationOptions({
+			mutationKey: [...FormRpc.forms(), "reorder"],
+			mutationFn: (data: ReorderQuestionsInput) =>
+				reorderQuestionsRpc({ data }),
 		}),
 };

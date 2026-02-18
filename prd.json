@@ -157,7 +157,7 @@
       "Write test dragging question to new position and verifying order update",
       "Questions reorder visually and persist to database"
     ],
-    "passes": false
+    "passes": true
   },
   {
     "category": "functional",
