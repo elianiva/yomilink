@@ -1,15 +1,16 @@
 import { eq } from "drizzle-orm";
 import { Effect } from "effect";
+import { Database } from "@/server/db/client";
 import {
 	assignments,
 	diagnoses,
+	forms,
 	goalMaps,
 	kits,
 	learnerMaps,
 	topics,
 } from "@/server/db/schema/app-schema";
 import { user } from "@/server/db/schema/auth-schema";
-import { Database } from "@/server/db/client";
 
 export const createTestUser = (overrides = {}) =>
 	Effect.gen(function* () {
@@ -209,4 +210,22 @@ export const cleanupTestDiagnosis = (diagnosisId: string) =>
 	Effect.gen(function* () {
 		const db = yield* Database;
 		yield* db.delete(diagnoses).where(eq(diagnoses.id, diagnosisId));
+	});
+
+export const createTestForm = (userId: string, overrides = {}) =>
+	Effect.gen(function* () {
+		const db = yield* Database;
+		const formData = {
+			id: crypto.randomUUID(),
+			title: "Test Form",
+			description: null,
+			type: "registration" as const,
+			status: "draft" as const,
+			unlockConditions: null,
+			createdBy: userId,
+			...overrides,
+		};
+
+		yield* db.insert(forms).values(formData as typeof forms.$inferInsert);
+		return formData as typeof forms.$inferInsert;
 	});
