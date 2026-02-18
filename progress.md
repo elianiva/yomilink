@@ -3,7 +3,19 @@
 ## 2026-02-19
 
 ### Completed Tasks
-1. **Create FormMetadataEditor component** - Built form editor component for editing form metadata
+1. **Create QuestionList component** - Built component displaying questions with type badges and order numbers
+   - Created `QuestionList` component with support for MCQ, Likert, and Text question types
+   - Displays questions sorted by orderIndex with sequential numbering (1, 2, 3, ...)
+   - Type badges with color coding (blue for MCQ, purple for Likert, green for Text)
+   - Required indicator (*) and "Optional" badge support
+   - Edit and delete action buttons with hover visibility
+   - Drag handle placeholders for future drag-drop reordering
+   - Accessible with proper ARIA labels and semantic list structure (ul/li)
+   - Empty state when no questions exist
+   - Added 26 comprehensive unit tests covering rendering, sorting, actions, accessibility, and styling
+   - All 434 tests pass (408 + 26 new)
+
+2. **Create FormMetadataEditor component** - Built form editor component for editing form metadata
    - Created `FormMetadataEditor` component with inputs for title, description, type selector, and status
    - Supports all form types: pre_test, post_test, registration, control
    - Visual status indicators with colored badges (yellow for draft, green for published)
