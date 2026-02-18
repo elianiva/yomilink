@@ -4,7 +4,17 @@
 
 ### Completed Tasks
 
-6. **Create LikertQuestionEditor component** - Built editor for creating Likert scale questions
+19. **Create TextQuestionEditor component** - Built editor for creating text questions
+    - Created `TextQuestionEditor` component with question text textarea
+    - Min/max character length validation inputs
+    - Placeholder text input with character count display
+    - Required question toggle
+    - Validation preview showing character constraints when both min/max set
+    - Fully controlled component with onChange callbacks
+    - Disabled state support for read-only mode
+    - `createDefaultTextData()` helper function for initializing data
+    - Added 15 comprehensive unit tests covering rendering, interactions, disabled states
+    - All 501 tests pass
    - Created `LikertQuestionEditor` component with question text textarea
    - Scale size selector with buttons for 3-10 point scales
    - Configurable labels for each scale point
