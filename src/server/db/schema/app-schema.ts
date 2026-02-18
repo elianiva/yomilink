@@ -370,3 +370,124 @@ export const feedbackRelations = relations(feedback, ({ one }) => ({
 		references: [goalMaps.id],
 	}),
 }));
+
+export const forms = sqliteTable(
+	"forms",
+	{
+		id: text("id").primaryKey(),
+		title: text("title").notNull(),
+		description: text("description"),
+		type: text("type", {
+			enum: ["pre_test", "post_test", "registration", "control"],
+		})
+			.notNull()
+			.default("registration"),
+		status: text("status", { enum: ["draft", "published"] })
+			.notNull()
+			.default("draft"),
+		unlockConditions: text("unlock_conditions", { mode: "json" }),
+		createdBy: text("created_by").notNull(),
+		...timestamps,
+	},
+	(table) => [index("forms_createdBy_idx").on(table.createdBy)],
+);
+
+export const questions = sqliteTable(
+	"questions",
+	{
+		id: text("id").primaryKey(),
+		formId: text("form_id")
+			.notNull()
+			.references(() => forms.id, { onDelete: "cascade" }),
+		type: text("type", { enum: ["mcq", "likert", "text"] }).notNull(),
+		questionText: text("question_text").notNull(),
+		options: text("options", { mode: "json" }),
+		orderIndex: integer("order_index").notNull(),
+		required: integer("required", { mode: "boolean" }).notNull().default(true),
+		...timestamps,
+	},
+	(table) => [index("questions_formId_idx").on(table.formId)],
+);
+
+export const formResponses = sqliteTable(
+	"form_responses",
+	{
+		id: text("id").primaryKey(),
+		formId: text("form_id")
+			.notNull()
+			.references(() => forms.id),
+		userId: text("user_id")
+			.notNull()
+			.references(() => user.id),
+		answers: text("answers", { mode: "json" }).notNull(),
+		submittedAt: integer("submitted_at", { mode: "timestamp_ms" }),
+		timeSpentSeconds: integer("time_spent_seconds"),
+		...timestamps,
+	},
+	(table) => [
+		index("form_responses_formId_idx").on(table.formId),
+		index("form_responses_userId_idx").on(table.userId),
+	],
+);
+
+export const formProgress = sqliteTable(
+	"form_progress",
+	{
+		id: text("id").primaryKey(),
+		formId: text("form_id")
+			.notNull()
+			.references(() => forms.id),
+		userId: text("user_id")
+			.notNull()
+			.references(() => user.id),
+		status: text("status", { enum: ["locked", "available", "completed"] })
+			.notNull()
+			.default("locked"),
+		unlockedAt: integer("unlocked_at", { mode: "timestamp_ms" }),
+		completedAt: integer("completed_at", { mode: "timestamp_ms" }),
+		...timestamps,
+	},
+	(table) => [
+		index("form_progress_formId_idx").on(table.formId),
+		index("form_progress_userId_idx").on(table.userId),
+	],
+);
+
+export const formsRelations = relations(forms, ({ one, many }) => ({
+	creator: one(user, {
+		fields: [forms.createdBy],
+		references: [user.id],
+	}),
+	questions: many(questions),
+	responses: many(formResponses),
+	progress: many(formProgress),
+}));
+
+export const questionsRelations = relations(questions, ({ one }) => ({
+	form: one(forms, {
+		fields: [questions.formId],
+		references: [forms.id],
+	}),
+}));
+
+export const formResponsesRelations = relations(formResponses, ({ one }) => ({
+	form: one(forms, {
+		fields: [formResponses.formId],
+		references: [forms.id],
+	}),
+	user: one(user, {
+		fields: [formResponses.userId],
+		references: [user.id],
+	}),
+}));
+
+export const formProgressRelations = relations(formProgress, ({ one }) => ({
+	form: one(forms, {
+		fields: [formProgress.formId],
+		references: [forms.id],
+	}),
+	user: one(user, {
+		fields: [formProgress.userId],
+		references: [user.id],
+	}),
+}));
