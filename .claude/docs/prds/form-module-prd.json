@@ -1,0 +1,552 @@
+[
+  {
+    "category": "functional",
+    "description": "Create forms table migration",
+    "steps": [
+      "Write drizzle migration for forms table with id, title, description, type enum, status, unlock_conditions JSON, timestamps",
+      "Run migration and verify table exists in database",
+      "Table created with correct columns and constraints"
+    ],
+    "passes": false
+  },
+  {
+    "category": "functional",
+    "description": "Create questions table migration",
+    "steps": [
+      "Write drizzle migration for questions table with id, form_id FK, type enum, question_text, options JSON, order_index, required",
+      "Run migration and verify foreign key to forms table",
+      "Table created with correct schema and relationships"
+    ],
+    "passes": false
+  },
+  {
+    "category": "functional",
+    "description": "Create form_responses table migration",
+    "steps": [
+      "Write drizzle migration for form_responses with id, form_id FK, user_id FK, answers JSON, submitted_at, time_spent_seconds",
+      "Run migration and verify composite indexes for querying",
+      "Table created with proper indexing for performance"
+    ],
+    "passes": false
+  },
+  {
+    "category": "functional",
+    "description": "Create form_progress table migration",
+    "steps": [
+      "Write drizzle migration for form_progress with id, form_id FK, user_id FK, status enum, unlocked_at, completed_at",
+      "Run migration and verify unique constraint on form_id + user_id",
+      "Table created to track per-user form availability"
+    ],
+    "passes": false
+  },
+  {
+    "category": "functional",
+    "description": "Generate TypeScript types from database schema",
+    "steps": [
+      "Run drizzle-kit generate to create TypeScript types for new tables",
+      "Import and verify types compile in existing codebase",
+      "Types available for forms, questions, responses, progress"
+    ],
+    "passes": false
+  },
+  {
+    "category": "functional",
+    "description": "Create FormService with createForm method",
+    "steps": [
+      "Create FormService class with createForm method accepting form metadata",
+      "Write test calling createForm and verifying database entry",
+      "Form created in database with provided metadata"
+    ],
+    "passes": false
+  },
+  {
+    "category": "functional",
+    "description": "Implement getFormById with questions",
+    "steps": [
+      "Add getFormById method to FormService that joins with questions table",
+      "Write test fetching form and verifying questions array populated",
+      "Returns form with ordered questions array included"
+    ],
+    "passes": false
+  },
+  {
+    "category": "functional",
+    "description": "Implement updateForm with immutability guard",
+    "steps": [
+      "Add updateForm method checking if responses exist before allowing edit",
+      "Write test attempting to edit form with responses and verifying rejection",
+      "Update blocked when responses exist, allowed when no responses"
+    ],
+    "passes": false
+  },
+  {
+    "category": "functional",
+    "description": "Implement cloneForm for versioning",
+    "steps": [
+      "Add cloneForm method copying form metadata and all questions to new form ID",
+      "Write test cloning form and verifying new form has copied questions",
+      "New form created with identical questions but different ID"
+    ],
+    "passes": false
+  },
+  {
+    "category": "functional",
+    "description": "Implement publish/unpublish endpoints",
+    "steps": [
+      "Add publishForm and unpublishForm methods updating status field",
+      "Write tests toggling status and verifying database updates",
+      "Form status changes between draft and published"
+    ],
+    "passes": false
+  },
+  {
+    "category": "functional",
+    "description": "Create submitFormResponse endpoint",
+    "steps": [
+      "Create endpoint accepting form_id, user_id, answers array, calculating time spent",
+      "Write test submitting response and verifying database entry",
+      "Response stored with answers JSON and timestamp"
+    ],
+    "passes": false
+  },
+  {
+    "category": "functional",
+    "description": "Create getFormResponses endpoint",
+    "steps": [
+      "Create endpoint querying form_responses by form_id with pagination",
+      "Write test fetching responses and verifying pagination works",
+      "Returns paginated list of responses with user info"
+    ],
+    "passes": false
+  },
+  {
+    "category": "functional",
+    "description": "Create FormBuilder page shell",
+    "steps": [
+      "Create admin route /admin/forms/builder/:formId? with basic layout",
+      "Verify route loads without errors in browser",
+      "Page accessible at admin URL with form ID param optional"
+    ],
+    "passes": false
+  },
+  {
+    "category": "functional",
+    "description": "Create FormMetadataEditor component",
+    "steps": [
+      "Build form with inputs for title, description, type selector, status",
+      "Write test filling form and verifying state updates",
+      "Component renders and captures form metadata changes"
+    ],
+    "passes": false
+  },
+  {
+    "category": "functional",
+    "description": "Create QuestionList component",
+    "steps": [
+      "Build component displaying questions with type badges and order numbers",
+      "Write test rendering list of questions from props",
+      "Questions displayed in order with type indicators"
+    ],
+    "passes": false
+  },
+  {
+    "category": "functional",
+    "description": "Implement drag-drop question reordering",
+    "steps": [
+      "Add dnd-kit or similar for drag-drop, updating order_index on drop",
+      "Write test dragging question to new position and verifying order update",
+      "Questions reorder visually and persist to database"
+    ],
+    "passes": false
+  },
+  {
+    "category": "functional",
+    "description": "Create MCQQuestionEditor component",
+    "steps": [
+      "Build editor with option inputs, correct answer checkbox, shuffle toggle",
+      "Write test adding options and marking correct answers",
+      "MCQ options editable with correct answers marked"
+    ],
+    "passes": false
+  },
+  {
+    "category": "functional",
+    "description": "Create LikertQuestionEditor component",
+    "steps": [
+      "Build editor with scale size selector and label inputs for each point",
+      "Write test configuring 5-point scale with custom labels",
+      "Likert scale configurable with custom labels"
+    ],
+    "passes": false
+  },
+  {
+    "category": "functional",
+    "description": "Create TextQuestionEditor component",
+    "steps": [
+      "Build editor with min/max length inputs and placeholder text",
+      "Write test setting validation rules",
+      "Text question validation rules configurable"
+    ],
+    "passes": false
+  },
+  {
+    "category": "functional",
+    "description": "Create FormPreview component",
+    "steps": [
+      "Build preview mode switching FormBuilder to student view",
+      "Write test toggling preview and verifying question renderers used",
+      "Preview displays questions as students will see them"
+    ],
+    "passes": false
+  },
+  {
+    "category": "functional",
+    "description": "Create FormTaker component shell",
+    "steps": [
+      "Build component accepting form prop and managing current question index",
+      "Write test rendering component with sample form data",
+      "Component mounts with first question displayed"
+    ],
+    "passes": false
+  },
+  {
+    "category": "functional",
+    "description": "Create QuestionRenderer router component",
+    "steps": [
+      "Build component switching on question.type to render correct subtype",
+      "Write test with mixed question types verifying correct renderer used",
+      "Each question type renders with appropriate component"
+    ],
+    "passes": false
+  },
+  {
+    "category": "functional",
+    "description": "Create MCQRenderer component",
+    "steps": [
+      "Build component displaying options shuffled with selection handling",
+      "Write test selecting option and verifying state update",
+      "Options display shuffled, selection tracked"
+    ],
+    "passes": false
+  },
+  {
+    "category": "functional",
+    "description": "Create LikertRenderer component",
+    "steps": [
+      "Build component displaying scale with selectable buttons/radio",
+      "Write test selecting scale value and verifying state",
+      "Scale renders with labels, selection captured"
+    ],
+    "passes": false
+  },
+  {
+    "category": "functional",
+    "description": "Create TextRenderer component",
+    "steps": [
+      "Build textarea with character count and validation display",
+      "Write test typing text and verifying validation feedback",
+      "Textarea accepts input with live validation"
+    ],
+    "passes": false
+  },
+  {
+    "category": "functional",
+    "description": "Create FormProgressBar component",
+    "steps": [
+      "Build progress bar showing current question / total questions",
+      "Write test verifying percentage calculation correct",
+      "Progress displays accurately as student advances"
+    ],
+    "passes": false
+  },
+  {
+    "category": "functional",
+    "description": "Implement auto-save draft to localStorage",
+    "steps": [
+      "Add useEffect saving answers to localStorage key form-{formId}-draft every 5 seconds",
+      "Write test simulating input and verifying localStorage updated",
+      "Draft persists in localStorage with form ID key"
+    ],
+    "passes": false
+  },
+  {
+    "category": "functional",
+    "description": "Create FormList component",
+    "steps": [
+      "Build component listing forms with status badges (Locked, Available, Completed)",
+      "Write test with forms in different states",
+      "Forms display with correct status indicators"
+    ],
+    "passes": false
+  },
+  {
+    "category": "functional",
+    "description": "Create unlock condition checker service",
+    "steps": [
+      "Build service checking time-based, prerequisite, and manual unlock conditions",
+      "Write tests for each condition type",
+      "Service returns unlock status based on conditions"
+    ],
+    "passes": false
+  },
+  {
+    "category": "functional",
+    "description": "Create useFormUnlock hook",
+    "steps": [
+      "Build hook fetching unlock status and polling every 30 seconds",
+      "Write test verifying polling behavior",
+    "Hook returns current unlock status and refreshes periodically"
+    ],
+    "passes": false
+  },
+  {
+    "category": "functional",
+    "description": "Create RestrictiveFormGuard component",
+    "steps": [
+      "Build component checking form completion and redirecting if incomplete",
+      "Write test with incomplete form verifying redirect",
+      "Blocks access to protected routes when form incomplete"
+    ],
+    "passes": false
+  },
+  {
+    "category": "functional",
+    "description": "Add registration form check on app load",
+    "steps": [
+      "Add check in root layout or auth context verifying restrictive form status",
+      "Write test simulating incomplete registration form",
+      "Redirects to registration form before allowing dashboard access"
+    ],
+    "passes": false
+  },
+  {
+    "category": "functional",
+    "description": "Create PreTestGateway component",
+    "steps": [
+      "Build component shown before assignment content requiring pre-test completion",
+      "Write test verifying pre-test shown before assignment access",
+      "Pre-test gates assignment entry until completed"
+    ],
+    "passes": false
+  },
+  {
+    "category": "functional",
+    "description": "Create PostTestUnlock service",
+    "steps": [
+      "Build service listening for assignment completion events and unlocking post-test",
+      "Write test triggering assignment completion and verifying unlock",
+      "Post-test unlocks when assignment marked complete"
+    ],
+    "passes": false
+  },
+  {
+    "category": "functional",
+    "description": "Create DelayedTestScheduler service",
+    "steps": [
+      "Build service calculating unlock time as post-test completion + 7 days",
+      "Write test scheduling delayed test after post-test submitted",
+      "Delayed test scheduled for 1 week after post-test"
+    ],
+    "passes": false
+  },
+  {
+    "category": "functional",
+    "description": "Create CountdownTimer component",
+    "steps": [
+      "Build component displaying time remaining until unlock in days/hours/minutes",
+      "Write test with future unlock date verifying display",
+      "Timer shows 'Unlocks in X days Y hours' and updates"
+    ],
+    "passes": false
+  },
+  {
+    "category": "functional",
+    "description": "Create ManualUnlockButton component",
+    "steps": [
+      "Build admin button bypassing unlock conditions for specific user/form",
+      "Write test clicking button and verifying immediate unlock",
+      "Admin can manually unlock forms for students"
+    ],
+    "passes": false
+  },
+  {
+    "category": "functional",
+    "description": "Create ControlSubmissionEditor component",
+    "steps": [
+      "Build rich text editor component for control group text submission",
+      "Write test rendering editor with initial content",
+      "Editor mounts with formatting capabilities"
+    ],
+    "passes": false
+  },
+  {
+    "category": "functional",
+    "description": "Create formatting toolbar component",
+    "steps": [
+      "Build toolbar with bold, italic, bullet list, numbered list buttons",
+      "Write test clicking buttons and verifying formatting applied",
+      "Toolbar buttons apply formatting to editor content"
+    ],
+    "passes": false
+  },
+  {
+    "category": "functional",
+    "description": "Create WordCountValidator component",
+    "steps": [
+      "Build component displaying word count with minimum requirement indicator",
+      "Write test with text below/above minimum verifying visual feedback",
+      "Shows word count and warning if below minimum"
+    ],
+    "passes": false
+  },
+  {
+    "category": "functional",
+    "description": "Create ControlSubmissionConfirmModal component",
+    "steps": [
+      "Build modal showing text preview with confirm/cancel buttons",
+      "Write test opening modal and clicking confirm",
+      "Modal displays preview and triggers submission on confirm"
+    ],
+    "passes": false
+  },
+  {
+    "category": "functional",
+    "description": "Create submitControlText endpoint",
+    "steps": [
+      "Create endpoint storing control text in assignment_results table alongside concept maps",
+      "Write test submitting text and verifying storage",
+      "Text stored and marks assignment as control group complete"
+    ],
+    "passes": false
+  },
+  {
+    "category": "functional",
+    "description": "Create FormResultsPage shell",
+    "steps": [
+      "Create admin route /admin/forms/:formId/results with tab layout",
+      "Verify page loads without errors",
+      "Results page accessible with individual/aggregated tabs"
+    ],
+    "passes": false
+  },
+  {
+    "category": "functional",
+    "description": "Create IndividualResponsesTable component",
+    "steps": [
+      "Build table showing student name, submitted_at, time_spent with view detail button",
+      "Write test rendering table with sample responses",
+      "Table displays response list with sorting"
+    ],
+    "passes": false
+  },
+  {
+    "category": "functional",
+    "description": "Create ResponseDetailModal component",
+    "steps": [
+      "Build modal showing single student answers with question text",
+      "Write test opening modal and verifying answers displayed",
+      "Modal shows complete response with all answers"
+    ],
+    "passes": false
+  },
+  {
+    "category": "functional",
+    "description": "Create AggregatedStats component",
+    "steps": [
+      "Build component aggregating MCQ responses showing count per option",
+      "Write test calculating stats from sample responses",
+      "Displays response distribution for MCQ questions"
+    ],
+    "passes": false
+  },
+  {
+    "category": "functional",
+    "description": "Create LikertAverages component",
+    "steps": [
+      "Build component calculating mean/median for Likert scale responses",
+      "Write test with Likert responses verifying calculations",
+      "Shows average scores per Likert question"
+    ],
+    "passes": false
+  },
+  {
+    "category": "functional",
+    "description": "Create FormResultsChart component",
+    "steps": [
+      "Build chart using existing chart library visualizing aggregated data",
+      "Write test rendering chart with sample data",
+      "Chart displays form results visually"
+    ],
+    "passes": false
+  },
+  {
+    "category": "functional",
+    "description": "Create export results to CSV endpoint",
+    "steps": [
+      "Create endpoint generating CSV with all responses for form",
+      "Write test downloading CSV and verifying format",
+      "CSV export downloads with proper headers and data"
+    ],
+    "passes": false
+  },
+  {
+    "category": "functional",
+    "description": "Create admin forms list page",
+    "steps": [
+      "Create page /admin/forms listing all forms with create/edit/clone/delete actions",
+      "Verify page loads and shows forms",
+      "Admin can manage forms from list view"
+    ],
+    "passes": false
+  },
+  {
+    "category": "functional",
+    "description": "Create student forms page",
+    "steps": [
+      "Create page /forms showing available forms and completed forms sections",
+      "Verify page loads with form list",
+      "Students see forms organized by availability"
+    ],
+    "passes": false
+  },
+  {
+    "category": "functional",
+    "description": "Add form routes to router",
+    "steps": [
+      "Add all form-related routes to React Router configuration",
+      "Verify all routes accessible",
+      "Routes registered and navigation works"
+    ],
+    "passes": false
+  },
+  {
+    "category": "functional",
+    "description": "Write FormService unit tests",
+    "steps": [
+      "Write comprehensive tests for all FormService methods",
+      "Run tests and verify all pass",
+      "FormService fully tested"
+    ],
+    "passes": false
+  },
+  {
+    "category": "functional",
+    "description": "Write unlock condition tests",
+    "steps": [
+      "Write tests for time-based, prerequisite, and manual unlock scenarios",
+      "Run tests and verify all pass",
+      "Unlock logic fully tested"
+    ],
+    "passes": false
+  },
+  {
+    "category": "functional",
+    "description": "Write form submission integration tests",
+    "steps": [
+      "Write end-to-end tests for form creation through submission",
+      "Run tests and verify all pass",
+      "Complete form workflow tested"
+    ],
+    "passes": false
+  }
+]
