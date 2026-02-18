@@ -1,5 +1,32 @@
 # Progress
 
+## 2026-02-19 (continued)
+
+### Completed Tasks
+
+4. **Create MCQQuestionEditor component** - Built editor for creating and editing MCQ questions
+   - Created `McqQuestionEditor` component with question text textarea
+   - Option management with add/remove functionality (min 2, max 10 options)
+   - Correct answer checkboxes for marking right answers
+   - Shuffle toggle for randomizing option order
+   - Required question toggle
+   - Option reordering with move up/down buttons
+   - Visual feedback for correct answers (green highlighting)
+   - Fully controlled component with onChange callbacks
+   - Disabled state support for read-only mode
+   - Added 27 comprehensive unit tests covering rendering, interactions, disabled states, and visual feedback
+   - All 463 tests pass
+
+5. **Add question CRUD to FormService** - Implemented createQuestion, updateQuestion, deleteQuestion
+   - Created McqOptions, LikertOptions, TextOptions schemas for type-safe question options
+   - `createQuestion` - Creates new question with immutability guard (blocks if form has responses)
+   - `updateQuestion` - Updates question text, options, required status with immutability guard
+   - `deleteQuestion` - Deletes question with immutability guard
+   - `QuestionNotFoundError` tagged error for missing questions
+   - All operations check form responses before allowing modifications
+   - Exposed via RPC: createQuestionRpc, updateQuestionRpc, deleteQuestionRpc
+   - Added to FormRpc client: createQuestion, updateQuestion, deleteQuestion mutations
+
 ## 2026-02-19
 
 ### Completed Tasks

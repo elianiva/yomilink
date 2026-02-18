@@ -3,8 +3,11 @@ import { createServerFn } from "@tanstack/react-start";
 import { Effect, Layer, Schema } from "effect";
 import {
 	CreateFormInput,
+	CreateQuestionInput,
 	createForm,
+	createQuestion,
 	deleteForm,
+	deleteQuestion,
 	GetFormResponsesInput,
 	getFormById,
 	getFormResponses,
@@ -14,7 +17,9 @@ import {
 	reorderQuestions,
 	SubmitFormResponseInput,
 	submitFormResponse,
+	UpdateQuestionInput,
 	unpublishForm,
+	updateQuestion,
 } from "@/features/form/lib/form-service";
 import { requireRoleMiddleware } from "@/middlewares/auth";
 import { DatabaseLive } from "../db/client";
@@ -173,6 +178,66 @@ export const reorderQuestionsRpc = createServerFn()
 		),
 	);
 
+export const createQuestionRpc = createServerFn()
+	.middleware([requireRoleMiddleware("teacher", "admin")])
+	.inputValidator((raw) => Schema.decodeUnknownSync(CreateQuestionInput)(raw))
+	.handler(({ data }) =>
+		createQuestion(data).pipe(
+			Effect.withSpan("createQuestion"),
+			Effect.tapError(logRpcError("createQuestion")),
+			Effect.provide(Layer.mergeAll(DatabaseLive, LoggerLive)),
+			Effect.catchTags({
+				FormNotFoundError: () => errorResponse("Form not found"),
+				FormHasResponsesError: () =>
+					errorResponse("Cannot add questions: form has responses"),
+			}),
+			Effect.catchAll(() => errorResponse("Internal server error")),
+			Effect.runPromise,
+		),
+	);
+
+const GetQuestionByIdInput = Schema.Struct({
+	id: Schema.NonEmptyString,
+});
+
+type GetQuestionByIdInput = typeof GetQuestionByIdInput.Type;
+
+export const updateQuestionRpc = createServerFn()
+	.middleware([requireRoleMiddleware("teacher", "admin")])
+	.inputValidator((raw) => Schema.decodeUnknownSync(UpdateQuestionInput)(raw))
+	.handler(({ data }) =>
+		updateQuestion(data).pipe(
+			Effect.withSpan("updateQuestion"),
+			Effect.tapError(logRpcError("updateQuestion")),
+			Effect.provide(Layer.mergeAll(DatabaseLive, LoggerLive)),
+			Effect.catchTags({
+				QuestionNotFoundError: () => errorResponse("Question not found"),
+				FormHasResponsesError: () =>
+					errorResponse("Cannot edit question: form has responses"),
+			}),
+			Effect.catchAll(() => errorResponse("Internal server error")),
+			Effect.runPromise,
+		),
+	);
+
+export const deleteQuestionRpc = createServerFn()
+	.middleware([requireRoleMiddleware("teacher", "admin")])
+	.inputValidator((raw) => Schema.decodeUnknownSync(GetQuestionByIdInput)(raw))
+	.handler(({ data }) =>
+		deleteQuestion(data.id).pipe(
+			Effect.withSpan("deleteQuestion"),
+			Effect.tapError(logRpcError("deleteQuestion")),
+			Effect.provide(Layer.mergeAll(DatabaseLive, LoggerLive)),
+			Effect.catchTags({
+				QuestionNotFoundError: () => errorResponse("Question not found"),
+				FormHasResponsesError: () =>
+					errorResponse("Cannot delete question: form has responses"),
+			}),
+			Effect.catchAll(() => errorResponse("Internal server error")),
+			Effect.runPromise,
+		),
+	);
+
 export const FormRpc = {
 	forms: () => ["forms"],
 	createForm: () =>
@@ -226,5 +291,20 @@ export const FormRpc = {
 			mutationKey: [...FormRpc.forms(), "reorder"],
 			mutationFn: (data: ReorderQuestionsInput) =>
 				reorderQuestionsRpc({ data }),
+		}),
+	createQuestion: () =>
+		mutationOptions({
+			mutationKey: [...FormRpc.forms(), "createQuestion"],
+			mutationFn: (data: CreateQuestionInput) => createQuestionRpc({ data }),
+		}),
+	updateQuestion: () =>
+		mutationOptions({
+			mutationKey: [...FormRpc.forms(), "updateQuestion"],
+			mutationFn: (data: UpdateQuestionInput) => updateQuestionRpc({ data }),
+		}),
+	deleteQuestion: () =>
+		mutationOptions({
+			mutationKey: [...FormRpc.forms(), "deleteQuestion"],
+			mutationFn: (data: GetQuestionByIdInput) => deleteQuestionRpc({ data }),
 		}),
 };

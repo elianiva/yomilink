@@ -268,7 +268,7 @@ export function useRpcMutation<TData, TVariables, TContext = unknown>(
 		errorToastOptions,
 	} = config;
 
-  // another changes
+	// another changes
 
 	const mutationResult = useMutation<TData, Error, TVariables, TContext>({
 		...options,
@@ -307,8 +307,7 @@ export function useRpcMutation<TData, TVariables, TContext = unknown>(
 		},
 	});
 
-
-  // test changes
+	// test changes
 
 	// Compute RPC error state
 	const { data } = mutationResult;

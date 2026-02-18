@@ -567,3 +567,207 @@ export const submitFormResponse = Effect.fn("submitFormResponse")(
 			};
 		}),
 );
+
+// Question CRUD operations
+
+export const McqOptions = Schema.Struct({
+	type: Schema.Literal("mcq"),
+	options: Schema.Array(
+		Schema.Struct({
+			id: Schema.String,
+			text: Schema.NonEmptyString,
+		}),
+	),
+	correctOptionIds: Schema.Array(Schema.String),
+	shuffle: Schema.Boolean,
+});
+
+export type McqOptions = typeof McqOptions.Type;
+
+export const LikertOptions = Schema.Struct({
+	type: Schema.Literal("likert"),
+	scaleSize: Schema.Int,
+	labels: Schema.Record({ key: Schema.String, value: Schema.String }),
+});
+
+export type LikertOptions = typeof LikertOptions.Type;
+
+export const TextOptions = Schema.Struct({
+	type: Schema.Literal("text"),
+	minLength: Schema.optionalWith(Schema.Int, { nullable: true }),
+	maxLength: Schema.optionalWith(Schema.Int, { nullable: true }),
+	placeholder: Schema.optionalWith(Schema.String, { nullable: true }),
+});
+
+export type TextOptions = typeof TextOptions.Type;
+
+export const QuestionOptions = Schema.Union(
+	McqOptions,
+	LikertOptions,
+	TextOptions,
+);
+
+export const CreateQuestionInput = Schema.Struct({
+	formId: Schema.NonEmptyString,
+	type: Schema.Union(
+		Schema.Literal("mcq"),
+		Schema.Literal("likert"),
+		Schema.Literal("text"),
+	),
+	questionText: Schema.NonEmptyString,
+	options: Schema.optionalWith(QuestionOptions, { nullable: true }),
+	required: Schema.optionalWith(Schema.Boolean, { default: () => true }),
+});
+
+export type CreateQuestionInput = typeof CreateQuestionInput.Type;
+
+class QuestionNotFoundError extends Data.TaggedError("QuestionNotFoundError")<{
+	readonly questionId: string;
+}> {}
+
+export const createQuestion = Effect.fn("createQuestion")(
+	(data: CreateQuestionInput) =>
+		Effect.gen(function* () {
+			const db = yield* Database;
+
+			const formRows = yield* db
+				.select()
+				.from(forms)
+				.where(eq(forms.id, data.formId))
+				.limit(1);
+
+			const form = formRows[0];
+			if (!form) {
+				return yield* new FormNotFoundError({ formId: data.formId });
+			}
+
+			const responseRows = yield* db
+				.select()
+				.from(formResponses)
+				.where(eq(formResponses.formId, data.formId));
+
+			if (responseRows.length > 0) {
+				return yield* new FormHasResponsesError({
+					formId: data.formId,
+					responseCount: responseRows.length,
+				});
+			}
+
+			const existingQuestions = yield* db
+				.select()
+				.from(questions)
+				.where(eq(questions.formId, data.formId));
+
+			const orderIndex = existingQuestions.length;
+
+			const questionId = randomString();
+
+			yield* db.insert(questions).values({
+				id: questionId,
+				formId: data.formId,
+				type: data.type,
+				questionText: data.questionText,
+				options: data.options ?? null,
+				orderIndex,
+				required: data.required,
+			});
+
+			return {
+				id: questionId,
+				formId: data.formId,
+				type: data.type,
+				questionText: data.questionText,
+				options: data.options ?? null,
+				orderIndex,
+				required: data.required,
+			};
+		}),
+);
+
+export const UpdateQuestionInput = Schema.Struct({
+	questionId: Schema.NonEmptyString,
+	questionText: Schema.optionalWith(Schema.NonEmptyString, { nullable: true }),
+	options: Schema.optionalWith(QuestionOptions, { nullable: true }),
+	required: Schema.optionalWith(Schema.Boolean, { nullable: true }),
+});
+
+export type UpdateQuestionInput = typeof UpdateQuestionInput.Type;
+
+export const updateQuestion = Effect.fn("updateQuestion")(
+	(data: UpdateQuestionInput) =>
+		Effect.gen(function* () {
+			const db = yield* Database;
+
+			const questionRows = yield* db
+				.select()
+				.from(questions)
+				.where(eq(questions.id, data.questionId))
+				.limit(1);
+
+			const question = questionRows[0];
+			if (!question) {
+				return yield* new QuestionNotFoundError({
+					questionId: data.questionId,
+				});
+			}
+
+			const responseRows = yield* db
+				.select()
+				.from(formResponses)
+				.where(eq(formResponses.formId, question.formId));
+
+			if (responseRows.length > 0) {
+				return yield* new FormHasResponsesError({
+					formId: question.formId,
+					responseCount: responseRows.length,
+				});
+			}
+
+			yield* db
+				.update(questions)
+				.set({
+					...(data.questionText !== undefined && {
+						questionText: data.questionText,
+					}),
+					...(data.options !== undefined && { options: data.options }),
+					...(data.required !== undefined && { required: data.required }),
+				})
+				.where(eq(questions.id, data.questionId));
+
+			return { id: data.questionId };
+		}),
+);
+
+export const deleteQuestion = Effect.fn("deleteQuestion")(
+	(questionId: string) =>
+		Effect.gen(function* () {
+			const db = yield* Database;
+
+			const questionRows = yield* db
+				.select()
+				.from(questions)
+				.where(eq(questions.id, questionId))
+				.limit(1);
+
+			const question = questionRows[0];
+			if (!question) {
+				return yield* new QuestionNotFoundError({ questionId });
+			}
+
+			const responseRows = yield* db
+				.select()
+				.from(formResponses)
+				.where(eq(formResponses.formId, question.formId));
+
+			if (responseRows.length > 0) {
+				return yield* new FormHasResponsesError({
+					formId: question.formId,
+					responseCount: responseRows.length,
+				});
+			}
+
+			yield* db.delete(questions).where(eq(questions.id, questionId));
+
+			return { id: questionId };
+		}),
+);

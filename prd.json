@@ -167,7 +167,7 @@
       "Write test adding options and marking correct answers",
       "MCQ options editable with correct answers marked"
     ],
-    "passes": false
+    "passes": true
   },
   {
     "category": "functional",
