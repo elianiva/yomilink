@@ -177,7 +177,7 @@
       "Write test configuring 5-point scale with custom labels",
       "Likert scale configurable with custom labels"
     ],
-    "passes": false
+    "passes": true
   },
   {
     "category": "functional",

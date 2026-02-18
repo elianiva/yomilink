@@ -4,7 +4,20 @@
 
 ### Completed Tasks
 
-4. **Create MCQQuestionEditor component** - Built editor for creating and editing MCQ questions
+6. **Create LikertQuestionEditor component** - Built editor for creating Likert scale questions
+   - Created `LikertQuestionEditor` component with question text textarea
+   - Scale size selector with buttons for 3-10 point scales
+   - Configurable labels for each scale point
+   - Reset to defaults button to restore standard labels
+   - Preview showing scale endpoints (e.g., "1 = Disagree" → "5 = Agree")
+   - Required question toggle
+   - Fully controlled component with onChange callbacks
+   - Disabled state support for read-only mode
+   - `createDefaultLikertData()` helper function for initializing data
+   - Added 23 comprehensive unit tests covering rendering, interactions, disabled states
+   - All 486 tests pass
+
+5. **Create MCQQuestionEditor component** - Built editor for creating and editing MCQ questions
    - Created `McqQuestionEditor` component with question text textarea
    - Option management with add/remove functionality (min 2, max 10 options)
    - Correct answer checkboxes for marking right answers
