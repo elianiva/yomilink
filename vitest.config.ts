@@ -3,6 +3,8 @@ import { defineConfig } from "vitest/config";
 export default defineConfig({
 	test: {
 		environment: "jsdom",
+		include: ["**/*.ignored"], // Don't run any tests by default - use test:ui or test:service
+		globals: true,
 		alias: {
 			"@": new URL("./src/", import.meta.url).pathname,
 			"cloudflare:workers": new URL(
@@ -10,8 +12,6 @@ export default defineConfig({
 				import.meta.url,
 			).pathname,
 		},
-		setupFiles: ["./src/__tests__/setup/index.ts"],
-		globals: true,
 		coverage: {
 			provider: "v8",
 			reporter: ["text", "json", "html", "lcov"],
