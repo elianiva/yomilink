@@ -107,7 +107,7 @@
       "Write test submitting response and verifying database entry",
       "Response stored with answers JSON and timestamp"
     ],
-    "passes": false
+    "passes": true
   },
   {
     "category": "functional",

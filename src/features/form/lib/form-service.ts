@@ -1,8 +1,13 @@
-import { eq } from "drizzle-orm";
+import { and, eq } from "drizzle-orm";
 import { Data, Effect, Schema } from "effect";
 import { randomString } from "@/lib/utils";
 import { Database } from "@/server/db/client";
-import { formResponses, forms, questions } from "@/server/db/schema/app-schema";
+import {
+	formProgress,
+	formResponses,
+	forms,
+	questions,
+} from "@/server/db/schema/app-schema";
 
 export const CreateFormInput = Schema.Struct({
 	title: Schema.NonEmptyString,
@@ -30,6 +35,17 @@ class FormNotFoundError extends Data.TaggedError("FormNotFoundError")<{
 class FormHasResponsesError extends Data.TaggedError("FormHasResponsesError")<{
 	readonly formId: string;
 	readonly responseCount: number;
+}> {}
+
+class FormNotPublishedError extends Data.TaggedError("FormNotPublishedError")<{
+	readonly formId: string;
+}> {}
+
+class FormAlreadySubmittedError extends Data.TaggedError(
+	"FormAlreadySubmittedError",
+)<{
+	readonly formId: string;
+	readonly userId: string;
 }> {}
 
 export const createForm = Effect.fn("createForm")(
@@ -264,5 +280,101 @@ export const cloneForm = Effect.fn("cloneForm")(
 			}
 
 			return { id: newFormId, originalFormId: formId };
+		}),
+);
+
+export const SubmitFormResponseInput = Schema.Struct({
+	formId: Schema.NonEmptyString,
+	userId: Schema.NonEmptyString,
+	answers: Schema.Record({ key: Schema.String, value: Schema.Unknown }),
+	timeSpentSeconds: Schema.optionalWith(Schema.Int, { nullable: true }),
+});
+
+export type SubmitFormResponseInput = typeof SubmitFormResponseInput.Type;
+
+export const submitFormResponse = Effect.fn("submitFormResponse")(
+	(data: SubmitFormResponseInput) =>
+		Effect.gen(function* () {
+			const db = yield* Database;
+
+			const formRows = yield* db
+				.select()
+				.from(forms)
+				.where(eq(forms.id, data.formId))
+				.limit(1);
+
+			const form = formRows[0];
+			if (!form) {
+				return yield* new FormNotFoundError({ formId: data.formId });
+			}
+
+			if (form.status !== "published") {
+				return yield* new FormNotPublishedError({ formId: data.formId });
+			}
+
+			const existingResponse = yield* db
+				.select()
+				.from(formResponses)
+				.where(
+					and(
+						eq(formResponses.formId, data.formId),
+						eq(formResponses.userId, data.userId),
+					),
+				)
+				.limit(1);
+
+			if (existingResponse.length > 0) {
+				return yield* new FormAlreadySubmittedError({
+					formId: data.formId,
+					userId: data.userId,
+				});
+			}
+
+			const responseId = randomString();
+			const submittedAt = new Date();
+
+			yield* db.insert(formResponses).values({
+				id: responseId,
+				formId: data.formId,
+				userId: data.userId,
+				answers: data.answers,
+				submittedAt,
+				timeSpentSeconds: data.timeSpentSeconds ?? null,
+			});
+
+			const existingProgress = yield* db
+				.select()
+				.from(formProgress)
+				.where(
+					and(
+						eq(formProgress.formId, data.formId),
+						eq(formProgress.userId, data.userId),
+					),
+				)
+				.limit(1);
+
+			if (existingProgress.length > 0) {
+				yield* db
+					.update(formProgress)
+					.set({
+						status: "completed",
+						completedAt: submittedAt,
+					})
+					.where(eq(formProgress.id, existingProgress[0].id));
+			} else {
+				yield* db.insert(formProgress).values({
+					id: randomString(),
+					formId: data.formId,
+					userId: data.userId,
+					status: "completed",
+					completedAt: submittedAt,
+				});
+			}
+
+			return {
+				id: responseId,
+				formId: data.formId,
+				submittedAt,
+			};
 		}),
 );

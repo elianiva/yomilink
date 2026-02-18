@@ -7,7 +7,12 @@ import {
 } from "@/__tests__/fixtures/service-fixtures";
 import { resetDatabase } from "@/__tests__/utils/test-helpers";
 import { Database, DatabaseTest } from "@/server/db/client";
-import { formResponses, forms, questions } from "@/server/db/schema/app-schema";
+import {
+	formProgress,
+	formResponses,
+	forms,
+	questions,
+} from "@/server/db/schema/app-schema";
 import {
 	cloneForm,
 	createForm,
@@ -15,6 +20,7 @@ import {
 	getFormById,
 	listForms,
 	publishForm,
+	submitFormResponse,
 	unpublishForm,
 	updateForm,
 } from "./form-service";
@@ -362,6 +368,176 @@ describe("form-service", () => {
 						assert.strictEqual(error._tag, "FormNotFoundError"),
 					onRight: () => assert.fail("Expected Left but got Right"),
 				});
+			}).pipe(Effect.provide(DatabaseTest)),
+		);
+	});
+
+	describe("submitFormResponse", () => {
+		it.effect("should submit response for published form", () =>
+			Effect.gen(function* () {
+				const user = yield* createTestUser();
+				const form = yield* createTestForm(user.id);
+				yield* publishForm(form.id);
+
+				const result = yield* submitFormResponse({
+					formId: form.id,
+					userId: user.id,
+					answers: { q1: "answer1", q2: "answer2" },
+					timeSpentSeconds: 120,
+				});
+
+				const db = yield* Database;
+				const responseRows = yield* db
+					.select()
+					.from(formResponses)
+					.where(eq(formResponses.formId, form.id))
+					.limit(1);
+
+				assert.equal(responseRows.length, 1);
+				assert.equal(responseRows[0]?.formId, form.id);
+				assert.equal(responseRows[0]?.userId, user.id);
+				assert.deepEqual(responseRows[0]?.answers, {
+					q1: "answer1",
+					q2: "answer2",
+				});
+				assert.equal(responseRows[0]?.timeSpentSeconds, 120);
+				assert.ok(result.submittedAt);
+				assert.equal(result.formId, form.id);
+			}).pipe(Effect.provide(DatabaseTest)),
+		);
+
+		it.effect("should return FormNotFoundError when form does not exist", () =>
+			Effect.gen(function* () {
+				const user = yield* createTestUser();
+
+				const result = yield* Effect.either(
+					submitFormResponse({
+						formId: "non-existent-id",
+						userId: user.id,
+						answers: { q1: "answer" },
+					}),
+				);
+
+				Either.match(result, {
+					onLeft: (error) =>
+						assert.strictEqual(error._tag, "FormNotFoundError"),
+					onRight: () => assert.fail("Expected Left but got Right"),
+				});
+			}).pipe(Effect.provide(DatabaseTest)),
+		);
+
+		it.effect("should return FormNotPublishedError when form is draft", () =>
+			Effect.gen(function* () {
+				const user = yield* createTestUser();
+				const form = yield* createTestForm(user.id);
+
+				const result = yield* Effect.either(
+					submitFormResponse({
+						formId: form.id,
+						userId: user.id,
+						answers: { q1: "answer" },
+					}),
+				);
+
+				Either.match(result, {
+					onLeft: (error) =>
+						assert.strictEqual(error._tag, "FormNotPublishedError"),
+					onRight: () => assert.fail("Expected Left but got Right"),
+				});
+			}).pipe(Effect.provide(DatabaseTest)),
+		);
+
+		it.effect(
+			"should return FormAlreadySubmittedError when user already submitted",
+			() =>
+				Effect.gen(function* () {
+					const user = yield* createTestUser();
+					const form = yield* createTestForm(user.id);
+					yield* publishForm(form.id);
+
+					// First submission
+					yield* submitFormResponse({
+						formId: form.id,
+						userId: user.id,
+						answers: { q1: "first answer" },
+					});
+
+					// Second submission should fail
+					const result = yield* Effect.either(
+						submitFormResponse({
+							formId: form.id,
+							userId: user.id,
+							answers: { q1: "second answer" },
+						}),
+					);
+
+					Either.match(result, {
+						onLeft: (error) =>
+							assert.strictEqual(error._tag, "FormAlreadySubmittedError"),
+						onRight: () => assert.fail("Expected Left but got Right"),
+					});
+				}).pipe(Effect.provide(DatabaseTest)),
+		);
+
+		it.effect("should update form progress to completed on submission", () =>
+			Effect.gen(function* () {
+				const user = yield* createTestUser();
+				const form = yield* createTestForm(user.id);
+				yield* publishForm(form.id);
+
+				const db = yield* Database;
+				// Insert initial progress as available
+				yield* db.insert(formProgress).values({
+					id: crypto.randomUUID(),
+					formId: form.id,
+					userId: user.id,
+					status: "available",
+					unlockedAt: new Date(),
+				});
+
+				yield* submitFormResponse({
+					formId: form.id,
+					userId: user.id,
+					answers: { q1: "answer" },
+				});
+
+				const progressRows = yield* db
+					.select()
+					.from(formProgress)
+					.where(eq(formProgress.formId, form.id));
+
+				assert.equal(progressRows.length, 1);
+				assert.equal(progressRows[0]?.status, "completed");
+				assert.ok(progressRows[0]?.completedAt);
+			}).pipe(Effect.provide(DatabaseTest)),
+		);
+
+		it.effect("should allow different users to submit to same form", () =>
+			Effect.gen(function* () {
+				const user1 = yield* createTestUser();
+				const user2 = yield* createTestUser();
+				const form = yield* createTestForm(user1.id);
+				yield* publishForm(form.id);
+
+				yield* submitFormResponse({
+					formId: form.id,
+					userId: user1.id,
+					answers: { q1: "user1 answer" },
+				});
+
+				yield* submitFormResponse({
+					formId: form.id,
+					userId: user2.id,
+					answers: { q1: "user2 answer" },
+				});
+
+				const db = yield* Database;
+				const responseRows = yield* db
+					.select()
+					.from(formResponses)
+					.where(eq(formResponses.formId, form.id));
+
+				assert.equal(responseRows.length, 2);
 			}).pipe(Effect.provide(DatabaseTest)),
 		);
 	});
