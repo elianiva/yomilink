@@ -4,6 +4,19 @@
 
 ### Completed Tasks
 
+23. **Create unlock condition checker service** - Built service for checking form unlock conditions
+    - Created `unlock-service.ts` with functions for checking time-based, prerequisite, and manual unlock conditions
+    - `checkTimeBasedCondition` - Checks if unlock time has passed
+    - `checkPrerequisiteCondition` - Checks if required form is completed
+    - `checkManualCondition` - Checks if form was manually unlocked
+    - `checkFormUnlock` - Checks all unlock conditions for a form with AND/OR logic
+    - `unlockForm` - Manually unlocks a form for a user
+    - `getFormProgress` - Gets user progress for a specific form
+    - `getUserCompletedForms` - Gets all completed forms for a user
+    - Created TypeScript types for unlock conditions schema
+    - Added 3 unit tests for time-based condition checking
+    - All 405 tests pass
+
 22. **Create FormProgressBar component** - Built reusable progress bar for form completion tracking
     - Created `FormProgressBar` component with currentQuestion and totalQuestions props
     - Displays "Question X of Y" label with percentage complete
