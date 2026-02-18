@@ -80,8 +80,8 @@ export const getFormById = Effect.fn("getFormById")((formId: string) =>
 			.where(eq(forms.id, formId))
 			.limit(1);
 
-		const form = formRows[0];
-		if (!form) {
+		const formRow = formRows[0];
+		if (!formRow) {
 			return yield* new FormNotFoundError({ formId });
 		}
 
@@ -91,7 +91,31 @@ export const getFormById = Effect.fn("getFormById")((formId: string) =>
 			.where(eq(questions.formId, formId))
 			.orderBy(questions.orderIndex);
 
-		return { form, questions: questionRows };
+		const form = {
+			id: formRow.id,
+			title: formRow.title,
+			description: formRow.description,
+			type: formRow.type,
+			status: formRow.status,
+			unlockConditions: formRow.unlockConditions ?? null,
+			createdBy: formRow.createdBy,
+			createdAt: formRow.createdAt,
+			updatedAt: formRow.updatedAt,
+		};
+
+		const mappedQuestions = questionRows.map((q) => ({
+			id: q.id,
+			formId: q.formId,
+			type: q.type,
+			questionText: q.questionText,
+			options: q.options ?? null,
+			orderIndex: q.orderIndex,
+			required: q.required,
+			createdAt: q.createdAt,
+			updatedAt: q.updatedAt,
+		}));
+
+		return { form, questions: mappedQuestions };
 	}),
 );
 
@@ -105,7 +129,17 @@ export const listForms = Effect.fn("listForms")((userId: string) =>
 			.where(eq(forms.createdBy, userId))
 			.orderBy(forms.createdAt);
 
-		return formRows;
+		return formRows.map((formRow) => ({
+			id: formRow.id,
+			title: formRow.title,
+			description: formRow.description,
+			type: formRow.type,
+			status: formRow.status,
+			unlockConditions: formRow.unlockConditions ?? null,
+			createdBy: formRow.createdBy,
+			createdAt: formRow.createdAt,
+			updatedAt: formRow.updatedAt,
+		}));
 	}),
 );
 
@@ -355,7 +389,7 @@ export const getFormResponses = Effect.fn("getFormResponses")(
 					id: row.response.id,
 					formId: row.response.formId,
 					userId: row.response.userId,
-					answers: row.response.answers,
+					answers: row.response.answers as { [x: string]: {} },
 					submittedAt: row.response.submittedAt,
 					timeSpentSeconds: row.response.timeSpentSeconds,
 					user: row.user,

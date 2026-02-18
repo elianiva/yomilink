@@ -18,6 +18,7 @@ import { Route as DashboardAnalyticsRouteImport } from './routes/dashboard.analy
 import { Route as DashboardAssignmentsIndexRouteImport } from './routes/dashboard.assignments.index'
 import { Route as DashboardLearnerMapAssignmentIdRouteImport } from './routes/dashboard.learner-map.$assignmentId'
 import { Route as DashboardGoalMapGoalMapIdRouteImport } from './routes/dashboard.goal-map.$goalMapId'
+import { Route as DashboardFormsBuilderRouteImport } from './routes/dashboard.forms.builder'
 import { Route as DashboardAssignmentsManageRouteImport } from './routes/dashboard.assignments.manage'
 import { Route as ApiAuthSplatRouteImport } from './routes/api/auth/$'
 import { Route as DashboardLearnerMapAssignmentIdResultRouteImport } from './routes/dashboard.learner-map.$assignmentId.result'
@@ -72,6 +73,11 @@ const DashboardGoalMapGoalMapIdRoute =
     path: '/goal-map/$goalMapId',
     getParentRoute: () => DashboardRoute,
   } as any)
+const DashboardFormsBuilderRoute = DashboardFormsBuilderRouteImport.update({
+  id: '/forms/builder',
+  path: '/forms/builder',
+  getParentRoute: () => DashboardRoute,
+} as any)
 const DashboardAssignmentsManageRoute =
   DashboardAssignmentsManageRouteImport.update({
     id: '/assignments/manage',
@@ -111,6 +117,7 @@ export interface FileRoutesByFullPath {
   '/dashboard/': typeof DashboardIndexRoute
   '/api/auth/$': typeof ApiAuthSplatRoute
   '/dashboard/assignments/manage': typeof DashboardAssignmentsManageRoute
+  '/dashboard/forms/builder': typeof DashboardFormsBuilderRoute
   '/dashboard/goal-map/$goalMapId': typeof DashboardGoalMapGoalMapIdRoute
   '/dashboard/learner-map/$assignmentId': typeof DashboardLearnerMapAssignmentIdRouteWithChildren
   '/dashboard/assignments': typeof DashboardAssignmentsIndexRoute
@@ -126,6 +133,7 @@ export interface FileRoutesByTo {
   '/dashboard': typeof DashboardIndexRoute
   '/api/auth/$': typeof ApiAuthSplatRoute
   '/dashboard/assignments/manage': typeof DashboardAssignmentsManageRoute
+  '/dashboard/forms/builder': typeof DashboardFormsBuilderRoute
   '/dashboard/goal-map/$goalMapId': typeof DashboardGoalMapGoalMapIdRoute
   '/dashboard/learner-map/$assignmentId': typeof DashboardLearnerMapAssignmentIdRouteWithChildren
   '/dashboard/assignments': typeof DashboardAssignmentsIndexRoute
@@ -143,6 +151,7 @@ export interface FileRoutesById {
   '/dashboard/': typeof DashboardIndexRoute
   '/api/auth/$': typeof ApiAuthSplatRoute
   '/dashboard/assignments/manage': typeof DashboardAssignmentsManageRoute
+  '/dashboard/forms/builder': typeof DashboardFormsBuilderRoute
   '/dashboard/goal-map/$goalMapId': typeof DashboardGoalMapGoalMapIdRoute
   '/dashboard/learner-map/$assignmentId': typeof DashboardLearnerMapAssignmentIdRouteWithChildren
   '/dashboard/assignments/': typeof DashboardAssignmentsIndexRoute
@@ -161,6 +170,7 @@ export interface FileRouteTypes {
     | '/dashboard/'
     | '/api/auth/$'
     | '/dashboard/assignments/manage'
+    | '/dashboard/forms/builder'
     | '/dashboard/goal-map/$goalMapId'
     | '/dashboard/learner-map/$assignmentId'
     | '/dashboard/assignments'
@@ -176,6 +186,7 @@ export interface FileRouteTypes {
     | '/dashboard'
     | '/api/auth/$'
     | '/dashboard/assignments/manage'
+    | '/dashboard/forms/builder'
     | '/dashboard/goal-map/$goalMapId'
     | '/dashboard/learner-map/$assignmentId'
     | '/dashboard/assignments'
@@ -192,6 +203,7 @@ export interface FileRouteTypes {
     | '/dashboard/'
     | '/api/auth/$'
     | '/dashboard/assignments/manage'
+    | '/dashboard/forms/builder'
     | '/dashboard/goal-map/$goalMapId'
     | '/dashboard/learner-map/$assignmentId'
     | '/dashboard/assignments/'
@@ -273,6 +285,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof DashboardGoalMapGoalMapIdRouteImport
       parentRoute: typeof DashboardRoute
     }
+    '/dashboard/forms/builder': {
+      id: '/dashboard/forms/builder'
+      path: '/forms/builder'
+      fullPath: '/dashboard/forms/builder'
+      preLoaderRoute: typeof DashboardFormsBuilderRouteImport
+      parentRoute: typeof DashboardRoute
+    }
     '/dashboard/assignments/manage': {
       id: '/dashboard/assignments/manage'
       path: '/assignments/manage'
@@ -343,6 +362,7 @@ interface DashboardRouteChildren {
   DashboardProfileRoute: typeof DashboardProfileRoute
   DashboardIndexRoute: typeof DashboardIndexRoute
   DashboardAssignmentsManageRoute: typeof DashboardAssignmentsManageRoute
+  DashboardFormsBuilderRoute: typeof DashboardFormsBuilderRoute
   DashboardGoalMapGoalMapIdRoute: typeof DashboardGoalMapGoalMapIdRoute
   DashboardLearnerMapAssignmentIdRoute: typeof DashboardLearnerMapAssignmentIdRouteWithChildren
   DashboardAssignmentsIndexRoute: typeof DashboardAssignmentsIndexRoute
@@ -353,6 +373,7 @@ const DashboardRouteChildren: DashboardRouteChildren = {
   DashboardProfileRoute: DashboardProfileRoute,
   DashboardIndexRoute: DashboardIndexRoute,
   DashboardAssignmentsManageRoute: DashboardAssignmentsManageRoute,
+  DashboardFormsBuilderRoute: DashboardFormsBuilderRoute,
   DashboardGoalMapGoalMapIdRoute: DashboardGoalMapGoalMapIdRoute,
   DashboardLearnerMapAssignmentIdRoute:
     DashboardLearnerMapAssignmentIdRouteWithChildren,

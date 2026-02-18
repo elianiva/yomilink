@@ -2,6 +2,7 @@ import { useQuery } from "@tanstack/react-query";
 import {
 	BookOpenIcon,
 	ClipboardListIcon,
+	FileTextIcon,
 	LayoutPanelLeftIcon,
 	type LucideIcon,
 	ScanSearchIcon,
@@ -46,6 +47,12 @@ const NAVBAR_ITEMS: NavItemWithRoles[] = [
 		title: "Static Analyzer",
 		url: "/dashboard/analytics",
 		icon: ScanSearchIcon,
+		roles: ["teacher", "admin"],
+	},
+	{
+		title: "Forms",
+		url: "/dashboard/forms/builder",
+		icon: FileTextIcon,
 		roles: ["teacher", "admin"],
 	},
 	// Student items

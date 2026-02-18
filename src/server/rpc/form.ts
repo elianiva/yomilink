@@ -1,0 +1,202 @@
+import { mutationOptions, queryOptions } from "@tanstack/react-query";
+import { createServerFn } from "@tanstack/react-start";
+import { Effect, Layer, Schema } from "effect";
+import {
+	CreateFormInput,
+	createForm,
+	deleteForm,
+	GetFormResponsesInput,
+	getFormById,
+	getFormResponses,
+	listForms,
+	publishForm,
+	SubmitFormResponseInput,
+	submitFormResponse,
+	unpublishForm,
+} from "@/features/form/lib/form-service";
+import { requireRoleMiddleware } from "@/middlewares/auth";
+import { DatabaseLive } from "../db/client";
+import { LoggerLive } from "../logger";
+import { errorResponse, logRpcError } from "../rpc-helper";
+
+const GetFormByIdInput = Schema.Struct({
+	id: Schema.NonEmptyString,
+});
+
+type GetFormByIdInput = typeof GetFormByIdInput.Type;
+
+export const createFormRpc = createServerFn()
+	.middleware([requireRoleMiddleware("teacher", "admin")])
+	.inputValidator((raw) => Schema.decodeUnknownSync(CreateFormInput)(raw))
+	.handler(({ data, context }) =>
+		createForm(context.user.id, data).pipe(
+			Effect.withSpan("createForm"),
+			Effect.tapError(logRpcError("createForm")),
+			Effect.provide(Layer.mergeAll(DatabaseLive, LoggerLive)),
+			Effect.catchAll(() => errorResponse("Internal server error")),
+			Effect.runPromise,
+		),
+	);
+
+export const getFormByIdRpc = createServerFn()
+	.middleware([requireRoleMiddleware("teacher", "admin")])
+	.inputValidator((raw) => Schema.decodeUnknownSync(GetFormByIdInput)(raw))
+	.handler(({ data }) =>
+		getFormById(data.id).pipe(
+			Effect.withSpan("getFormById"),
+			Effect.tapError(logRpcError("getFormById")),
+			Effect.provide(Layer.mergeAll(DatabaseLive, LoggerLive)),
+			Effect.catchTags({
+				FormNotFoundError: () => errorResponse("Form not found"),
+			}),
+			Effect.catchAll(() => errorResponse("Internal server error")),
+			Effect.runPromise,
+		),
+	);
+
+export const listFormsRpc = createServerFn()
+	.middleware([requireRoleMiddleware("teacher", "admin")])
+	.handler(({ context }) =>
+		listForms(context.user.id).pipe(
+			Effect.withSpan("listForms"),
+			Effect.tapError(logRpcError("listForms")),
+			Effect.provide(Layer.mergeAll(DatabaseLive, LoggerLive)),
+			Effect.catchAll(() => errorResponse("Internal server error")),
+			Effect.runPromise,
+		),
+	);
+
+export const deleteFormRpc = createServerFn()
+	.middleware([requireRoleMiddleware("teacher", "admin")])
+	.inputValidator((raw) => Schema.decodeUnknownSync(GetFormByIdInput)(raw))
+	.handler(({ data }) =>
+		deleteForm(data.id).pipe(
+			Effect.withSpan("deleteForm"),
+			Effect.tapError(logRpcError("deleteForm")),
+			Effect.provide(Layer.mergeAll(DatabaseLive, LoggerLive)),
+			Effect.catchTags({
+				FormNotFoundError: () => errorResponse("Form not found"),
+			}),
+			Effect.catchAll(() => errorResponse("Internal server error")),
+			Effect.runPromise,
+		),
+	);
+
+export const publishFormRpc = createServerFn()
+	.middleware([requireRoleMiddleware("teacher", "admin")])
+	.inputValidator((raw) => Schema.decodeUnknownSync(GetFormByIdInput)(raw))
+	.handler(({ data }) =>
+		publishForm(data.id).pipe(
+			Effect.withSpan("publishForm"),
+			Effect.tapError(logRpcError("publishForm")),
+			Effect.provide(Layer.mergeAll(DatabaseLive, LoggerLive)),
+			Effect.catchTags({
+				FormNotFoundError: () => errorResponse("Form not found"),
+			}),
+			Effect.catchAll(() => errorResponse("Internal server error")),
+			Effect.runPromise,
+		),
+	);
+
+export const unpublishFormRpc = createServerFn()
+	.middleware([requireRoleMiddleware("teacher", "admin")])
+	.inputValidator((raw) => Schema.decodeUnknownSync(GetFormByIdInput)(raw))
+	.handler(({ data }) =>
+		unpublishForm(data.id).pipe(
+			Effect.withSpan("unpublishForm"),
+			Effect.tapError(logRpcError("unpublishForm")),
+			Effect.provide(Layer.mergeAll(DatabaseLive, LoggerLive)),
+			Effect.catchTags({
+				FormNotFoundError: () => errorResponse("Form not found"),
+			}),
+			Effect.catchAll(() => errorResponse("Internal server error")),
+			Effect.runPromise,
+		),
+	);
+
+export const getFormResponsesRpc = createServerFn()
+	.middleware([requireRoleMiddleware("teacher", "admin")])
+	.inputValidator((raw) => Schema.decodeUnknownSync(GetFormResponsesInput)(raw))
+	.handler(({ data }) =>
+		getFormResponses(data).pipe(
+			Effect.withSpan("getFormResponses"),
+			Effect.tapError(logRpcError("getFormResponses")),
+			Effect.provide(Layer.mergeAll(DatabaseLive, LoggerLive)),
+			Effect.catchTags({
+				FormNotFoundError: () => errorResponse("Form not found"),
+			}),
+			Effect.catchAll(() => errorResponse("Internal server error")),
+			Effect.runPromise,
+		),
+	);
+
+export const submitFormResponseRpc = createServerFn()
+	.middleware([requireRoleMiddleware("student", "teacher", "admin")])
+	.inputValidator((raw) =>
+		Schema.decodeUnknownSync(SubmitFormResponseInput)(raw),
+	)
+	.handler(({ data }) =>
+		submitFormResponse(data).pipe(
+			Effect.withSpan("submitFormResponse"),
+			Effect.tapError(logRpcError("submitFormResponse")),
+			Effect.provide(Layer.mergeAll(DatabaseLive, LoggerLive)),
+			Effect.catchTags({
+				FormNotFoundError: () => errorResponse("Form not found"),
+				FormNotPublishedError: () => errorResponse("Form is not published"),
+				FormAlreadySubmittedError: () =>
+					errorResponse("You have already submitted this form"),
+			}),
+			Effect.catchAll(() => errorResponse("Internal server error")),
+			Effect.runPromise,
+		),
+	);
+
+export const FormRpc = {
+	forms: () => ["forms"],
+	createForm: () =>
+		mutationOptions({
+			mutationKey: [...FormRpc.forms(), "create"],
+			mutationFn: (data: CreateFormInput) => createFormRpc({ data }),
+		}),
+	getFormById: (input: GetFormByIdInput) =>
+		queryOptions({
+			queryKey: [...FormRpc.forms(), "byId", input.id],
+			queryFn: () => getFormByIdRpc({ data: input }),
+		}),
+	listForms: () =>
+		queryOptions({
+			queryKey: [...FormRpc.forms(), "list"],
+			queryFn: () => listFormsRpc(),
+		}),
+	deleteForm: () =>
+		mutationOptions({
+			mutationKey: [...FormRpc.forms(), "delete"],
+			mutationFn: (data: GetFormByIdInput) => deleteFormRpc({ data }),
+		}),
+	publishForm: () =>
+		mutationOptions({
+			mutationKey: [...FormRpc.forms(), "publish"],
+			mutationFn: (data: GetFormByIdInput) => publishFormRpc({ data }),
+		}),
+	unpublishForm: () =>
+		mutationOptions({
+			mutationKey: [...FormRpc.forms(), "unpublish"],
+			mutationFn: (data: GetFormByIdInput) => unpublishFormRpc({ data }),
+		}),
+	getFormResponses: (input: GetFormResponsesInput) =>
+		queryOptions({
+			queryKey: [
+				...FormRpc.forms(),
+				"responses",
+				input.formId,
+				input.page ?? 1,
+			],
+			queryFn: () => getFormResponsesRpc({ data: input }),
+		}),
+	submitFormResponse: () =>
+		mutationOptions({
+			mutationKey: [...FormRpc.forms(), "submit"],
+			mutationFn: (data: SubmitFormResponseInput) =>
+				submitFormResponseRpc({ data }),
+		}),
+};

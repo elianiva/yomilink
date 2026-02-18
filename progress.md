@@ -3,7 +3,15 @@
 ## 2026-02-19
 
 ### Completed Tasks
-1. **Create getFormResponses endpoint** - Added getFormResponses function to FormService for querying form responses with pagination
+1. **Create FormBuilder page shell** - Created admin route `/dashboard/forms/builder` with basic layout
+   - Route accessible at `/dashboard/forms/builder` for teachers and admins
+   - Created `FormRpc` with server functions for form operations (create, get, list, delete, publish, unpublish, getResponses, submitResponse)
+   - Fixed type issues in form-service.ts by properly typing JSON fields (unlockConditions, answers)
+   - Added Forms menu item to sidebar for teachers/admins
+   - Page includes basic layout with form content and settings sections
+   - All 402 tests pass
+
+2. **Create getFormResponses endpoint** - Added getFormResponses function to FormService for querying form responses with pagination
    - Returns paginated list of responses with user info (name, email)
    - Supports configurable page and limit parameters (default: page 1, limit 20)
    - Validates form exists before querying responses

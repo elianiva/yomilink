@@ -117,7 +117,7 @@
       "Write test fetching responses and verifying pagination works",
       "Returns paginated list of responses with user info"
     ],
-    "passes": false
+    "passes": true
   },
   {
     "category": "functional",
@@ -127,7 +127,7 @@
       "Verify route loads without errors in browser",
       "Page accessible at admin URL with form ID param optional"
     ],
-    "passes": false
+    "passes": true
   },
   {
     "category": "functional",
