@@ -1,7 +1,13 @@
 "use client";
 
-import { CheckCircle2, ChevronLeft, ChevronRight, Send } from "lucide-react";
-import { useState } from "react";
+import {
+	CheckCircle2,
+	ChevronLeft,
+	ChevronRight,
+	Save,
+	Send,
+} from "lucide-react";
+import { useEffect, useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Separator } from "@/components/ui/separator";
@@ -49,10 +55,45 @@ interface FormTakerProps {
 	className?: string;
 }
 
+function getDraftKey(formId: string): string {
+	return `form-${formId}-draft`;
+}
+
+function loadDraft(formId: string): Record<string, string | number> | null {
+	if (typeof window === "undefined") return null;
+	try {
+		const draft = localStorage.getItem(getDraftKey(formId));
+		return draft ? JSON.parse(draft) : null;
+	} catch {
+		return null;
+	}
+}
+
+function saveDraft(
+	formId: string,
+	answers: Record<string, string | number>,
+): void {
+	if (typeof window === "undefined") return;
+	try {
+		localStorage.setItem(getDraftKey(formId), JSON.stringify(answers));
+	} catch {
+		// Ignore storage errors
+	}
+}
+
+function clearDraft(formId: string): void {
+	if (typeof window === "undefined") return;
+	try {
+		localStorage.removeItem(getDraftKey(formId));
+	} catch {
+		// Ignore storage errors
+	}
+}
+
 export function FormTaker({
 	form,
 	questions,
-	answers = {},
+	answers: initialAnswers,
 	onAnswerChange,
 	onSubmit,
 	submitting = false,
@@ -60,6 +101,15 @@ export function FormTaker({
 }: FormTakerProps) {
 	const [currentIndex, setCurrentIndex] = useState(0);
 	const [submitted, setSubmitted] = useState(false);
+	const [answers, setAnswers] = useState<Record<string, string | number>>(
+		() => {
+			if (initialAnswers && Object.keys(initialAnswers).length > 0) {
+				return initialAnswers;
+			}
+			return loadDraft(form.id) ?? {};
+		},
+	);
+	const [lastSaved, setLastSaved] = useState<Date | null>(null);
 
 	const sortedQuestions = [...questions].sort(
 		(a, b) => a.orderIndex - b.orderIndex,
@@ -72,6 +122,17 @@ export function FormTaker({
 
 	const isFirstQuestion = currentIndex === 0;
 	const isLastQuestion = currentIndex === totalQuestions - 1;
+
+	useEffect(() => {
+		const interval = setInterval(() => {
+			if (Object.keys(answers).length > 0) {
+				saveDraft(form.id, answers);
+				setLastSaved(new Date());
+			}
+		}, 5000);
+
+		return () => clearInterval(interval);
+	}, [form.id, answers]);
 
 	const canSubmit = () => {
 		const requiredQuestions = sortedQuestions.filter((q) => q.required);
@@ -95,12 +156,14 @@ export function FormTaker({
 
 	const handleSubmit = () => {
 		if (canSubmit()) {
+			clearDraft(form.id);
 			setSubmitted(true);
 			onSubmit?.(answers);
 		}
 	};
 
 	const handleAnswerChange = (questionId: string, value: string | number) => {
+		setAnswers((prev) => ({ ...prev, [questionId]: value }));
 		onAnswerChange?.(questionId, value);
 	};
 
@@ -155,8 +218,14 @@ export function FormTaker({
 						<span className="text-muted-foreground">
 							Question {currentIndex + 1} of {totalQuestions}
 						</span>
-						<span className="text-muted-foreground">
+						<span className="flex items-center gap-2 text-muted-foreground">
 							{Math.round(progress)}% complete
+							<span className="flex items-center gap-1">
+								<Save className="h-3 w-3" />
+								{lastSaved
+									? `Saved ${lastSaved.toLocaleTimeString()}`
+									: "Auto-save enabled"}
+							</span>
 						</span>
 					</div>
 					<div className="h-2 w-full overflow-hidden rounded-full bg-muted">

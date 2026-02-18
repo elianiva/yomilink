@@ -209,4 +209,9 @@ describe("FormTaker", () => {
 
 		expect(screen.queryByTestId("next-button")).not.toBeInTheDocument();
 	});
+
+	it("shows auto-save enabled indicator initially", () => {
+		render(<FormTaker form={mockForm} questions={mockQuestions} />);
+		expect(screen.getByText("Auto-save enabled")).toBeInTheDocument();
+	});
 });

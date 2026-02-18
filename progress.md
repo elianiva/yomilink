@@ -4,6 +4,15 @@
 
 ### Completed Tasks
 
+27. **Implement auto-save draft to localStorage** - Added auto-save functionality to FormTaker component
+    - Added useEffect that saves answers to localStorage every 5 seconds
+    - Key format: `form-{formId}-draft`
+    - Loads draft from localStorage on initial mount if no answers prop provided
+    - Clears draft on successful form submission
+    - Shows "Auto-save enabled" indicator in UI
+    - Added 1 new test for auto-save indicator
+    - All 405 tests pass
+
 23. **Create unlock condition checker service** - Built service for checking form unlock conditions
     - Created `unlock-service.ts` with functions for checking time-based, prerequisite, and manual unlock conditions
     - `checkTimeBasedCondition` - Checks if unlock time has passed
