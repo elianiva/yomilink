@@ -4,6 +4,20 @@
 
 ### Completed Tasks
 
+28. **Create FormList component** - Built component for displaying forms in list view
+    - Created `FormList` component with form cards showing title, description, type, status
+    - Supports form list status badges: Locked (red), Available (blue), Completed (green)
+    - Dropdown menu with Edit and Delete actions
+    - Empty state when no forms
+    - Click handler for navigating to form details
+    - Created 16 comprehensive unit tests
+    - All 421 tests pass
+
+27. **Fix chart.tsx type errors** - Fixed TypeScript errors in chart component
+    - Added proper types for TooltipPayloadItem and LegendPayloadItem
+    - Fixed type issues with payload and label properties
+    - Added biome-ignore for intentionally dynamic chart styling
+
 27. **Implement auto-save draft to localStorage** - Added auto-save functionality to FormTaker component
     - Added useEffect that saves answers to localStorage every 5 seconds
     - Key format: `form-{formId}-draft`
