@@ -1,5 +1,14 @@
 # Progress
 
+## 2026-02-19
+
+### Completed Tasks
+1. **Generate TypeScript types from database schema** - Ran drizzle-kit generate, types available for forms, questions, formResponses, and formProgress tables
+   - Types exported from `@/server/db/schema` via drizzle-orm schema definitions
+   - All 376 tests pass with new schema types
+
+### Previous Progress
+
 ## 2026-02-18
 
 ### Completed Tasks
