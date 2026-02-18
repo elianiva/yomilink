@@ -3,7 +3,18 @@
 ## 2026-02-19
 
 ### Completed Tasks
-1. **Create FormBuilder page shell** - Created admin route `/dashboard/forms/builder` with basic layout
+1. **Create FormMetadataEditor component** - Built form editor component for editing form metadata
+   - Created `FormMetadataEditor` component with inputs for title, description, type selector, and status
+   - Supports all form types: pre_test, post_test, registration, control
+   - Visual status indicators with colored badges (yellow for draft, green for published)
+   - Fully controlled component with onChange callbacks
+   - Disabled state support for read-only mode
+   - Added 6 comprehensive unit tests covering rendering, state updates, and disabled state
+   - Installed @testing-library/user-event and @testing-library/jest-dom for component testing
+   - Updated test setup to include jest-dom matchers
+   - All 408 tests pass
+
+2. **Create FormBuilder page shell** - Created admin route `/dashboard/forms/builder` with basic layout
    - Route accessible at `/dashboard/forms/builder` for teachers and admins
    - Created `FormRpc` with server functions for form operations (create, get, list, delete, publish, unpublish, getResponses, submitResponse)
    - Fixed type issues in form-service.ts by properly typing JSON fields (unlockConditions, answers)

@@ -137,7 +137,7 @@
       "Write test filling form and verifying state updates",
       "Component renders and captures form metadata changes"
     ],
-    "passes": false
+    "passes": true
   },
   {
     "category": "functional",
