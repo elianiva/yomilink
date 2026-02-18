@@ -4,6 +4,18 @@
 
 ### Completed Tasks
 
+20. **Create FormPreview component** - Built component for previewing forms in student view
+    - Created `FormPreview` component displaying form title, description, type, and status
+    - Renders questions in order with numbering and required indicators
+    - Empty state when no questions exist
+    - Created `FormPreviewToggle` button for toggling preview mode
+    - Created `QuestionRenderer` router component switching on question type
+    - Created `McqRenderer` with shuffled option support and visual selection feedback
+    - Created `LikertRenderer` with configurable scale size and labels
+    - Created `TextRenderer` with character count and validation display
+    - All renderers support disabled state for read-only mode
+    - All 501 tests pass
+
 19. **Create TextQuestionEditor component** - Built editor for creating text questions
     - Created `TextQuestionEditor` component with question text textarea
     - Min/max character length validation inputs
