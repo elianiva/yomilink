@@ -38,7 +38,10 @@ export const Route = createFileRoute("/dashboard")({
 			// Check if result is an error response
 			if ("success" in result && !result.success) {
 				// Error checking registration status - log and continue
-				console.error("Failed to check registration form status:", result.error);
+				console.error(
+					"Failed to check registration form status:",
+					result.error,
+				);
 			} else {
 				const registrationStatus = result as {
 					hasRegistrationForm: boolean;

@@ -791,7 +791,9 @@ export const getRegistrationFormStatus = Effect.fn("getRegistrationFormStatus")(
 			const registrationForms = yield* db
 				.select()
 				.from(forms)
-				.where(and(eq(forms.type, "registration"), eq(forms.status, "published")))
+				.where(
+					and(eq(forms.type, "registration"), eq(forms.status, "published")),
+				)
 				.limit(1);
 
 			const registrationForm = registrationForms[0];
@@ -830,66 +832,63 @@ export const getRegistrationFormStatus = Effect.fn("getRegistrationFormStatus")(
 
 // Get all published forms for students with unlock status
 
-export const getStudentForms = Effect.fn("getStudentForms")(
-	(userId: string) =>
-		Effect.gen(function* () {
-			const db = yield* Database;
+export const getStudentForms = Effect.fn("getStudentForms")((userId: string) =>
+	Effect.gen(function* () {
+		const db = yield* Database;
 
-			// Get all published forms
-			const publishedForms = yield* db
-				.select()
-				.from(forms)
-				.where(eq(forms.status, "published"))
-				.orderBy(forms.createdAt);
+		// Get all published forms
+		const publishedForms = yield* db
+			.select()
+			.from(forms)
+			.where(eq(forms.status, "published"))
+			.orderBy(forms.createdAt);
 
-			// Get user's progress for all forms
-			const userProgressRows = yield* db
-				.select()
-				.from(formProgress)
-				.where(eq(formProgress.userId, userId));
+		// Get user's progress for all forms
+		const userProgressRows = yield* db
+			.select()
+			.from(formProgress)
+			.where(eq(formProgress.userId, userId));
 
-			const progressMap = new Map(
-				userProgressRows.map((p) => [p.formId, p]),
-			);
+		const progressMap = new Map(userProgressRows.map((p) => [p.formId, p]));
 
-			// Build response with unlock status
-			const formsWithStatus = publishedForms.map((form) => {
-				const progress = progressMap.get(form.id);
+		// Build response with unlock status
+		const formsWithStatus = publishedForms.map((form) => {
+			const progress = progressMap.get(form.id);
 
-				let unlockStatus: "locked" | "available" | "completed" = "locked";
-				let isUnlocked = false;
+			let unlockStatus: "locked" | "available" | "completed" = "locked";
+			let isUnlocked = false;
 
-				// Check unlock conditions
-				const unlockConditions =
-					form.unlockConditions as FormUnlockConditions | null;
+			// Check unlock conditions
+			const unlockConditions =
+				form.unlockConditions as FormUnlockConditions | null;
 
-				if (!unlockConditions || unlockConditions.conditions.length === 0) {
-					// No conditions = available by default
-					unlockStatus = progress?.status ?? "available";
-					isUnlocked = true;
-				} else if (progress) {
-					unlockStatus = progress.status;
-					isUnlocked = progress.status === "available" ||
-						progress.status === "completed";
-				}
+			if (!unlockConditions || unlockConditions.conditions.length === 0) {
+				// No conditions = available by default
+				unlockStatus = progress?.status ?? "available";
+				isUnlocked = true;
+			} else if (progress) {
+				unlockStatus = progress.status;
+				isUnlocked =
+					progress.status === "available" || progress.status === "completed";
+			}
 
-				return {
-					id: form.id,
-					title: form.title,
-					description: form.description,
-					type: form.type,
-					unlockStatus,
-					isUnlocked,
-					progress: progress
-						? {
-								status: progress.status,
-								unlockedAt: progress.unlockedAt,
-								completedAt: progress.completedAt,
-							}
-						: null,
-				};
-			});
+			return {
+				id: form.id,
+				title: form.title,
+				description: form.description,
+				type: form.type,
+				unlockStatus,
+				isUnlocked,
+				progress: progress
+					? {
+							status: progress.status,
+							unlockedAt: progress.unlockedAt,
+							completedAt: progress.completedAt,
+						}
+					: null,
+			};
+		});
 
-			return formsWithStatus;
-		}),
+		return formsWithStatus;
+	}),
 );

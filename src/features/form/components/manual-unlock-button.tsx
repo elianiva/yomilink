@@ -73,10 +73,7 @@ export function ManualUnlockButton({
 						>
 							Cancel
 						</Button>
-						<Button
-							onClick={handleUnlock}
-							disabled={unlockMutation.isPending}
-						>
+						<Button onClick={handleUnlock} disabled={unlockMutation.isPending}>
 							{unlockMutation.isPending && (
 								<Loader2 className="mr-2 h-4 w-4 animate-spin" />
 							)}

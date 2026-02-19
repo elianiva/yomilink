@@ -26,18 +26,20 @@ describe("ControlSubmissionEditor", () => {
 
 	it("displays word count correctly", () => {
 		render(
-			<ControlSubmissionEditor initialContent="This is a test sentence" minWordCount={0} />,
+			<ControlSubmissionEditor
+				initialContent="This is a test sentence"
+				minWordCount={0}
+			/>,
 		);
 
-		expect(screen.getByTestId("word-count-message")).toHaveTextContent("5 words");
+		expect(screen.getByTestId("word-count-message")).toHaveTextContent(
+			"5 words",
+		);
 	});
 
 	it("shows warning when below minimum word count", () => {
 		render(
-			<ControlSubmissionEditor
-				initialContent="Short text"
-				minWordCount={10}
-			/>,
+			<ControlSubmissionEditor initialContent="Short text" minWordCount={10} />,
 		);
 
 		const wordCount = screen.getByTestId("word-count-message");
@@ -83,9 +85,7 @@ describe("ControlSubmissionEditor", () => {
 	it("displays minimum word count requirement", () => {
 		render(<ControlSubmissionEditor minWordCount={200} />);
 
-		expect(
-			screen.getByText("Minimum 200 words required"),
-		).toBeInTheDocument();
+		expect(screen.getByText("Minimum 200 words required")).toBeInTheDocument();
 	});
 
 	it("applies custom className", () => {
@@ -99,13 +99,17 @@ describe("ControlSubmissionEditor", () => {
 	it("counts zero words for empty content", () => {
 		render(<ControlSubmissionEditor initialContent="" />);
 
-		expect(screen.getByTestId("word-count-message")).toHaveTextContent("0 words");
+		expect(screen.getByTestId("word-count-message")).toHaveTextContent(
+			"0 words",
+		);
 	});
 
 	it("counts zero words for whitespace only", () => {
 		render(<ControlSubmissionEditor initialContent="   " />);
 
-		expect(screen.getByTestId("word-count-message")).toHaveTextContent("0 words");
+		expect(screen.getByTestId("word-count-message")).toHaveTextContent(
+			"0 words",
+		);
 	});
 
 	it("handles maximum word count validation", () => {

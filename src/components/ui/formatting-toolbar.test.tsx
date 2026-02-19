@@ -146,7 +146,9 @@ describe("FormattingToolbar", () => {
 	it("renders separator between text and list buttons", () => {
 		render(<FormattingToolbar />);
 
-		const separator = screen.getByTestId("formatting-toolbar").querySelector("[data-orientation]");
+		const separator = screen
+			.getByTestId("formatting-toolbar")
+			.querySelector("[data-orientation]");
 		expect(separator).toBeInTheDocument();
 		expect(separator).toHaveAttribute("data-orientation", "vertical");
 	});

@@ -36,7 +36,7 @@ function AdminFormsPage() {
 
 	const { data, isLoading } = useQuery({
 		...FormRpc.listForms(),
-	})
+	});
 
 	const forms = Array.isArray(data) ? data : [];
 
@@ -47,30 +47,33 @@ function AdminFormsPage() {
 			setFormToDelete(null);
 			queryClient.invalidateQueries({ queryKey: FormRpc.listForms().queryKey });
 		},
-	})
+	});
 
 	const handleEdit = (form: FormListItem) => {
 		navigate({ to: "/dashboard/forms/builder", search: { formId: form.id } });
-	}
+	};
 
 	const handleViewResults = (form: FormListItem) => {
-		navigate({ to: "/dashboard/forms/$formId/results", params: { formId: form.id } });
-	}
+		navigate({
+			to: "/dashboard/forms/$formId/results",
+			params: { formId: form.id },
+		});
+	};
 
 	const handleDelete = (formId: string) => {
 		setFormToDelete(formId);
 		setDeleteDialogOpen(true);
-	}
+	};
 
 	const confirmDelete = () => {
 		if (formToDelete) {
 			deleteMutation.mutate({ id: formToDelete });
 		}
-	}
+	};
 
 	const handleCreateNew = () => {
 		navigate({ to: "/dashboard/forms/builder" });
-	}
+	};
 
 	const mappedForms: FormListItem[] = forms.map((form) => ({
 		id: form.id,
@@ -143,5 +146,5 @@ function AdminFormsPage() {
 				</DialogContent>
 			</Dialog>
 		</div>
-	)
+	);
 }

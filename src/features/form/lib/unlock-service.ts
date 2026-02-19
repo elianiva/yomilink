@@ -1,7 +1,11 @@
 import { and, eq, isNotNull } from "drizzle-orm";
 import { Data, Effect, Schema } from "effect";
 import { Database } from "@/server/db/client";
-import { formProgress, forms, learnerMaps } from "@/server/db/schema/app-schema";
+import {
+	formProgress,
+	forms,
+	learnerMaps,
+} from "@/server/db/schema/app-schema";
 
 const TimeBasedCondition = Schema.Struct({
 	type: Schema.Literal("time"),
@@ -394,7 +398,8 @@ export const UnlockPostTestAfterAssignmentInput = Schema.Struct({
 	delayDays: Schema.optionalWith(Schema.Number, { default: () => 0 }),
 });
 
-export type UnlockPostTestAfterAssignmentInput = typeof UnlockPostTestAfterAssignmentInput.Type;
+export type UnlockPostTestAfterAssignmentInput =
+	typeof UnlockPostTestAfterAssignmentInput.Type;
 
 export const unlockPostTestAfterAssignment = Effect.fn(
 	"unlockPostTestAfterAssignment",
@@ -472,7 +477,8 @@ export const CalculateDelayedUnlockInput = Schema.Struct({
 	delayDays: Schema.Number,
 });
 
-export type CalculateDelayedUnlockInput = typeof CalculateDelayedUnlockInput.Type;
+export type CalculateDelayedUnlockInput =
+	typeof CalculateDelayedUnlockInput.Type;
 
 export const calculateDelayedUnlock = Effect.fn("calculateDelayedUnlock")(
 	(input: CalculateDelayedUnlockInput) =>
@@ -505,7 +511,8 @@ export const GetAssignmentCompletionInput = Schema.Struct({
 	userId: Schema.String,
 });
 
-export type GetAssignmentCompletionInput = typeof GetAssignmentCompletionInput.Type;
+export type GetAssignmentCompletionInput =
+	typeof GetAssignmentCompletionInput.Type;
 
 export type AssignmentCompletionStatus = {
 	isCompleted: boolean;
@@ -513,37 +520,38 @@ export type AssignmentCompletionStatus = {
 	formId: string | null;
 };
 
-export const getAssignmentCompletionStatus = Effect.fn("getAssignmentCompletionStatus")(
-	(input: GetAssignmentCompletionInput) =>
-		Effect.gen(function* () {
-			const db = yield* Database;
+export const getAssignmentCompletionStatus = Effect.fn(
+	"getAssignmentCompletionStatus",
+)((input: GetAssignmentCompletionInput) =>
+	Effect.gen(function* () {
+		const db = yield* Database;
 
-			const learnerMapRows = yield* db
-				.select()
-				.from(learnerMaps)
-				.where(
-					and(
-						eq(learnerMaps.assignmentId, input.assignmentId),
-						eq(learnerMaps.userId, input.userId),
-						eq(learnerMaps.status, "submitted"),
-						isNotNull(learnerMaps.submittedAt),
-					),
-				)
-				.limit(1);
+		const learnerMapRows = yield* db
+			.select()
+			.from(learnerMaps)
+			.where(
+				and(
+					eq(learnerMaps.assignmentId, input.assignmentId),
+					eq(learnerMaps.userId, input.userId),
+					eq(learnerMaps.status, "submitted"),
+					isNotNull(learnerMaps.submittedAt),
+				),
+			)
+			.limit(1);
 
-			if (learnerMapRows.length === 0) {
-				return {
-					isCompleted: false,
-					completedAt: null,
-					formId: null,
-				};
-			}
-
-			const map = learnerMapRows[0];
+		if (learnerMapRows.length === 0) {
 			return {
-				isCompleted: true,
-				completedAt: map.submittedAt,
-				formId: map.id,
+				isCompleted: false,
+				completedAt: null,
+				formId: null,
 			};
-		}),
+		}
+
+		const map = learnerMapRows[0];
+		return {
+			isCompleted: true,
+			completedAt: map.submittedAt,
+			formId: map.id,
+		};
+	}),
 );

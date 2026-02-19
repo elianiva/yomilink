@@ -17,7 +17,9 @@ describe("calculateDelayedUnlock", () => {
 
 		expect(result.delayDays).toBe(7);
 		expect(new Date(result.unlockAt).getDate()).toBe(expectedUnlock.getDate());
-		expect(result.formattedUnlockDate).toBe(expectedUnlock.toLocaleDateString());
+		expect(result.formattedUnlockDate).toBe(
+			expectedUnlock.toLocaleDateString(),
+		);
 	});
 
 	it("returns isUnlocked true when delay has passed", async () => {

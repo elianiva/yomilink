@@ -19,7 +19,9 @@ describe("ControlSubmissionConfirmModal", () => {
 		expect(
 			screen.getByTestId("control-submission-confirm-modal"),
 		).toBeInTheDocument();
-		expect(screen.getByRole("heading", { name: "Confirm Submission" })).toBeInTheDocument();
+		expect(
+			screen.getByRole("heading", { name: "Confirm Submission" }),
+		).toBeInTheDocument();
 	});
 
 	it("does not render when isOpen is false", () => {
@@ -59,13 +61,9 @@ describe("ControlSubmissionConfirmModal", () => {
 	});
 
 	it("does not show warning when word count meets minimum", () => {
-		render(
-			<ControlSubmissionConfirmModal {...defaultProps} wordCount={150} />,
-		);
+		render(<ControlSubmissionConfirmModal {...defaultProps} wordCount={150} />);
 
-		expect(
-			screen.queryByTestId("word-count-warning"),
-		).not.toBeInTheDocument();
+		expect(screen.queryByTestId("word-count-warning")).not.toBeInTheDocument();
 	});
 
 	it("disables confirm button when below minimum word count", () => {
@@ -75,9 +73,7 @@ describe("ControlSubmissionConfirmModal", () => {
 	});
 
 	it("enables confirm button when word count meets minimum", () => {
-		render(
-			<ControlSubmissionConfirmModal {...defaultProps} wordCount={150} />,
-		);
+		render(<ControlSubmissionConfirmModal {...defaultProps} wordCount={150} />);
 
 		expect(screen.getByTestId("confirm-button")).not.toBeDisabled();
 	});

@@ -1,7 +1,11 @@
 "use client";
 
 import { useQuery } from "@tanstack/react-query";
-import { createFileRoute, useNavigate, useSearch } from "@tanstack/react-router";
+import {
+	createFileRoute,
+	useNavigate,
+	useSearch,
+} from "@tanstack/react-router";
 import { ArrowLeftIcon, Loader2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import {
@@ -151,12 +155,7 @@ function FormTakerPage() {
 
 	return (
 		<div className="container max-w-2xl mx-auto py-8 px-4">
-			<Button
-				variant="ghost"
-				size="sm"
-				onClick={handleBack}
-				className="mb-4"
-			>
+			<Button variant="ghost" size="sm" onClick={handleBack} className="mb-4">
 				<ArrowLeftIcon className="mr-2 h-4 w-4" />
 				Back to Forms
 			</Button>

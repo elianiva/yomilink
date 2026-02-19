@@ -1331,8 +1331,7 @@ describe("learner-map-service", () => {
 					attempt: 1,
 				});
 
-				const controlText =
-					"Updated with control text instead of concept map.";
+				const controlText = "Updated with control text instead of concept map.";
 
 				const result = yield* submitControlText(student.id, {
 					assignmentId: assignment.id,

@@ -16,20 +16,16 @@ import {
 import {
 	cloneForm,
 	createForm,
-	createQuestion,
 	deleteForm,
-	deleteQuestion,
 	getFormById,
 	getFormResponses,
 	getRegistrationFormStatus,
 	getStudentForms,
 	listForms,
 	publishForm,
-	reorderQuestions,
 	submitFormResponse,
 	unpublishForm,
 	updateForm,
-	updateQuestion,
 } from "./form-service";
 
 describe("form-service", () => {

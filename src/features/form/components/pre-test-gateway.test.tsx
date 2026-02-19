@@ -92,7 +92,11 @@ describe("PreTestGateway", () => {
 			},
 			isLoading: false,
 			error: null,
-			status: { isUnlocked: false, reason: "Complete the pre-test first", earliestUnlockAt: null },
+			status: {
+				isUnlocked: false,
+				reason: "Complete the pre-test first",
+				earliestUnlockAt: null,
+			},
 			isUnlocked: false,
 			refetch: vi.fn(),
 		} as any);
@@ -118,7 +122,11 @@ describe("PreTestGateway", () => {
 			},
 			isLoading: false,
 			error: null,
-			status: { isUnlocked: false, reason: "Custom reason", earliestUnlockAt: null },
+			status: {
+				isUnlocked: false,
+				reason: "Custom reason",
+				earliestUnlockAt: null,
+			},
 			isUnlocked: false,
 			refetch: vi.fn(),
 		} as any);
@@ -157,7 +165,9 @@ describe("PreTestGateway", () => {
 		);
 
 		await waitFor(() => {
-			expect(screen.getByText("Failed to check pre-test status")).toBeInTheDocument();
+			expect(
+				screen.getByText("Failed to check pre-test status"),
+			).toBeInTheDocument();
 		});
 	});
 

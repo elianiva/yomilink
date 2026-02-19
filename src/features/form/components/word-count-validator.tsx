@@ -18,7 +18,8 @@ export function WordCountValidator({
 	showLabels = true,
 	className,
 }: WordCountValidatorProps) {
-	const isBelowMinimum = minWordCount !== undefined && minWordCount > 0 && wordCount < minWordCount;
+	const isBelowMinimum =
+		minWordCount !== undefined && minWordCount > 0 && wordCount < minWordCount;
 	const isAboveMaximum = maxWordCount !== undefined && wordCount > maxWordCount;
 
 	const getStatus = () => {
@@ -63,11 +64,16 @@ export function WordCountValidator({
 				className={cn("font-medium", status.textClassName)}
 				data-testid="word-count-message"
 			>
-				<StatusIcon className={cn("mr-1 inline h-4 w-4", status.iconClassName)} />
+				<StatusIcon
+					className={cn("mr-1 inline h-4 w-4", status.iconClassName)}
+				/>
 				{status.message}
 			</span>
 			{showLabels && minWordCount !== undefined && minWordCount > 0 && (
-				<span className="text-xs text-muted-foreground" data-testid="min-word-label">
+				<span
+					className="text-xs text-muted-foreground"
+					data-testid="min-word-label"
+				>
 					Minimum {minWordCount} words required
 				</span>
 			)}

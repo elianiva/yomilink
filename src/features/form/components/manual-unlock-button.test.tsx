@@ -161,12 +161,7 @@ describe("ManualUnlockButton", () => {
 		);
 
 		const user = userEvent.setup();
-		render(
-			<ManualUnlockButton
-				formId="form-1"
-				userId="user-1"
-			/>,
-		);
+		render(<ManualUnlockButton formId="form-1" userId="user-1" />);
 
 		await user.click(screen.getByRole("button", { name: /unlock/i }));
 		await user.click(screen.getByRole("button", { name: /^unlock form$/i }));

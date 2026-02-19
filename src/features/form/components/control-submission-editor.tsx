@@ -41,7 +41,10 @@ export function ControlSubmissionEditor({
 	};
 
 	return (
-		<Card className={cn("overflow-hidden", className)} data-testid="control-submission-editor">
+		<Card
+			className={cn("overflow-hidden", className)}
+			data-testid="control-submission-editor"
+		>
 			<FormattingToolbar disabled={disabled} />
 
 			<CardContent className="p-0">

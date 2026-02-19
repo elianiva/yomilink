@@ -1,6 +1,9 @@
 "use client";
 
-import type { FormResponse, ResponseQuestion } from "./individual-responses-table";
+import type {
+	FormResponse,
+	ResponseQuestion,
+} from "./individual-responses-table";
 import {
 	Dialog,
 	DialogContent,
@@ -52,27 +55,23 @@ export function ResponseDetailModal({
 
 		switch (question.type) {
 			case "mcq": {
-				const options = question.options as
-					| { options: Array<{ id: string; text: string }> }
-					| null;
+				const options = question.options as {
+					options: Array<{ id: string; text: string }>;
+				} | null;
 				if (!options?.options) return String(answer);
-				const selectedOption = options.options.find(
-					(o) => o.id === answer,
-				);
+				const selectedOption = options.options.find((o) => o.id === answer);
 				return selectedOption?.text ?? String(answer);
 			}
 			case "likert": {
-				const labels = question.options as
-					| { labels: Record<string, string> }
-					| null;
+				const labels = question.options as {
+					labels: Record<string, string>;
+				} | null;
 				const value = Number(answer);
 				if (!labels?.labels) return String(value);
 				return `${value}: ${labels.labels[String(value)] ?? ""}`;
 			}
 			case "text":
-				return (
-					<div className="whitespace-pre-wrap">{String(answer)}</div>
-				);
+				return <div className="whitespace-pre-wrap">{String(answer)}</div>;
 			default:
 				return String(answer);
 		}
@@ -102,17 +101,13 @@ export function ResponseDetailModal({
 								<div className="font-medium">{response.user.email}</div>
 							</div>
 							<div>
-								<div className="text-sm text-muted-foreground">
-									Submitted
-								</div>
+								<div className="text-sm text-muted-foreground">Submitted</div>
 								<div className="font-medium">
 									{formatDate(response.submittedAt)}
 								</div>
 							</div>
 							<div>
-								<div className="text-sm text-muted-foreground">
-									Time Spent
-								</div>
+								<div className="text-sm text-muted-foreground">Time Spent</div>
 								<div className="font-medium">
 									{formatTimeSpent(response.timeSpentSeconds)}
 								</div>
@@ -137,9 +132,7 @@ export function ResponseDetailModal({
 											<div className="font-medium">
 												{question.questionText}
 												{question.required && (
-													<span className="text-destructive ml-1">
-														*
-													</span>
+													<span className="text-destructive ml-1">*</span>
 												)}
 											</div>
 											<div className="mt-1 text-sm">

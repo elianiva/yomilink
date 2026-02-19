@@ -7,9 +7,7 @@ import { useState } from "react";
 import { Guard } from "@/components/auth/Guard";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Button } from "@/components/ui/button";
-import {
-	AggregatedResponses,
-} from "@/features/form/components/aggregated-responses";
+import { AggregatedResponses } from "@/features/form/components/aggregated-responses";
 import {
 	IndividualResponsesTable,
 	type FormResponse,
@@ -28,11 +26,11 @@ function FormResultsPage() {
 	const { formId } = Route.useParams();
 	const [activeTab, setActiveTab] = useState<"individual" | "aggregated">(
 		"individual",
-	)
+	);
 
 	const { data: formData, isLoading: formLoading } = useQuery({
 		...FormRpc.getFormById({ id: formId }),
-	})
+	});
 
 	const { data: responsesData, isLoading: responsesLoading } = useQuery({
 		...FormRpc.getFormResponses({
@@ -40,7 +38,7 @@ function FormResultsPage() {
 			page: 1,
 			limit: 100,
 		}),
-	})
+	});
 
 	const isLoading = formLoading || responsesLoading;
 
@@ -53,7 +51,7 @@ function FormResultsPage() {
 			<div className="flex items-center justify-center py-12">
 				<Loader2 className="h-8 w-8 animate-spin text-muted-foreground" />
 			</div>
-		)
+		);
 	}
 
 	if (!formData.form) {
@@ -61,14 +59,23 @@ function FormResultsPage() {
 			<div className="flex flex-col items-center justify-center py-12">
 				<p className="text-muted-foreground">Form not found</p>
 			</div>
-		)
+		);
 	}
 
 	const { form, questions } = formData;
-	const responses = (isSuccess(responsesData) ? responsesData.responses : []) as FormResponse[];
+	const responses = (
+		isSuccess(responsesData) ? responsesData.responses : []
+	) as FormResponse[];
 	const pagination = isSuccess(responsesData)
 		? responsesData.pagination
-		: { page: 1, limit: 20, total: 0, totalPages: 0, hasNextPage: false, hasPrevPage: false };
+		: {
+				page: 1,
+				limit: 20,
+				total: 0,
+				totalPages: 0,
+				hasNextPage: false,
+				hasPrevPage: false,
+			};
 
 	// Cast questions to the expected type
 	const typedQuestions = questions.map((q) => ({
@@ -98,7 +105,10 @@ function FormResultsPage() {
 				</Button>
 			</div>
 
-			<Tabs value={activeTab} onValueChange={(v) => setActiveTab(v as typeof activeTab)}>
+			<Tabs
+				value={activeTab}
+				onValueChange={(v) => setActiveTab(v as typeof activeTab)}
+			>
 				<TabsList>
 					<TabsTrigger value="individual" className="gap-2">
 						<List className="h-4 w-4" />
@@ -127,7 +137,7 @@ function FormResultsPage() {
 				</TabsContent>
 			</Tabs>
 		</div>
-	)
+	);
 }
 
 function generateCsv(
@@ -145,20 +155,27 @@ function generateCsv(
 		options: unknown;
 	}>,
 ): string {
-	const headers = ["Student Name", "Email", "Submitted At", "Time Spent (seconds)", ...questions.map((q) => q.questionText)];
+	const headers = [
+		"Student Name",
+		"Email",
+		"Submitted At",
+		"Time Spent (seconds)",
+		...questions.map((q) => q.questionText),
+	];
 	const rows = responses.map((response) => {
-		const submittedAt = response.submittedAt instanceof Date
-			? response.submittedAt.toISOString()
-			: response.submittedAt
-				? new Date(response.submittedAt).toISOString()
-				: "";
-		
+		const submittedAt =
+			response.submittedAt instanceof Date
+				? response.submittedAt.toISOString()
+				: response.submittedAt
+					? new Date(response.submittedAt).toISOString()
+					: "";
+
 		const questionAnswers = questions.map((q) => {
 			const answer = response.answers?.[q.id];
 			if (answer === undefined || answer === null) return "";
 			if (typeof answer === "object") return JSON.stringify(answer);
 			return String(answer);
-		})
+		});
 
 		return [
 			response.user.name ?? "",
@@ -166,15 +183,15 @@ function generateCsv(
 			submittedAt,
 			response.timeSpentSeconds?.toString() ?? "",
 			...questionAnswers,
-		]
-	})
+		];
+	});
 
 	const escapeCsvCell = (cell: string) => {
 		if (cell.includes(",") || cell.includes('"') || cell.includes("\n")) {
 			return `"${cell.replace(/"/g, '""')}"`;
 		}
 		return cell;
-	}
+	};
 
 	return [
 		headers.map(escapeCsvCell).join(","),

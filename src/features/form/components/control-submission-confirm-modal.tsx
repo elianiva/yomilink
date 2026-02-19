@@ -46,15 +46,18 @@ export function ControlSubmissionConfirmModal({
 
 	return (
 		<AlertDialog open={isOpen} onOpenChange={onClose}>
-			<AlertDialogContent className="max-w-2xl" data-testid="control-submission-confirm-modal">
+			<AlertDialogContent
+				className="max-w-2xl"
+				data-testid="control-submission-confirm-modal"
+			>
 				<AlertDialogHeader>
 					<div className="flex items-center gap-2">
 						<FileText className="h-5 w-5 text-primary" />
 						<AlertDialogTitle>Confirm Submission</AlertDialogTitle>
 					</div>
 					<AlertDialogDescription>
-						Please review your submission before confirming. This action cannot be
-						undone.
+						Please review your submission before confirming. This action cannot
+						be undone.
 					</AlertDialogDescription>
 				</AlertDialogHeader>
 
@@ -67,8 +70,8 @@ export function ControlSubmissionConfirmModal({
 						<div className="text-sm text-amber-800 dark:text-amber-200">
 							<p className="font-medium">Word count below minimum</p>
 							<p>
-								Your submission has {wordCount} words, but the minimum required is{" "}
-								{minWordCount} words.
+								Your submission has {wordCount} words, but the minimum required
+								is {minWordCount} words.
 							</p>
 						</div>
 					</div>
@@ -107,7 +110,11 @@ export function ControlSubmissionConfirmModal({
 
 				<AlertDialogFooter className="gap-2">
 					<AlertDialogCancel asChild>
-						<Button variant="outline" disabled={isSubmitting} data-testid="cancel-button">
+						<Button
+							variant="outline"
+							disabled={isSubmitting}
+							data-testid="cancel-button"
+						>
 							<X className="mr-2 h-4 w-4" />
 							Cancel
 						</Button>

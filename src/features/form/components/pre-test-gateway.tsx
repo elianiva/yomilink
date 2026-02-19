@@ -36,7 +36,11 @@ export function PreTestGateway({
 	buttonText = "Take Pre-Test",
 }: PreTestGatewayProps) {
 	const navigate = useNavigate();
-	const { data: unlockStatus, isLoading, error } = useFormUnlock({
+	const {
+		data: unlockStatus,
+		isLoading,
+		error,
+	} = useFormUnlock({
 		formId: preTestFormId,
 		enabled: enabled && !!preTestFormId,
 	});
@@ -56,7 +60,10 @@ export function PreTestGateway({
 	}
 
 	// Error state - check if data is undefined or has success: false
-	const hasError = error || !unlockStatus || ("success" in unlockStatus && unlockStatus.success === false);
+	const hasError =
+		error ||
+		!unlockStatus ||
+		("success" in unlockStatus && unlockStatus.success === false);
 
 	if (hasError) {
 		return (
@@ -99,7 +106,10 @@ export function PreTestGateway({
 		if (assignmentId) {
 			navigate({
 				to: "/dashboard/forms/take",
-				search: { formId: preTestFormId, returnTo: `/dashboard/learner-map/${assignmentId}` },
+				search: {
+					formId: preTestFormId,
+					returnTo: `/dashboard/learner-map/${assignmentId}`,
+				},
 			});
 		} else {
 			navigate({

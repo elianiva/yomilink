@@ -41,7 +41,7 @@ function StudentFormsPage() {
 
 	const { data, isLoading } = useQuery({
 		...FormRpc.getStudentForms(),
-	})
+	});
 
 	const forms: StudentForm[] = Array.isArray(data) ? data : [];
 
@@ -53,7 +53,7 @@ function StudentFormsPage() {
 		if (form.isUnlocked) {
 			navigate({ to: "/dashboard/forms/take", search: { formId: form.id } });
 		}
-	}
+	};
 
 	const getTypeLabel = (type: string) => {
 		switch (type) {
@@ -66,9 +66,9 @@ function StudentFormsPage() {
 			case "control":
 				return "Control";
 			default:
-				return type
+				return type;
 		}
-	}
+	};
 
 	const getTypeColor = (type: string) => {
 		switch (type) {
@@ -83,14 +83,14 @@ function StudentFormsPage() {
 			default:
 				return "bg-gray-100 text-gray-800";
 		}
-	}
+	};
 
 	if (isLoading) {
 		return (
 			<div className="flex items-center justify-center py-12">
 				<Loader2 className="h-8 w-8 animate-spin text-muted-foreground" />
 			</div>
-		)
+		);
 	}
 
 	return (
@@ -129,9 +129,7 @@ function StudentFormsPage() {
 									>
 										<CardHeader className="pb-3">
 											<div className="flex items-start justify-between">
-												<CardTitle className="text-lg">
-													{form.title}
-												</CardTitle>
+												<CardTitle className="text-lg">{form.title}</CardTitle>
 												<span
 													className={`text-xs px-2 py-1 rounded-full ${getTypeColor(
 														form.type,
@@ -167,9 +165,7 @@ function StudentFormsPage() {
 									<Card key={form.id}>
 										<CardHeader className="pb-3">
 											<div className="flex items-start justify-between">
-												<CardTitle className="text-lg">
-													{form.title}
-												</CardTitle>
+												<CardTitle className="text-lg">{form.title}</CardTitle>
 												<span
 													className={`text-xs px-2 py-1 rounded-full ${getTypeColor(
 														form.type,
@@ -205,9 +201,7 @@ function StudentFormsPage() {
 									<Card key={form.id} className="opacity-75">
 										<CardHeader className="pb-3">
 											<div className="flex items-start justify-between">
-												<CardTitle className="text-lg">
-													{form.title}
-												</CardTitle>
+												<CardTitle className="text-lg">{form.title}</CardTitle>
 												<span
 													className={`text-xs px-2 py-1 rounded-full ${getTypeColor(
 														form.type,
@@ -234,5 +228,5 @@ function StudentFormsPage() {
 				</>
 			)}
 		</div>
-	)
+	);
 }

@@ -79,9 +79,10 @@ export function IndividualResponsesTable({
 		enabled: pagination.page > 1,
 	});
 
-	const displayResponses = pagination.page > 1 && moreResponses && "responses" in moreResponses
-		? moreResponses.responses
-		: responses;
+	const displayResponses =
+		pagination.page > 1 && moreResponses && "responses" in moreResponses
+			? moreResponses.responses
+			: responses;
 
 	if (displayResponses.length === 0) {
 		return (
@@ -134,7 +135,9 @@ export function IndividualResponsesTable({
 								</div>
 							</TableCell>
 							<TableCell>{formatDate(response.submittedAt)}</TableCell>
-							<TableCell>{formatTimeSpent(response.timeSpentSeconds)}</TableCell>
+							<TableCell>
+								{formatTimeSpent(response.timeSpentSeconds)}
+							</TableCell>
 							<TableCell className="text-right">
 								<Button
 									variant="ghost"
@@ -154,8 +157,8 @@ export function IndividualResponsesTable({
 			{pagination.totalPages > 1 && (
 				<div className="flex items-center justify-between mt-4">
 					<div className="text-sm text-muted-foreground">
-						Page {pagination.page} of {pagination.totalPages} ({pagination.total}{" "}
-						responses)
+						Page {pagination.page} of {pagination.totalPages} (
+						{pagination.total} responses)
 					</div>
 					<div className="flex gap-2">
 						<Button

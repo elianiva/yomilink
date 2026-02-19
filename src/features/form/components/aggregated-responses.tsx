@@ -2,7 +2,10 @@
 
 import { useMemo } from "react";
 import { Bar, BarChart, ResponsiveContainer, XAxis, YAxis } from "recharts";
-import type { ResponseQuestion, FormResponse } from "./individual-responses-table";
+import type {
+	ResponseQuestion,
+	FormResponse,
+} from "./individual-responses-table";
 
 type AggregatedResponsesProps = {
 	responses: FormResponse[];
@@ -45,9 +48,9 @@ export function AggregatedResponses({
 		for (const question of sortedQuestions) {
 			if (question.type !== "mcq") continue;
 
-			const options = question.options as
-				| { options: Array<{ id: string; text: string }> }
-				| null;
+			const options = question.options as {
+				options: Array<{ id: string; text: string }>;
+			} | null;
 			if (!options?.options) continue;
 
 			const counts: Record<string, number> = {};
@@ -86,9 +89,10 @@ export function AggregatedResponses({
 		for (const question of sortedQuestions) {
 			if (question.type !== "likert") continue;
 
-			const options = question.options as
-				| { scaleSize: number; labels: Record<string, string> }
-				| null;
+			const options = question.options as {
+				scaleSize: number;
+				labels: Record<string, string>;
+			} | null;
 			if (!options) continue;
 
 			const values: number[] = [];
@@ -181,9 +185,7 @@ export function AggregatedResponses({
 										key={opt.id}
 										className="flex items-center justify-between text-sm"
 									>
-										<span className="truncate max-w-[200px]">
-											{opt.text}
-										</span>
+										<span className="truncate max-w-[200px]">{opt.text}</span>
 										<span className="text-muted-foreground">
 											{opt.count} ({opt.percentage.toFixed(1)}%)
 										</span>
@@ -208,9 +210,7 @@ export function AggregatedResponses({
 										<XAxis
 											dataKey="value"
 											tick={{ fontSize: 12 }}
-											tickFormatter={(v) =>
-												stat.labels[String(v)] ?? String(v)
-											}
+											tickFormatter={(v) => stat.labels[String(v)] ?? String(v)}
 										/>
 										<YAxis />
 										<Bar dataKey="count" fill="#8b5cf6" radius={4} />
@@ -220,15 +220,11 @@ export function AggregatedResponses({
 							<div className="mt-4 flex gap-6 text-sm">
 								<div>
 									<span className="text-muted-foreground">Mean: </span>
-									<span className="font-medium">
-										{stat.mean.toFixed(2)}
-									</span>
+									<span className="font-medium">{stat.mean.toFixed(2)}</span>
 								</div>
 								<div>
 									<span className="text-muted-foreground">Median: </span>
-									<span className="font-medium">
-										{stat.median.toFixed(1)}
-									</span>
+									<span className="font-medium">{stat.median.toFixed(1)}</span>
 								</div>
 								<div>
 									<span className="text-muted-foreground">Responses: </span>
