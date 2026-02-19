@@ -74,6 +74,17 @@
     - Added 3 unit tests for time-based condition checking
     - All 405 tests pass
 
+32. **Create student forms page** - Built student-facing page for viewing and taking forms
+    - Added `getStudentForms` service function in form-service.ts to list published forms with unlock status
+    - Added `getStudentFormsRpc` endpoint to server RPC accessible by students, teachers, and admins
+    - Added `getStudentForms` query to FormRpc client
+    - Created student forms page at `src/routes/dashboard.forms.student.tsx` with sections for Available, Completed, and Locked forms
+    - Created form taker page at `src/routes/dashboard.forms.take.tsx` for taking forms
+    - Added "My Forms" navigation item in sidebar for students
+    - Added form-related tables to test database reset for proper test isolation
+    - Added 4 comprehensive unit tests for getStudentForms
+    - All 409 tests pass
+
 22. **Create FormProgressBar component** - Built reusable progress bar for form completion tracking
     - Created `FormProgressBar` component with currentQuestion and totalQuestions props
     - Displays "Question X of Y" label with percentage complete

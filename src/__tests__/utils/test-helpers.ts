@@ -54,6 +54,10 @@ export const resetDatabase = Effect.gen(function* () {
 		"user",
 		"topics",
 		"verification",
+		"form_responses",
+		"form_progress",
+		"questions",
+		"forms",
 	];
 
 	for (const table of tables) {

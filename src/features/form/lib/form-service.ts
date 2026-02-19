@@ -9,6 +9,7 @@ import {
 	questions,
 } from "@/server/db/schema/app-schema";
 import { user } from "@/server/db/schema/auth-schema";
+import type { FormUnlockConditions } from "./unlock-service";
 
 export const CreateFormInput = Schema.Struct({
 	title: Schema.NonEmptyString,
@@ -775,5 +776,71 @@ export const deleteQuestion = Effect.fn("deleteQuestion")(
 			yield* db.delete(questions).where(eq(questions.id, questionId));
 
 			return { id: questionId };
+		}),
+);
+
+// Get all published forms for students with unlock status
+
+export const getStudentForms = Effect.fn("getStudentForms")(
+	(userId: string) =>
+		Effect.gen(function* () {
+			const db = yield* Database;
+
+			// Get all published forms
+			const publishedForms = yield* db
+				.select()
+				.from(forms)
+				.where(eq(forms.status, "published"))
+				.orderBy(forms.createdAt);
+
+			// Get user's progress for all forms
+			const userProgressRows = yield* db
+				.select()
+				.from(formProgress)
+				.where(eq(formProgress.userId, userId));
+
+			const progressMap = new Map(
+				userProgressRows.map((p) => [p.formId, p]),
+			);
+
+			// Build response with unlock status
+			const formsWithStatus = publishedForms.map((form) => {
+				const progress = progressMap.get(form.id);
+
+				let unlockStatus: "locked" | "available" | "completed" = "locked";
+				let isUnlocked = false;
+
+				// Check unlock conditions
+				const unlockConditions =
+					form.unlockConditions as FormUnlockConditions | null;
+
+				if (!unlockConditions || unlockConditions.conditions.length === 0) {
+					// No conditions = available by default
+					unlockStatus = progress?.status ?? "available";
+					isUnlocked = true;
+				} else if (progress) {
+					unlockStatus = progress.status;
+					isUnlocked = progress.status === "available" ||
+						progress.status === "completed";
+				}
+
+				return {
+					id: form.id,
+					title: form.title,
+					description: form.description,
+					type: form.type,
+					unlockStatus,
+					isUnlocked,
+					progress: progress
+						? {
+								status: progress.status,
+								unlockedAt: progress.unlockedAt,
+								completedAt: progress.completedAt,
+							}
+						: null,
+				};
+			});
+
+			return formsWithStatus;
 		}),
 );

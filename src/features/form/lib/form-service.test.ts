@@ -19,6 +19,7 @@ import {
 	deleteForm,
 	getFormById,
 	getFormResponses,
+	getStudentForms,
 	listForms,
 	publishForm,
 	submitFormResponse,
@@ -670,6 +671,85 @@ describe("form-service", () => {
 					assert.equal(result.pagination.hasNextPage, false);
 					assert.equal(result.pagination.hasPrevPage, false);
 				}).pipe(Effect.provide(DatabaseTest)),
+		);
+	});
+
+	describe("getStudentForms", () => {
+		it.effect("should return published forms for student", () =>
+			Effect.gen(function* () {
+				const teacher = yield* createTestUser();
+				const student = yield* createTestUser();
+
+				// Create and publish a form
+				const form = yield* createTestForm(teacher.id, {
+					title: "Test Form",
+					type: "registration",
+				});
+				yield* publishForm(form.id);
+
+				const result = yield* getStudentForms(student.id);
+
+				assert.equal(result.length, 1);
+				assert.equal(result[0]!.id, form.id);
+				assert.equal(result[0]!.title, "Test Form");
+				assert.equal(result[0]!.isUnlocked, true);
+				assert.equal(result[0]!.unlockStatus, "available");
+			}).pipe(Effect.provide(DatabaseTest)),
+		);
+
+		it.effect("should not return draft forms", () =>
+			Effect.gen(function* () {
+				const teacher = yield* createTestUser();
+				const student = yield* createTestUser();
+
+				// Create a draft form (not published)
+				yield* createTestForm(teacher.id, {
+					title: "Draft Form",
+					type: "registration",
+				});
+
+				const result = yield* getStudentForms(student.id);
+
+				assert.equal(result.length, 0);
+			}).pipe(Effect.provide(DatabaseTest)),
+		);
+
+		it.effect("should mark completed forms correctly", () =>
+			Effect.gen(function* () {
+				const teacher = yield* createTestUser();
+				const student = yield* createTestUser();
+
+				// Create and publish a form
+				const form = yield* createTestForm(teacher.id, {
+					title: "Test Form",
+					type: "registration",
+				});
+				yield* publishForm(form.id);
+
+				// Submit the form
+				yield* submitFormResponse({
+					formId: form.id,
+					userId: student.id,
+					answers: {},
+					timeSpentSeconds: 60,
+				});
+
+				const result = yield* getStudentForms(student.id);
+
+				assert.equal(result.length, 1);
+				assert.equal(result[0]!.unlockStatus, "completed");
+				assert.equal(result[0]!.isUnlocked, true);
+			}).pipe(Effect.provide(DatabaseTest)),
+		);
+
+		it.effect("should return empty array when no forms exist", () =>
+			Effect.gen(function* () {
+				const student = yield* createTestUser();
+
+				const result = yield* getStudentForms(student.id);
+
+				assert.equal(result.length, 0);
+			}).pipe(Effect.provide(DatabaseTest)),
 		);
 	});
 });

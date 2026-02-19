@@ -62,6 +62,12 @@ const NAVBAR_ITEMS: NavItemWithRoles[] = [
 		icon: BookOpenIcon,
 		roles: ["student"],
 	},
+	{
+		title: "My Forms",
+		url: "/dashboard/forms/student",
+		icon: FileTextIcon,
+		roles: ["student"],
+	},
 ];
 
 type AppSidebarProps = React.ComponentProps<typeof Sidebar>;

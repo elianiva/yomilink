@@ -13,6 +13,7 @@ import {
 	GetFormResponsesInput,
 	getFormById,
 	getFormResponses,
+	getStudentForms,
 	listForms,
 	publishForm,
 	ReorderQuestionsInput,
@@ -73,6 +74,18 @@ export const listFormsRpc = createServerFn()
 		listForms(context.user.id).pipe(
 			Effect.withSpan("listForms"),
 			Effect.tapError(logRpcError("listForms")),
+			Effect.provide(Layer.mergeAll(DatabaseLive, LoggerLive)),
+			Effect.catchAll(() => errorResponse("Internal server error")),
+			Effect.runPromise,
+		),
+	);
+
+export const getStudentFormsRpc = createServerFn()
+	.middleware([requireRoleMiddleware("student", "teacher", "admin")])
+	.handler(({ context }) =>
+		getStudentForms(context.user.id).pipe(
+			Effect.withSpan("getStudentForms"),
+			Effect.tapError(logRpcError("getStudentForms")),
 			Effect.provide(Layer.mergeAll(DatabaseLive, LoggerLive)),
 			Effect.catchAll(() => errorResponse("Internal server error")),
 			Effect.runPromise,
@@ -292,6 +305,11 @@ export const FormRpc = {
 		queryOptions({
 			queryKey: [...FormRpc.forms(), "list"],
 			queryFn: () => listFormsRpc(),
+		}),
+	getStudentForms: () =>
+		queryOptions({
+			queryKey: [...FormRpc.forms(), "student"],
+			queryFn: () => getStudentFormsRpc(),
 		}),
 	deleteForm: () =>
 		mutationOptions({
