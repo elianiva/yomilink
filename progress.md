@@ -4,6 +4,17 @@
 
 ### Completed Tasks
 
+32. **Create FormResultsPage shell** - Created admin route `/dashboard/forms/:formId/results` for viewing form results
+    - Created results page at `src/routes/dashboard.forms.$formId.results.tsx` with tabs for Individual and Aggregated views
+    - Added shadcn table component for data display
+    - Created `IndividualResponsesTable` component showing student name, email, submitted time, time spent with view details action
+    - Created `ResponseDetailModal` component showing full response with all questions and answers
+    - Created `AggregatedResponses` component with MCQ stats showing counts and percentages per option with bar charts
+    - Created `AggregatedResponses` component with Likert stats showing mean, median, and distribution
+    - Added CSV export functionality with proper escaping
+    - Added "View Results" action to FormList dropdown menu
+    - All 409 tests pass
+
 31. **Create admin forms list page** - Created admin route `/dashboard/forms` with form management
     - Added `CloneFormInput` schema to form-service.ts
     - Added `cloneFormRpc` endpoint to server RPC for cloning forms

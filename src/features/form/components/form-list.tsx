@@ -1,6 +1,6 @@
 "use client";
 
-import { FileText, MoreVertical, Pencil, Trash2 } from "lucide-react";
+import { FileText, MoreVertical, Pencil, Trash2, BarChart3 } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import {
@@ -37,6 +37,7 @@ interface FormListProps {
 	forms: FormListItem[];
 	onEdit?: (form: FormListItem) => void;
 	onDelete?: (formId: string) => void;
+	onViewResults?: (form: FormListItem) => void;
 	onClick?: (form: FormListItem) => void;
 	className?: string;
 }
@@ -69,6 +70,7 @@ export function FormList({
 	forms,
 	onEdit,
 	onDelete,
+	onViewResults,
 	onClick,
 	className,
 }: FormListProps) {
@@ -135,6 +137,12 @@ export function FormList({
 											</Button>
 										</DropdownMenuTrigger>
 										<DropdownMenuContent align="end">
+											{onViewResults && (
+												<DropdownMenuItem onClick={() => onViewResults(form)}>
+													<BarChart3 className="mr-2 h-4 w-4" />
+													View Results
+												</DropdownMenuItem>
+											)}
 											{onEdit && (
 												<DropdownMenuItem onClick={() => onEdit(form)}>
 													<Pencil className="mr-2 h-4 w-4" />

@@ -53,6 +53,10 @@ function AdminFormsPage() {
 		navigate({ to: "/dashboard/forms/builder", search: { formId: form.id } });
 	}
 
+	const handleViewResults = (form: FormListItem) => {
+		navigate({ to: "/dashboard/forms/$formId/results", params: { formId: form.id } });
+	}
+
 	const handleDelete = (formId: string) => {
 		setFormToDelete(formId);
 		setDeleteDialogOpen(true);
@@ -105,6 +109,7 @@ function AdminFormsPage() {
 					forms={mappedForms}
 					onEdit={handleEdit}
 					onDelete={handleDelete}
+					onViewResults={handleViewResults}
 				/>
 			)}
 
