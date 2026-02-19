@@ -4,6 +4,18 @@
 
 ### Completed Tasks
 
+30. **Create RestrictiveFormGuard component** - Built component for guarding routes based on form completion
+    - Created `RestrictiveFormGuard` component in `src/features/form/components/restrictive-form-guard.tsx`
+    - Checks if restrictive form is completed using useFormUnlock hook
+    - Shows loading spinner while checking status
+    - Shows error state with retry button on fetch failure
+    - Shows blocked message with reason and earliest unlock time when form not completed
+    - Redirects to form URL when redirectUrl prop is provided
+    - Supports enabled flag to conditionally enable guard
+    - Renders children immediately when formId not provided or enabled is false
+    - Created 8 comprehensive unit tests covering all states
+    - All 405 tests pass
+
 29. **Create useFormUnlock hook** - Built hook for checking form unlock status with polling
     - Created `useFormUnlock` hook in `src/hooks/use-form-unlock.ts`
     - Fetches unlock status from checkFormUnlockRpc endpoint
