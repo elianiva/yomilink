@@ -317,7 +317,7 @@
       "Write test simulating incomplete registration form",
       "Redirects to registration form before allowing dashboard access"
     ],
-    "passes": false
+    "passes": true
   },
   {
     "category": "functional",

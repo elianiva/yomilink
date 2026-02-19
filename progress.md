@@ -4,6 +4,26 @@
 
 ### Completed Tasks
 
+37. **Add registration form check on app load** - Implemented registration form completion check in dashboard route
+    - Added `getRegistrationFormStatus` function to form-service.ts
+    - Function checks for published registration forms and user's completion status
+    - Returns `hasRegistrationForm`, `isCompleted`, and `formId` fields
+    - Added `getRegistrationFormStatusRpc` endpoint to server RPC
+    - Added `getRegistrationFormStatus` query to FormRpc client
+    - Modified dashboard route `beforeLoad` to check registration status for students
+    - Redirects to `/dashboard/forms/take?formId={id}` if registration form is incomplete
+    - Gracefully handles errors by logging and allowing access
+    - Created 4 comprehensive unit tests covering all scenarios:
+      - No registration form exists
+      - Registration form not completed
+      - Registration form completed
+      - Draft registration forms are ignored
+    - All 417 tests pass
+
+## 2026-02-19 (continued)
+
+### Completed Tasks
+
 35. **Create PreTestGateway component** - Built component for gating assignment access until pre-test is completed
     - Created `PreTestGateway` component in `src/features/form/components/pre-test-gateway.tsx`
     - Checks if user has completed pre-test using useFormUnlock hook

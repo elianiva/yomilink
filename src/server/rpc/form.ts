@@ -13,6 +13,7 @@ import {
 	GetFormResponsesInput,
 	getFormById,
 	getFormResponses,
+	getRegistrationFormStatus,
 	getStudentForms,
 	listForms,
 	publishForm,
@@ -304,6 +305,18 @@ export const unlockFormRpc = createServerFn()
 		),
 	);
 
+export const getRegistrationFormStatusRpc = createServerFn()
+	.middleware([requireRoleMiddleware("student", "teacher", "admin")])
+	.handler(({ context }) =>
+		getRegistrationFormStatus(context.user.id).pipe(
+			Effect.withSpan("getRegistrationFormStatus"),
+			Effect.tapError(logRpcError("getRegistrationFormStatus")),
+			Effect.provide(Layer.mergeAll(DatabaseLive, LoggerLive)),
+			Effect.catchAll(() => errorResponse("Internal server error")),
+			Effect.runPromise,
+		),
+	);
+
 export const FormRpc = {
 	forms: () => ["forms"],
 	createForm: () =>
@@ -325,6 +338,11 @@ export const FormRpc = {
 		queryOptions({
 			queryKey: [...FormRpc.forms(), "student"],
 			queryFn: () => getStudentFormsRpc(),
+		}),
+	getRegistrationFormStatus: () =>
+		queryOptions({
+			queryKey: [...FormRpc.forms(), "registration-status"],
+			queryFn: () => getRegistrationFormStatusRpc(),
 		}),
 	deleteForm: () =>
 		mutationOptions({

@@ -779,6 +779,55 @@ export const deleteQuestion = Effect.fn("deleteQuestion")(
 		}),
 );
 
+// Check if user has completed the registration form
+// Returns the registration form ID if it exists and user's completion status
+
+export const getRegistrationFormStatus = Effect.fn("getRegistrationFormStatus")(
+	(userId: string) =>
+		Effect.gen(function* () {
+			const db = yield* Database;
+
+			// Get the first published registration form
+			const registrationForms = yield* db
+				.select()
+				.from(forms)
+				.where(and(eq(forms.type, "registration"), eq(forms.status, "published")))
+				.limit(1);
+
+			const registrationForm = registrationForms[0];
+
+			// No registration form configured - user can proceed
+			if (!registrationForm) {
+				return {
+					hasRegistrationForm: false as const,
+					isCompleted: true,
+					formId: null,
+				};
+			}
+
+			// Check if user has completed this form
+			const userProgress = yield* db
+				.select()
+				.from(formProgress)
+				.where(
+					and(
+						eq(formProgress.formId, registrationForm.id),
+						eq(formProgress.userId, userId),
+						eq(formProgress.status, "completed"),
+					),
+				)
+				.limit(1);
+
+			const isCompleted = userProgress.length > 0;
+
+			return {
+				hasRegistrationForm: true as const,
+				isCompleted,
+				formId: registrationForm.id,
+			};
+		}),
+);
+
 // Get all published forms for students with unlock status
 
 export const getStudentForms = Effect.fn("getStudentForms")(

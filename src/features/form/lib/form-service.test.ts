@@ -19,6 +19,7 @@ import {
 	deleteForm,
 	getFormById,
 	getFormResponses,
+	getRegistrationFormStatus,
 	getStudentForms,
 	listForms,
 	publishForm,
@@ -750,6 +751,95 @@ describe("form-service", () => {
 
 				assert.equal(result.length, 0);
 			}).pipe(Effect.provide(DatabaseTest)),
+		);
+	});
+
+	describe("getRegistrationFormStatus", () => {
+		it.effect(
+			"should return hasRegistrationForm=false when no registration form exists",
+			() =>
+				Effect.gen(function* () {
+					const student = yield* createTestUser();
+
+					const result = yield* getRegistrationFormStatus(student.id);
+
+					assert.equal(result.hasRegistrationForm, false);
+					assert.equal(result.isCompleted, true);
+					assert.equal(result.formId, null);
+				}).pipe(Effect.provide(DatabaseTest)),
+		);
+
+		it.effect(
+			"should return hasRegistrationForm=true and isCompleted=false when registration form is not completed",
+			() =>
+				Effect.gen(function* () {
+					const teacher = yield* createTestUser();
+					const student = yield* createTestUser();
+
+					// Create and publish a registration form
+					const form = yield* createTestForm(teacher.id, {
+						title: "Registration Form",
+						type: "registration",
+					});
+					yield* publishForm(form.id);
+
+					const result = yield* getRegistrationFormStatus(student.id);
+
+					assert.equal(result.hasRegistrationForm, true);
+					assert.equal(result.isCompleted, false);
+					assert.equal(result.formId, form.id);
+				}).pipe(Effect.provide(DatabaseTest)),
+		);
+
+		it.effect(
+			"should return hasRegistrationForm=true and isCompleted=true when registration form is completed",
+			() =>
+				Effect.gen(function* () {
+					const teacher = yield* createTestUser();
+					const student = yield* createTestUser();
+
+					// Create and publish a registration form
+					const form = yield* createTestForm(teacher.id, {
+						title: "Registration Form",
+						type: "registration",
+					});
+					yield* publishForm(form.id);
+
+					// Submit the form
+					yield* submitFormResponse({
+						formId: form.id,
+						userId: student.id,
+						answers: {},
+						timeSpentSeconds: 60,
+					});
+
+					const result = yield* getRegistrationFormStatus(student.id);
+
+					assert.equal(result.hasRegistrationForm, true);
+					assert.equal(result.isCompleted, true);
+					assert.equal(result.formId, form.id);
+				}).pipe(Effect.provide(DatabaseTest)),
+		);
+
+		it.effect(
+			"should only check published registration forms (not drafts)",
+			() =>
+				Effect.gen(function* () {
+					const teacher = yield* createTestUser();
+					const student = yield* createTestUser();
+
+					// Create a draft registration form (not published)
+					yield* createTestForm(teacher.id, {
+						title: "Draft Registration Form",
+						type: "registration",
+					});
+
+					const result = yield* getRegistrationFormStatus(student.id);
+
+					// Should return false because the form is not published
+					assert.equal(result.hasRegistrationForm, false);
+					assert.equal(result.isCompleted, true);
+				}).pipe(Effect.provide(DatabaseTest)),
 		);
 	});
 });

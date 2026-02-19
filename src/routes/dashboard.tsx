@@ -23,12 +23,43 @@ import {
 } from "@/components/ui/sidebar";
 import type { AuthUser } from "@/lib/auth";
 import { pageTitleAtom } from "@/lib/page-title";
+import { getRegistrationFormStatusRpc } from "@/server/rpc/form";
 import { getMe, ProfileRpc } from "@/server/rpc/profile";
 
 export const Route = createFileRoute("/dashboard")({
 	beforeLoad: async () => {
 		const me = await getMe();
 		if (!me) throw redirect({ to: "/login" });
+
+		// Check registration form completion for students
+		if (me.role === "student") {
+			const result = await getRegistrationFormStatusRpc();
+
+			// Check if result is an error response
+			if ("success" in result && !result.success) {
+				// Error checking registration status - log and continue
+				console.error("Failed to check registration form status:", result.error);
+			} else {
+				const registrationStatus = result as {
+					hasRegistrationForm: boolean;
+					isCompleted: boolean;
+					formId: string | null;
+				};
+
+				// If there's a registration form and it's not completed, redirect to it
+				if (
+					registrationStatus.hasRegistrationForm &&
+					!registrationStatus.isCompleted &&
+					registrationStatus.formId
+				) {
+					throw redirect({
+						to: "/dashboard/forms/take",
+						search: { formId: registrationStatus.formId },
+					});
+				}
+			}
+		}
+
 		return me;
 	},
 	loader: async ({ context }) => {
