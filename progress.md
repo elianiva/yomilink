@@ -4,6 +4,27 @@
 
 ### Completed Tasks
 
+35. **Create PreTestGateway component** - Built component for gating assignment access until pre-test is completed
+    - Created `PreTestGateway` component in `src/features/form/components/pre-test-gateway.tsx`
+    - Checks if user has completed pre-test using useFormUnlock hook
+    - Shows blocking UI with lock icon when form not completed
+    - Displays reason and earliest unlock time when applicable
+    - Navigates to form take page when "Take Pre-Test" button clicked
+    - Supports custom title, description, and button text
+    - Shows loading spinner while checking status
+    - Shows error state on API failure
+    - Created 7 comprehensive unit tests
+    - All 413 tests pass
+
+36. **Create PostTestUnlock and DelayedTestScheduler services** - Built services for unlocking post-tests after assignment completion
+    - Added `unlockPostTestAfterAssignment` function in `src/features/form/lib/unlock-service.ts`
+    - Checks if assignment was submitted before unlocking post-test
+    - Supports configurable delay (e.g., 7 days) for scheduled unlocks
+    - Added `calculateDelayedUnlock` function for calculating unlock time
+    - Added `getAssignmentCompletionStatus` function to check if assignment is completed
+    - Created 4 unit tests for calculateDelayedUnlock
+    - All 413 tests pass
+
 34. **Create ManualUnlockButton component** - Built admin component for manually unlocking forms
     - Created `ManualUnlockButton` component in `src/features/form/components/manual-unlock-button.tsx`
     - Unlock button with confirmation dialog showing user name

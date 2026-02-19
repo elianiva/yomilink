@@ -1,7 +1,7 @@
-import { and, eq } from "drizzle-orm";
+import { and, eq, isNotNull } from "drizzle-orm";
 import { Data, Effect, Schema } from "effect";
 import { Database } from "@/server/db/client";
-import { formProgress, forms } from "@/server/db/schema/app-schema";
+import { formProgress, forms, learnerMaps } from "@/server/db/schema/app-schema";
 
 const TimeBasedCondition = Schema.Struct({
 	type: Schema.Literal("time"),
@@ -379,5 +379,171 @@ export const getUserCompletedForms = Effect.fn("getUserCompletedForms")(
 				);
 
 			return completedForms.map((f) => f.formId);
+		}),
+);
+
+// ============================================================================
+// Post-Test Unlock Service
+// Unlocks post-test forms when assignments are completed
+// ============================================================================
+
+export const UnlockPostTestAfterAssignmentInput = Schema.Struct({
+	assignmentId: Schema.String,
+	userId: Schema.String,
+	postTestFormId: Schema.String,
+	delayDays: Schema.optionalWith(Schema.Number, { default: () => 0 }),
+});
+
+export type UnlockPostTestAfterAssignmentInput = typeof UnlockPostTestAfterAssignmentInput.Type;
+
+export const unlockPostTestAfterAssignment = Effect.fn(
+	"unlockPostTestAfterAssignment",
+)((input: UnlockPostTestAfterAssignmentInput) =>
+	Effect.gen(function* () {
+		const db = yield* Database;
+
+		// Check if the assignment was submitted by checking learner_maps
+		const learnerMapRows = yield* db
+			.select()
+			.from(learnerMaps)
+			.where(
+				and(
+					eq(learnerMaps.assignmentId, input.assignmentId),
+					eq(learnerMaps.userId, input.userId),
+					eq(learnerMaps.status, "submitted"),
+					isNotNull(learnerMaps.submittedAt),
+				),
+			)
+			.limit(1);
+
+		if (learnerMapRows.length === 0) {
+			return {
+				success: false,
+				reason: "Assignment not completed",
+			};
+		}
+
+		const completedAt = learnerMapRows[0].submittedAt;
+		if (!completedAt) {
+			return {
+				success: false,
+				reason: "Assignment not completed",
+			};
+		}
+		const now = new Date();
+
+		// If delay is specified, schedule the unlock for future
+		if (input.delayDays > 0) {
+			const unlockAt = new Date(completedAt);
+			unlockAt.setDate(unlockAt.getDate() + input.delayDays);
+
+			// Check if unlock time has passed
+			if (unlockAt > now) {
+				return {
+					success: true,
+					scheduled: true,
+					unlockAt: unlockAt.toISOString(),
+					message: `Post-test will be available on ${unlockAt.toLocaleDateString()}`,
+				};
+			}
+		}
+
+		// Unlock immediately
+		const result = yield* unlockForm({
+			formId: input.postTestFormId,
+			userId: input.userId,
+		});
+
+		return {
+			success: true,
+			scheduled: false,
+			unlockedAt: result.unlockedAt,
+		};
+	}),
+);
+
+// ============================================================================
+// Delayed Test Scheduler Service
+// Calculates unlock time as completion time + configurable delay
+// ============================================================================
+
+export const CalculateDelayedUnlockInput = Schema.Struct({
+	completedAt: Schema.String, // ISO date string
+	delayDays: Schema.Number,
+});
+
+export type CalculateDelayedUnlockInput = typeof CalculateDelayedUnlockInput.Type;
+
+export const calculateDelayedUnlock = Effect.fn("calculateDelayedUnlock")(
+	(input: CalculateDelayedUnlockInput) =>
+		Effect.gen(function* () {
+			const completedAt = new Date(input.completedAt);
+			const unlockAt = new Date(completedAt);
+			unlockAt.setDate(unlockAt.getDate() + input.delayDays);
+
+			const now = new Date();
+			const isUnlocked = unlockAt <= now;
+
+			return {
+				completedAt: input.completedAt,
+				delayDays: input.delayDays,
+				unlockAt: unlockAt.toISOString(),
+				isUnlocked,
+				formattedUnlockDate: unlockAt.toLocaleDateString(),
+				formattedUnlockTime: unlockAt.toLocaleTimeString(),
+			};
+		}),
+);
+
+// ============================================================================
+// Get Assignment Completion Status
+// Checks if an assignment has been completed (submitted)
+// ============================================================================
+
+export const GetAssignmentCompletionInput = Schema.Struct({
+	assignmentId: Schema.String,
+	userId: Schema.String,
+});
+
+export type GetAssignmentCompletionInput = typeof GetAssignmentCompletionInput.Type;
+
+export type AssignmentCompletionStatus = {
+	isCompleted: boolean;
+	completedAt: Date | null;
+	formId: string | null;
+};
+
+export const getAssignmentCompletionStatus = Effect.fn("getAssignmentCompletionStatus")(
+	(input: GetAssignmentCompletionInput) =>
+		Effect.gen(function* () {
+			const db = yield* Database;
+
+			const learnerMapRows = yield* db
+				.select()
+				.from(learnerMaps)
+				.where(
+					and(
+						eq(learnerMaps.assignmentId, input.assignmentId),
+						eq(learnerMaps.userId, input.userId),
+						eq(learnerMaps.status, "submitted"),
+						isNotNull(learnerMaps.submittedAt),
+					),
+				)
+				.limit(1);
+
+			if (learnerMapRows.length === 0) {
+				return {
+					isCompleted: false,
+					completedAt: null,
+					formId: null,
+				};
+			}
+
+			const map = learnerMapRows[0];
+			return {
+				isCompleted: true,
+				completedAt: map.submittedAt,
+				formId: map.id,
+			};
 		}),
 );
