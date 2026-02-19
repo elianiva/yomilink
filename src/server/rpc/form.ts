@@ -2,8 +2,10 @@ import { mutationOptions, queryOptions } from "@tanstack/react-query";
 import { createServerFn } from "@tanstack/react-start";
 import { Effect, Layer, Schema } from "effect";
 import {
+	CloneFormInput,
 	CreateFormInput,
 	CreateQuestionInput,
+	cloneForm,
 	createForm,
 	createQuestion,
 	deleteForm,
@@ -116,6 +118,22 @@ export const unpublishFormRpc = createServerFn()
 		unpublishForm(data.id).pipe(
 			Effect.withSpan("unpublishForm"),
 			Effect.tapError(logRpcError("unpublishForm")),
+			Effect.provide(Layer.mergeAll(DatabaseLive, LoggerLive)),
+			Effect.catchTags({
+				FormNotFoundError: () => errorResponse("Form not found"),
+			}),
+			Effect.catchAll(() => errorResponse("Internal server error")),
+			Effect.runPromise,
+		),
+	);
+
+export const cloneFormRpc = createServerFn()
+	.middleware([requireRoleMiddleware("teacher", "admin")])
+	.inputValidator((raw) => Schema.decodeUnknownSync(CloneFormInput)(raw))
+	.handler(({ data, context }) =>
+		cloneForm(data.formId, context.user.id).pipe(
+			Effect.withSpan("cloneForm"),
+			Effect.tapError(logRpcError("cloneForm")),
 			Effect.provide(Layer.mergeAll(DatabaseLive, LoggerLive)),
 			Effect.catchTags({
 				FormNotFoundError: () => errorResponse("Form not found"),
@@ -289,6 +307,11 @@ export const FormRpc = {
 		mutationOptions({
 			mutationKey: [...FormRpc.forms(), "unpublish"],
 			mutationFn: (data: GetFormByIdInput) => unpublishFormRpc({ data }),
+		}),
+	cloneForm: () =>
+		mutationOptions({
+			mutationKey: [...FormRpc.forms(), "clone"],
+			mutationFn: (data: CloneFormInput) => cloneFormRpc({ data }),
 		}),
 	getFormResponses: (input: GetFormResponsesInput) =>
 		queryOptions({

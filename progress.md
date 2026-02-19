@@ -4,6 +4,18 @@
 
 ### Completed Tasks
 
+31. **Create admin forms list page** - Created admin route `/dashboard/forms` with form management
+    - Added `CloneFormInput` schema to form-service.ts
+    - Added `cloneFormRpc` endpoint to server RPC for cloning forms
+    - Added `cloneForm` mutation to FormRpc client
+    - Created `AdminFormsPage` component at `src/routes/dashboard.forms.index.tsx`
+    - Fetches and displays all forms using listForms RPC
+    - Create Form button navigates to form builder
+    - Edit action navigates to form builder with formId
+    - Delete action shows confirmation dialog then deletes form
+    - Uses FormList component for displaying forms with edit/delete actions
+    - All 405 tests pass
+
 30. **Create RestrictiveFormGuard component** - Built component for guarding routes based on form completion
     - Created `RestrictiveFormGuard` component in `src/features/form/components/restrictive-form-guard.tsx`
     - Checks if restrictive form is completed using useFormUnlock hook

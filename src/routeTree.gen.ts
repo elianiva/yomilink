@@ -15,6 +15,7 @@ import { Route as IndexRouteImport } from './routes/index'
 import { Route as DashboardIndexRouteImport } from './routes/dashboard.index'
 import { Route as DashboardProfileRouteImport } from './routes/dashboard.profile'
 import { Route as DashboardAnalyticsRouteImport } from './routes/dashboard.analytics'
+import { Route as DashboardFormsIndexRouteImport } from './routes/dashboard.forms.index'
 import { Route as DashboardAssignmentsIndexRouteImport } from './routes/dashboard.assignments.index'
 import { Route as DashboardLearnerMapAssignmentIdRouteImport } from './routes/dashboard.learner-map.$assignmentId'
 import { Route as DashboardGoalMapGoalMapIdRouteImport } from './routes/dashboard.goal-map.$goalMapId'
@@ -53,6 +54,11 @@ const DashboardProfileRoute = DashboardProfileRouteImport.update({
 const DashboardAnalyticsRoute = DashboardAnalyticsRouteImport.update({
   id: '/analytics',
   path: '/analytics',
+  getParentRoute: () => DashboardRoute,
+} as any)
+const DashboardFormsIndexRoute = DashboardFormsIndexRouteImport.update({
+  id: '/forms/',
+  path: '/forms/',
   getParentRoute: () => DashboardRoute,
 } as any)
 const DashboardAssignmentsIndexRoute =
@@ -121,6 +127,7 @@ export interface FileRoutesByFullPath {
   '/dashboard/goal-map/$goalMapId': typeof DashboardGoalMapGoalMapIdRoute
   '/dashboard/learner-map/$assignmentId': typeof DashboardLearnerMapAssignmentIdRouteWithChildren
   '/dashboard/assignments': typeof DashboardAssignmentsIndexRoute
+  '/dashboard/forms': typeof DashboardFormsIndexRoute
   '/dashboard/analytics/$assignmentId/metrics': typeof DashboardAnalyticsAssignmentIdMetricsRoute
   '/dashboard/learner-map/$assignmentId/result': typeof DashboardLearnerMapAssignmentIdResultRoute
   '/api/materials/images/$goalMapId/$imageId': typeof ApiMaterialsImagesGoalMapIdImageIdRoute
@@ -137,6 +144,7 @@ export interface FileRoutesByTo {
   '/dashboard/goal-map/$goalMapId': typeof DashboardGoalMapGoalMapIdRoute
   '/dashboard/learner-map/$assignmentId': typeof DashboardLearnerMapAssignmentIdRouteWithChildren
   '/dashboard/assignments': typeof DashboardAssignmentsIndexRoute
+  '/dashboard/forms': typeof DashboardFormsIndexRoute
   '/dashboard/analytics/$assignmentId/metrics': typeof DashboardAnalyticsAssignmentIdMetricsRoute
   '/dashboard/learner-map/$assignmentId/result': typeof DashboardLearnerMapAssignmentIdResultRoute
   '/api/materials/images/$goalMapId/$imageId': typeof ApiMaterialsImagesGoalMapIdImageIdRoute
@@ -155,6 +163,7 @@ export interface FileRoutesById {
   '/dashboard/goal-map/$goalMapId': typeof DashboardGoalMapGoalMapIdRoute
   '/dashboard/learner-map/$assignmentId': typeof DashboardLearnerMapAssignmentIdRouteWithChildren
   '/dashboard/assignments/': typeof DashboardAssignmentsIndexRoute
+  '/dashboard/forms/': typeof DashboardFormsIndexRoute
   '/dashboard/analytics/$assignmentId/metrics': typeof DashboardAnalyticsAssignmentIdMetricsRoute
   '/dashboard/learner-map/$assignmentId/result': typeof DashboardLearnerMapAssignmentIdResultRoute
   '/api/materials/images/$goalMapId/$imageId': typeof ApiMaterialsImagesGoalMapIdImageIdRoute
@@ -174,6 +183,7 @@ export interface FileRouteTypes {
     | '/dashboard/goal-map/$goalMapId'
     | '/dashboard/learner-map/$assignmentId'
     | '/dashboard/assignments'
+    | '/dashboard/forms'
     | '/dashboard/analytics/$assignmentId/metrics'
     | '/dashboard/learner-map/$assignmentId/result'
     | '/api/materials/images/$goalMapId/$imageId'
@@ -190,6 +200,7 @@ export interface FileRouteTypes {
     | '/dashboard/goal-map/$goalMapId'
     | '/dashboard/learner-map/$assignmentId'
     | '/dashboard/assignments'
+    | '/dashboard/forms'
     | '/dashboard/analytics/$assignmentId/metrics'
     | '/dashboard/learner-map/$assignmentId/result'
     | '/api/materials/images/$goalMapId/$imageId'
@@ -207,6 +218,7 @@ export interface FileRouteTypes {
     | '/dashboard/goal-map/$goalMapId'
     | '/dashboard/learner-map/$assignmentId'
     | '/dashboard/assignments/'
+    | '/dashboard/forms/'
     | '/dashboard/analytics/$assignmentId/metrics'
     | '/dashboard/learner-map/$assignmentId/result'
     | '/api/materials/images/$goalMapId/$imageId'
@@ -262,6 +274,13 @@ declare module '@tanstack/react-router' {
       path: '/analytics'
       fullPath: '/dashboard/analytics'
       preLoaderRoute: typeof DashboardAnalyticsRouteImport
+      parentRoute: typeof DashboardRoute
+    }
+    '/dashboard/forms/': {
+      id: '/dashboard/forms/'
+      path: '/forms'
+      fullPath: '/dashboard/forms'
+      preLoaderRoute: typeof DashboardFormsIndexRouteImport
       parentRoute: typeof DashboardRoute
     }
     '/dashboard/assignments/': {
@@ -366,6 +385,7 @@ interface DashboardRouteChildren {
   DashboardGoalMapGoalMapIdRoute: typeof DashboardGoalMapGoalMapIdRoute
   DashboardLearnerMapAssignmentIdRoute: typeof DashboardLearnerMapAssignmentIdRouteWithChildren
   DashboardAssignmentsIndexRoute: typeof DashboardAssignmentsIndexRoute
+  DashboardFormsIndexRoute: typeof DashboardFormsIndexRoute
 }
 
 const DashboardRouteChildren: DashboardRouteChildren = {
@@ -378,6 +398,7 @@ const DashboardRouteChildren: DashboardRouteChildren = {
   DashboardLearnerMapAssignmentIdRoute:
     DashboardLearnerMapAssignmentIdRouteWithChildren,
   DashboardAssignmentsIndexRoute: DashboardAssignmentsIndexRoute,
+  DashboardFormsIndexRoute: DashboardFormsIndexRoute,
 }
 
 const DashboardRouteWithChildren = DashboardRoute._addFileChildren(

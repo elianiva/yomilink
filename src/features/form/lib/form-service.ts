@@ -49,6 +49,12 @@ class FormAlreadySubmittedError extends Data.TaggedError(
 	readonly userId: string;
 }> {}
 
+export const CloneFormInput = Schema.Struct({
+	formId: Schema.NonEmptyString,
+});
+
+export type CloneFormInput = typeof CloneFormInput.Type;
+
 export const createForm = Effect.fn("createForm")(
 	(userId: string, data: CreateFormInput) =>
 		Effect.gen(function* () {
