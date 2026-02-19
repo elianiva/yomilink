@@ -4,6 +4,18 @@
 
 ### Completed Tasks
 
+33. **Create CountdownTimer component** - Built component displaying time remaining until unlock
+    - Created `CountdownTimer` component in `src/features/form/components/countdown-timer.tsx`
+    - Displays time remaining in days/hours/minutes/seconds with proper formatting
+    - Shows "Available now" when target date has passed
+    - Supports configurable display options (showDays, showHours, showMinutes, showSeconds)
+    - Accepts Date, string, or number as targetDate input
+    - Calls onComplete callback when countdown reaches zero
+    - Auto-updates every second using useEffect
+    - Created `createDefaultCountdownData()` helper for initializing default display options
+    - Created 13 comprehensive unit tests covering all functionality
+    - Types and tests pass (409 tests)
+
 32. **Create FormResultsPage shell** - Created admin route `/dashboard/forms/:formId/results` for viewing form results
     - Created results page at `src/routes/dashboard.forms.$formId.results.tsx` with tabs for Individual and Aggregated views
     - Added shadcn table component for data display
