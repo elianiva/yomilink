@@ -1,18 +1,9 @@
 "use client";
 
-import {
-	Bold,
-	Italic,
-	List,
-	ListOrdered,
-	Type,
-	AlertCircle,
-	CheckCircle2,
-} from "lucide-react";
+import { Type, AlertCircle, CheckCircle2 } from "lucide-react";
 import { useCallback, useState } from "react";
-import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
-import { Separator } from "@/components/ui/separator";
+import { FormattingToolbar } from "@/components/ui/formatting-toolbar";
 import { cn } from "@/lib/utils";
 
 export interface ControlSubmissionData {
@@ -57,14 +48,7 @@ export function ControlSubmissionEditor({
 		onChange?.({ content: newContent, wordCount: countWords(newContent) });
 	};
 
-	const applyFormatting = (command: string, value?: string) => {
-		document.execCommand(command, false, value);
-	};
 
-	const handleBold = () => applyFormatting("bold");
-	const handleItalic = () => applyFormatting("italic");
-	const handleBulletList = () => applyFormatting("insertUnorderedList");
-	const handleNumberedList = () => applyFormatting("insertOrderedList");
 
 	const getWordCountStatus = () => {
 		if (isAboveMaximum) {
@@ -93,49 +77,7 @@ export function ControlSubmissionEditor({
 
 	return (
 		<Card className={cn("overflow-hidden", className)} data-testid="control-submission-editor">
-			<div className="flex items-center gap-1 border-b bg-muted/30 p-2">
-				<Button
-					variant="ghost"
-					size="sm"
-					onClick={handleBold}
-					disabled={disabled}
-					data-testid="bold-button"
-					aria-label="Bold"
-				>
-					<Bold className="h-4 w-4" />
-				</Button>
-				<Button
-					variant="ghost"
-					size="sm"
-					onClick={handleItalic}
-					disabled={disabled}
-					data-testid="italic-button"
-					aria-label="Italic"
-				>
-					<Italic className="h-4 w-4" />
-				</Button>
-				<Separator orientation="vertical" className="mx-1 h-6" />
-				<Button
-					variant="ghost"
-					size="sm"
-					onClick={handleBulletList}
-					disabled={disabled}
-					data-testid="bullet-list-button"
-					aria-label="Bullet list"
-				>
-					<List className="h-4 w-4" />
-				</Button>
-				<Button
-					variant="ghost"
-					size="sm"
-					onClick={handleNumberedList}
-					disabled={disabled}
-					data-testid="numbered-list-button"
-					aria-label="Numbered list"
-				>
-					<ListOrdered className="h-4 w-4" />
-				</Button>
-			</div>
+			<FormattingToolbar disabled={disabled} />
 
 			<CardContent className="p-0">
 				<div

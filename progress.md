@@ -4,6 +4,19 @@
 
 ### Completed Tasks
 
+41. **Create formatting toolbar component** - Built reusable FormattingToolbar component
+    - Created `FormattingToolbar` component in `src/components/ui/formatting-toolbar.tsx`
+    - Standalone toolbar with Bold, Italic, Bullet List, and Numbered List buttons
+    - Uses `document.execCommand` to apply formatting to contentEditable elements
+    - Supports disabled state for read-only mode
+    - Callback props for onBold, onItalic, onBulletList, onNumberedList
+    - Proper ARIA labels and role="toolbar" for accessibility
+    - Title attributes for tooltip hints
+    - Separator between text formatting and list formatting buttons
+    - Refactored `ControlSubmissionEditor` to use the new FormattingToolbar component
+    - Created 16 comprehensive unit tests covering rendering, interactions, callbacks, disabled states, and accessibility
+    - All 410 tests pass (16 new)
+
 40. **Create submitControlText endpoint** - Built endpoint for storing control group text submissions
     - Modified `learnerMaps` table schema to support control text submissions
     - Made `nodes` and `edges` columns nullable
