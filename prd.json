@@ -387,7 +387,7 @@
       "Write test clicking buttons and verifying formatting applied",
       "Toolbar buttons apply formatting to editor content"
     ],
-    "passes": false
+    "passes": true
   },
   {
     "category": "functional",
@@ -397,7 +397,7 @@
       "Write test with text below/above minimum verifying visual feedback",
       "Shows word count and warning if below minimum"
     ],
-    "passes": false
+    "passes": true
   },
   {
     "category": "functional",
@@ -517,7 +517,7 @@
       "Verify all routes accessible",
       "Routes registered and navigation works"
     ],
-    "passes": false
+    "passes": true
   },
   {
     "category": "functional",
@@ -527,7 +527,7 @@
       "Run tests and verify all pass",
       "FormService fully tested"
     ],
-    "passes": false
+    "passes": true
   },
   {
     "category": "functional",
@@ -537,7 +537,7 @@
       "Run tests and verify all pass",
       "Unlock logic fully tested"
     ],
-    "passes": false
+    "passes": true
   },
   {
     "category": "functional",
@@ -547,6 +547,6 @@
       "Run tests and verify all pass",
       "Complete form workflow tested"
     ],
-    "passes": false
+    "passes": true
   }
 ]

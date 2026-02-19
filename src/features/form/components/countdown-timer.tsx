@@ -117,20 +117,15 @@ export function CountdownTimer({
 		<div className={`countdown-timer flex items-center gap-1 ${className}`}>
 			<span className="text-muted-foreground text-sm">Unlocks in:</span>
 			<div className="flex items-center gap-1">
-				{parts.reduce<React.ReactNode[]>((acc, part, index) => {
-					if (index > 0) {
-						acc.push(
-							<span
-								key={`sep-${index}`}
-								className="text-muted-foreground mx-0.5"
-							>
-								:
-							</span>,
-						);
-					}
-					acc.push(part);
-					return acc;
-				}, [])}
+				{parts.map((part, index) => (
+					// biome-ignore lint/suspicious/noArrayIndexKey: separators are stable between renders
+					<span key={`part-${index}`} className="flex items-center gap-1">
+						{index > 0 && (
+							<span className="text-muted-foreground mx-0.5">:</span>
+						)}
+						{part}
+					</span>
+				))}
 			</div>
 		</div>
 	);

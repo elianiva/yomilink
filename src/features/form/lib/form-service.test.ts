@@ -207,7 +207,7 @@ describe("form-service", () => {
 							assert.equal(error.responseCount, 1);
 						} else {
 							assert.fail(
-								"Expected FormHasResponsesError but got " + error._tag,
+								`Expected FormHasResponsesError but got ${error._tag}`,
 							);
 						}
 					},
@@ -691,10 +691,10 @@ describe("form-service", () => {
 				const result = yield* getStudentForms(student.id);
 
 				assert.equal(result.length, 1);
-				assert.equal(result[0]!.id, form.id);
-				assert.equal(result[0]!.title, "Test Form");
-				assert.equal(result[0]!.isUnlocked, true);
-				assert.equal(result[0]!.unlockStatus, "available");
+				assert.equal(result[0]?.id, form.id);
+				assert.equal(result[0]?.title, "Test Form");
+				assert.equal(result[0]?.isUnlocked, true);
+				assert.equal(result[0]?.unlockStatus, "available");
 			}).pipe(Effect.provide(DatabaseTest)),
 		);
 
@@ -738,8 +738,8 @@ describe("form-service", () => {
 				const result = yield* getStudentForms(student.id);
 
 				assert.equal(result.length, 1);
-				assert.equal(result[0]!.unlockStatus, "completed");
-				assert.equal(result[0]!.isUnlocked, true);
+				assert.equal(result[0]?.unlockStatus, "completed");
+				assert.equal(result[0]?.isUnlocked, true);
 			}).pipe(Effect.provide(DatabaseTest)),
 		);
 

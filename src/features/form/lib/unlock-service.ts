@@ -482,7 +482,7 @@ export type CalculateDelayedUnlockInput =
 
 export const calculateDelayedUnlock = Effect.fn("calculateDelayedUnlock")(
 	(input: CalculateDelayedUnlockInput) =>
-		Effect.gen(function* () {
+		Effect.sync(() => {
 			const completedAt = new Date(input.completedAt);
 			const unlockAt = new Date(completedAt);
 			unlockAt.setDate(unlockAt.getDate() + input.delayDays);

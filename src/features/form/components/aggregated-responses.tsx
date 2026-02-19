@@ -99,7 +99,7 @@ export function AggregatedResponses({
 			for (const response of responses) {
 				const answer = response.answers?.[question.id];
 				const num = Number(answer);
-				if (!isNaN(num) && num >= 1 && num <= options.scaleSize) {
+				if (!Number.isNaN(num) && num >= 1 && num <= options.scaleSize) {
 					values.push(num);
 				}
 			}
