@@ -4,6 +4,33 @@
 
 ### Completed Tasks
 
+38. **Create ControlSubmissionEditor component** - Built rich text editor for control group text submissions
+    - Created `ControlSubmissionEditor` component in `src/features/form/components/control-submission-editor.tsx`
+    - Rich text editor with contentEditable div supporting formatting commands
+    - Built-in formatting toolbar with Bold, Italic, Bullet List, and Numbered List buttons
+    - Real-time word count display with visual feedback (amber for below minimum, green for valid, red for above maximum)
+    - Configurable minimum and maximum word count validation
+    - Auto-saves content state with onChange callback returning content and wordCount
+    - Supports initial content, placeholder text, and disabled state
+    - Added `createDefaultControlSubmissionData()` helper for initializing default data
+    - Created 12 comprehensive unit tests covering rendering, word counting, validation states, and interactions
+    - All 394 tests pass
+
+39. **Create ControlSubmissionConfirmModal component** - Built confirmation modal for control group submissions
+    - Created `ControlSubmissionConfirmModal` component in `src/features/form/components/control-submission-confirm-modal.tsx`
+    - Preview dialog showing submission content before final confirmation
+    - Displays word count with warning when below minimum requirement
+    - Scrollable content preview area with truncation for long texts (>1000 chars)
+    - Disables confirm button when word count is below minimum
+    - Shows submitting state with loading indicator
+    - Cancel and Confirm actions with proper callbacks
+    - Created 13 comprehensive unit tests covering all states and interactions
+    - All 394 tests pass
+
+## 2026-02-19 (continued)
+
+### Completed Tasks
+
 37. **Add registration form check on app load** - Implemented registration form completion check in dashboard route
     - Added `getRegistrationFormStatus` function to form-service.ts
     - Function checks for published registration forms and user's completion status

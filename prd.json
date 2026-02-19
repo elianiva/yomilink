@@ -295,7 +295,7 @@
     "steps": [
       "Build hook fetching unlock status and polling every 30 seconds",
       "Write test verifying polling behavior",
-    "Hook returns current unlock status and refreshes periodically"
+      "Hook returns current unlock status and refreshes periodically"
     ],
     "passes": true
   },
@@ -377,7 +377,7 @@
       "Write test rendering editor with initial content",
       "Editor mounts with formatting capabilities"
     ],
-    "passes": false
+    "passes": true
   },
   {
     "category": "functional",
@@ -407,7 +407,7 @@
       "Write test opening modal and clicking confirm",
       "Modal displays preview and triggers submission on confirm"
     ],
-    "passes": false
+    "passes": true
   },
   {
     "category": "functional",
