@@ -27,6 +27,8 @@ import {
 import {
 	CheckFormUnlockInput,
 	checkFormUnlock,
+	UnlockFormInput,
+	unlockForm,
 } from "@/features/form/lib/unlock-service";
 import { requireRoleMiddleware } from "@/middlewares/auth";
 import { DatabaseLive } from "../db/client";
@@ -289,6 +291,19 @@ export const checkFormUnlockRpc = createServerFn()
 		),
 	);
 
+export const unlockFormRpc = createServerFn()
+	.middleware([requireRoleMiddleware("teacher", "admin")])
+	.inputValidator((raw) => Schema.decodeUnknownSync(UnlockFormInput)(raw))
+	.handler(({ data }) =>
+		unlockForm({ formId: data.formId, userId: data.userId }).pipe(
+			Effect.withSpan("unlockForm"),
+			Effect.tapError(logRpcError("unlockForm")),
+			Effect.provide(Layer.mergeAll(DatabaseLive, LoggerLive)),
+			Effect.catchAll(() => errorResponse("Internal server error")),
+			Effect.runPromise,
+		),
+	);
+
 export const FormRpc = {
 	forms: () => ["forms"],
 	createForm: () =>
@@ -372,5 +387,10 @@ export const FormRpc = {
 		queryOptions({
 			queryKey: [...FormRpc.forms(), "checkUnlock", input.formId],
 			queryFn: () => checkFormUnlockRpc({ data: input }),
+		}),
+	unlockForm: () =>
+		mutationOptions({
+			mutationKey: [...FormRpc.forms(), "unlock"],
+			mutationFn: (data: UnlockFormInput) => unlockFormRpc({ data }),
 		}),
 };

@@ -4,6 +4,18 @@
 
 ### Completed Tasks
 
+34. **Create ManualUnlockButton component** - Built admin component for manually unlocking forms
+    - Created `ManualUnlockButton` component in `src/features/form/components/manual-unlock-button.tsx`
+    - Unlock button with confirmation dialog showing user name
+    - Calls unlockForm RPC mutation to unlock form for specific user
+    - Supports custom className, userName, and onSuccess callback
+    - Loading state with disabled button while mutation is pending
+    - Dialog closes on cancel or successful unlock
+    - Added `unlockFormRpc` endpoint to server RPC (teacher/admin only)
+    - Added `unlockForm` mutation to FormRpc client
+    - Created 8 comprehensive unit tests
+    - All 409 tests pass
+
 33. **Create CountdownTimer component** - Built component displaying time remaining until unlock
     - Created `CountdownTimer` component in `src/features/form/components/countdown-timer.tsx`
     - Displays time remaining in days/hours/minutes/seconds with proper formatting
