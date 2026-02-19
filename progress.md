@@ -4,6 +4,28 @@
 
 ### Completed Tasks
 
+43. **Add form routes to router** - Verified all form-related routes are properly registered
+    - Admin routes: `/dashboard/forms` (list), `/dashboard/forms/builder` (builder), `/dashboard/forms/:formId/results` (results)
+    - Student routes: `/dashboard/forms/student` (available forms), `/dashboard/forms/take` (take form)
+    - All routes auto-generated in `routeTree.gen.ts` via TanStack Router file-based routing
+    - Sidebar navigation links already configured for both teacher/admin and student roles
+    - Route tree verified: 5 form routes properly registered and accessible
+    - All 421 tests pass
+
+## 2026-02-19 (continued)
+
+### Completed Tasks
+
+42. **Create WordCountValidator component** - Built reusable word count validator component
+    - Created `WordCountValidator` component in `src/features/form/components/word-count-validator.tsx`
+    - Displays word count with visual feedback (amber for below minimum, green for valid, red for above maximum)
+    - Supports minimum and maximum word count validation
+    - Configurable label display with `showLabels` prop
+    - Exports `countWords` utility function for consistent word counting
+    - Refactored `ControlSubmissionEditor` to use the new `WordCountValidator` component
+    - Created 26 comprehensive unit tests covering all validation states and edge cases
+    - All 436 tests pass
+
 41. **Create formatting toolbar component** - Built reusable FormattingToolbar component
     - Created `FormattingToolbar` component in `src/components/ui/formatting-toolbar.tsx`
     - Standalone toolbar with Bold, Italic, Bullet List, and Numbered List buttons

@@ -1,10 +1,10 @@
 "use client";
 
-import { Type, AlertCircle, CheckCircle2 } from "lucide-react";
-import { useCallback, useState } from "react";
+import { useState } from "react";
 import { Card, CardContent } from "@/components/ui/card";
 import { FormattingToolbar } from "@/components/ui/formatting-toolbar";
 import { cn } from "@/lib/utils";
+import { WordCountValidator, countWords } from "./word-count-validator";
 
 export interface ControlSubmissionData {
 	content: string;
@@ -32,48 +32,13 @@ export function ControlSubmissionEditor({
 }: ControlSubmissionEditorProps) {
 	const [content, setContent] = useState(initialContent);
 
-	const countWords = useCallback((text: string): number => {
-		const trimmed = text.trim();
-		if (!trimmed) return 0;
-		return trimmed.split(/\s+/).length;
-	}, []);
-
 	const wordCount = countWords(content);
-	const isBelowMinimum = minWordCount > 0 && wordCount < minWordCount;
-	const isAboveMaximum = maxWordCount !== undefined && wordCount > maxWordCount;
 
 	const handleContentChange = (e: React.FormEvent<HTMLDivElement>) => {
 		const newContent = e.currentTarget.innerText;
 		setContent(newContent);
 		onChange?.({ content: newContent, wordCount: countWords(newContent) });
 	};
-
-
-
-	const getWordCountStatus = () => {
-		if (isAboveMaximum) {
-			return {
-				icon: AlertCircle,
-				className: "text-destructive",
-				message: `${wordCount} / ${maxWordCount} words (exceeds maximum)`,
-			};
-		}
-		if (isBelowMinimum) {
-			return {
-				icon: AlertCircle,
-				className: "text-amber-500",
-				message: `${wordCount} / ${minWordCount} words minimum`,
-			};
-		}
-		return {
-			icon: CheckCircle2,
-			className: "text-green-500",
-			message: `${wordCount} words`,
-		};
-	};
-
-	const status = getWordCountStatus();
-	const StatusIcon = status.icon;
 
 	return (
 		<Card className={cn("overflow-hidden", className)} data-testid="control-submission-editor">
@@ -99,13 +64,12 @@ export function ControlSubmissionEditor({
 			</CardContent>
 
 			<div className="flex items-center justify-between border-t bg-muted/30 px-4 py-2">
-				<div className="flex items-center gap-2 text-sm">
-					<Type className="h-4 w-4 text-muted-foreground" />
-					<span className={cn("font-medium", status.className)} data-testid="word-count">
-						<StatusIcon className="mr-1 inline h-4 w-4" />
-						{status.message}
-					</span>
-				</div>
+				<WordCountValidator
+					wordCount={wordCount}
+					minWordCount={minWordCount}
+					maxWordCount={maxWordCount}
+					showLabels={false}
+				/>
 				{minWordCount > 0 && (
 					<span className="text-xs text-muted-foreground">
 						Minimum {minWordCount} words required
