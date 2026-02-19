@@ -4,6 +4,16 @@
 
 ### Completed Tasks
 
+29. **Create useFormUnlock hook** - Built hook for checking form unlock status with polling
+    - Created `useFormUnlock` hook in `src/hooks/use-form-unlock.ts`
+    - Fetches unlock status from checkFormUnlockRpc endpoint
+    - Polls every 30 seconds by default (configurable)
+    - Returns status object with isUnlocked, reason, and earliestUnlockAt
+    - Supports enabled flag to conditionally enable fetching
+    - Added checkFormUnlockRpc endpoint to server RPC
+    - Added checkFormUnlock method to FormRpc client
+    - Types and tests pass (405 tests)
+
 28. **Create FormList component** - Built component for displaying forms in list view
     - Created `FormList` component with form cards showing title, description, type, status
     - Supports form list status badges: Locked (red), Available (blue), Completed (green)

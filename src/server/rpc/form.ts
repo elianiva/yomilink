@@ -21,6 +21,10 @@ import {
 	unpublishForm,
 	updateQuestion,
 } from "@/features/form/lib/form-service";
+import {
+	CheckFormUnlockInput,
+	checkFormUnlock,
+} from "@/features/form/lib/unlock-service";
 import { requireRoleMiddleware } from "@/middlewares/auth";
 import { DatabaseLive } from "../db/client";
 import { LoggerLive } from "../logger";
@@ -238,6 +242,22 @@ export const deleteQuestionRpc = createServerFn()
 		),
 	);
 
+export const checkFormUnlockRpc = createServerFn()
+	.middleware([requireRoleMiddleware("student", "teacher", "admin")])
+	.inputValidator((raw) => Schema.decodeUnknownSync(CheckFormUnlockInput)(raw))
+	.handler(({ data, context }) =>
+		checkFormUnlock({ formId: data.formId, userId: context.user.id }).pipe(
+			Effect.withSpan("checkFormUnlock"),
+			Effect.tapError(logRpcError("checkFormUnlock")),
+			Effect.provide(Layer.mergeAll(DatabaseLive, LoggerLive)),
+			Effect.catchTags({
+				FormNotFoundError: () => errorResponse("Form not found"),
+			}),
+			Effect.catchAll(() => errorResponse("Internal server error")),
+			Effect.runPromise,
+		),
+	);
+
 export const FormRpc = {
 	forms: () => ["forms"],
 	createForm: () =>
@@ -306,5 +326,10 @@ export const FormRpc = {
 		mutationOptions({
 			mutationKey: [...FormRpc.forms(), "deleteQuestion"],
 			mutationFn: (data: GetQuestionByIdInput) => deleteQuestionRpc({ data }),
+		}),
+	checkFormUnlock: (input: { formId: string }) =>
+		queryOptions({
+			queryKey: [...FormRpc.forms(), "checkUnlock", input.formId],
+			queryFn: () => checkFormUnlockRpc({ data: input }),
 		}),
 };
