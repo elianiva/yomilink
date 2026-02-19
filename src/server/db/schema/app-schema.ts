@@ -170,8 +170,9 @@ export const learnerMaps = sqliteTable(
 			.notNull()
 			.references(() => kits.id),
 		userId: text("user_id").notNull(),
-		nodes: text("nodes", { mode: "json" }).notNull(),
-		edges: text("edges", { mode: "json" }).notNull(),
+		nodes: text("nodes", { mode: "json" }),
+		edges: text("edges", { mode: "json" }),
+		controlText: text("control_text", { length: 100_000 }),
 		status: text("status", { enum: ["draft", "submitted", "graded"] })
 			.notNull()
 			.default("draft"),

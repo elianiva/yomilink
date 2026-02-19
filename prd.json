@@ -417,7 +417,7 @@
       "Write test submitting text and verifying storage",
       "Text stored and marks assignment as control group complete"
     ],
-    "passes": false
+    "passes": true
   },
   {
     "category": "functional",

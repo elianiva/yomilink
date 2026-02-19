@@ -22,6 +22,7 @@ import {
 	listStudentAssignments,
 	saveLearnerMap,
 	startNewAttempt,
+	submitControlText,
 	submitLearnerMap,
 } from "./learner-map-service";
 
@@ -1235,6 +1236,164 @@ describe("learner-map-service", () => {
 
 				assert.strictEqual(result.count, 1);
 				assert.strictEqual(result.userPercentile, 100); // Better than all peers
+			}).pipe(Effect.provide(DatabaseTest)),
+		);
+	});
+
+	describe("submitControlText", () => {
+		it.effect("should return error for non-existent assignment", () =>
+			Effect.gen(function* () {
+				const student = yield* createTestUser({ role: "student" });
+
+				const result = yield* submitControlText(student.id, {
+					assignmentId: "non-existent",
+					text: "This is my control text submission.",
+				});
+
+				assert.isFalse(result.success);
+				assert.strictEqual(result.error, "Assignment not found");
+			}).pipe(Effect.provide(DatabaseTest)),
+		);
+
+		it.effect("should create new learner map with control text", () =>
+			Effect.gen(function* () {
+				const db = yield* Database;
+				const teacher = yield* createTestUser({ email: "teacher@test.com" });
+				const student = yield* createTestUser({
+					email: "student@test.com",
+					role: "student",
+				});
+
+				const goalMap = yield* createTestGoalMap(teacher.id);
+				const kit = yield* createTestKit(goalMap.id, teacher.id);
+				const assignment = yield* createTestAssignment(
+					teacher.id,
+					goalMap.id,
+					kit.id,
+				);
+
+				const controlText =
+					"This is my control group text submission explaining the concept.";
+
+				const result = yield* submitControlText(student.id, {
+					assignmentId: assignment.id,
+					text: controlText,
+				});
+
+				assert.isTrue(result.success);
+				assert.isDefined(result.learnerMapId);
+
+				// Verify in database
+				const saved = yield* db
+					.select()
+					.from(learnerMaps)
+					.where(eq(learnerMaps.id, result.learnerMapId ?? ""))
+					.limit(1);
+
+				assert.strictEqual(saved.length, 1);
+				assert.strictEqual(saved[0]?.controlText, controlText);
+				assert.strictEqual(saved[0]?.status, "submitted");
+				assert.strictEqual(saved[0]?.attempt, 1);
+				assert.isNull(saved[0]?.nodes);
+				assert.isNull(saved[0]?.edges);
+				assert.isNotNull(saved[0]?.submittedAt);
+			}).pipe(Effect.provide(DatabaseTest)),
+		);
+
+		it.effect("should update existing draft with control text", () =>
+			Effect.gen(function* () {
+				const db = yield* Database;
+				const teacher = yield* createTestUser({ email: "teacher@test.com" });
+				const student = yield* createTestUser({
+					email: "student@test.com",
+					role: "student",
+				});
+
+				const goalMap = yield* createTestGoalMap(teacher.id);
+				const kit = yield* createTestKit(goalMap.id, teacher.id);
+				const assignment = yield* createTestAssignment(
+					teacher.id,
+					goalMap.id,
+					kit.id,
+				);
+
+				// Create existing draft learner map
+				const learnerMapId = crypto.randomUUID();
+				yield* db.insert(learnerMaps).values({
+					id: learnerMapId,
+					assignmentId: assignment.id,
+					goalMapId: goalMap.id,
+					kitId: kit.id,
+					userId: student.id,
+					nodes: [{ id: "n1", data: {}, position: { x: 0, y: 0 } }],
+					edges: [],
+					status: "draft",
+					attempt: 1,
+				});
+
+				const controlText =
+					"Updated with control text instead of concept map.";
+
+				const result = yield* submitControlText(student.id, {
+					assignmentId: assignment.id,
+					text: controlText,
+				});
+
+				assert.isTrue(result.success);
+				assert.strictEqual(result.learnerMapId, learnerMapId);
+
+				// Verify update
+				const updated = yield* db
+					.select()
+					.from(learnerMaps)
+					.where(eq(learnerMaps.id, learnerMapId))
+					.limit(1);
+
+				assert.strictEqual(updated[0]?.controlText, controlText);
+				assert.strictEqual(updated[0]?.status, "submitted");
+				assert.isNotNull(updated[0]?.submittedAt);
+			}).pipe(Effect.provide(DatabaseTest)),
+		);
+
+		it.effect("should return error if already submitted", () =>
+			Effect.gen(function* () {
+				const db = yield* Database;
+				const teacher = yield* createTestUser({ email: "teacher@test.com" });
+				const student = yield* createTestUser({
+					email: "student@test.com",
+					role: "student",
+				});
+
+				const goalMap = yield* createTestGoalMap(teacher.id);
+				const kit = yield* createTestKit(goalMap.id, teacher.id);
+				const assignment = yield* createTestAssignment(
+					teacher.id,
+					goalMap.id,
+					kit.id,
+				);
+
+				// Create already submitted learner map
+				yield* db.insert(learnerMaps).values({
+					id: crypto.randomUUID(),
+					assignmentId: assignment.id,
+					goalMapId: goalMap.id,
+					kitId: kit.id,
+					userId: student.id,
+					nodes: [],
+					edges: [],
+					controlText: "Already submitted text.",
+					status: "submitted",
+					attempt: 1,
+					submittedAt: new Date(),
+				});
+
+				const result = yield* submitControlText(student.id, {
+					assignmentId: assignment.id,
+					text: "Trying to submit again.",
+				});
+
+				assert.isFalse(result.success);
+				assert.strictEqual(result.error, "Already submitted");
 			}).pipe(Effect.provide(DatabaseTest)),
 		);
 	});

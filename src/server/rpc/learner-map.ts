@@ -10,12 +10,14 @@ import {
 	getDiagnosis,
 	startNewAttempt,
 	getPeerStats,
+	submitControlText,
 	GetAssignmentForStudentInput,
 	SaveLearnerMapInput,
 	SubmitLearnerMapInput,
 	GetDiagnosisInput,
 	StartNewAttemptInput,
 	GetPeerStatsInput,
+	SubmitControlTextInput,
 } from "@/features/learner-map/lib/learner-map-service";
 import { DatabaseLive } from "../db/client";
 import { LoggerLive } from "../logger";
@@ -111,6 +113,21 @@ export const getPeerStatsRpc = createServerFn()
 		),
 	);
 
+export const submitControlTextRpc = createServerFn()
+	.middleware([authMiddleware])
+	.inputValidator((raw) =>
+		Schema.decodeUnknownSync(SubmitControlTextInput)(raw),
+	)
+	.handler(({ data, context }) =>
+		submitControlText(context.user.id, data).pipe(
+			Effect.withSpan("submitControlText"),
+			Effect.tapError(logRpcError("submitControlText")),
+			Effect.catchAll(() => errorResponse("Internal server error")),
+			Effect.provide(Layer.mergeAll(DatabaseLive, LoggerLive)),
+			Effect.runPromise,
+		),
+	);
+
 export const LearnerMapRpc = {
 	learnerMaps: () => ["learner-maps"],
 	listStudentAssignments: () =>
@@ -156,5 +173,11 @@ export const LearnerMapRpc = {
 				"peer-stats",
 			],
 			queryFn: () => getPeerStatsRpc({ data }),
+		}),
+	submitControlText: () =>
+		mutationOptions({
+			mutationKey: [...LearnerMapRpc.learnerMaps(), "submit-control-text"],
+			mutationFn: (data: SubmitControlTextInput) =>
+				submitControlTextRpc({ data }),
 		}),
 };

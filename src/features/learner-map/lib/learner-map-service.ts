@@ -54,6 +54,13 @@ export const GetPeerStatsInput = Schema.Struct({
 
 export type GetPeerStatsInput = typeof GetPeerStatsInput.Type;
 
+export const SubmitControlTextInput = Schema.Struct({
+	assignmentId: Schema.NonEmptyString,
+	text: Schema.NonEmptyString,
+});
+
+export type SubmitControlTextInput = typeof SubmitControlTextInput.Type;
+
 export const listStudentAssignments = Effect.fn("listStudentAssignments")(
 	(userId: string) =>
 		Effect.gen(function* () {
@@ -544,5 +551,80 @@ export const getPeerStats = Effect.fn("getPeerStats")(
 				lowestScore: Math.round(lowestScore * 100) / 100,
 				userPercentile: Math.round(userPercentile * 10) / 10,
 			};
+		}),
+);
+
+export const submitControlText = Effect.fn("submitControlText")(
+	(userId: string, input: SubmitControlTextInput) =>
+		Effect.gen(function* () {
+			const db = yield* Database;
+
+			// Verify assignment exists
+			const assignmentRows = yield* db
+				.select({
+					id: assignments.id,
+					goalMapId: assignments.goalMapId,
+					kitId: assignments.kitId,
+				})
+				.from(assignments)
+				.where(eq(assignments.id, input.assignmentId))
+				.limit(1);
+
+			const assignment = assignmentRows[0];
+			if (!assignment) {
+				return { success: false, error: "Assignment not found" } as const;
+			}
+
+			// Check for existing submission
+			const existingRows = yield* db
+				.select({ id: learnerMaps.id, status: learnerMaps.status })
+				.from(learnerMaps)
+				.where(
+					and(
+						eq(learnerMaps.assignmentId, input.assignmentId),
+						eq(learnerMaps.userId, userId),
+					),
+				)
+				.limit(1);
+
+			const existing = existingRows[0];
+			if (existing?.status === "submitted") {
+				return {
+					success: false,
+					error: "Already submitted",
+				} as const;
+			}
+
+			if (existing) {
+				// Update existing draft with control text and mark as submitted
+				yield* db
+					.update(learnerMaps)
+					.set({
+						controlText: input.text,
+						status: "submitted",
+						submittedAt: new Date(),
+					})
+					.where(eq(learnerMaps.id, existing.id));
+
+				return { success: true, learnerMapId: existing.id } as const;
+			}
+
+			// Create new learner map with control text
+			const learnerMapId = randomString();
+			yield* db.insert(learnerMaps).values({
+				id: learnerMapId,
+				assignmentId: input.assignmentId,
+				goalMapId: assignment.goalMapId,
+				kitId: assignment.kitId,
+				userId,
+				controlText: input.text,
+				nodes: null,
+				edges: null,
+				status: "submitted",
+				attempt: 1,
+				submittedAt: new Date(),
+			});
+
+			return { success: true, learnerMapId } as const;
 		}),
 );

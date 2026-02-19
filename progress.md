@@ -4,7 +4,26 @@
 
 ### Completed Tasks
 
-38. **Create ControlSubmissionEditor component** - Built rich text editor for control group text submissions
+40. **Create submitControlText endpoint** - Built endpoint for storing control group text submissions
+    - Modified `learnerMaps` table schema to support control text submissions
+    - Made `nodes` and `edges` columns nullable
+    - Added `control_text` column (100KB max) to store control group text
+    - Generated Drizzle migration `0002_sparkling_jigsaw.sql`
+    - Created `submitControlText` service function in `learner-map-service.ts`
+    - Function accepts assignmentId and text, validates assignment exists
+    - Creates new learner map with control text or updates existing draft
+    - Marks submission as submitted with timestamp
+    - Prevents duplicate submissions (returns error if already submitted)
+    - Created `submitControlTextRpc` endpoint in `learner-map.ts` RPC
+    - Added `submitControlText` mutation to `LearnerMapRpc` client
+    - Created 4 comprehensive unit tests:
+      - Returns error for non-existent assignment
+      - Creates new learner map with control text
+      - Updates existing draft with control text
+      - Returns error if already submitted
+    - All 421 tests pass (417 + 4 new)
+
+39. **Create ControlSubmissionEditor component** - Built rich text editor for control group text submissions
     - Created `ControlSubmissionEditor` component in `src/features/form/components/control-submission-editor.tsx`
     - Rich text editor with contentEditable div supporting formatting commands
     - Built-in formatting toolbar with Bold, Italic, Bullet List, and Numbered List buttons
