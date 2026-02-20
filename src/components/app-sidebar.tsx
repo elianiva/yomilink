@@ -93,8 +93,8 @@ export function AppSidebar(props: AppSidebarProps) {
 		<Sidebar collapsible="icon" {...props}>
 			<SidebarHeader>
 				<div className="flex items-center transition-all duration-200 ease-linear">
-					<div className="size-8 transition-all duration-200 ease-linear rounded-lg bg-primary/90 ring-4 ring-primary/10 flex items-center justify-center text-primary-foreground font-bold">
-						K
+					<div className="size-8 transition-all duration-200 ease-linear rounded-lg bg-gradient-to-br from-primary to-primary/80 shadow-sm flex items-center justify-center text-primary-foreground font-semibold text-sm tracking-wide">
+						KB
 					</div>
 					<div className="transition-all ml-2 duration-200 ease-linear group-data-[collapsible=icon]:ml-0 group-data-[collapsible=icon]:opacity-0 group-data-[collapsible=icon]:w-0 overflow-hidden">
 						<h1 className="text-base font-medium whitespace-nowrap">
