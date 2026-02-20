@@ -51,7 +51,7 @@ const NAVBAR_ITEMS: NavItemWithRoles[] = [
 	},
 	{
 		title: "Forms",
-		url: "/dashboard/forms/builder",
+		url: "/dashboard/forms",
 		icon: FileTextIcon,
 		roles: ["teacher", "admin"],
 	},
