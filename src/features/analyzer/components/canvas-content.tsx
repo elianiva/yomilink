@@ -2,8 +2,24 @@ import type {
 	AssignmentAnalytics,
 	LearnerMapResult,
 } from "@/features/analyzer/lib/analytics-service";
-import { useMemo } from "react";
-import { AnalyticsCanvas } from "./canvas";
+import { lazy, Suspense, useMemo } from "react";
+import { Skeleton } from "@/components/ui/skeleton";
+
+// Lazy load AnalyticsCanvas (heavy React Flow component)
+const AnalyticsCanvas = lazy(() =>
+	import("./canvas").then((m) => ({ default: m.AnalyticsCanvas })),
+);
+
+function CanvasSkeleton() {
+	return (
+		<div className="w-full h-full flex items-center justify-center">
+			<div className="flex flex-col items-center gap-4">
+				<Skeleton className="h-8 w-48" />
+				<Skeleton className="h-4 w-32" />
+			</div>
+		</div>
+	);
+}
 
 export function CanvasContent({
 	selectedAssignmentId,
@@ -73,12 +89,14 @@ export function CanvasContent({
 	}
 
 	return (
-		<AnalyticsCanvas
-			goalMap={analyticsData.goalMap}
-			learnerMaps={mappedLearnerMaps}
-			allEdgeClassifications={allEdgeClassificationsMemo}
-			visibility={visibility}
-			isMultiView={true}
-		/>
+		<Suspense fallback={<CanvasSkeleton />}>
+			<AnalyticsCanvas
+				goalMap={analyticsData.goalMap}
+				learnerMaps={mappedLearnerMaps}
+				allEdgeClassifications={allEdgeClassificationsMemo}
+				visibility={visibility}
+				isMultiView={true}
+			/>
+		</Suspense>
 	);
 }

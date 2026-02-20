@@ -1,14 +1,12 @@
 import { ProgressProvider } from "@bprogress/react";
 import fredokaFont from "@fontsource-variable/fredoka/index.css?url";
-import { TanStackDevtools } from "@tanstack/react-devtools";
 import type { QueryClient } from "@tanstack/react-query";
-import { ReactQueryDevtoolsPanel } from "@tanstack/react-query-devtools";
 import {
 	createRootRouteWithContext,
 	HeadContent,
 	Scripts,
 } from "@tanstack/react-router";
-import { TanStackRouterDevtoolsPanel } from "@tanstack/react-router-devtools";
+import { lazy, Suspense } from "react";
 import { Toaster } from "@/components/ui/sonner";
 import { NotFound } from "../components/not-found";
 import RouteProgress from "../components/progress/route-progress";
@@ -17,6 +15,13 @@ import appCss from "../styles.css?url";
 interface MyRouterContext {
 	queryClient: QueryClient;
 }
+
+// Lazy load dev tools only in development
+const DevTools = lazy(() =>
+	import("./__root.devtools").then((m) => ({ default: m.DevTools })),
+);
+
+const isDev = import.meta.env.DEV;
 
 export const Route = createRootRouteWithContext<MyRouterContext>()({
 	head: () => ({
@@ -29,6 +34,13 @@ export const Route = createRootRouteWithContext<MyRouterContext>()({
 			{ rel: "stylesheet", href: appCss },
 			{ rel: "stylesheet", href: fredokaFont },
 		],
+		scripts: isDev
+			? [
+					{
+						src: "https://cdn.jsdelivr.net/npm/react-scan/dist/auto.global.js",
+					},
+				]
+			: [],
 	}),
 	notFoundComponent: NotFound,
 	shellComponent: RootDocument,
@@ -39,7 +51,6 @@ function RootDocument({ children }: { children: React.ReactNode }) {
 		<html lang="en">
 			<head>
 				<HeadContent />
-				<script src="https://cdn.jsdelivr.net/npm/react-scan/dist/auto.global.js"></script>
 			</head>
 			<body>
 				<ProgressProvider
@@ -50,19 +61,11 @@ function RootDocument({ children }: { children: React.ReactNode }) {
 					<RouteProgress />
 					{children}
 					<Toaster position="top-right" />
-					<TanStackDevtools
-						config={{ position: "bottom-right" }}
-						plugins={[
-							{
-								name: "Tanstack Router",
-								render: <TanStackRouterDevtoolsPanel />,
-							},
-							{
-								name: "Tanstack Query",
-								render: <ReactQueryDevtoolsPanel />,
-							},
-						]}
-					/>
+					{isDev && (
+						<Suspense fallback={null}>
+							<DevTools />
+						</Suspense>
+					)}
 				</ProgressProvider>
 				<Scripts />
 			</body>
