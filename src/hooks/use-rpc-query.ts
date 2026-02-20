@@ -184,6 +184,9 @@ export type UseRpcMutationConfig = {
 	operation?: string;
 	/** Additional error toast options */
 	errorToastOptions?: Omit<ErrorToastOptions, "operation">;
+	/** Callback when mutation succeeds */
+	// eslint-disable-next-line @typescript-eslint/no-explicit-any
+	onSuccess?: (data: any) => void;
 };
 
 // some other changes
@@ -266,6 +269,7 @@ export function useRpcMutation<TData, TVariables, TContext = unknown>(
 		errorMessage,
 		operation,
 		errorToastOptions,
+		onSuccess: configOnSuccess,
 	} = config;
 
 	// another changes
@@ -287,6 +291,8 @@ export function useRpcMutation<TData, TVariables, TContext = unknown>(
 				if (showSuccess) {
 					toast.success(successMessage ?? "Operation completed successfully");
 				}
+				// Call config onSuccess for non-error responses
+				configOnSuccess?.(data);
 			}
 
 			// Call original onSuccess

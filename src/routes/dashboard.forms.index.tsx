@@ -1,6 +1,6 @@
 "use client";
 
-import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { FilePlusIcon, Loader2 } from "lucide-react";
 import { useState } from "react";
@@ -18,6 +18,7 @@ import {
 	FormList,
 	type FormListItem,
 } from "@/features/form/components/form-list";
+import { useRpcMutation } from "@/hooks/use-rpc-query";
 import { FormRpc } from "@/server/rpc/form";
 
 export const Route = createFileRoute("/dashboard/forms/")({
@@ -40,8 +41,10 @@ function AdminFormsPage() {
 
 	const forms = Array.isArray(data) ? data : [];
 
-	const deleteMutation = useMutation({
-		...FormRpc.deleteForm(),
+	const deleteMutation = useRpcMutation(FormRpc.deleteForm(), {
+		operation: "delete form",
+		showSuccess: true,
+		successMessage: "Form deleted successfully",
 		onSuccess: () => {
 			setDeleteDialogOpen(false);
 			setFormToDelete(null);

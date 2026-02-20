@@ -125,7 +125,9 @@ export function LearnerMapResult() {
 				<div className="text-center space-y-4">
 					<p className="text-muted-foreground">Results not found</p>
 					<Button asChild variant="outline">
-						<Link to="/dashboard/assignments">Back to Assignments</Link>
+						<Link to="/dashboard/assignments" preload="intent">
+							Back to Assignments
+						</Link>
 					</Button>
 				</div>
 			</div>
@@ -155,7 +157,7 @@ export function LearnerMapResult() {
 			<div className="border-b bg-background p-4 flex items-center justify-between">
 				<div className="flex items-center gap-4">
 					<Button variant="ghost" size="icon" asChild>
-						<Link to="/dashboard/assignments">
+						<Link to="/dashboard/assignments" preload="intent">
 							<ArrowLeftIcon className="size-4" />
 						</Link>
 					</Button>
@@ -234,25 +236,19 @@ export function LearnerMapResult() {
 									<span className="font-medium">{peerStats.count}</span>
 								</div>
 								<div className="flex justify-between">
-									<span className="text-muted-foreground">
-										Average Score
-									</span>
+									<span className="text-muted-foreground">Average Score</span>
 									<span className="font-medium">
 										{Math.round(peerStats.avgScore! * 100)}%
 									</span>
 								</div>
 								<div className="flex justify-between">
-									<span className="text-muted-foreground">
-										Median Score
-									</span>
+									<span className="text-muted-foreground">Median Score</span>
 									<span className="font-medium">
 										{Math.round(peerStats.medianScore! * 100)}%
 									</span>
 								</div>
 								<div className="flex justify-between">
-									<span className="text-muted-foreground">
-										Your Ranking
-									</span>
+									<span className="text-muted-foreground">Your Ranking</span>
 									<span className="font-medium">
 										Top {peerStats.userPercentile}%
 									</span>

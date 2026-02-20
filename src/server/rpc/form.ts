@@ -23,6 +23,7 @@ import {
 	submitFormResponse,
 	UpdateQuestionInput,
 	unpublishForm,
+	updateForm,
 	updateQuestion,
 } from "@/features/form/lib/form-service";
 import {
@@ -137,6 +138,54 @@ export const unpublishFormRpc = createServerFn()
 			Effect.provide(Layer.mergeAll(DatabaseLive, LoggerLive)),
 			Effect.catchTags({
 				FormNotFoundError: () => errorResponse("Form not found"),
+			}),
+			Effect.catchAll(() => errorResponse("Internal server error")),
+			Effect.runPromise,
+		),
+	);
+
+const UpdateFormInput = Schema.Struct({
+	formId: Schema.NonEmptyString,
+	title: Schema.optionalWith(Schema.NonEmptyString, { nullable: true }),
+	description: Schema.optionalWith(Schema.String, { nullable: true }),
+	type: Schema.optionalWith(
+		Schema.Union(
+			Schema.Literal("pre_test"),
+			Schema.Literal("post_test"),
+			Schema.Literal("registration"),
+			Schema.Literal("control"),
+		),
+		{ nullable: true },
+	),
+	status: Schema.optionalWith(
+		Schema.Union(Schema.Literal("draft"), Schema.Literal("published")),
+		{ nullable: true },
+	),
+});
+
+type UpdateFormInput = typeof UpdateFormInput.Type;
+
+export const updateFormRpc = createServerFn()
+	.middleware([requireRoleMiddleware("teacher", "admin")])
+	.inputValidator((raw) => Schema.decodeUnknownSync(UpdateFormInput)(raw))
+	.handler(({ data }) =>
+		updateForm(data.formId, {
+			title: data.title,
+			description: data.description,
+			type: data.type,
+			status: data.status,
+		}).pipe(
+			Effect.map((result) => ({
+				...result,
+				unlockConditions: result.unlockConditions as {} | undefined,
+			})),
+			Effect.withSpan("updateForm"),
+			Effect.tapError(logRpcError("updateForm")),
+			Effect.provide(Layer.mergeAll(DatabaseLive, LoggerLive)),
+			Effect.catchTags({
+				FormNotFoundError: () => errorResponse("Form not found"),
+				FormHasResponsesError: () =>
+					errorResponse("Cannot update form: form has responses"),
 			}),
 			Effect.catchAll(() => errorResponse("Internal server error")),
 			Effect.runPromise,
@@ -358,6 +407,11 @@ export const FormRpc = {
 		mutationOptions({
 			mutationKey: [...FormRpc.forms(), "unpublish"],
 			mutationFn: (data: GetFormByIdInput) => unpublishFormRpc({ data }),
+		}),
+	updateForm: () =>
+		mutationOptions({
+			mutationKey: [...FormRpc.forms(), "update"],
+			mutationFn: (data: UpdateFormInput) => updateFormRpc({ data }),
 		}),
 	cloneForm: () =>
 		mutationOptions({

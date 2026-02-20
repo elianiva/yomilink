@@ -18,7 +18,9 @@ export function NotFound() {
 				</p>
 				<div className="flex flex-wrap items-center justify-center gap-3">
 					<Button asChild>
-						<Link to="/">Go home</Link>
+						<Link to="/" preload="intent">
+							Go home
+						</Link>
 					</Button>
 					<Button
 						variant="ghost"

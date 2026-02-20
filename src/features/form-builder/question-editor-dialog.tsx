@@ -10,10 +10,7 @@ import {
 import { McqQuestionEditor } from "@/features/form/components/mcq-question-editor";
 import { LikertQuestionEditor } from "@/features/form/components/likert-question-editor";
 import { TextQuestionEditor } from "@/features/form/components/text-question-editor";
-import type {
-	QuestionEditorDialogProps,
-	EditorWrapperProps,
-} from "./types";
+import type { QuestionEditorDialogProps, EditorWrapperProps } from "./types";
 
 export function QuestionEditorDialog({
 	isOpen,

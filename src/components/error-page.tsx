@@ -24,7 +24,7 @@ export function ErrorPage({ error, reset }: ErrorComponentProps) {
 					<Button onClick={() => reset?.()} variant="default">
 						Retry
 					</Button>
-					<Link to="/">
+					<Link to="/" preload="intent">
 						<Button variant="secondary">Go Home</Button>
 					</Link>
 					<Button variant="outline" onClick={() => setDetailsOpen((v) => !v)}>

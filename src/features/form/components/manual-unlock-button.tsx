@@ -11,7 +11,7 @@ import {
 	DialogHeader,
 	DialogTitle,
 } from "@/components/ui/dialog";
-import { useMutation } from "@tanstack/react-query";
+import { useRpcMutation } from "@/hooks/use-rpc-query";
 import { FormRpc } from "@/server/rpc/form";
 
 interface ManualUnlockButtonProps {
@@ -31,8 +31,8 @@ export function ManualUnlockButton({
 }: ManualUnlockButtonProps) {
 	const [isDialogOpen, setIsDialogOpen] = useState(false);
 
-	const unlockMutation = useMutation({
-		...FormRpc.unlockForm(),
+	const unlockMutation = useRpcMutation(FormRpc.unlockForm(), {
+		operation: "unlock form",
 		onSuccess: () => {
 			setIsDialogOpen(false);
 			onSuccess?.();

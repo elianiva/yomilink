@@ -155,6 +155,7 @@ function DashboardHome() {
 					<Link
 						to="/dashboard/goal-map/$goalMapId"
 						params={{ goalMapId: "new" }}
+						preload="intent"
 					>
 						<Plus className="mr-2 h-4 w-4" />
 						New Goal Map
@@ -298,6 +299,7 @@ function DashboardHome() {
 												<Link
 													to="/dashboard/goal-map/$goalMapId"
 													params={{ goalMapId: goalMap.id }}
+													preload="intent"
 												>
 													<Edit className="size-4" />
 													<span className="sr-only">Edit</span>

@@ -67,7 +67,7 @@ export function NavMain({ items }: NavMainProps) {
 										{item.items?.map((subItem) => (
 											<SidebarMenuSubItem key={subItem.title}>
 												<SidebarMenuSubButton asChild>
-													<Link to={subItem.url}>
+													<Link to={subItem.url} preload="intent">
 														<span>{subItem.title}</span>
 													</Link>
 												</SidebarMenuSubButton>
@@ -88,7 +88,7 @@ export function NavMain({ items }: NavMainProps) {
 										: "hover:bg-primary hover:text-white"
 								}
 							>
-								<Link to={item.url}>
+								<Link to={item.url} preload="intent">
 									{item.icon && <item.icon />}
 									<span>{item.title}</span>
 								</Link>

@@ -151,7 +151,9 @@ function ProfilePage() {
 
 						<div className="flex gap-2 pt-2">
 							<Button asChild variant="outline" className="flex-1">
-								<Link to="/dashboard">Back</Link>
+								<Link to="/dashboard" preload="intent">
+									Back
+								</Link>
 							</Button>
 							<form.Subscribe
 								selector={(s) => [s.canSubmit, s.isSubmitting] as const}

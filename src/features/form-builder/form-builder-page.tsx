@@ -1,4 +1,4 @@
-import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { useNavigate, useSearch } from "@tanstack/react-router";
 import {
 	FilePlusIcon,
@@ -25,6 +25,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import type { FormMetadata } from "@/features/form/components/form-metadata-editor";
 import type { QuestionWithOptions as FormPreviewQuestion } from "@/features/form/components/form-renderer/form-preview";
 import { FormPreview } from "@/features/form/components/form-renderer/form-preview";
+import { useRpcMutation } from "@/hooks/use-rpc-query";
 import { FormRpc } from "@/server/rpc/form";
 import type {
 	CreateQuestionInput,
@@ -65,103 +66,37 @@ export function FormBuilderPage() {
 	});
 
 	// Mutations
-	const createFormMutation = useMutation({
-		...FormRpc.createForm(),
+	const createFormMutation = useRpcMutation(FormRpc.createForm(), {
+		operation: "create form",
+		showSuccess: true,
+		successMessage: "Form created successfully",
 		onSuccess: (result) => {
 			if ("error" in result) {
 				toast.error("Failed to create form");
 				return;
 			}
-			toast.success("Form created successfully");
 			queryClient.invalidateQueries({ queryKey: FormRpc.forms() });
 			void navigate({
 				to: "/dashboard/forms/builder",
 				search: { formId: result.id },
 			});
 		},
-		onError: () => {
-			toast.error("Failed to create form");
-		},
 	});
 
-	const updateFormMutation = useMutation({
-		mutationFn: async (data: { formId: string; metadata: FormMetadata }) => {
-			const response = await fetch(`/api/forms/${data.formId}`, {
-				method: "PATCH",
-				headers: { "Content-Type": "application/json" },
-				body: JSON.stringify({
-					title: data.metadata.title,
-					description: data.metadata.description,
-					type: data.metadata.type,
-					status: data.metadata.status,
-				}),
-			});
-			if (!response.ok) throw new Error("Failed to update form");
-			return response.json();
-		},
+	const updateFormMutation = useRpcMutation(FormRpc.updateForm(), {
+		operation: "update form",
+		showSuccess: true,
+		successMessage: "Form saved successfully",
 		onSuccess: () => {
-			toast.success("Form saved successfully");
 			setHasUnsavedChanges(false);
 			queryClient.invalidateQueries({ queryKey: FormRpc.forms() });
 		},
-		onError: () => {
-			toast.error("Failed to save form");
-		},
 	});
 
-	const createQuestionMutation = useMutation({
-		...FormRpc.createQuestion(),
-		onSuccess: () => {
-			toast.success("Question created");
-			if (formId) {
-				queryClient.invalidateQueries({
-					queryKey: [...FormRpc.forms(), "byId", formId],
-				});
-			}
-		},
-		onError: (error) => {
-			toast.error(
-				error instanceof Error ? error.message : "Failed to create question",
-			);
-		},
-	});
-
-	const updateQuestionMutation = useMutation({
-		...FormRpc.updateQuestion(),
-		onSuccess: () => {
-			toast.success("Question updated");
-			if (formId) {
-				queryClient.invalidateQueries({
-					queryKey: [...FormRpc.forms(), "byId", formId],
-				});
-			}
-		},
-		onError: (error) => {
-			toast.error(
-				error instanceof Error ? error.message : "Failed to update question",
-			);
-		},
-	});
-
-	const deleteQuestionMutation = useMutation({
-		...FormRpc.deleteQuestion(),
-		onSuccess: () => {
-			toast.success("Question deleted");
-			if (formId) {
-				queryClient.invalidateQueries({
-					queryKey: [...FormRpc.forms(), "byId", formId],
-				});
-			}
-		},
-		onError: (error) => {
-			toast.error(
-				error instanceof Error ? error.message : "Failed to delete question",
-			);
-		},
-	});
-
-	const reorderQuestionsMutation = useMutation({
-		...FormRpc.reorderQuestions(),
+	const createQuestionMutation = useRpcMutation(FormRpc.createQuestion(), {
+		operation: "create question",
+		showSuccess: true,
+		successMessage: "Question created",
 		onSuccess: () => {
 			if (formId) {
 				queryClient.invalidateQueries({
@@ -171,10 +106,48 @@ export function FormBuilderPage() {
 		},
 	});
 
-	const publishFormMutation = useMutation({
-		...FormRpc.publishForm(),
+	const updateQuestionMutation = useRpcMutation(FormRpc.updateQuestion(), {
+		operation: "update question",
+		showSuccess: true,
+		successMessage: "Question updated",
 		onSuccess: () => {
-			toast.success("Form published");
+			if (formId) {
+				queryClient.invalidateQueries({
+					queryKey: [...FormRpc.forms(), "byId", formId],
+				});
+			}
+		},
+	});
+
+	const deleteQuestionMutation = useRpcMutation(FormRpc.deleteQuestion(), {
+		operation: "delete question",
+		showSuccess: true,
+		successMessage: "Question deleted",
+		onSuccess: () => {
+			if (formId) {
+				queryClient.invalidateQueries({
+					queryKey: [...FormRpc.forms(), "byId", formId],
+				});
+			}
+		},
+	});
+
+	const reorderQuestionsMutation = useRpcMutation(FormRpc.reorderQuestions(), {
+		operation: "reorder questions",
+		onSuccess: () => {
+			if (formId) {
+				queryClient.invalidateQueries({
+					queryKey: [...FormRpc.forms(), "byId", formId],
+				});
+			}
+		},
+	});
+
+	const publishFormMutation = useRpcMutation(FormRpc.publishForm(), {
+		operation: "publish form",
+		showSuccess: true,
+		successMessage: "Form published",
+		onSuccess: () => {
 			setMetadata((prev) => ({ ...prev, status: "published" }));
 			if (formId) {
 				queryClient.invalidateQueries({
@@ -182,24 +155,19 @@ export function FormBuilderPage() {
 				});
 			}
 		},
-		onError: () => {
-			toast.error("Failed to publish form");
-		},
 	});
 
-	const unpublishFormMutation = useMutation({
-		...FormRpc.unpublishForm(),
+	const unpublishFormMutation = useRpcMutation(FormRpc.unpublishForm(), {
+		operation: "unpublish form",
+		showSuccess: true,
+		successMessage: "Form unpublished",
 		onSuccess: () => {
-			toast.success("Form unpublished");
 			setMetadata((prev) => ({ ...prev, status: "draft" }));
 			if (formId) {
 				queryClient.invalidateQueries({
 					queryKey: [...FormRpc.forms(), "byId", formId],
 				});
 			}
-		},
-		onError: () => {
-			toast.error("Failed to unpublish form");
 		},
 	});
 
@@ -231,7 +199,13 @@ export function FormBuilderPage() {
 		}
 
 		if (isEditing && formId) {
-			await updateFormMutation.mutateAsync({ formId, metadata });
+			await updateFormMutation.mutateAsync({
+				formId,
+				title: metadata.title,
+				description: metadata.description ?? undefined,
+				type: metadata.type,
+				status: metadata.status,
+			});
 		} else {
 			await createFormMutation.mutateAsync({
 				title: metadata.title,

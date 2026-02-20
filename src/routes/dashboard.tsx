@@ -117,7 +117,9 @@ function DashboardLayout() {
 											<BreadcrumbItem key={c.href}>
 												{i < crumbs.length - 1 ? (
 													<BreadcrumbLink asChild>
-														<Link to={c.href}>{c.label}</Link>
+														<Link to={c.href} preload="intent">
+															{c.label}
+														</Link>
 													</BreadcrumbLink>
 												) : (
 													<BreadcrumbPage>{c.label}</BreadcrumbPage>
