@@ -36,6 +36,7 @@ export const getRouter = () => {
 		Sentry.init({
 			dsn: import.meta.env.VITE_SENTRY_DSN,
 			sendDefaultPii: true,
+			spotlight: import.meta.env.DEV,
 		});
 	}
 
