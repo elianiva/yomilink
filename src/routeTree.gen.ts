@@ -147,8 +147,8 @@ export interface FileRoutesByFullPath {
   '/dashboard/forms/take': typeof DashboardFormsTakeRoute
   '/dashboard/goal-map/$goalMapId': typeof DashboardGoalMapGoalMapIdRoute
   '/dashboard/learner-map/$assignmentId': typeof DashboardLearnerMapAssignmentIdRouteWithChildren
-  '/dashboard/assignments': typeof DashboardAssignmentsIndexRoute
-  '/dashboard/forms': typeof DashboardFormsIndexRoute
+  '/dashboard/assignments/': typeof DashboardAssignmentsIndexRoute
+  '/dashboard/forms/': typeof DashboardFormsIndexRoute
   '/dashboard/analytics/$assignmentId/metrics': typeof DashboardAnalyticsAssignmentIdMetricsRoute
   '/dashboard/forms/$formId/results': typeof DashboardFormsFormIdResultsRoute
   '/dashboard/learner-map/$assignmentId/result': typeof DashboardLearnerMapAssignmentIdResultRoute
@@ -212,8 +212,8 @@ export interface FileRouteTypes {
     | '/dashboard/forms/take'
     | '/dashboard/goal-map/$goalMapId'
     | '/dashboard/learner-map/$assignmentId'
-    | '/dashboard/assignments'
-    | '/dashboard/forms'
+    | '/dashboard/assignments/'
+    | '/dashboard/forms/'
     | '/dashboard/analytics/$assignmentId/metrics'
     | '/dashboard/forms/$formId/results'
     | '/dashboard/learner-map/$assignmentId/result'
@@ -316,14 +316,14 @@ declare module '@tanstack/react-router' {
     '/dashboard/forms/': {
       id: '/dashboard/forms/'
       path: '/forms'
-      fullPath: '/dashboard/forms'
+      fullPath: '/dashboard/forms/'
       preLoaderRoute: typeof DashboardFormsIndexRouteImport
       parentRoute: typeof DashboardRoute
     }
     '/dashboard/assignments/': {
       id: '/dashboard/assignments/'
       path: '/assignments'
-      fullPath: '/dashboard/assignments'
+      fullPath: '/dashboard/assignments/'
       preLoaderRoute: typeof DashboardAssignmentsIndexRouteImport
       parentRoute: typeof DashboardRoute
     }

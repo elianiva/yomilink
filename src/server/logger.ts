@@ -1,5 +1,5 @@
 import * as Sentry from "@sentry/tanstackstart-react";
-import { Cause, HashMap, Logger, LogLevel, Option } from "effect";
+import { Cause, HashMap, Logger, LogLevel } from "effect";
 
 /**
  * Sentry logger that captures error-level logs as Sentry events.
@@ -18,27 +18,68 @@ const SentryLogger = Logger.make<unknown, void>(
 			tags[key] = String(value);
 		});
 
-		// Check if cause contains an actual defect (Die = unexpected exception)
-		const defect = Cause.dieOption(cause);
-
-		if (Option.isSome(defect)) {
-			// We have an actual exception - capture it
-			Sentry.captureException(defect.value, {
-				level: logLevel === LogLevel.Fatal ? "fatal" : "error",
-				tags,
-				extra: { message: String(message) },
-			});
-		} else {
-			// Just a log message without exception - capture as message
-			Sentry.captureMessage(String(message), {
-				level: logLevel === LogLevel.Fatal ? "fatal" : "error",
-				tags,
-			});
-		}
+		// Pattern match on the cause to handle defects, failures, or empty
+		Cause.match(cause, {
+			onEmpty: () =>
+				Sentry.captureMessage(String(message), {
+					level: logLevel === LogLevel.Fatal ? "fatal" : "error",
+					tags,
+				}),
+			onDie: (defect) => {
+				Sentry.captureException(defect, {
+					level: logLevel === LogLevel.Fatal ? "fatal" : "error",
+					tags,
+					extra: { message: String(message) },
+				});
+				return undefined;
+			},
+			onInterrupt: () => {
+				Sentry.captureMessage("Fiber interrupted", {
+					level: logLevel === LogLevel.Fatal ? "fatal" : "error",
+					tags,
+					extra: { message: String(message) },
+				});
+				return undefined;
+			},
+			onFail: (typedError) => {
+				// Extract underlying error if present (e.g., SqlError.cause = DrizzleQueryError)
+				const exceptionToCapture =
+					typeof typedError === "object" &&
+					typedError !== null &&
+					"cause" in typedError &&
+					typedError.cause instanceof Error
+						? typedError.cause
+						: typedError;
+				Sentry.captureException(exceptionToCapture, {
+					level: logLevel === LogLevel.Fatal ? "fatal" : "error",
+					tags,
+					extra: {
+						message: String(message),
+						...(typeof typedError === "object" && typedError !== null
+							? { originalError: JSON.stringify(typedError) }
+							: {}),
+					},
+				});
+				return undefined;
+			},
+			onSequential: (left, right) => {
+				Sentry.captureMessage(`Sequential errors: ${String(message)}`, {
+					level: logLevel === LogLevel.Fatal ? "fatal" : "error",
+					tags,
+					extra: { left, right },
+				});
+				return undefined;
+			},
+			onParallel: (left, right) => {
+				Sentry.captureMessage(`Parallel errors: ${String(message)}`, {
+					level: logLevel === LogLevel.Fatal ? "fatal" : "error",
+					tags,
+					extra: { left, right },
+				});
+				return undefined;
+			},
+		});
 	},
 );
 
-export const LoggerLive =
-	process.env.NODE_ENV === "production"
-		? Logger.replace(Logger.defaultLogger, SentryLogger)
-		: Logger.pretty;
+export const LoggerLive = Logger.replace(Logger.defaultLogger, SentryLogger);

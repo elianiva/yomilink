@@ -1,17 +1,18 @@
-import { Effect } from "effect";
+import { Cause, type Data, Effect } from "effect";
 
 /**
  * Log an error with operation context.
  * Use with Effect.tapError for error-only logging.
  */
-export const logRpcError = (operationName: string) => (error: Error) =>
-	Effect.logError("RPC operation failed").pipe(
-		Effect.annotateLogs({
-			operation: operationName,
-			errorTag: (error as { _tag?: string })?._tag ?? "Unknown",
-			message: error.message,
-		}),
-	);
+export const logRpcError =
+	(operationName: string) =>
+	<TError extends typeof Data.TaggedError>(error: TError) =>
+		Effect.logError("RPC operation failed", Cause.fail(error)).pipe(
+			Effect.annotateLogs({
+				operation: operationName,
+				errorTag: (error as { _tag?: string })?._tag ?? "Unknown",
+			}),
+		);
 
 /**
  * Create a standardized error response.

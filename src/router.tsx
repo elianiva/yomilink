@@ -37,6 +37,13 @@ export const getRouter = () => {
 			dsn: import.meta.env.VITE_SENTRY_DSN,
 			sendDefaultPii: true,
 			spotlight: import.meta.env.DEV,
+			integrations: [
+        Sentry.tanstackRouterBrowserTracingIntegration(router),
+				Sentry.spotlightBrowserIntegration(),
+				Sentry.captureConsoleIntegration({
+					levels: ["log", "info", "warn", "error", "debug"],
+				}),
+			],
 		});
 	}
 
