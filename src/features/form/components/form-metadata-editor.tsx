@@ -112,7 +112,7 @@ export function FormMetadataEditor({
 					<SelectContent>
 						{(Object.keys(formTypeLabels) as FormType[]).map((type) => (
 							<SelectItem key={type} value={type}>
-								<div className="flex flex-col">
+								<div className="flex flex-col text-left">
 									<span>{formTypeLabels[type]}</span>
 									<span className="text-xs text-muted-foreground">
 										{formTypeDescriptions[type]}
