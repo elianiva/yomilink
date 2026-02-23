@@ -16,12 +16,12 @@ interface MyRouterContext {
 	queryClient: QueryClient;
 }
 
+const isDev = import.meta.env.DEV;
+
 // Lazy load dev tools only in development
 const DevTools = lazy(() =>
-	import("./__root.devtools").then((m) => ({ default: m.DevTools })),
+	import("../components/devtools.tsx").then((m) => ({ default: m.DevTools })),
 );
-
-const isDev = import.meta.env.DEV;
 
 export const Route = createRootRouteWithContext<MyRouterContext>()({
 	head: () => ({

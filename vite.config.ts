@@ -5,6 +5,12 @@ import tailwindcss from '@tailwindcss/vite'
 import { cloudflare } from '@cloudflare/vite-plugin'
 
 export default defineConfig({
+  resolve: {
+    conditions: ['development', 'module', 'browser', 'default'],
+    alias: {
+      "@": new URL("./src/", import.meta.url).pathname,
+    },
+  },
   plugins: [
     // Disable Cloudflare plugin during tests to avoid incompatible options
     cloudflare({ viteEnvironment: { name: 'ssr' } }),
@@ -12,9 +18,4 @@ export default defineConfig({
     tanstackStart(),
     viteReact(),
   ],
-  resolve: {
-    alias: {
-			"@": new URL("./src/", import.meta.url).pathname,
-    }
-  }
 })
