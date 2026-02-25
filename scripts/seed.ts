@@ -2,13 +2,14 @@ import { readdirSync, readFileSync } from "node:fs";
 import { join } from "node:path";
 import { eq } from "drizzle-orm";
 import { Effect, Layer, Logger, Schema } from "effect";
+import { AppLayer } from "@/server/app-layer";
 
 // Use Bun's built-in YAML parser
 // @ts-expect-error - Bun global is available at runtime
 const YAML: { parse: (input: string) => unknown } = globalThis.Bun.YAML;
 import { Auth } from "@/lib/auth";
 import { randomString } from "@/lib/utils";
-import { Database, DatabaseLive } from "@/server/db/client";
+import { Database } from "@/server/db/client";
 import {
 	assignments,
 	assignmentTargets,
@@ -1033,7 +1034,7 @@ const program = Effect.gen(function* () {
 			"    - ito, nakamura, kobayashi, kato, matsumoto\n",
 	);
 }).pipe(
-	Effect.provide(Layer.mergeAll(DatabaseLive, Auth.Default, Logger.pretty)),
+	Effect.provide(Layer.mergeAll(AppLayer, Auth.Default, Logger.pretty)),
 );
 
 Effect.runPromise(program);

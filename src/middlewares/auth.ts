@@ -1,10 +1,8 @@
 import { redirect } from "@tanstack/react-router";
 import { createMiddleware } from "@tanstack/react-start";
-import { Effect, Layer } from "effect";
+import { Effect } from "effect";
 import { getServerUser } from "@/lib/auth";
-import { DatabaseLive } from "@/server/db/client";
-import { LoggerLive } from "@/server/logger";
-import { ServerTelemetry } from "@/server/telemetry";
+import { AppLayer } from "@/server/app-layer";
 import { requireAnyRole } from "@/lib/auth-authorization";
 
 /**
@@ -59,7 +57,7 @@ export const requireRoleMiddleware = (...roles: string[]) =>
 		.server(async ({ next, context }) => {
 			try {
 				await requireAnyRole(...roles)(context.user.id).pipe(
-					Effect.provide(Layer.mergeAll(DatabaseLive, LoggerLive, ServerTelemetry)),
+					Effect.provide(AppLayer),
 					Effect.runPromise,
 				);
 			} catch (error) {

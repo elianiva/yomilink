@@ -1,6 +1,6 @@
 import { mutationOptions, queryOptions } from "@tanstack/react-query";
 import { createServerFn } from "@tanstack/react-start";
-import { Effect, Layer, Schema } from "effect";
+import { Effect, Schema } from "effect";
 import { authMiddleware } from "@/middlewares/auth";
 import {
 	listStudentAssignments,
@@ -19,9 +19,7 @@ import {
 	GetPeerStatsInput,
 	SubmitControlTextInput,
 } from "@/features/learner-map/lib/learner-map-service";
-import { DatabaseLive } from "../db/client";
-import { LoggerLive } from "../logger";
-import { ServerTelemetry } from "../telemetry";
+import { AppLayer } from "../app-layer";
 import { errorResponse, logRpcError } from "../rpc-helper";
 
 export const listStudentAssignmentsRpc = createServerFn()
@@ -31,7 +29,7 @@ export const listStudentAssignmentsRpc = createServerFn()
 			Effect.withSpan("listStudentAssignments"),
 			Effect.tapError(logRpcError("listStudentAssignments")),
 			Effect.catchAll(() => errorResponse("Internal server error")),
-			Effect.provide(Layer.mergeAll(DatabaseLive, LoggerLive, ServerTelemetry)),
+			Effect.provide(AppLayer),
 			Effect.runPromise,
 		),
 	);
@@ -46,7 +44,7 @@ export const getAssignmentForStudentRpc = createServerFn()
 			Effect.withSpan("getAssignmentForStudent"),
 			Effect.tapError(logRpcError("getAssignmentForStudent")),
 			Effect.catchAll(() => errorResponse("Internal server error")),
-			Effect.provide(Layer.mergeAll(DatabaseLive, LoggerLive, ServerTelemetry)),
+			Effect.provide(AppLayer),
 			Effect.runPromise,
 		),
 	);
@@ -57,7 +55,7 @@ export const saveLearnerMapRpc = createServerFn()
 	.handler(({ data, context }) =>
 		saveLearnerMap(context.user.id, data).pipe(
 			Effect.withSpan("saveLearnerMap"),
-			Effect.provide(Layer.mergeAll(DatabaseLive, LoggerLive, ServerTelemetry)),
+			Effect.provide(AppLayer),
 			Effect.runPromise,
 		),
 	);
@@ -70,7 +68,7 @@ export const submitLearnerMapRpc = createServerFn()
 			Effect.withSpan("submitLearnerMap"),
 			Effect.tapError(logRpcError("submitLearnerMap")),
 			Effect.catchAll(() => errorResponse("Internal server error")),
-			Effect.provide(Layer.mergeAll(DatabaseLive, LoggerLive, ServerTelemetry)),
+			Effect.provide(AppLayer),
 			Effect.runPromise,
 		),
 	);
@@ -83,7 +81,7 @@ export const getDiagnosisRpc = createServerFn()
 			Effect.withSpan("getDiagnosis"),
 			Effect.tapError(logRpcError("getDiagnosis")),
 			Effect.catchAll(() => errorResponse("Internal server error")),
-			Effect.provide(Layer.mergeAll(DatabaseLive, LoggerLive, ServerTelemetry)),
+			Effect.provide(AppLayer),
 			Effect.runPromise,
 		),
 	);
@@ -96,7 +94,7 @@ export const startNewAttemptRpc = createServerFn()
 			Effect.withSpan("startNewAttempt"),
 			Effect.tapError(logRpcError("startNewAttempt")),
 			Effect.catchAll(() => errorResponse("Internal server error")),
-			Effect.provide(Layer.mergeAll(DatabaseLive, LoggerLive, ServerTelemetry)),
+			Effect.provide(AppLayer),
 			Effect.runPromise,
 		),
 	);
@@ -109,7 +107,7 @@ export const getPeerStatsRpc = createServerFn()
 			Effect.withSpan("getPeerStats"),
 			Effect.tapError(logRpcError("getPeerStats")),
 			Effect.catchAll(() => errorResponse("Internal server error")),
-			Effect.provide(Layer.mergeAll(DatabaseLive, LoggerLive, ServerTelemetry)),
+			Effect.provide(AppLayer),
 			Effect.runPromise,
 		),
 	);
@@ -124,7 +122,7 @@ export const submitControlTextRpc = createServerFn()
 			Effect.withSpan("submitControlText"),
 			Effect.tapError(logRpcError("submitControlText")),
 			Effect.catchAll(() => errorResponse("Internal server error")),
-			Effect.provide(Layer.mergeAll(DatabaseLive, LoggerLive, ServerTelemetry)),
+			Effect.provide(AppLayer),
 			Effect.runPromise,
 		),
 	);

@@ -1,6 +1,6 @@
 import { mutationOptions, queryOptions } from "@tanstack/react-query";
 import { createServerFn } from "@tanstack/react-start";
-import { Effect, Layer, Schema } from "effect";
+import { Effect, Schema } from "effect";
 import {
 	GenerateKitInput,
 	GetKitInput,
@@ -11,9 +11,7 @@ import {
 	listStudentKits,
 } from "@/features/kit/lib/kit-service";
 import { requireRoleMiddleware } from "@/middlewares/auth";
-import { DatabaseLive } from "../db/client";
-import { LoggerLive } from "../logger";
-import { ServerTelemetry } from "../telemetry";
+import { AppLayer } from "../app-layer";
 import { errorResponse, logRpcError } from "../rpc-helper";
 
 export const listStudentKitsRpc = createServerFn()
@@ -23,7 +21,7 @@ export const listStudentKitsRpc = createServerFn()
 			Effect.withSpan("listStudentKits"),
 			Effect.tapError(logRpcError("generateKit")),
 			Effect.catchAll(() => errorResponse("Internal server error")),
-			Effect.provide(Layer.mergeAll(DatabaseLive, LoggerLive, ServerTelemetry)),
+			Effect.provide(AppLayer),
 			Effect.runPromise,
 		),
 	);
@@ -36,7 +34,7 @@ export const getKitRpc = createServerFn()
 			Effect.withSpan("getKit"),
 			Effect.tapError(logRpcError("generateKit")),
 			Effect.catchAll(() => errorResponse("Internal server error")),
-			Effect.provide(Layer.mergeAll(DatabaseLive, LoggerLive, ServerTelemetry)),
+			Effect.provide(AppLayer),
 			Effect.runPromise,
 		),
 	);
@@ -49,7 +47,7 @@ export const getKitStatusRpc = createServerFn()
 			Effect.withSpan("getKitStatus"),
 			Effect.tapError(logRpcError("generateKit")),
 			Effect.catchAll(() => errorResponse("Internal server error")),
-			Effect.provide(Layer.mergeAll(DatabaseLive, LoggerLive, ServerTelemetry)),
+			Effect.provide(AppLayer),
 			Effect.runPromise,
 		),
 	);
@@ -66,7 +64,7 @@ export const generateKitRpc = createServerFn()
 					errorResponse(`Goal map ${e.goalMapId} not found`),
 			}),
 			Effect.catchAll(() => errorResponse("Internal server error")),
-			Effect.provide(Layer.mergeAll(DatabaseLive, LoggerLive, ServerTelemetry)),
+			Effect.provide(AppLayer),
 			Effect.runPromise,
 		),
 	);

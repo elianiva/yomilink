@@ -1,6 +1,6 @@
 import { mutationOptions, queryOptions } from "@tanstack/react-query";
 import { createServerFn } from "@tanstack/react-start";
-import { Effect, Layer, Schema } from "effect";
+import { Effect, Schema } from "effect";
 import { requireRoleMiddleware } from "@/middlewares/auth";
 import {
 	createAssignment,
@@ -12,9 +12,7 @@ import {
 	CreateAssignmentInput,
 	DeleteAssignmentInput,
 } from "@/features/assignment/lib/assignment-service";
-import { DatabaseLive } from "../db/client";
-import { LoggerLive } from "../logger";
-import { ServerTelemetry } from "../telemetry";
+import { AppLayer } from "../app-layer";
 import { errorResponse, logRpcError } from "../rpc-helper";
 
 export const createAssignmentRpc = createServerFn()
@@ -24,7 +22,7 @@ export const createAssignmentRpc = createServerFn()
 		createAssignment(context.user.id, data).pipe(
 			Effect.withSpan("createAssignment"),
 			Effect.tapError(logRpcError("createAssignment")),
-			Effect.provide(Layer.mergeAll(DatabaseLive, LoggerLive, ServerTelemetry)),
+			Effect.provide(AppLayer),
 			Effect.catchTags({
 				KitNotFoundError: (e) =>
 					errorResponse(`Kit not found for goal map: ${e.goalMapId}`),
@@ -41,7 +39,7 @@ export const listTeacherAssignmentsRpc = createServerFn()
 			Effect.withSpan("listTeacherAssignments"),
 			Effect.tapError(logRpcError("listTeacherAssignments")),
 			Effect.catchAll(() => errorResponse("Internal server error")),
-			Effect.provide(Layer.mergeAll(DatabaseLive, LoggerLive, ServerTelemetry)),
+			Effect.provide(AppLayer),
 			Effect.runPromise,
 		),
 	);
@@ -58,7 +56,7 @@ export const deleteAssignmentRpc = createServerFn()
 					errorResponse(`Assignment not found: ${e.assignmentId}`),
 			}),
 			Effect.catchAll(() => errorResponse("Internal server error")),
-			Effect.provide(Layer.mergeAll(DatabaseLive, LoggerLive, ServerTelemetry)),
+			Effect.provide(AppLayer),
 			Effect.runPromise,
 		),
 	);
@@ -70,7 +68,7 @@ export const getAvailableCohortsRpc = createServerFn()
 			Effect.withSpan("getAvailableCohorts"),
 			Effect.tapError(logRpcError("getAvailableCohorts")),
 			Effect.catchAll(() => errorResponse("Internal server error")),
-			Effect.provide(Layer.mergeAll(DatabaseLive, LoggerLive, ServerTelemetry)),
+			Effect.provide(AppLayer),
 			Effect.runPromise,
 		),
 	);
@@ -82,7 +80,7 @@ export const getAvailableUsersRpc = createServerFn()
 			Effect.withSpan("getAvailableUsers"),
 			Effect.tapError(logRpcError("getAvailableUsers")),
 			Effect.catchAll(() => errorResponse("Internal server error")),
-			Effect.provide(Layer.mergeAll(DatabaseLive, LoggerLive, ServerTelemetry)),
+			Effect.provide(AppLayer),
 			Effect.runPromise,
 		),
 	);
@@ -94,7 +92,7 @@ export const getTeacherGoalMapsRpc = createServerFn()
 			Effect.withSpan("getTeacherGoalMaps"),
 			Effect.tapError(logRpcError("getTeacherGoalMaps")),
 			Effect.catchAll(() => errorResponse("Internal server error")),
-			Effect.provide(Layer.mergeAll(DatabaseLive, LoggerLive, ServerTelemetry)),
+			Effect.provide(AppLayer),
 			Effect.runPromise,
 		),
 	);

@@ -8,7 +8,7 @@ import { ac, roles } from "@/lib/auth-permissions";
 import { Database, DatabaseLive } from "@/server/db/client";
 import * as appSchema from "@/server/db/schema/app-schema";
 import * as authSchema from "@/server/db/schema/auth-schema";
-import { ServerTelemetry } from "@/server/telemetry";
+import { AppLayer } from "@/server/app-layer";
 
 export class Auth extends Effect.Service<Auth>()("Auth", {
 	effect: Effect.gen(function* () {
@@ -67,12 +67,12 @@ export function getServerUser(headers: Headers) {
 				const errorDetails =
 					e instanceof Error
 						? {
-								message: e.message,
-								stack: e.stack,
-							}
+							message: e.message,
+							stack: e.stack,
+						}
 						: {
-								message: String(e),
-							};
+							message: String(e),
+						};
 				return Effect.logError(
 					"Failed to get user session from auth",
 					errorDetails,
@@ -85,7 +85,7 @@ export function getServerUser(headers: Headers) {
 		return user;
 	}).pipe(
 		Effect.withSpan("getServerUser"),
-		Effect.provide(Layer.mergeAll(Auth.Default, ServerTelemetry)),
+		Effect.provide(Layer.mergeAll(Auth.Default, AppLayer)),
 		Effect.runPromise,
 	);
 }

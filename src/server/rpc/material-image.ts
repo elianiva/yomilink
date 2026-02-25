@@ -6,9 +6,7 @@ import {
 	uploadMaterialImage,
 	UploadMaterialImageInput,
 } from "@/features/analyzer/lib/material-image-service";
-import { LoggerLive } from "../logger";
-import { ServerTelemetry } from "../telemetry";
-import { Layer } from "effect";
+import { AppLayer } from "../app-layer";
 import { errorResponse, logRpcError } from "../rpc-helper";
 
 export const uploadMaterialImageRpc = createServerFn()
@@ -31,7 +29,7 @@ export const uploadMaterialImageRpc = createServerFn()
 					),
 				UnknownException: () => errorResponse("Failed to upload image"),
 			}),
-			Effect.provide(Layer.mergeAll(LoggerLive, ServerTelemetry)),
+			Effect.provide(AppLayer),
 			Effect.runPromise,
 		),
 	);

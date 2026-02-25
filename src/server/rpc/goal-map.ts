@@ -1,6 +1,6 @@
 import { mutationOptions, queryOptions } from "@tanstack/react-query";
 import { createServerFn } from "@tanstack/react-start";
-import { Effect, Layer, Schema } from "effect";
+import { Effect, Schema } from "effect";
 import {
 	DeleteGoalMapInput,
 	deleteGoalMap,
@@ -14,9 +14,7 @@ import {
 } from "@/features/goal-map/lib/goal-map-service";
 import { requireGoalMapOwner } from "@/lib/auth-authorization";
 import { authMiddleware } from "@/middlewares/auth";
-import { DatabaseLive } from "../db/client";
-import { LoggerLive } from "../logger";
-import { ServerTelemetry } from "../telemetry";
+import { AppLayer } from "../app-layer";
 import { errorResponse, logRpcError } from "../rpc-helper";
 
 export const getGoalMapRpc = createServerFn()
@@ -27,7 +25,7 @@ export const getGoalMapRpc = createServerFn()
 			Effect.withSpan("getGoalMap"),
 			Effect.tapError(logRpcError("getGoalMap")),
 			Effect.catchAll(() => errorResponse("Internal server error")),
-			Effect.provide(Layer.mergeAll(DatabaseLive, LoggerLive, ServerTelemetry)),
+			Effect.provide(AppLayer),
 			Effect.runPromise,
 		),
 	);
@@ -50,7 +48,7 @@ export const saveGoalMapRpc = createServerFn()
 				ForbiddenError: (e) => errorResponse(e.message),
 			}),
 			Effect.catchAll(() => errorResponse("Internal server error")),
-			Effect.provide(Layer.mergeAll(DatabaseLive, LoggerLive, ServerTelemetry)),
+			Effect.provide(AppLayer),
 			Effect.runPromise,
 		),
 	);
@@ -60,7 +58,7 @@ export const listGoalMapsRpc = createServerFn()
 	.handler(({ context }) =>
 		listGoalMaps(context.user.id).pipe(
 			Effect.withSpan("listGoalMaps"),
-			Effect.provide(Layer.mergeAll(DatabaseLive, LoggerLive, ServerTelemetry)),
+			Effect.provide(AppLayer),
 			Effect.runPromise,
 		),
 	);
@@ -75,7 +73,7 @@ export const listGoalMapsByTopicRpc = createServerFn()
 			Effect.withSpan("listGoalMapsByTopic"),
 			Effect.tapError(logRpcError("listGoalMapsByTopic")),
 			Effect.catchAll(() => errorResponse("Internal server error")),
-			Effect.provide(Layer.mergeAll(DatabaseLive, LoggerLive, ServerTelemetry)),
+			Effect.provide(AppLayer),
 			Effect.runPromise,
 		),
 	);
@@ -93,7 +91,7 @@ export const deleteGoalMapRpc = createServerFn()
 				ForbiddenError: (e) => errorResponse(e.message),
 			}),
 			Effect.catchAll(() => errorResponse("Internal server error")),
-			Effect.provide(Layer.mergeAll(DatabaseLive, LoggerLive, ServerTelemetry)),
+			Effect.provide(AppLayer),
 			Effect.runPromise,
 		),
 	);

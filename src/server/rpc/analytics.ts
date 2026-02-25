@@ -1,6 +1,6 @@
 import { mutationOptions, queryOptions } from "@tanstack/react-query";
 import { createServerFn } from "@tanstack/react-start";
-import { Effect, Layer, Schema } from "effect";
+import { Effect, Schema } from "effect";
 import {
 	ExportAnalyticsDataInput,
 	exportAnalyticsData,
@@ -13,9 +13,7 @@ import {
 	getTeacherAssignments,
 } from "@/features/analyzer/lib/analytics-service";
 import { authMiddleware } from "@/middlewares/auth";
-import { DatabaseLive } from "../db/client";
-import { LoggerLive } from "../logger";
-import { ServerTelemetry } from "../telemetry";
+import { AppLayer } from "../app-layer";
 import { errorResponse, logRpcError } from "../rpc-helper";
 
 export const getTeacherAssignmentsRpc = createServerFn()
@@ -25,7 +23,7 @@ export const getTeacherAssignmentsRpc = createServerFn()
 			Effect.withSpan("getTeacherAssignments"),
 			Effect.tapError(logRpcError("getTeacherAssignments")),
 			Effect.catchAll(() => errorResponse("Internal server error")),
-			Effect.provide(Layer.mergeAll(DatabaseLive, LoggerLive, ServerTelemetry)),
+			Effect.provide(AppLayer),
 			Effect.runPromise,
 		),
 	);
@@ -46,7 +44,7 @@ export const getAnalyticsForAssignmentRpc = createServerFn()
 					errorResponse(`Goal map not found: ${e.goalMapId}`),
 			}),
 			Effect.catchAll(() => errorResponse("Internal server error")),
-			Effect.provide(Layer.mergeAll(DatabaseLive, LoggerLive, ServerTelemetry)),
+			Effect.provide(AppLayer),
 			Effect.runPromise,
 		),
 	);
@@ -60,7 +58,7 @@ export const getLearnerMapForAnalyticsRpc = createServerFn()
 		getLearnerMapForAnalytics(data).pipe(
 			Effect.withSpan("getLearnerMapForAnalytics"),
 			Effect.tapError(logRpcError("getLearnerMapForAnalytics")),
-			Effect.provide(Layer.mergeAll(DatabaseLive, LoggerLive, ServerTelemetry)),
+			Effect.provide(AppLayer),
 			Effect.catchTags({
 				LearnerMapNotFoundError: (e) =>
 					errorResponse(`Learner map not found: ${e.learnerMapId}`),
@@ -81,7 +79,7 @@ export const getMultipleLearnerMapsRpc = createServerFn()
 		getMultipleLearnerMaps(data).pipe(
 			Effect.withSpan("getMultipleLearnerMaps"),
 			Effect.tapError(logRpcError("getMultipleLearnerMaps")),
-			Effect.provide(Layer.mergeAll(DatabaseLive, LoggerLive, ServerTelemetry)),
+			Effect.provide(AppLayer),
 			Effect.catchAll(() => errorResponse("Internal server error")),
 			Effect.runPromise,
 		),
@@ -97,7 +95,7 @@ export const exportAnalyticsDataRpc = createServerFn()
 			Effect.withSpan("exportAnalyticsData"),
 			Effect.tapError(logRpcError("exportAnalyticsData")),
 			Effect.catchAll(() => errorResponse("Internal server error")),
-			Effect.provide(Layer.mergeAll(DatabaseLive, LoggerLive, ServerTelemetry)),
+			Effect.provide(AppLayer),
 			Effect.runPromise,
 		),
 	);

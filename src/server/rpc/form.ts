@@ -1,6 +1,6 @@
 import { mutationOptions, queryOptions } from "@tanstack/react-query";
 import { createServerFn } from "@tanstack/react-start";
-import { Effect, Layer, Schema } from "effect";
+import { Effect, Schema } from "effect";
 import {
 	CloneFormInput,
 	CreateFormInput,
@@ -33,9 +33,7 @@ import {
 	unlockForm,
 } from "@/features/form/lib/unlock-service";
 import { requireRoleMiddleware } from "@/middlewares/auth";
-import { DatabaseLive } from "../db/client";
-import { LoggerLive } from "../logger";
-import { ServerTelemetry } from "../telemetry";
+import { AppLayer } from "../app-layer";
 import { errorResponse, logRpcError } from "../rpc-helper";
 
 const GetFormByIdInput = Schema.Struct({
@@ -51,7 +49,7 @@ export const createFormRpc = createServerFn()
 		createForm(context.user.id, data).pipe(
 			Effect.withSpan("createForm"),
 			Effect.tapError(logRpcError("createForm")),
-			Effect.provide(Layer.mergeAll(DatabaseLive, LoggerLive, ServerTelemetry)),
+			Effect.provide(AppLayer),
 			Effect.catchAll(() => errorResponse("Internal server error")),
 			Effect.runPromise,
 		),
@@ -64,7 +62,7 @@ export const getFormByIdRpc = createServerFn()
 		getFormById(data.id).pipe(
 			Effect.withSpan("getFormById"),
 			Effect.tapError(logRpcError("getFormById")),
-			Effect.provide(Layer.mergeAll(DatabaseLive, LoggerLive, ServerTelemetry)),
+			Effect.provide(AppLayer),
 			Effect.catchTags({
 				FormNotFoundError: () => errorResponse("Form not found"),
 			}),
@@ -79,7 +77,7 @@ export const listFormsRpc = createServerFn()
 		listForms(context.user.id).pipe(
 			Effect.withSpan("listForms"),
 			Effect.tapError(logRpcError("listForms")),
-			Effect.provide(Layer.mergeAll(DatabaseLive, LoggerLive, ServerTelemetry)),
+			Effect.provide(AppLayer),
 			Effect.catchAll(() => errorResponse("Internal server error")),
 			Effect.runPromise,
 		),
@@ -91,7 +89,7 @@ export const getStudentFormsRpc = createServerFn()
 		getStudentForms(context.user.id).pipe(
 			Effect.withSpan("getStudentForms"),
 			Effect.tapError(logRpcError("getStudentForms")),
-			Effect.provide(Layer.mergeAll(DatabaseLive, LoggerLive, ServerTelemetry)),
+			Effect.provide(AppLayer),
 			Effect.catchAll(() => errorResponse("Internal server error")),
 			Effect.runPromise,
 		),
@@ -104,7 +102,7 @@ export const deleteFormRpc = createServerFn()
 		deleteForm(data.id).pipe(
 			Effect.withSpan("deleteForm"),
 			Effect.tapError(logRpcError("deleteForm")),
-			Effect.provide(Layer.mergeAll(DatabaseLive, LoggerLive, ServerTelemetry)),
+			Effect.provide(AppLayer),
 			Effect.catchTags({
 				FormNotFoundError: () => errorResponse("Form not found"),
 			}),
@@ -120,7 +118,7 @@ export const publishFormRpc = createServerFn()
 		publishForm(data.id).pipe(
 			Effect.withSpan("publishForm"),
 			Effect.tapError(logRpcError("publishForm")),
-			Effect.provide(Layer.mergeAll(DatabaseLive, LoggerLive, ServerTelemetry)),
+			Effect.provide(AppLayer),
 			Effect.catchTags({
 				FormNotFoundError: () => errorResponse("Form not found"),
 			}),
@@ -136,7 +134,7 @@ export const unpublishFormRpc = createServerFn()
 		unpublishForm(data.id).pipe(
 			Effect.withSpan("unpublishForm"),
 			Effect.tapError(logRpcError("unpublishForm")),
-			Effect.provide(Layer.mergeAll(DatabaseLive, LoggerLive, ServerTelemetry)),
+			Effect.provide(AppLayer),
 			Effect.catchTags({
 				FormNotFoundError: () => errorResponse("Form not found"),
 			}),
@@ -178,7 +176,7 @@ export const updateFormRpc = createServerFn()
 		}).pipe(
 			Effect.withSpan("updateForm"),
 			Effect.tapError(logRpcError("updateForm")),
-			Effect.provide(Layer.mergeAll(DatabaseLive, LoggerLive, ServerTelemetry)),
+			Effect.provide(AppLayer),
 			Effect.catchTags({
 				FormNotFoundError: () => errorResponse("Form not found"),
 				FormHasResponsesError: () =>
@@ -196,7 +194,7 @@ export const cloneFormRpc = createServerFn()
 		cloneForm(data.formId, context.user.id).pipe(
 			Effect.withSpan("cloneForm"),
 			Effect.tapError(logRpcError("cloneForm")),
-			Effect.provide(Layer.mergeAll(DatabaseLive, LoggerLive, ServerTelemetry)),
+			Effect.provide(AppLayer),
 			Effect.catchTags({
 				FormNotFoundError: () => errorResponse("Form not found"),
 			}),
@@ -212,7 +210,7 @@ export const getFormResponsesRpc = createServerFn()
 		getFormResponses(data).pipe(
 			Effect.withSpan("getFormResponses"),
 			Effect.tapError(logRpcError("getFormResponses")),
-			Effect.provide(Layer.mergeAll(DatabaseLive, LoggerLive, ServerTelemetry)),
+			Effect.provide(AppLayer),
 			Effect.catchTags({
 				FormNotFoundError: () => errorResponse("Form not found"),
 			}),
@@ -230,7 +228,7 @@ export const submitFormResponseRpc = createServerFn()
 		submitFormResponse(data).pipe(
 			Effect.withSpan("submitFormResponse"),
 			Effect.tapError(logRpcError("submitFormResponse")),
-			Effect.provide(Layer.mergeAll(DatabaseLive, LoggerLive, ServerTelemetry)),
+			Effect.provide(AppLayer),
 			Effect.catchTags({
 				FormNotFoundError: () => errorResponse("Form not found"),
 				FormNotPublishedError: () => errorResponse("Form is not published"),
@@ -249,7 +247,7 @@ export const reorderQuestionsRpc = createServerFn()
 		reorderQuestions(data).pipe(
 			Effect.withSpan("reorderQuestions"),
 			Effect.tapError(logRpcError("reorderQuestions")),
-			Effect.provide(Layer.mergeAll(DatabaseLive, LoggerLive, ServerTelemetry)),
+			Effect.provide(AppLayer),
 			Effect.catchTags({
 				FormNotFoundError: () => errorResponse("Form not found"),
 				FormHasResponsesError: () =>
@@ -271,7 +269,7 @@ export const createQuestionRpc = createServerFn()
 		createQuestion(data).pipe(
 			Effect.withSpan("createQuestion"),
 			Effect.tapError(logRpcError("createQuestion")),
-			Effect.provide(Layer.mergeAll(DatabaseLive, LoggerLive, ServerTelemetry)),
+			Effect.provide(AppLayer),
 			Effect.catchTags({
 				FormNotFoundError: () => errorResponse("Form not found"),
 				FormHasResponsesError: () =>
@@ -295,7 +293,7 @@ export const updateQuestionRpc = createServerFn()
 		updateQuestion(data).pipe(
 			Effect.withSpan("updateQuestion"),
 			Effect.tapError(logRpcError("updateQuestion")),
-			Effect.provide(Layer.mergeAll(DatabaseLive, LoggerLive, ServerTelemetry)),
+			Effect.provide(AppLayer),
 			Effect.catchTags({
 				QuestionNotFoundError: () => errorResponse("Question not found"),
 				FormHasResponsesError: () =>
@@ -313,7 +311,7 @@ export const deleteQuestionRpc = createServerFn()
 		deleteQuestion(data.id).pipe(
 			Effect.withSpan("deleteQuestion"),
 			Effect.tapError(logRpcError("deleteQuestion")),
-			Effect.provide(Layer.mergeAll(DatabaseLive, LoggerLive, ServerTelemetry)),
+			Effect.provide(AppLayer),
 			Effect.catchTags({
 				QuestionNotFoundError: () => errorResponse("Question not found"),
 				FormHasResponsesError: () =>
@@ -331,7 +329,7 @@ export const checkFormUnlockRpc = createServerFn()
 		checkFormUnlock({ formId: data.formId, userId: context.user.id }).pipe(
 			Effect.withSpan("checkFormUnlock"),
 			Effect.tapError(logRpcError("checkFormUnlock")),
-			Effect.provide(Layer.mergeAll(DatabaseLive, LoggerLive, ServerTelemetry)),
+			Effect.provide(AppLayer),
 			Effect.catchTags({
 				FormNotFoundError: () => errorResponse("Form not found"),
 			}),
@@ -347,7 +345,7 @@ export const unlockFormRpc = createServerFn()
 		unlockForm({ formId: data.formId, userId: data.userId }).pipe(
 			Effect.withSpan("unlockForm"),
 			Effect.tapError(logRpcError("unlockForm")),
-			Effect.provide(Layer.mergeAll(DatabaseLive, LoggerLive, ServerTelemetry)),
+			Effect.provide(AppLayer),
 			Effect.catchAll(() => errorResponse("Internal server error")),
 			Effect.runPromise,
 		),
@@ -359,7 +357,7 @@ export const getRegistrationFormStatusRpc = createServerFn()
 		getRegistrationFormStatus(context.user.id).pipe(
 			Effect.withSpan("getRegistrationFormStatus"),
 			Effect.tapError(logRpcError("getRegistrationFormStatus")),
-			Effect.provide(Layer.mergeAll(DatabaseLive, LoggerLive, ServerTelemetry)),
+			Effect.provide(AppLayer),
 			Effect.catchAll(() => errorResponse("Internal server error")),
 			Effect.runPromise,
 		),

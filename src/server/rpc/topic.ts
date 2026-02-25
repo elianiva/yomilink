@@ -1,15 +1,13 @@
 import { mutationOptions, queryOptions } from "@tanstack/react-query";
 import { createServerFn } from "@tanstack/react-start";
-import { Effect, Layer, Schema } from "effect";
+import { Effect, Schema } from "effect";
 import { authMiddleware } from "@/middlewares/auth";
 import {
 	listTopics,
 	createTopic,
 	CreateTopicInput,
 } from "@/features/analyzer/lib/topic-service";
-import { DatabaseLive } from "../db/client";
-import { LoggerLive } from "../logger";
-import { ServerTelemetry } from "../telemetry";
+import { AppLayer } from "../app-layer";
 import { errorResponse, logRpcError } from "../rpc-helper";
 
 export const listTopicsRpc = createServerFn()
@@ -19,7 +17,7 @@ export const listTopicsRpc = createServerFn()
 			Effect.withSpan("listTopics"),
 			Effect.tapError(logRpcError("listTopics")),
 			Effect.catchAll(() => errorResponse("Internal server error")),
-			Effect.provide(Layer.mergeAll(DatabaseLive, LoggerLive, ServerTelemetry)),
+			Effect.provide(AppLayer),
 			Effect.runPromise,
 		),
 	);
@@ -32,7 +30,7 @@ export const createTopicRpc = createServerFn()
 			Effect.withSpan("createTopic"),
 			Effect.tapError(logRpcError("createTopic")),
 			Effect.catchAll(() => errorResponse("Internal server error")),
-			Effect.provide(Layer.mergeAll(DatabaseLive, LoggerLive, ServerTelemetry)),
+			Effect.provide(AppLayer),
 			Effect.runPromise,
 		),
 	);
