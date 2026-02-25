@@ -8,7 +8,7 @@ import { ac, roles } from "@/lib/auth-permissions";
 import { Database, DatabaseLive } from "@/server/db/client";
 import * as appSchema from "@/server/db/schema/app-schema";
 import * as authSchema from "@/server/db/schema/auth-schema";
-import { Telemetry } from "@/server/telemetry";
+import { ServerTelemetry } from "@/server/telemetry";
 
 export class Auth extends Effect.Service<Auth>()("Auth", {
 	effect: Effect.gen(function* () {
@@ -85,7 +85,7 @@ export function getServerUser(headers: Headers) {
 		return user;
 	}).pipe(
 		Effect.withSpan("getServerUser"),
-		Effect.provide(Layer.mergeAll(Auth.Default, Telemetry)),
+		Effect.provide(Layer.mergeAll(Auth.Default, ServerTelemetry)),
 		Effect.runPromise,
 	);
 }

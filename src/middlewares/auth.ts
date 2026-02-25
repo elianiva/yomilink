@@ -4,6 +4,7 @@ import { Effect, Layer } from "effect";
 import { getServerUser } from "@/lib/auth";
 import { DatabaseLive } from "@/server/db/client";
 import { LoggerLive } from "@/server/logger";
+import { ServerTelemetry } from "@/server/telemetry";
 import { requireAnyRole } from "@/lib/auth-authorization";
 
 /**
@@ -58,7 +59,7 @@ export const requireRoleMiddleware = (...roles: string[]) =>
 		.server(async ({ next, context }) => {
 			try {
 				await requireAnyRole(...roles)(context.user.id).pipe(
-					Effect.provide(Layer.mergeAll(DatabaseLive, LoggerLive)),
+					Effect.provide(Layer.mergeAll(DatabaseLive, LoggerLive, ServerTelemetry)),
 					Effect.runPromise,
 				);
 			} catch (error) {

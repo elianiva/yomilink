@@ -9,6 +9,7 @@ import {
 } from "@/features/analyzer/lib/topic-service";
 import { DatabaseLive } from "../db/client";
 import { LoggerLive } from "../logger";
+import { ServerTelemetry } from "../telemetry";
 import { errorResponse, logRpcError } from "../rpc-helper";
 
 export const listTopicsRpc = createServerFn()
@@ -18,7 +19,7 @@ export const listTopicsRpc = createServerFn()
 			Effect.withSpan("listTopics"),
 			Effect.tapError(logRpcError("listTopics")),
 			Effect.catchAll(() => errorResponse("Internal server error")),
-			Effect.provide(Layer.mergeAll(DatabaseLive, LoggerLive)),
+			Effect.provide(Layer.mergeAll(DatabaseLive, LoggerLive, ServerTelemetry)),
 			Effect.runPromise,
 		),
 	);
@@ -31,7 +32,7 @@ export const createTopicRpc = createServerFn()
 			Effect.withSpan("createTopic"),
 			Effect.tapError(logRpcError("createTopic")),
 			Effect.catchAll(() => errorResponse("Internal server error")),
-			Effect.provide(Layer.mergeAll(DatabaseLive, LoggerLive)),
+			Effect.provide(Layer.mergeAll(DatabaseLive, LoggerLive, ServerTelemetry)),
 			Effect.runPromise,
 		),
 	);
