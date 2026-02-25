@@ -75,3 +75,8 @@ export function safeParseJson<S extends Schema.Schema<any, any, any>>(
 			)
 		: parseJson(input).pipe(Effect.orElse(() => Effect.succeed(defaultValue)));
 }
+
+export function roundToDecimals(value: number, decimals: number): number {
+	const factor = 10 ** decimals;
+	return Math.round(value * factor) / factor;
+}

@@ -1,7 +1,12 @@
 import { and, desc, eq, inArray, or } from "drizzle-orm";
-import { Effect, Schema } from "effect";
+import { Data, Effect, Schema } from "effect";
 import { PerLinkDiagnosisSchema } from "@/features/analyzer/lib/analytics-service";
-import { parseJson, randomString, safeParseJson } from "@/lib/utils";
+import {
+	parseJson,
+	randomString,
+	roundToDecimals,
+	safeParseJson,
+} from "@/lib/utils";
 import { Database } from "@/server/db/client";
 import {
 	assignments,
@@ -14,6 +19,31 @@ import {
 } from "@/server/db/schema/app-schema";
 import { cohortMembers } from "@/server/db/schema/auth-schema";
 import { compareMaps, EdgeSchema, NodeSchema } from "./comparator";
+
+export class AssignmentNotFoundError extends Data.TaggedError(
+	"AssignmentNotFoundError",
+)<{
+	readonly assignmentId: string;
+}> {}
+
+export class LearnerMapNotFoundError extends Data.TaggedError(
+	"LearnerMapNotFoundError",
+)<{
+	readonly assignmentId: string;
+	readonly userId: string;
+}> {}
+
+export class LearnerMapAlreadySubmittedError extends Data.TaggedError(
+	"LearnerMapAlreadySubmittedError",
+)<{
+	readonly learnerMapId: string;
+}> {}
+
+export class GoalMapNotFoundError extends Data.TaggedError(
+	"GoalMapNotFoundError",
+)<{
+	readonly goalMapId: string;
+}> {}
 
 export const GetAssignmentForStudentInput = Schema.Struct({
 	assignmentId: Schema.NonEmptyString,
@@ -545,11 +575,11 @@ export const getPeerStats = Effect.fn("getPeerStats")(
 
 			return {
 				count: peerScores.length,
-				avgScore: Math.round(avgScore * 100) / 100,
-				medianScore: Math.round(medianScore * 100) / 100,
-				highestScore: Math.round(highestScore * 100) / 100,
-				lowestScore: Math.round(lowestScore * 100) / 100,
-				userPercentile: Math.round(userPercentile * 10) / 10,
+				avgScore: roundToDecimals(avgScore, 2),
+				medianScore: roundToDecimals(medianScore, 2),
+				highestScore: roundToDecimals(highestScore, 2),
+				lowestScore: roundToDecimals(lowestScore, 2),
+				userPercentile: roundToDecimals(userPercentile, 1),
 			};
 		}),
 );

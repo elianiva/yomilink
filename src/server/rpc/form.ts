@@ -175,10 +175,6 @@ export const updateFormRpc = createServerFn()
 			type: data.type,
 			status: data.status,
 		}).pipe(
-			Effect.map((result) => ({
-				...result,
-				unlockConditions: result.unlockConditions as {} | undefined,
-			})),
 			Effect.withSpan("updateForm"),
 			Effect.tapError(logRpcError("updateForm")),
 			Effect.provide(Layer.mergeAll(DatabaseLive, LoggerLive)),
@@ -256,8 +252,10 @@ export const reorderQuestionsRpc = createServerFn()
 			Effect.catchTags({
 				FormNotFoundError: () => errorResponse("Form not found"),
 				FormHasResponsesError: () =>
+					errorResponse("Cannot reorder questions: form has responses"),
+				InvalidQuestionOrderError: () =>
 					errorResponse(
-						"Cannot reorder questions: form has responses or invalid question IDs",
+						"Invalid question order: question count mismatch or invalid IDs",
 					),
 			}),
 			Effect.catchAll(() => errorResponse("Internal server error")),

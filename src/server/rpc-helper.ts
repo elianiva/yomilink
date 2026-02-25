@@ -6,7 +6,7 @@ import { Cause, type Data, Effect } from "effect";
  */
 export const logRpcError =
 	(operationName: string) =>
-	<TError extends typeof Data.TaggedError>(error: TError) =>
+	<TError = typeof Data.TaggedError>(error: TError) =>
 		Effect.logError("RPC operation failed", Cause.fail(error)).pipe(
 			Effect.annotateLogs({
 				operation: operationName,

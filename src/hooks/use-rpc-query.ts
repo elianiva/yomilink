@@ -189,7 +189,6 @@ export type UseRpcMutationConfig = {
 	onSuccess?: (data: any) => void;
 };
 
-// some other changes
 
 /**
  * Extended result type for useRpcMutation.
@@ -272,8 +271,7 @@ export function useRpcMutation<TData, TVariables, TContext = unknown>(
 		onSuccess: configOnSuccess,
 	} = config;
 
-	// another changes
-
+	
 	const mutationResult = useMutation<TData, Error, TVariables, TContext>({
 		...options,
 		onSuccess: (data, variables, onMutateResult, context) => {
@@ -313,8 +311,7 @@ export function useRpcMutation<TData, TVariables, TContext = unknown>(
 		},
 	});
 
-	// test changes
-
+	
 	// Compute RPC error state
 	const { data } = mutationResult;
 	const isRpcError = isErrorResponse(data);

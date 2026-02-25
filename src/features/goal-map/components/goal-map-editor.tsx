@@ -1,4 +1,4 @@
-import { useNavigate, getRouteApi } from "@tanstack/react-router";
+import { getRouteApi, useNavigate } from "@tanstack/react-router";
 import type { Connection, MarkerType } from "@xyflow/react";
 import {
 	Background,
@@ -272,6 +272,7 @@ export function GoalMapEditor() {
 		isNewMap,
 	);
 
+	// biome-ignore lint/correctness/useExhaustiveDependencies: isHydrated is intentionally excluded to prevent re-running after hydration
 	useEffect(() => {
 		if (existing && !isHydrated) {
 			const loadedNodes = Array.isArray(existing.nodes) ? existing.nodes : [];
@@ -307,7 +308,6 @@ export function GoalMapEditor() {
 		setMaterialImages,
 		setLastSavedSnapshot,
 		setIsHydrated,
-		isHydrated,
 	]);
 
 	const handleAddConcept = (data: { label: string; color: TailwindColor }) => {

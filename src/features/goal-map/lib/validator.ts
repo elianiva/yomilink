@@ -266,26 +266,44 @@ export function detectCycles(
 	nodes: Readonly<Node[]>,
 	edges: Readonly<Edge[]>,
 ): boolean {
-	const visited = new Set<string>();
-	const recursionStack = new Set<string>();
-
-	function hasCycle(nodeId: string): boolean {
-		if (recursionStack.has(nodeId)) return true;
-		if (visited.has(nodeId)) return false;
-
-		visited.add(nodeId);
-		recursionStack.add(nodeId);
-
-		// Check all neighbors
-		for (const edge of edges) {
-			if (edge.source === nodeId) {
-				if (hasCycle(edge.target)) return true;
-			}
-		}
-
-		recursionStack.delete(nodeId);
-		return false;
+	// Build adjacency list
+	const adjacency = new Map<string, string[]>();
+	for (const edge of edges) {
+		const neighbors = adjacency.get(edge.source) ?? [];
+		neighbors.push(edge.target);
+		adjacency.set(edge.source, neighbors);
 	}
 
-	return nodes.some((node) => hasCycle(node.id));
+	// Iterative DFS for each node
+	for (const startNode of nodes) {
+		const visited = new Set<string>();
+		const stack: Array<{ nodeId: string; path: Set<string> }> = [
+			{ nodeId: startNode.id, path: new Set() },
+		];
+
+		while (stack.length > 0) {
+			const last = stack.pop();
+			if (last === undefined) continue;
+			const { nodeId, path } = last;
+
+			if (path.has(nodeId)) {
+				return true; // Cycle detected
+			}
+
+			if (visited.has(nodeId)) {
+				continue;
+			}
+
+			visited.add(nodeId);
+			const newPath = new Set(path);
+			newPath.add(nodeId);
+
+			const neighbors = adjacency.get(nodeId) ?? [];
+			for (const neighbor of neighbors) {
+				stack.push({ nodeId: neighbor, path: newPath });
+			}
+		}
+	}
+
+	return false;
 }

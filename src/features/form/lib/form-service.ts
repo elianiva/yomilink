@@ -39,6 +39,11 @@ class FormHasResponsesError extends Data.TaggedError("FormHasResponsesError")<{
 	readonly responseCount: number;
 }> {}
 
+class InvalidQuestionOrderError extends Data.TaggedError("InvalidQuestionOrderError")<{
+	readonly formId: string;
+	readonly reason: string;
+}> {}
+
 class FormNotPublishedError extends Data.TaggedError("FormNotPublishedError")<{
 	readonly formId: string;
 }> {}
@@ -202,7 +207,11 @@ export const updateForm = Effect.fn("updateForm")(
 				})
 				.where(eq(forms.id, formId));
 
-			return { id: formId, ...data };
+			return {
+        id: formId,
+        unlockConditions: data.unlockConditions as any,
+        ...data
+      };
 		}),
 );
 
@@ -457,17 +466,17 @@ export const reorderQuestions = Effect.fn("reorderQuestions")(
 			const providedQuestionIds = new Set(input.questionIds);
 
 			if (existingQuestionIds.size !== providedQuestionIds.size) {
-				return yield* new FormHasResponsesError({
+				return yield* new InvalidQuestionOrderError({
 					formId: input.formId,
-					responseCount: 0,
+					reason: "Question count mismatch",
 				});
 			}
 
 			for (const id of input.questionIds) {
 				if (!existingQuestionIds.has(id)) {
-					return yield* new FormHasResponsesError({
+					return yield* new InvalidQuestionOrderError({
 						formId: input.formId,
-						responseCount: 0,
+						reason: `Invalid question ID: ${id}`,
 					});
 				}
 			}

@@ -1,5 +1,6 @@
 import { desc, eq, isNull } from "drizzle-orm";
 import { Effect, Schema } from "effect";
+import { safeParseJson } from "@/lib/utils";
 import { validateNodes } from "@/features/goal-map/lib/validator";
 import { requireGoalMapOwner } from "@/lib/auth-authorization";
 import { Database } from "@/server/db/client";
