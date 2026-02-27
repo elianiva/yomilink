@@ -30,6 +30,7 @@ import { formatDate, parseDateInput } from "@/lib/date-utils";
 import { useRpcMutation, useRpcQuery } from "@/hooks/use-rpc-query";
 import { AssignmentRpc } from "@/server/rpc/assignment";
 import { KitRpc } from "@/server/rpc/kit";
+import { FormRpc } from "@/server/rpc/form";
 
 export const Route = createFileRoute("/dashboard/assignments/manage")({
 	component: () => (
@@ -166,10 +167,16 @@ function CreateAssignmentDialog({ onSuccess }: { onSuccess: () => void }) {
 	const [endDate, setEndDate] = useState("");
 	const [selectedCohorts, setSelectedCohorts] = useState<string[]>([]);
 	const [selectedUsers, setSelectedUsers] = useState<string[]>([]);
+	const [preTestFormId, setPreTestFormId] = useState("");
+	const [postTestFormId, setPostTestFormId] = useState("");
+	const [delayedPostTestFormId, setDelayedPostTestFormId] = useState("");
+	const [delayedPostTestDelayDays, setDelayedPostTestDelayDays] = useState(7);
+	const [tamFormId, setTamFormId] = useState("");
 
 	const { data: goalMaps } = useRpcQuery(AssignmentRpc.getTeacherGoalMaps());
 	const { data: cohorts } = useRpcQuery(AssignmentRpc.getAvailableCohorts());
 	const { data: users } = useRpcQuery(AssignmentRpc.getAvailableUsers());
+	const { data: forms } = useRpcQuery(FormRpc.listForms());
 
 	const generateKitMutation = useRpcMutation(KitRpc.generateKit(), {
 		operation: "generate kit for goal map",
@@ -191,6 +198,10 @@ function CreateAssignmentDialog({ onSuccess }: { onSuccess: () => void }) {
 			description: "Select a goal map and configure time limits",
 		},
 		{
+			title: "Procedure",
+			description: "Configure tests and surveys for this assignment",
+		},
+		{
 			title: "Assignment",
 			description: "Select cohorts or students to assign this to",
 		},
@@ -203,10 +214,11 @@ function CreateAssignmentDialog({ onSuccess }: { onSuccess: () => void }) {
 			case 1:
 				return goalMapId.length > 0;
 			case 2:
+				return true; // Procedure is optional
+			case 3:
 				return selectedCohorts.length > 0 || selectedUsers.length > 0;
 			default:
 				return false;
-		}
 	};
 
 	const handleSubmit = (e: React.FormEvent) => {
@@ -230,8 +242,12 @@ function CreateAssignmentDialog({ onSuccess }: { onSuccess: () => void }) {
 							goalMapId,
 							startDate: parseDateInput(startDate) ?? Date.now(),
 							endDate: parseDateInput(endDate),
-							cohortIds: selectedCohorts,
 							userIds: selectedUsers,
+							preTestFormId: preTestFormId || undefined,
+							postTestFormId: postTestFormId || undefined,
+							delayedPostTestFormId: delayedPostTestFormId || undefined,
+							delayedPostTestDelayDays: delayedPostTestDelayDays,
+							tamFormId: tamFormId || undefined,
 						},
 						{
 							onSuccess: () => {
@@ -349,6 +365,100 @@ function CreateAssignmentDialog({ onSuccess }: { onSuccess: () => void }) {
 				)}
 
 				{currentStep === 2 && (
+					<div className="space-y-4">
+						<div className="space-y-2">
+							<Label htmlFor="preTest">Pre-Test</Label>
+							<SearchableSelect
+								value={preTestFormId}
+								onChange={setPreTestFormId}
+								options={
+									forms
+										?.filter((f) => f.type === "pre_test")
+										.map((f) => ({
+											id: f.id,
+											label: f.title,
+											description: f.description ?? undefined,
+										})) ?? []
+								}
+								placeholder="Select a pre-test form"
+								searchPlaceholder="Search pre-tests..."
+							/>
+						</div>
+
+						<div className="space-y-2">
+							<Label htmlFor="postTest">Post-Test</Label>
+							<SearchableSelect
+								value={postTestFormId}
+								onChange={setPostTestFormId}
+								options={
+									forms
+										?.filter((f) => f.type === "post_test")
+										.map((f) => ({
+											id: f.id,
+											label: f.title,
+											description: f.description ?? undefined,
+										})) ?? []
+								}
+								placeholder="Select a post-test form"
+								searchPlaceholder="Search post-tests..."
+							/>
+						</div>
+
+						<div className="space-y-2">
+							<Label htmlFor="delayedPostTest">Delayed Post-Test</Label>
+							<SearchableSelect
+								value={delayedPostTestFormId}
+								onChange={setDelayedPostTestFormId}
+								options={
+									forms
+										?.filter((f) => f.type === "delayed_test" || f.type === "post_test")
+										.map((f) => ({
+											id: f.id,
+											label: f.title,
+											description: f.description ?? undefined,
+										})) ?? []
+								}
+								placeholder="Select a delayed post-test form"
+								searchPlaceholder="Search delayed tests..."
+							/>
+						</div>
+
+						<div className="space-y-2">
+							<Label htmlFor="delayedPostTestDelayDays">
+								Delayed Test Delay (days)
+							</Label>
+							<Input
+								id="delayedPostTestDelayDays"
+								type="number"
+								value={delayedPostTestDelayDays}
+								onChange={(e) =>
+									setDelayedPostTestDelayDays(Number(e.target.value))
+								}
+							/>
+						</div>
+
+						<div className="space-y-2">
+							<Label htmlFor="tamSurvey">TAM Survey</Label>
+							<SearchableSelect
+								value={tamFormId}
+								onChange={setTamFormId}
+								options={
+									forms
+										?.filter((f) => f.type === "tam")
+										.map((f) => ({
+											id: f.id,
+											label: f.title,
+											description: f.description ?? undefined,
+										})) ?? []
+								}
+								placeholder="Select a TAM survey form"
+								searchPlaceholder="Search TAM surveys..."
+							/>
+						</div>
+					</div>
+				)}
+
+				{currentStep === 3 && (
 					<div className="space-y-4">
 						<div className="space-y-2">
 							<Label className="flex items-center gap-2">

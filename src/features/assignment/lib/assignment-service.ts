@@ -20,6 +20,13 @@ export const CreateAssignmentInput = Schema.Struct({
 	endDate: Schema.optionalWith(Schema.Number, { nullable: true }),
 	cohortIds: Schema.Array(Schema.NonEmptyString),
 	userIds: Schema.Array(Schema.NonEmptyString),
+	preTestFormId: Schema.optionalWith(Schema.String, { nullable: true }),
+	postTestFormId: Schema.optionalWith(Schema.String, { nullable: true }),
+	delayedPostTestFormId: Schema.optionalWith(Schema.String, { nullable: true }),
+	delayedPostTestDelayDays: Schema.optionalWith(Schema.Number, {
+		nullable: true,
+	}),
+	tamFormId: Schema.optionalWith(Schema.String, { nullable: true }),
 });
 
 export type CreateAssignmentInput = typeof CreateAssignmentInput.Type;
@@ -68,6 +75,11 @@ export const createAssignment = Effect.fn("createAssignment")(
 				timeLimitMinutes: null,
 				startDate: data.startDate ? new Date(data.startDate) : new Date(),
 				dueAt: data.endDate ? new Date(data.endDate) : null,
+				preTestFormId: data.preTestFormId,
+				postTestFormId: data.postTestFormId,
+				delayedPostTestFormId: data.delayedPostTestFormId,
+				delayedPostTestDelayDays: data.delayedPostTestDelayDays,
+				tamFormId: data.tamFormId,
 				createdBy: kit.teacherId,
 			});
 
@@ -115,6 +127,11 @@ export const listTeacherAssignments = Effect.fn("listTeacherAssignments")(
 					kitId: assignments.kitId,
 					startDate: assignments.startDate,
 					dueAt: assignments.dueAt,
+					preTestFormId: assignments.preTestFormId,
+					postTestFormId: assignments.postTestFormId,
+					delayedPostTestFormId: assignments.delayedPostTestFormId,
+					delayedPostTestDelayDays: assignments.delayedPostTestDelayDays,
+					tamFormId: assignments.tamFormId,
 					createdAt: assignments.createdAt,
 					updatedAt: assignments.updatedAt,
 					goalMapTitle: goalMaps.title,

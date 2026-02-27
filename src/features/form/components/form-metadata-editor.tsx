@@ -12,7 +12,13 @@ import {
 } from "@/components/ui/select";
 import { Textarea } from "@/components/ui/textarea";
 
-export type FormType = "pre_test" | "post_test" | "registration" | "control";
+export type FormType =
+	| "pre_test"
+	| "post_test"
+	| "delayed_test"
+	| "registration"
+	| "tam"
+	| "control";
 export type FormStatus = "draft" | "published";
 
 export interface FormMetadata {
@@ -31,14 +37,18 @@ interface FormMetadataEditorProps {
 const formTypeLabels: Record<FormType, string> = {
 	pre_test: "Pre-Test",
 	post_test: "Post-Test",
+	delayed_test: "Delayed-Test",
 	registration: "Registration",
+	tam: "TAM Questionnaire",
 	control: "Control Group",
 };
 
 const formTypeDescriptions: Record<FormType, string> = {
 	pre_test: "Assessment before content access",
 	post_test: "Assessment after assignment completion",
+	delayed_test: "Assessment of memory retention (typically 1 week later)",
 	registration: "Initial user registration form",
+	tam: "Technology Acceptance Model questionnaire",
 	control: "Control group alternative activity",
 };
 

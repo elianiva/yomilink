@@ -12,7 +12,13 @@ export interface FormData {
 	id: string;
 	title: string;
 	description?: string;
-	type: "pre_test" | "post_test" | "registration" | "control";
+	type:
+		| "pre_test"
+		| "post_test"
+		| "delayed_test"
+		| "registration"
+		| "tam"
+		| "control";
 	status: "draft" | "published";
 }
 

@@ -26,7 +26,13 @@ type StudentForm = {
 	id: string;
 	title: string;
 	description: string | null;
-	type: "pre_test" | "post_test" | "registration" | "control";
+	type:
+		| "pre_test"
+		| "post_test"
+		| "delayed_test"
+		| "registration"
+		| "tam"
+		| "control";
 	unlockStatus: "locked" | "available" | "completed";
 	isUnlocked: boolean;
 	progress: {
@@ -61,13 +67,16 @@ function StudentFormsPage() {
 				return "Pre-Test";
 			case "post_test":
 				return "Post-Test";
+			case "delayed_test":
+				return "Delayed-Test";
 			case "registration":
 				return "Registration";
+			case "tam":
+				return "TAM Survey";
 			case "control":
 				return "Control";
 			default:
 				return type;
-		}
 	};
 
 	const getTypeColor = (type: string) => {
@@ -76,13 +85,16 @@ function StudentFormsPage() {
 				return "bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-200";
 			case "post_test":
 				return "bg-purple-100 text-purple-800 dark:bg-purple-900 dark:text-purple-200";
+			case "delayed_test":
+				return "bg-indigo-100 text-indigo-800 dark:bg-indigo-900 dark:text-indigo-200";
 			case "registration":
 				return "bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200";
+			case "tam":
+				return "bg-teal-100 text-teal-800 dark:bg-teal-900 dark:text-teal-200";
 			case "control":
 				return "bg-orange-100 text-orange-800 dark:bg-orange-900 dark:text-orange-200";
 			default:
 				return "bg-gray-100 text-gray-800";
-		}
 	};
 
 	if (isLoading) {

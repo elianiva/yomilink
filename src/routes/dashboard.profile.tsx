@@ -6,9 +6,11 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
 import { FieldInfo } from "@/components/ui/field-info";
 import { Input } from "@/components/ui/input";
+import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
 import { authClient } from "@/lib/auth-client";
 import { getMe } from "@/server/rpc/profile";
+import { updateProfileRpc } from "@/server/rpc/profile";
 
 export const Route = createFileRoute("/dashboard/profile")({
 	component: ProfilePage,
@@ -17,6 +19,17 @@ export const Route = createFileRoute("/dashboard/profile")({
 
 const ProfileSchema = Schema.Struct({
 	name: Schema.NonEmptyString,
+	age: Schema.optionalWith(Schema.Number, { nullable: true }),
+	jlptLevel: Schema.optionalWith(
+		Schema.Union(Schema.Literal("N5", "N4", "N3", "N2", "N1", "None")),
+		{ nullable: true },
+	),
+	japaneseLearningDuration: Schema.optionalWith(Schema.Number, {
+		nullable: true,
+	}),
+	previousJapaneseScore: Schema.optionalWith(Schema.Number, { nullable: true }),
+	mediaConsumption: Schema.optionalWith(Schema.Number, { nullable: true }),
+	motivation: Schema.optionalWith(Schema.String, { nullable: true }),
 });
 
 function ProfilePage() {
@@ -28,6 +41,12 @@ function ProfilePage() {
 	const form = useForm({
 		defaultValues: {
 			name: me?.name ?? "",
+			age: (me as any)?.age ?? null,
+			jlptLevel: (me as any)?.jlptLevel ?? "None",
+			japaneseLearningDuration: (me as any)?.japaneseLearningDuration ?? null,
+			previousJapaneseScore: (me as any)?.previousJapaneseScore ?? null,
+			mediaConsumption: (me as any)?.mediaConsumption ?? null,
+			motivation: (me as any)?.motivation ?? "",
 		},
 		validators: {
 			onChange: Schema.standardSchemaV1(ProfileSchema),
@@ -37,9 +56,7 @@ function ProfilePage() {
 			setError(null);
 			setSuccess(null);
 			try {
-				const { error } = await authClient.updateUser({
-					name: value.name,
-				});
+				const { error } = await updateProfileRpc({ data: value });
 				if (error) {
 					throw new Error(error.message ?? "Update failed");
 				}
@@ -122,6 +139,124 @@ function ProfilePage() {
 										autoComplete="name"
 									/>
 									<FieldInfo field={field} />
+								</div>
+							)}
+						</form.Field>
+
+						<div className="grid grid-cols-2 gap-4">
+							<form.Field name="age">
+								{(field) => (
+									<div className="space-y-1.5">
+										<Label htmlFor="age">Age</Label>
+										<Input
+											id="age"
+											type="number"
+											value={field.state.value ?? ""}
+											onChange={(e) =>
+												field.handleChange(
+													e.target.value ? Number(e.target.value) : null,
+												)
+											}
+										/>
+									</div>
+								)}
+							</form.Field>
+
+							<form.Field name="jlptLevel">
+								{(field) => (
+									<div className="space-y-1.5">
+										<Label htmlFor="jlptLevel">JLPT Level</Label>
+										<select
+											id="jlptLevel"
+											className="w-full h-10 rounded-md border border-input bg-background px-3 py-2 text-sm"
+											value={field.state.value ?? "None"}
+											onChange={(e) => field.handleChange(e.target.value)}
+										>
+											<option value="None">None</option>
+											<option value="N5">N5</option>
+											<option value="N4">N4</option>
+											<option value="N3">N3</option>
+											<option value="N2">N2</option>
+											<option value="N1">N1</option>
+										</select>
+									</div>
+								)}
+							</form.Field>
+						</div>
+
+						<form.Field name="japaneseLearningDuration">
+							{(field) => (
+								<div className="space-y-1.5">
+									<Label htmlFor="duration">
+										Learning Duration (months)
+									</Label>
+									<Input
+										id="duration"
+										type="number"
+										value={field.state.value ?? ""}
+										onChange={(e) =>
+											field.handleChange(
+												e.target.value ? Number(e.target.value) : null,
+											)
+										}
+									/>
+								</div>
+							)}
+						</form.Field>
+
+						<form.Field name="previousJapaneseScore">
+							{(field) => (
+								<div className="space-y-1.5">
+									<Label htmlFor="prevScore">
+										Previous Japanese Score (0-100)
+									</Label>
+									<Input
+										id="prevScore"
+										type="number"
+										step="0.1"
+										value={field.state.value ?? ""}
+										onChange={(e) =>
+											field.handleChange(
+												e.target.value ? Number(e.target.value) : null,
+											)
+										}
+									/>
+								</div>
+							)}
+						</form.Field>
+
+						<form.Field name="mediaConsumption">
+							{(field) => (
+								<div className="space-y-1.5">
+									<Label htmlFor="media">
+										Media Consumption (hours/week)
+									</Label>
+									<Input
+										id="media"
+										type="number"
+										step="0.1"
+										value={field.state.value ?? ""}
+										onChange={(e) =>
+											field.handleChange(
+												e.target.value ? Number(e.target.value) : null,
+											)
+										}
+									/>
+								</div>
+							)}
+						</form.Field>
+
+						<form.Field name="motivation">
+							{(field) => (
+								<div className="space-y-1.5">
+									<Label htmlFor="motivation">Learning Motivation</Label>
+									<Textarea
+										id="motivation"
+										value={field.state.value ?? ""}
+										onChange={(e) => field.handleChange(e.target.value)}
+										placeholder="What motivates you to learn Japanese?"
+										rows={3}
+									/>
 								</div>
 							)}
 						</form.Field>

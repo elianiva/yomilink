@@ -24,7 +24,13 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { cn } from "@/lib/utils";
 
-export type FormType = "pre_test" | "post_test" | "registration" | "control";
+export type FormType =
+	| "pre_test"
+	| "post_test"
+	| "delayed_test"
+	| "registration"
+	| "tam"
+	| "control";
 export type FormStatus = "draft" | "published";
 export type FormListStatus = "locked" | "available" | "completed";
 
@@ -51,7 +57,9 @@ interface FormListProps {
 const formTypeLabels: Record<FormType, string> = {
 	pre_test: "Pre-test",
 	post_test: "Post-test",
+	delayed_test: "Delayed-test",
 	registration: "Registration",
+	tam: "TAM",
 	control: "Control",
 };
 

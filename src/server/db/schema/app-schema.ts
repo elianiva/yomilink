@@ -125,6 +125,15 @@ export const assignments = sqliteTable(
 		timeLimitMinutes: integer("time_limit_minutes"),
 		startDate: integer("start_date", { mode: "timestamp_ms" }),
 		dueAt: integer("due_at", { mode: "timestamp_ms" }),
+		preTestFormId: text("pre_test_form_id").references(() => forms.id),
+		postTestFormId: text("post_test_form_id").references(() => forms.id),
+		delayedPostTestFormId: text("delayed_post_test_form_id").references(
+			() => forms.id,
+		),
+		tamFormId: text("tam_form_id").references(() => forms.id),
+		delayedPostTestDelayDays: integer("delayed_post_test_delay_days").default(
+			7,
+		),
 		createdBy: text("created_by").notNull(),
 		...timestamps,
 	},
@@ -379,7 +388,14 @@ export const forms = sqliteTable(
 		title: text("title").notNull(),
 		description: text("description"),
 		type: text("type", {
-			enum: ["pre_test", "post_test", "registration", "control"],
+			enum: [
+				"pre_test",
+				"post_test",
+				"delayed_test",
+				"registration",
+				"tam",
+				"control",
+			],
 		})
 			.notNull()
 			.default("registration"),

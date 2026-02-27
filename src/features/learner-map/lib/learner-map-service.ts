@@ -178,6 +178,15 @@ export const getAssignmentForStudent = Effect.fn("getAssignmentForStudent")(
 						goalMapId: assignments.goalMapId,
 						kitId: assignments.kitId,
 						dueAt: assignments.dueAt,
+						preTestFormId: assignments.preTestFormId,
+						postTestFormId: assignments.postTestFormId,
+						delayedPostTestFormId: assignments.delayedPostTestFormId,
+						delayedPostTestDelayDays: assignments.delayedPostTestDelayDays,
+						tamFormId: assignments.tamFormId,
+						preTestFormId: assignments.preTestFormId,
+						postTestFormId: assignments.postTestFormId,
+						delayedPostTestFormId: assignments.delayedPostTestFormId,
+						tamFormId: assignments.tamFormId,
 					},
 					kit: {
 						id: kits.id,
@@ -402,6 +411,10 @@ export const getDiagnosis = Effect.fn("getDiagnosis")(
 						nodes: goalMaps.nodes,
 						edges: goalMaps.edges,
 					},
+					assignment: {
+						postTestFormId: assignments.postTestFormId,
+						tamFormId: assignments.tamFormId,
+					},
 					diagnosis: {
 						id: diagnoses.id,
 						summary: diagnoses.summary,
@@ -412,6 +425,7 @@ export const getDiagnosis = Effect.fn("getDiagnosis")(
 				})
 				.from(learnerMaps)
 				.innerJoin(goalMaps, eq(goalMaps.id, learnerMaps.goalMapId))
+				.innerJoin(assignments, eq(assignments.id, learnerMaps.assignmentId))
 				.leftJoin(diagnoses, eq(diagnoses.learnerMapId, learnerMaps.id))
 				.where(
 					and(
@@ -461,6 +475,10 @@ export const getDiagnosis = Effect.fn("getDiagnosis")(
 				goalMap: {
 					nodes: goalMapNodes,
 					edges: goalMapEdges,
+				},
+				assignment: {
+					postTestFormId: result.assignment.postTestFormId,
+					tamFormId: result.assignment.tamFormId,
 				},
 				diagnosis: result.diagnosis
 					? {

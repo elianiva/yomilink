@@ -20,7 +20,9 @@ export const CreateFormInput = Schema.Struct({
 		Schema.Union(
 			Schema.Literal("pre_test"),
 			Schema.Literal("post_test"),
+			Schema.Literal("delayed_test"),
 			Schema.Literal("registration"),
+			Schema.Literal("tam"),
 			Schema.Literal("control"),
 		),
 		{ nullable: true },
@@ -161,7 +163,13 @@ export const updateForm = Effect.fn("updateForm")(
 		data: Partial<{
 			title: string;
 			description: string | null;
-			type: "pre_test" | "post_test" | "registration" | "control";
+			type:
+				| "pre_test"
+				| "post_test"
+				| "delayed_test"
+				| "registration"
+				| "tam"
+				| "control";
 			status: "draft" | "published";
 			unlockConditions: unknown;
 		}>,
