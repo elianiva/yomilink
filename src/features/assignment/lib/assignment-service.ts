@@ -8,6 +8,7 @@ import {
 	kits,
 } from "@/server/db/schema/app-schema";
 import { cohortMembers, cohorts, user } from "@/server/db/schema/auth-schema";
+import { experimentGroups } from "@/server/db/schema/app-schema";
 import { Database } from "@/server/db/client";
 
 export const CreateAssignmentInput = Schema.Struct({
@@ -28,6 +29,23 @@ export const CreateAssignmentInput = Schema.Struct({
 	}),
 	tamFormId: Schema.optionalWith(Schema.String, { nullable: true }),
 });
+
+
+export const SaveExperimentGroupsInput = Schema.Struct({
+	assignmentId: Schema.NonEmptyString,
+	groups: Schema.Array(
+		Schema.Struct({
+			userId: Schema.NonEmptyString,
+			groupName: Schema.optionalWith(Schema.String, { nullable: true }),
+			condition: Schema.Union(
+				Schema.Literal("summarizing"),
+				Schema.Literal("concept_map"),
+			),
+		}),
+	),
+});
+
+export type SaveExperimentGroupsInput = typeof SaveExperimentGroupsInput.Type;
 
 export type CreateAssignmentInput = typeof CreateAssignmentInput.Type;
 
@@ -234,4 +252,84 @@ export const getTeacherGoalMaps = Effect.fn("getTeacherGoalMaps")(() =>
 			updatedAt: row.updatedAt?.getTime(),
 		}));
 	}),
+);
+
+
+export const saveExperimentGroups = Effect.fn("saveExperimentGroups")(
+	(input: SaveExperimentGroupsInput) =>
+		Effect.gen(function* () {
+			const db = yield* Database;
+
+			// Delete existing groups for this assignment
+			yield* db
+				.delete(experimentGroups)
+				.where(eq(experimentGroups.assignmentId, input.assignmentId));
+
+			// Insert new groups
+			if (input.groups.length > 0) {
+				const values = input.groups.map((g) => ({
+					id: randomString(),
+					assignmentId: input.assignmentId,
+					userId: g.userId,
+					groupName: g.groupName ?? null,
+					condition: g.condition,
+				}));
+
+				yield* db.insert(experimentGroups).values(values);
+			}
+
+			return { success: true };
+		}),
+);
+
+export const getExperimentGroupsByAssignmentId = Effect.fn(
+	"getExperimentGroupsByAssignmentId",
+)((assignmentId: string) =>
+	Effect.gen(function* () {
+		const db = yield* Database;
+
+		const rows = yield* db
+			.select()
+			.from(experimentGroups)
+			.where(eq(experimentGroups.assignmentId, assignmentId));
+
+		return rows;
+	}),
+);
+
+export const getAssignmentByPreTestFormId = Effect.fn(
+	"getAssignmentByPreTestFormId",
+)((formId: string) =>
+	Effect.gen(function* () {
+		const db = yield* Database;
+
+		const rows = yield* db
+			.select()
+			.from(assignments)
+			.where(eq(assignments.preTestFormId, formId))
+			.limit(1);
+
+		return rows[0] ?? null;
+	}),
+);
+
+
+export const getExperimentCondition = Effect.fn("getExperimentCondition")(
+	(assignmentId: string, userId: string) =>
+		Effect.gen(function* () {
+			const db = yield* Database;
+
+			const rows = yield* db
+				.select()
+				.from(experimentGroups)
+				.where(
+					and(
+						eq(experimentGroups.assignmentId, assignmentId),
+						eq(experimentGroups.userId, userId),
+					),
+				)
+				.limit(1);
+
+			return rows[0] ?? null;
+		}),
 );

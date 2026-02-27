@@ -10,6 +10,11 @@ import {
 	getAvailableUsers,
 	getTeacherGoalMaps,
 	CreateAssignmentInput,
+	SaveExperimentGroupsInput,
+	saveExperimentGroups,
+	getExperimentGroupsByAssignmentId,
+	getAssignmentByPreTestFormId,
+	getExperimentCondition,
 	DeleteAssignmentInput,
 } from "@/features/assignment/lib/assignment-service";
 import { AppLayer } from "../app-layer";
@@ -97,6 +102,72 @@ export const getTeacherGoalMapsRpc = createServerFn()
 		),
 	);
 
+
+export const saveExperimentGroupsRpc = createServerFn()
+	.middleware([requireRoleMiddleware("teacher", "admin")])
+	.inputValidator((raw) =>
+		Schema.decodeUnknownSync(SaveExperimentGroupsInput)(raw),
+	)
+	.handler(({ data }) =>
+		saveExperimentGroups(data).pipe(
+			Effect.withSpan("saveExperimentGroups"),
+			Effect.tapError(logRpcError("saveExperimentGroups")),
+			Effect.provide(AppLayer),
+			Effect.catchAll(() => errorResponse("Internal server error")),
+			Effect.runPromise,
+		),
+	);
+
+export const getExperimentGroupsByAssignmentIdRpc = createServerFn()
+	.middleware([requireRoleMiddleware("teacher", "admin")])
+	.inputValidator((raw) =>
+		Schema.decodeUnknownSync(Schema.Struct({ assignmentId: Schema.String }))(
+			raw,
+		),
+	)
+	.handler(({ data }) =>
+		getExperimentGroupsByAssignmentId(data.assignmentId).pipe(
+			Effect.withSpan("getExperimentGroupsByAssignmentId"),
+			Effect.tapError(logRpcError("getExperimentGroupsByAssignmentId")),
+			Effect.provide(AppLayer),
+			Effect.catchAll(() => errorResponse("Internal server error")),
+			Effect.runPromise,
+		),
+	);
+
+export const getAssignmentByPreTestFormIdRpc = createServerFn()
+	.middleware([requireRoleMiddleware("teacher", "admin")])
+	.inputValidator((raw) =>
+		Schema.decodeUnknownSync(Schema.Struct({ formId: Schema.String }))(raw),
+	)
+	.handler(({ data }) =>
+		getAssignmentByPreTestFormId(data.formId).pipe(
+			Effect.withSpan("getAssignmentByPreTestFormId"),
+			Effect.tapError(logRpcError("getAssignmentByPreTestFormId")),
+			Effect.provide(AppLayer),
+			Effect.catchAll(() => errorResponse("Internal server error")),
+			Effect.runPromise,
+		),
+	);
+
+
+export const getExperimentConditionRpc = createServerFn()
+	.middleware([requireRoleMiddleware("student", "teacher", "admin")])
+	.inputValidator((raw) =>
+		Schema.decodeUnknownSync(Schema.Struct({ assignmentId: Schema.String }))(
+			raw,
+		),
+	)
+	.handler(({ data, context }) =>
+		getExperimentCondition(data.assignmentId, context.user.id).pipe(
+			Effect.withSpan("getExperimentCondition"),
+			Effect.tapError(logRpcError("getExperimentCondition")),
+			Effect.provide(AppLayer),
+			Effect.catchAll(() => errorResponse("Internal server error")),
+			Effect.runPromise,
+		),
+	);
+
 export const AssignmentRpc = {
 	assignments: () => ["assignments"],
 	createAssignment: () =>
@@ -130,5 +201,29 @@ export const AssignmentRpc = {
 		queryOptions({
 			queryKey: [...AssignmentRpc.assignments(), "goalmaps"],
 			queryFn: () => getTeacherGoalMapsRpc(),
+
+		}),
+	saveExperimentGroups: () =>
+		mutationOptions({
+			mutationKey: [...AssignmentRpc.assignments(), "saveGroups"],
+			mutationFn: (data: SaveExperimentGroupsInput) =>
+				saveExperimentGroupsRpc({ data }),
+		}),
+	getExperimentGroupsByAssignmentId: (assignmentId: string) =>
+		queryOptions({
+			queryKey: [...AssignmentRpc.assignments(), "groups", assignmentId],
+			queryFn: () =>
+				getExperimentGroupsByAssignmentIdRpc({ data: { assignmentId } }),
+		}),
+	getAssignmentByPreTestFormId: (formId: string) =>
+		queryOptions({
+			queryKey: [...AssignmentRpc.assignments(), "byPreTestForm", formId],
+			queryFn: () => getAssignmentByPreTestFormIdRpc({ data: { formId } }),
+		}),
+
+	getExperimentCondition: (assignmentId: string) =>
+		queryOptions({
+			queryKey: [...AssignmentRpc.assignments(), "condition", assignmentId],
+			queryFn: () => getExperimentConditionRpc({ data: { assignmentId } }),
 		}),
 };

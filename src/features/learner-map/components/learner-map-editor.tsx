@@ -55,8 +55,12 @@ import { useHistory } from "@/hooks/use-history";
 import { isValidConnection } from "@/lib/react-flow-types";
 import { cn } from "@/lib/utils";
 import { LearnerMapRpc } from "@/server/rpc/learner-map";
+import { AssignmentRpc } from "@/server/rpc/assignment";
 
 const routeApi = getRouteApi("/dashboard/learner-map/$assignmentId");
+
+import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
+import { AlertCircle } from "lucide-react";
 
 export function LearnerMapEditor() {
 	const { assignmentId } = routeApi.useParams();
@@ -119,6 +123,15 @@ export function LearnerMapEditor() {
 		LearnerMapRpc.getAssignmentForStudent({ assignmentId }),
 	);
 
+
+	const { data: experimentGroup, isLoading: groupLoading } = useRpcQuery(
+		AssignmentRpc.getExperimentCondition(assignmentId),
+	);
+	const condition =
+		experimentGroup && "condition" in experimentGroup
+			? experimentGroup.condition
+			: "concept_map";
+
 	// Mutations
 	const saveMutation = useRpcMutation(LearnerMapRpc.saveLearnerMap(), {
 		operation: "save learner map",
@@ -126,6 +139,14 @@ export function LearnerMapEditor() {
 	const submitMutation = useRpcMutation(LearnerMapRpc.submitLearnerMap(), {
 		operation: "submit learner map",
 	});
+
+	const submitControlTextMutation = useRpcMutation(
+		LearnerMapRpc.submitControlText(),
+		{
+			operation: "submit summary",
+			showSuccess: true,
+		},
+	);
 
 	// Initialize from query data
 	useEffect(() => {
@@ -149,10 +170,12 @@ export function LearnerMapEditor() {
 				setStatus(assignmentData.learnerMap.status);
 				setAttempt(assignmentData.learnerMap.attempt);
 				setLastSavedSnapshot(
-					JSON.stringify({
-						nodes: assignmentData.learnerMap.nodes,
-						edges: assignmentData.learnerMap.edges,
-					}),
+					condition === "summarizing"
+						? (assignmentData.learnerMap.controlText || "")
+						: JSON.stringify({
+								nodes: assignmentData.learnerMap.nodes,
+								edges: assignmentData.learnerMap.edges,
+							}),
 				);
 			} else {
 				// New learner map - arrange kit nodes in grid
@@ -162,7 +185,9 @@ export function LearnerMapEditor() {
 				setStatus("not_started");
 				setAttempt(0);
 				setLastSavedSnapshot(
-					JSON.stringify({ nodes: arrangedNodes, edges: [] }),
+					condition === "summarizing"
+						? ""
+						: JSON.stringify({ nodes: arrangedNodes, edges: [] }),
 				);
 			}
 
@@ -433,6 +458,23 @@ export function LearnerMapEditor() {
 		);
 	}
 
+	if (condition === "summarizing") {
+		return (
+			<SummarizingEditor
+				assignmentId={assignmentId}
+				assignmentData={assignmentData}
+				isHydrated={isHydrated}
+				isSubmitted={isSubmitted}
+				setStatus={setStatus}
+				materialOpen={materialOpen}
+				setMaterialOpen={setMaterialOpen}
+				materialText={materialText}
+				lastSavedSnapshot={lastSavedSnapshot}
+				setLastSavedSnapshot={setLastSavedSnapshot}
+			/>
+		);
+	}
+
 	return (
 		<div className="h-full relative">
 			{/* Header */}
@@ -449,7 +491,6 @@ export function LearnerMapEditor() {
 					</p>
 				)}
 			</div>
-
 			{/* Timer */}
 			{timeRemaining !== null && !isSubmitted && (
 				<div
@@ -461,7 +502,6 @@ export function LearnerMapEditor() {
 					⏱ {formatDuration(timeRemaining)}
 				</div>
 			)}
-
 			{/* Progress Indicator */}
 			{!isSubmitted && (
 				<div className="absolute top-4 right-4 z-10 bg-background/80 backdrop-blur-sm border rounded-lg px-4 py-2 w-48">
@@ -479,14 +519,12 @@ export function LearnerMapEditor() {
 					</div>
 				</div>
 			)}
-
 			{/* Material Dialog */}
 			<MaterialDialog
 				open={materialOpen}
 				onOpenChange={setMaterialOpen}
 				content={materialText}
 			/>
-
 			{/* Submit Confirmation Dialog */}
 			<AlertDialog open={submitDialogOpen} onOpenChange={setSubmitDialogOpen}>
 				<AlertDialogContent>
@@ -509,7 +547,6 @@ export function LearnerMapEditor() {
 					</AlertDialogFooter>
 				</AlertDialogContent>
 			</AlertDialog>
-
 			{/* Canvas */}
 			<div
 				className={cn(
@@ -543,7 +580,6 @@ export function LearnerMapEditor() {
 						onSelectNode={selectNode}
 					/>
 				</ReactFlow>
-
 				{/* Toolbar */}
 				<LearnerToolbar
 					onUndo={undo}
@@ -561,10 +597,8 @@ export function LearnerMapEditor() {
 					isSubmitted={isSubmitted}
 					hasMaterial={!!materialText}
 				/>
-
 				{/* Dark overlay when context menu is open */}
 				<ContextMenuOverlay visible={contextMenu !== null} />
-
 				{/* Simple Context Menu for Connectors */}
 				{contextMenu && contextMenu.nodeType === "connector" && (
 					<div
@@ -598,7 +632,6 @@ export function LearnerMapEditor() {
 						</button>
 					</div>
 				)}
-
 				{/* Connection Mode Indicator */}
 				<ConnectionModeIndicator
 					active={connectionMode?.active ?? false}
@@ -606,6 +639,127 @@ export function LearnerMapEditor() {
 					onCancel={() => setConnectionMode(null)}
 				/>
 			</div>
+		</div>
+	);
+}
+
+function SummarizingEditor({
+	assignmentId,
+	assignmentData,
+	isHydrated,
+	isSubmitted,
+	setStatus,
+	materialOpen,
+	setMaterialOpen,
+	materialText,
+	lastSavedSnapshot,
+	setLastSavedSnapshot,
+}: {
+	assignmentId: string;
+	assignmentData: any;
+	isHydrated: boolean;
+	isSubmitted: boolean;
+	setStatus: (s: any) => void;
+	materialOpen: boolean;
+	setMaterialOpen: (o: boolean) => void;
+	materialText: string | null;
+	lastSavedSnapshot: string;
+	setLastSavedSnapshot: (s: string) => void;
+}) {
+	const queryClient = useQueryClient();
+	const [controlText, setControlText] = useState(
+		assignmentData.learnerMap?.controlText || "",
+	);
+	const saveMutation = useRpcMutation(LearnerMapRpc.saveLearnerMap(), {
+		operation: "save summary draft",
+	});
+	const submitControlTextMutation = useRpcMutation(
+		LearnerMapRpc.submitControlText(),
+		{
+			operation: "submit summary",
+			showSuccess: true,
+		},
+	);
+		// Auto-save summary
+	useEffect(() => {
+			if (!isHydrated || isSubmitted) return;
+			if (controlText !== lastSavedSnapshot) {
+				saveMutation.mutate({
+					assignmentId,
+					controlText: controlText,
+				});
+				setLastSavedSnapshot(controlText);
+			}
+		}, 3000);
+		return () => clearTimeout(timer);
+	}, [
+		controlText,
+		isHydrated,
+		isSubmitted,
+		lastSavedSnapshot,
+		saveMutation,
+		assignmentId,
+		setLastSavedSnapshot,
+	]);
+		const handleSummarySubmit = async () => {
+		if (!controlText.trim()) {
+			toast.error("Please enter a summary");
+			return;
+		}
+			const result = await submitControlTextMutation.mutateAsync({
+			assignmentId,
+			text: controlText,
+		});
+		if (result.success) {
+			setLastSavedSnapshot(controlText);
+			setStatus("submitted");
+			queryClient.invalidateQueries({
+				queryKey: LearnerMapRpc.learnerMaps(),
+			});
+		}
+	};
+	return (
+		<div className="h-full flex flex-col p-6 space-y-6 max-w-4xl mx-auto overflow-y-auto">
+			<div className="space-y-2">
+				<h1 className="text-2xl font-bold">{assignmentData.assignment.title}</h1>
+				<p className="text-muted-foreground">{assignmentData.assignment.description}</p>
+			</div>
+				<div className="flex-1 flex flex-col space-y-4">
+				<div className="flex items-center justify-between">
+					<h2 className="text-lg font-semibold">Summarizing Activity</h2>
+					<Button onClick={() => setMaterialOpen(true)} variant="outline">
+						View Reading Material
+					</Button>
+				</div>
+					<Alert variant="warning">
+					<AlertCircle className="h-4 w-4" />
+					<AlertTitle>Summary Task</AlertTitle>
+					<AlertDescription>
+						Please read the provided material and write a comprehensive summary covering the key concepts and their relationships.
+					</AlertDescription>
+					</Alert>
+					className="flex-1 w-full min-h-[300px] p-4 rounded-lg border bg-background resize-none focus:ring-2 focus:ring-primary outline-none disabled:opacity-50"
+					placeholder="Write your summary here..."
+					value={controlText}
+					onChange={(e) => setControlText(e.target.value)}
+					disabled={isSubmitted || submitControlTextMutation.isPending}
+				/>
+					<div className="flex justify-end gap-3">
+					<Button
+						onClick={handleSummarySubmit}
+						disabled={isSubmitted || submitControlTextMutation.isPending || !controlText.trim()}
+						className="px-8"
+					>
+						{submitControlTextMutation.isPending
+							? "Submitting..."
+							: isSubmitted
+								? "Submitted"
+								: "Submit Summary"}
+					</Button>
+				</div>
+			</div>
+
+			<MaterialDialog open={materialOpen} onOpenChange={setMaterialOpen} content={materialText} />
 		</div>
 	);
 }

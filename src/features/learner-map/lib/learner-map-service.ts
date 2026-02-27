@@ -54,8 +54,9 @@ export type GetAssignmentForStudentInput =
 
 export const SaveLearnerMapInput = Schema.Struct({
 	assignmentId: Schema.NonEmptyString,
-	nodes: Schema.String,
-	edges: Schema.String,
+	nodes: Schema.optionalWith(Schema.String, { nullable: true }),
+	edges: Schema.optionalWith(Schema.String, { nullable: true }),
+	controlText: Schema.optionalWith(Schema.String, { nullable: true }),
 });
 
 export type SaveLearnerMapInput = typeof SaveLearnerMapInput.Type;
@@ -254,7 +255,12 @@ export const getAssignmentForStudent = Effect.fn("getAssignmentForStudent")(
 export const saveLearnerMap = Effect.fn("saveLearnerMap")(
 	(
 		userId: string,
-		data: { assignmentId: string; nodes: string; edges: string },
+		data: {
+			assignmentId: string;
+			nodes?: string | null;
+			edges?: string | null;
+			controlText?: string | null;
+		},
 	) =>
 		Effect.gen(function* () {
 			const db = yield* Database;
@@ -297,8 +303,9 @@ export const saveLearnerMap = Effect.fn("saveLearnerMap")(
 				yield* db
 					.update(learnerMaps)
 					.set({
-						nodes: data.nodes,
-						edges: data.edges,
+						...(data.nodes !== undefined && { nodes: data.nodes }),
+						...(data.edges !== undefined && { edges: data.edges }),
+						...(data.controlText !== undefined && { controlText: data.controlText }),
 					})
 					.where(eq(learnerMaps.id, existing.id));
 
@@ -312,8 +319,9 @@ export const saveLearnerMap = Effect.fn("saveLearnerMap")(
 				goalMapId: assignment.goalMapId,
 				kitId: assignment.kitId,
 				userId,
-				nodes: data.nodes,
-				edges: data.edges,
+				nodes: data.nodes ?? null,
+				edges: data.edges ?? null,
+				controlText: data.controlText ?? null,
 				status: "draft",
 				attempt: 1,
 			});
