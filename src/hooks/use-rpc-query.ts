@@ -18,7 +18,12 @@ import { useMemo } from "react";
 import { toast, type ErrorToastOptions } from "@/lib/error-toast";
 import { getErrorDetails, isRetryableError } from "@/lib/error-types";
 
-import { isErrorResponse, type RpcErrorResponse } from "./use-rpc-error";
+import {
+	extractData,
+	isErrorResponse,
+	type RpcErrorResponse,
+	type RpcSuccessResponse,
+} from "./use-rpc-error";
 
 /**
  * Configuration options for useRpcQuery.
@@ -37,6 +42,23 @@ export type UseRpcQueryConfig = {
 };
 
 /**
+ * Filter out RpcErrorResponse from a union type.
+ * This distributes over unions to remove error types.
+ */
+type ExcludeError<T> = T extends RpcErrorResponse ? never : T;
+
+/**
+ * Extract data from RpcSuccessResponse, or return plain type as-is.
+ */
+type UnwrapSuccess<T> = T extends RpcSuccessResponse<infer D> ? D : T;
+
+/**
+ * Extract the success data type from a potential RPC response union.
+ * Removes RpcErrorResponse and unwraps RpcSuccessResponse.
+ */
+type ExtractSuccessData<T> = UnwrapSuccess<ExcludeError<T>>;
+
+/**
  * Extended result type for useRpcQuery.
  */
 export type UseRpcQueryResult<TData> = Omit<
@@ -44,7 +66,7 @@ export type UseRpcQueryResult<TData> = Omit<
 	"data" | "error"
 > & {
 	/** Extracted data (null if loading or error) */
-	data: TData | null;
+	data: ExtractSuccessData<TData> | null;
 	/** RPC error message (null if no error) */
 	rpcError: string | null;
 	/** Whether the response is an RPC error */
@@ -136,15 +158,15 @@ export function useRpcQuery<TData, TQueryKey extends readonly unknown[] = readon
 		if (isErrorResponse(rawData)) {
 			const errorDetails = getErrorDetails(rawData);
 			return {
-				data: null as TData | null,
+				data: null as ExtractSuccessData<TData> | null,
 				rpcError: showError ? (errorMessage ?? errorDetails.message) : null,
 				isRpcError: true,
 			};
 		}
-
-		// Success case - need to cast here since we've verified it's not an error
+		// Success case - extract data, filtering out error response type
+		const extracted = extractData(rawData);
 		return {
-			data: (rawData ?? null) as TData | null,
+			data: extracted as ExtractSuccessData<TData> | null,
 			rpcError: null,
 			isRpcError: false,
 		};

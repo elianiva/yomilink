@@ -236,7 +236,15 @@ function AnalyticsPage() {
 								</SelectTrigger>
 								<SelectContent>
 									<AssignmentSelectContent
-										assignments={assignments ?? undefined}
+										assignments={
+											!isErrorResponse(assignments) && Array.isArray(assignments)
+												? assignments.map((a) => ({
+														id: a.id,
+														title: a.title,
+														totalSubmissions: a.submissionCount ?? 0,
+													}))
+												: undefined
+										}
 										isLoading={assignmentsLoading}
 									/>
 								</SelectContent>

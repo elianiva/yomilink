@@ -15,17 +15,16 @@ export class ParseJsonError extends Data.TaggedError("ParseJsonError")<{
 	readonly message: string;
 }> {}
 
-export function parseJson<A = unknown>(input: string | unknown): Effect.Effect<A, ParseJsonError>;
-
+export function parseJson<A = unknown>(input: string | unknown): Effect.Effect<A, ParseJsonError, never>;
 export function parseJson<S extends Schema.Schema<any, any, any>>(
 	input: string | unknown,
 	schema: S,
-): Effect.Effect<Schema.Schema.Type<S>, ParseJsonError, Schema.Schema.Context<S>>;
+): Effect.Effect<Schema.Schema.Type<S>, ParseJsonError | Schema.Schema.Encoded<S>, Schema.Schema.Context<S>>;
 
-export function parseJson<S extends Schema.Schema<any, any, any>>(
+export function parseJson(
 	input: string | unknown,
-	schema?: S,
-): Effect.Effect<unknown, ParseJsonError, never> {
+	schema?: Schema.Schema<any, any, any>,
+): Effect.Effect<any, any, any> {
 	return Effect.gen(function* () {
 		let parsed: unknown;
 		if (typeof input === "string") {
@@ -48,7 +47,7 @@ export function parseJson<S extends Schema.Schema<any, any, any>>(
 export function safeParseJson<A = unknown>(
 	input: string | unknown,
 	defaultValue: A,
-): Effect.Effect<A, never>;
+): Effect.Effect<A, never, never>;
 
 export function safeParseJson<S extends Schema.Schema<any, any, any>>(
 	input: string | unknown,
@@ -60,7 +59,7 @@ export function safeParseJson<S extends Schema.Schema<any, any, any>>(
 	input: string | unknown,
 	defaultValue: unknown,
 	schema?: S,
-): Effect.Effect<unknown, never, never> {
+): Effect.Effect<unknown, never, Schema.Schema.Context<S> | never> {
 	return schema
 		? parseJson(input, schema).pipe(Effect.orElse(() => Effect.succeed(defaultValue)))
 		: parseJson(input).pipe(Effect.orElse(() => Effect.succeed(defaultValue)));

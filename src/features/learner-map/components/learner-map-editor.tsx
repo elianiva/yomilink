@@ -642,8 +642,8 @@ function SummarizingEditor({
 	setStatus: (s: any) => void;
 	materialOpen: boolean;
 	setMaterialOpen: (o: boolean) => void;
-	materialText: string | null;
-	lastSavedSnapshot: string;
+	materialText: string;
+	lastSavedSnapshot: string | null;
 	setLastSavedSnapshot: (s: string) => void;
 }) {
 	const queryClient = useQueryClient();

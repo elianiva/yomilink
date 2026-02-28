@@ -407,7 +407,7 @@ export function GoalMapEditor() {
 			<SaveDialog
 				open={saveOpen}
 				saving={saving}
-				topics={topics ?? []}
+				topics={!isErrorResponse(topics) ? topics ?? [] : []}
 				topicsLoading={topicsLoading}
 				defaultTopicId={saveMeta.topicId}
 				defaultName={saveMeta.name}
@@ -421,7 +421,7 @@ export function GoalMapEditor() {
 			<SaveDialog
 				open={saveAsOpen}
 				saving={saving}
-				topics={topics ?? []}
+				topics={!isErrorResponse(topics) ? topics ?? [] : []}
 				topicsLoading={topicsLoading}
 				defaultTopicId={saveMeta.topicId}
 				defaultName={saveMeta.name ? `${saveMeta.name} (copy)` : ""}
@@ -486,7 +486,7 @@ export function GoalMapEditor() {
 					onCreateKit={handleCreateKit}
 					saving={saving}
 					isNewMap={isNewMap}
-					kitStatus={kitStatus ?? undefined}
+				kitStatus={!isErrorResponse(kitStatus) ? kitStatus : undefined}
 					isGeneratingKit={generateKitMutation.isPending}
 				/>
 

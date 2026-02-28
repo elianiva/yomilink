@@ -19,18 +19,15 @@ export const Route = createFileRoute("/dashboard/profile")({
 });
 
 const ProfileSchema = Schema.Struct({
-	name: Schema.NonEmptyString,
-	age: Schema.optionalWith(Schema.Number, { nullable: true }),
-	jlptLevel: Schema.optionalWith(
+	name: Schema.String.pipe(Schema.minLength(1)),
+	age: Schema.NullOr(Schema.Number),
+	jlptLevel: Schema.NullOr(
 		Schema.Union(Schema.Literal("N5", "N4", "N3", "N2", "N1", "None")),
-		{ nullable: true },
 	),
-	japaneseLearningDuration: Schema.optionalWith(Schema.Number, {
-		nullable: true,
-	}),
-	previousJapaneseScore: Schema.optionalWith(Schema.Number, { nullable: true }),
-	mediaConsumption: Schema.optionalWith(Schema.Number, { nullable: true }),
-	motivation: Schema.optionalWith(Schema.String, { nullable: true }),
+	japaneseLearningDuration: Schema.NullOr(Schema.Number),
+	previousJapaneseScore: Schema.NullOr(Schema.Number),
+	mediaConsumption: Schema.NullOr(Schema.Number),
+	motivation: Schema.NullOr(Schema.String),
 });
 
 function ProfilePage() {
@@ -47,7 +44,7 @@ function ProfilePage() {
 			japaneseLearningDuration: (me as any)?.japaneseLearningDuration ?? null,
 			previousJapaneseScore: (me as any)?.previousJapaneseScore ?? null,
 			mediaConsumption: (me as any)?.mediaConsumption ?? null,
-			motivation: (me as any)?.motivation ?? "",
+			motivation: (me as any)?.motivation ?? null,
 		},
 		validators: {
 			onChange: Schema.standardSchemaV1(ProfileSchema),
