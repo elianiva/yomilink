@@ -42,11 +42,10 @@ export const logRpcError =
  */
 export const Rpc = {
 	/**
-	 * Create a standardized success response.
+	 * Create a standardized success response (plain value for use with Effect.map).
 	 * @param data - The data to return
 	 */
-	ok: <T>(data: T): Effect.Effect<RpcSuccess<T>> =>
-		Effect.succeed({ success: true, data } as const),
+	ok: <T>(data: T): RpcSuccess<T> => ({ success: true, data }) as const,
 
 	/**
 	 * Create a standardized error response.

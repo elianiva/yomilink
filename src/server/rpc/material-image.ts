@@ -15,10 +15,8 @@ export const uploadMaterialImageRpc = createServerFn()
 	.middleware([authMiddleware])
 	.inputValidator((raw) => Schema.decodeUnknownSync(UploadMaterialImageInput)(raw))
 	.handler(({ data }) =>
-		Effect.gen(function* () {
-			const result = yield* uploadMaterialImage(data);
-			return yield* Rpc.ok(result);
-		}).pipe(
+		uploadMaterialImage(data).pipe(
+			Effect.map(Rpc.ok),
 			Effect.withSpan("uploadMaterialImage"),
 			Effect.tapError(logRpcError("uploadMaterialImage")),
 			Effect.catchTags({

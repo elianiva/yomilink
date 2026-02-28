@@ -26,10 +26,8 @@ export const createAssignmentRpc = createServerFn()
 	.middleware([requireRoleMiddleware("teacher", "admin")])
 	.inputValidator((raw) => Schema.decodeUnknownSync(CreateAssignmentInput)(raw))
 	.handler(({ data, context }) =>
-		Effect.gen(function* () {
-			const result = yield* createAssignment(context.user.id, data);
-			return yield* Rpc.ok(result);
-		}).pipe(
+		createAssignment(context.user.id, data).pipe(
+			Effect.map(Rpc.ok),
 			Effect.withSpan("createAssignment"),
 			Effect.tapError(logRpcError("createAssignment")),
 			Effect.provide(AppLayer),
@@ -44,10 +42,8 @@ export const createAssignmentRpc = createServerFn()
 export const listTeacherAssignmentsRpc = createServerFn()
 	.middleware([requireRoleMiddleware("teacher", "admin")])
 	.handler(({ context }) =>
-		Effect.gen(function* () {
-			const rows = yield* listTeacherAssignments(context.user.id);
-			return yield* Rpc.ok(rows);
-		}).pipe(
+		listTeacherAssignments(context.user.id).pipe(
+			Effect.map(Rpc.ok),
 			Effect.withSpan("listTeacherAssignments"),
 			Effect.tapError(logRpcError("listTeacherAssignments")),
 			Effect.catchAll(() => Rpc.err("Internal server error")),
@@ -60,10 +56,8 @@ export const deleteAssignmentRpc = createServerFn()
 	.middleware([requireRoleMiddleware("teacher", "admin")])
 	.inputValidator((raw) => Schema.decodeUnknownSync(DeleteAssignmentInput)(raw))
 	.handler(({ data, context }) =>
-		Effect.gen(function* () {
-			yield* deleteAssignment(context.user.id, data);
-			return yield* Rpc.ok(true);
-		}).pipe(
+		deleteAssignment(context.user.id, data).pipe(
+			Effect.map(() => Rpc.ok(true)),
 			Effect.withSpan("deleteAssignment"),
 			Effect.tapError(logRpcError("deleteAssignment")),
 			Effect.catchTags({
@@ -78,10 +72,8 @@ export const deleteAssignmentRpc = createServerFn()
 export const getAvailableCohortsRpc = createServerFn()
 	.middleware([requireRoleMiddleware("teacher", "admin")])
 	.handler(() =>
-		Effect.gen(function* () {
-			const rows = yield* getAvailableCohorts();
-			return yield* Rpc.ok(rows);
-		}).pipe(
+		getAvailableCohorts().pipe(
+			Effect.map(Rpc.ok),
 			Effect.withSpan("getAvailableCohorts"),
 			Effect.tapError(logRpcError("getAvailableCohorts")),
 			Effect.catchAll(() => Rpc.err("Internal server error")),
@@ -93,10 +85,8 @@ export const getAvailableCohortsRpc = createServerFn()
 export const getAvailableUsersRpc = createServerFn()
 	.middleware([requireRoleMiddleware("teacher", "admin")])
 	.handler(() =>
-		Effect.gen(function* () {
-			const rows = yield* getAvailableUsers();
-			return yield* Rpc.ok(rows);
-		}).pipe(
+		getAvailableUsers().pipe(
+			Effect.map(Rpc.ok),
 			Effect.withSpan("getAvailableUsers"),
 			Effect.tapError(logRpcError("getAvailableUsers")),
 			Effect.catchAll(() => Rpc.err("Internal server error")),
@@ -108,10 +98,8 @@ export const getAvailableUsersRpc = createServerFn()
 export const getTeacherGoalMapsRpc = createServerFn()
 	.middleware([requireRoleMiddleware("teacher", "admin")])
 	.handler(() =>
-		Effect.gen(function* () {
-			const rows = yield* getTeacherGoalMaps();
-			return yield* Rpc.ok(rows);
-		}).pipe(
+		getTeacherGoalMaps().pipe(
+			Effect.map(Rpc.ok),
 			Effect.withSpan("getTeacherGoalMaps"),
 			Effect.tapError(logRpcError("getTeacherGoalMaps")),
 			Effect.catchAll(() => Rpc.err("Internal server error")),
@@ -124,14 +112,12 @@ export const saveExperimentGroupsRpc = createServerFn()
 	.middleware([requireRoleMiddleware("teacher", "admin")])
 	.inputValidator((raw) => Schema.decodeUnknownSync(SaveExperimentGroupsInput)(raw))
 	.handler(({ data }) =>
-		Effect.gen(function* () {
-			yield* saveExperimentGroups(data);
-			return yield* Rpc.ok(true);
-		}).pipe(
+		saveExperimentGroups(data).pipe(
+			Effect.map(() => Rpc.ok(true)),
 			Effect.withSpan("saveExperimentGroups"),
 			Effect.tapError(logRpcError("saveExperimentGroups")),
-			Effect.provide(AppLayer),
 			Effect.catchAll(() => Rpc.err("Internal server error")),
+			Effect.provide(AppLayer),
 			Effect.runPromise,
 		),
 	);
@@ -142,14 +128,12 @@ export const getExperimentGroupsByAssignmentIdRpc = createServerFn()
 		Schema.decodeUnknownSync(Schema.Struct({ assignmentId: Schema.String }))(raw),
 	)
 	.handler(({ data }) =>
-		Effect.gen(function* () {
-			const result = yield* getExperimentGroupsByAssignmentId(data.assignmentId);
-			return yield* Rpc.ok(result);
-		}).pipe(
+		getExperimentGroupsByAssignmentId(data.assignmentId).pipe(
+			Effect.map(Rpc.ok),
 			Effect.withSpan("getExperimentGroupsByAssignmentId"),
 			Effect.tapError(logRpcError("getExperimentGroupsByAssignmentId")),
-			Effect.provide(AppLayer),
 			Effect.catchAll(() => Rpc.err("Internal server error")),
+			Effect.provide(AppLayer),
 			Effect.runPromise,
 		),
 	);
@@ -160,14 +144,12 @@ export const getAssignmentByPreTestFormIdRpc = createServerFn()
 		Schema.decodeUnknownSync(Schema.Struct({ formId: Schema.String }))(raw),
 	)
 	.handler(({ data }) =>
-		Effect.gen(function* () {
-			const result = yield* getAssignmentByPreTestFormId(data.formId);
-			return yield* Rpc.ok(result);
-		}).pipe(
+		getAssignmentByPreTestFormId(data.formId).pipe(
+			Effect.map(Rpc.ok),
 			Effect.withSpan("getAssignmentByPreTestFormId"),
 			Effect.tapError(logRpcError("getAssignmentByPreTestFormId")),
-			Effect.provide(AppLayer),
 			Effect.catchAll(() => Rpc.err("Internal server error")),
+			Effect.provide(AppLayer),
 			Effect.runPromise,
 		),
 	);
@@ -178,14 +160,12 @@ export const getExperimentConditionRpc = createServerFn()
 		Schema.decodeUnknownSync(Schema.Struct({ assignmentId: Schema.String }))(raw),
 	)
 	.handler(({ data, context }) =>
-		Effect.gen(function* () {
-			const result = yield* getExperimentCondition(data.assignmentId, context.user.id);
-			return yield* Rpc.ok(result);
-		}).pipe(
+		getExperimentCondition(data.assignmentId, context.user.id).pipe(
+			Effect.map(Rpc.ok),
 			Effect.withSpan("getExperimentCondition"),
 			Effect.tapError(logRpcError("getExperimentCondition")),
-			Effect.provide(AppLayer),
 			Effect.catchAll(() => Rpc.err("Internal server error")),
+			Effect.provide(AppLayer),
 			Effect.runPromise,
 		),
 	);

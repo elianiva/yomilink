@@ -24,6 +24,7 @@ import {
 	AlertDialogHeader,
 	AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
+import { Button } from "@/components/ui/button";
 import { ConnectionModeIndicator } from "@/components/ui/connection-mode-indicator";
 import { ContextMenuOverlay } from "@/components/ui/context-menu-overlay";
 import { ConnectorNode } from "@/features/kitbuild/components/connector-node";
@@ -48,7 +49,6 @@ import {
 	searchOpenAtom,
 	submissionStatusAtom,
 } from "@/features/learner-map/lib/atoms";
-import { Button } from "@/components/ui/button";
 import { arrangeNodesByType } from "@/features/learner-map/lib/grid-layout";
 import { useGraphChangeHandlers } from "@/hooks/use-graph-change-handlers";
 import { useHistory } from "@/hooks/use-history";
@@ -138,7 +138,6 @@ export function LearnerMapEditor() {
 	const submitMutation = useRpcMutation(LearnerMapRpc.submitLearnerMap(), {
 		operation: "submit learner map",
 	});
-
 
 	// Initialize from query data
 	useEffect(() => {

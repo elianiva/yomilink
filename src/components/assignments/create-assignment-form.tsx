@@ -1,5 +1,5 @@
 import { UserIcon, UsersIcon } from "lucide-react";
-import { useReducer } from "react";
+import { SubmitEvent, useReducer } from "react";
 
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -158,7 +158,7 @@ export function CreateAssignmentForm({ onSuccess, onCancel }: CreateAssignmentFo
 		}
 	};
 
-	const handleSubmit = (e: React.FormEvent) => {
+	const handleSubmit = (e: SubmitEvent) => {
 		e.preventDefault();
 
 		if (!state.basic.title.trim() || !state.config.goalMapId) {
@@ -172,6 +172,7 @@ export function CreateAssignmentForm({ onSuccess, onCancel }: CreateAssignmentFo
 					createMutation.mutate(
 						{
 							title: state.basic.title.trim(),
+							cohortIds: state.assignment.selectedCohorts,
 							description: state.basic.description.trim() || undefined,
 							goalMapId: state.config.goalMapId,
 							startDate: parseDateInput(state.config.startDate) ?? Date.now(),
@@ -200,6 +201,16 @@ export function CreateAssignmentForm({ onSuccess, onCancel }: CreateAssignmentFo
 		users: (users ?? []).filter((u) => u.role === "student"),
 		forms: forms ?? [],
 	};
+
+	// TODO: properly fix the type so we don't have to do this
+	const formsWithDesc = formOptions.forms.map((f) => ({
+		...f,
+		description: f.description ?? "No description",
+	}));
+	const pretestForms = formsWithDesc.filter((f) => f.type === "pre_test");
+	const posttestForms = formsWithDesc.filter((f) => f.type === "post_test");
+	const delayedtestForms = formsWithDesc.filter((f) => f.type === "delayed_test");
+	const tamForms = formsWithDesc.filter((f) => f.type === "tam");
 
 	return (
 		<form onSubmit={handleSubmit} className="space-y-4">
@@ -310,7 +321,7 @@ export function CreateAssignmentForm({ onSuccess, onCancel }: CreateAssignmentFo
 								value: v,
 							})
 						}
-						forms={formOptions.forms.filter((f) => f.type === "pre_test")}
+						forms={pretestForms}
 						placeholder="Select a pre-test form"
 					/>
 					<FormSelect
@@ -324,7 +335,7 @@ export function CreateAssignmentForm({ onSuccess, onCancel }: CreateAssignmentFo
 								value: v,
 							})
 						}
-						forms={formOptions.forms.filter((f) => f.type === "post_test")}
+						forms={posttestForms}
 						placeholder="Select a post-test form"
 					/>
 					<FormSelect
@@ -338,9 +349,7 @@ export function CreateAssignmentForm({ onSuccess, onCancel }: CreateAssignmentFo
 								value: v,
 							})
 						}
-						forms={formOptions.forms.filter(
-							(f) => f.type === "delayed_test" || f.type === "post_test",
-						)}
+						forms={delayedtestForms}
 						placeholder="Select a delayed post-test form"
 					/>
 					<div className="space-y-2">
@@ -365,7 +374,7 @@ export function CreateAssignmentForm({ onSuccess, onCancel }: CreateAssignmentFo
 						onChange={(v) =>
 							dispatch({ type: "SET_PROCEDURE", field: "tamFormId", value: v })
 						}
-						forms={formOptions.forms.filter((f) => f.type === "tam")}
+						forms={tamForms}
 						placeholder="Select a TAM survey form"
 					/>
 				</div>
@@ -518,7 +527,7 @@ function FormSelect({
 	label: string;
 	value: string;
 	onChange: (value: string) => void;
-	forms: Form[];
+	forms: { id: string; title: string; description: string }[];
 	placeholder: string;
 }) {
 	return (

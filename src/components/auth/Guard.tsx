@@ -1,7 +1,7 @@
-import { useQuery } from "@tanstack/react-query";
 import { Navigate, useLocation } from "@tanstack/react-router";
 import type { ReactNode } from "react";
 
+import { useRpcQuery } from "@/hooks/use-rpc-query";
 import { ProfileRpc } from "@/server/rpc/profile";
 
 export type Role = "teacher" | "admin" | "student";
@@ -25,11 +25,15 @@ type GuardProps = {
  */
 export function Guard({ roles, children, fallback, redirectTo = "/dashboard" }: GuardProps) {
 	const location = useLocation();
-	const { data: user } = useQuery(ProfileRpc.getMe());
+	const { data: user } = useRpcQuery(ProfileRpc.getMe());
 
 	// No roles means allow-through (useful when Dashboard layout already handles auth)
 	if (!roles || roles.length === 0) {
 		return <>{children}</>;
+	}
+
+	if (!user) {
+		return <Navigate to="/login" />;
 	}
 
 	const role = user?.role ?? "";

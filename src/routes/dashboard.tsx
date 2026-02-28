@@ -21,44 +21,36 @@ import { getMe, ProfileRpc } from "@/server/rpc/profile";
 export const Route = createFileRoute("/dashboard")({
 	beforeLoad: async () => {
 		const me = await getMe();
-		if (!me) throw redirect({ to: "/login" });
+		if (!me.success) throw redirect({ to: "/login" });
 
 		// Check registration form completion for students
-		if (me.role === "student") {
+		if (me.data.role === "student") {
 			const result = await getRegistrationFormStatusRpc();
 
 			// Check if result is an error response
-			if ("success" in result && !result.success) {
-				// Error checking registration status - log with structured format
-				console.warn(
-					JSON.stringify({
-						operation: "getRegistrationFormStatus",
-						error: result.error,
-						message: "Failed to check registration form status",
-					}),
-				);
+			if (!result.success) {
+				// Error checking registration status
+				// TODO: figure out what to do here, for now just redirect
+				throw redirect({
+					to: "/dashboard/forms/take",
+					search: { formId: result.data.formId },
+				});
 			} else {
-				const registrationStatus = result as {
-					hasRegistrationForm: boolean;
-					isCompleted: boolean;
-					formId: string | null;
-				};
-
 				// If there's a registration form and it's not completed, redirect to it
 				if (
-					registrationStatus.hasRegistrationForm &&
-					!registrationStatus.isCompleted &&
-					registrationStatus.formId
+					result.data.hasRegistrationForm &&
+					!result.data.isCompleted &&
+					result.data.formId
 				) {
 					throw redirect({
 						to: "/dashboard/forms/take",
-						search: { formId: registrationStatus.formId },
+						search: { formId: result.data.formId },
 					});
 				}
 			}
 		}
 
-		return me;
+		return me.data;
 	},
 	loader: async ({ context }) => {
 		context.queryClient.setQueryData<typeof AuthUser.Type>(ProfileRpc.me(), {

@@ -19,10 +19,8 @@ import { Rpc, logRpcError } from "../rpc-helper";
 export const listStudentKitsRpc = createServerFn()
 	.middleware([requireRoleMiddleware("teacher", "admin")])
 	.handler(() =>
-		Effect.gen(function* () {
-			const rows = yield* listStudentKits();
-			return yield* Rpc.ok(rows);
-		}).pipe(
+		listStudentKits().pipe(
+			Effect.map(Rpc.ok),
 			Effect.withSpan("listStudentKits"),
 			Effect.tapError(logRpcError("listStudentKits")),
 			Effect.catchAll(() => Rpc.err("Internal server error")),
@@ -35,10 +33,8 @@ export const getKitRpc = createServerFn()
 	.middleware([requireRoleMiddleware("teacher", "admin")])
 	.inputValidator((raw) => Schema.decodeUnknownSync(GetKitInput)(raw))
 	.handler(({ data }) =>
-		Effect.gen(function* () {
-			const result = yield* getKit(data);
-			return yield* Rpc.ok(result);
-		}).pipe(
+		getKit(data).pipe(
+			Effect.map(Rpc.ok),
 			Effect.withSpan("getKit"),
 			Effect.tapError(logRpcError("getKit")),
 			Effect.catchAll(() => Rpc.err("Internal server error")),
@@ -51,10 +47,8 @@ export const getKitStatusRpc = createServerFn()
 	.middleware([requireRoleMiddleware("teacher", "admin")])
 	.inputValidator((raw) => Schema.decodeUnknownSync(GetKitStatusInput)(raw))
 	.handler(({ data }) =>
-		Effect.gen(function* () {
-			const result = yield* getKitStatus(data);
-			return yield* Rpc.ok(result);
-		}).pipe(
+		getKitStatus(data).pipe(
+			Effect.map(Rpc.ok),
 			Effect.withSpan("getKitStatus"),
 			Effect.tapError(logRpcError("getKitStatus")),
 			Effect.catchAll(() => Rpc.err("Internal server error")),
@@ -67,10 +61,8 @@ export const generateKitRpc = createServerFn()
 	.middleware([requireRoleMiddleware("teacher", "admin")])
 	.inputValidator((raw) => Schema.decodeUnknownSync(GenerateKitInput)(raw))
 	.handler(({ data, context }) =>
-		Effect.gen(function* () {
-			const result = yield* generateKit(context.user.id, data);
-			return yield* Rpc.ok(result);
-		}).pipe(
+		generateKit(context.user.id, data).pipe(
+			Effect.map(Rpc.ok),
 			Effect.withSpan("generateKit"),
 			Effect.tapError(logRpcError("generateKit")),
 			Effect.catchTags({

@@ -23,10 +23,8 @@ export const getGoalMapRpc = createServerFn()
 	.middleware([authMiddleware])
 	.inputValidator((raw) => Schema.decodeUnknownSync(GetGoalMapInput)(raw))
 	.handler(({ data }) =>
-		Effect.gen(function* () {
-			const result = yield* getGoalMap(data);
-			return yield* Rpc.ok(result);
-		}).pipe(
+		getGoalMap(data).pipe(
+			Effect.map(Rpc.ok),
 			Effect.withSpan("getGoalMap"),
 			Effect.tapError(logRpcError("getGoalMap")),
 			Effect.catchAll(() => Rpc.err("Internal server error")),
@@ -43,9 +41,9 @@ export const saveGoalMapRpc = createServerFn()
 			if (data.goalMapId !== "new") {
 				yield* requireGoalMapOwner(context.user.id, data.goalMapId);
 			}
-			const result = yield* saveGoalMap(context.user.id, data);
-			return yield* Rpc.ok(result);
+			return yield* saveGoalMap(context.user.id, data);
 		}).pipe(
+			Effect.map(Rpc.ok),
 			Effect.withSpan("saveGoalMap"),
 			Effect.tapError(logRpcError("saveGoalMap")),
 			Effect.catchTags({
@@ -61,10 +59,8 @@ export const saveGoalMapRpc = createServerFn()
 export const listGoalMapsRpc = createServerFn()
 	.middleware([authMiddleware])
 	.handler(({ context }) =>
-		Effect.gen(function* () {
-			const rows = yield* listGoalMaps(context.user.id);
-			return yield* Rpc.ok(rows);
-		}).pipe(
+		listGoalMaps(context.user.id).pipe(
+			Effect.map(Rpc.ok),
 			Effect.withSpan("listGoalMaps"),
 			Effect.provide(AppLayer),
 			Effect.runPromise,
@@ -75,10 +71,8 @@ export const listGoalMapsByTopicRpc = createServerFn()
 	.middleware([authMiddleware])
 	.inputValidator((raw) => Schema.decodeUnknownSync(ListGoalMapsByTopicInput)(raw))
 	.handler(({ data }) =>
-		Effect.gen(function* () {
-			const rows = yield* listGoalMapsByTopic(data);
-			return yield* Rpc.ok(rows);
-		}).pipe(
+		listGoalMapsByTopic(data).pipe(
+			Effect.map(Rpc.ok),
 			Effect.withSpan("listGoalMapsByTopic"),
 			Effect.tapError(logRpcError("listGoalMapsByTopic")),
 			Effect.catchAll(() => Rpc.err("Internal server error")),
@@ -91,10 +85,8 @@ export const deleteGoalMapRpc = createServerFn()
 	.middleware([authMiddleware])
 	.inputValidator((raw) => Schema.decodeUnknownSync(DeleteGoalMapInput)(raw))
 	.handler(({ data, context }) =>
-		Effect.gen(function* () {
-			yield* deleteGoalMap(context.user.id, data);
-			return yield* Rpc.ok(true);
-		}).pipe(
+		deleteGoalMap(context.user.id, data).pipe(
+			Effect.map(() => Rpc.ok(true)),
 			Effect.withSpan("deleteGoalMap"),
 			Effect.tapError(logRpcError("deleteGoalMap")),
 			Effect.catchTags({

@@ -15,21 +15,16 @@ export const getMe = createServerFn()
 			if (!context.user) {
 				return yield* Rpc.err("Not authenticated");
 			}
-			return yield* Rpc.ok(context.user);
-		}).pipe(
-			Effect.provide(AppLayer),
-			Effect.runPromise,
-		),
+			return Rpc.ok(context.user);
+		}).pipe(Effect.provide(AppLayer), Effect.runPromise),
 	);
 
 export const updateProfileRpc = createServerFn()
 	.middleware([authMiddleware])
 	.inputValidator((raw) => Schema.decodeUnknownSync(UpdateProfileInput)(raw))
 	.handler(({ data, context }) =>
-		Effect.gen(function* () {
-			const result = yield* updateProfile(context.user.id, data);
-			return yield* Rpc.ok(result);
-		}).pipe(
+		updateProfile(context.user.id, data).pipe(
+			Effect.map(Rpc.ok),
 			Effect.withSpan("updateProfile"),
 			Effect.tapError(logRpcError("updateProfile")),
 			Effect.catchTags({

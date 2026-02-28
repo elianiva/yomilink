@@ -21,31 +21,27 @@ export const CreateTopicInput = Schema.Struct({
 
 export type CreateTopicInput = typeof CreateTopicInput.Type;
 
-export const listTopics = Effect.fn("listTopics")(() =>
-	Effect.gen(function* () {
-		const db = yield* Database;
-		const rows = yield* db
-			.select({
-				id: topics.id,
-				title: topics.title,
-				description: topics.description,
-			})
-			.from(topics)
-			.orderBy(topics.title);
+export const listTopics = Effect.fn("listTopics")(function* () {
+	const db = yield* Database;
+	const rows = yield* db
+		.select({
+			id: topics.id,
+			title: topics.title,
+			description: topics.description,
+		})
+		.from(topics)
+		.orderBy(topics.title);
 
-		return rows;
-	}),
-);
+	return rows;
+});
 
-export const createTopic = Effect.fn("createTopic")((data: CreateTopicInput) =>
-	Effect.gen(function* () {
-		const db = yield* Database;
-		yield* db.insert(topics).values({
-			id: randomString(),
-			title: data.title,
-			description: data.description,
-		});
+export const createTopic = Effect.fn("createTopic")(function* (data: CreateTopicInput) {
+	const db = yield* Database;
+	yield* db.insert(topics).values({
+		id: randomString(),
+		title: data.title,
+		description: data.description,
+	});
 
-		return { success: true } as const;
-	}),
-);
+	return { success: true } as const;
+});

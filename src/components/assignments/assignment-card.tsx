@@ -2,10 +2,18 @@ import { CalendarIcon, MapIcon, Trash2Icon } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
 import { formatDate } from "@/lib/date-utils";
-import type { AssignmentWithDetails } from "@/server/rpc/assignment";
 
 interface AssignmentCardProps {
-	assignment: AssignmentWithDetails;
+	assignment: {
+		id: string;
+		title: string;
+		description: string;
+		goalMapTitle: string;
+		startDate: number;
+		dueAt: number;
+		createdAt: number;
+		updatedAt: number;
+	};
 	onDelete: (id: string) => void;
 }
 

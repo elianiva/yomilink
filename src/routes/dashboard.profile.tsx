@@ -21,9 +21,7 @@ export const Route = createFileRoute("/dashboard/profile")({
 const ProfileSchema = Schema.Struct({
 	name: Schema.String.pipe(Schema.minLength(1)),
 	age: Schema.NullOr(Schema.Number),
-	jlptLevel: Schema.NullOr(
-		Schema.Union(Schema.Literal("N5", "N4", "N3", "N2", "N1", "None")),
-	),
+	jlptLevel: Schema.NullOr(Schema.Union(Schema.Literal("N5", "N4", "N3", "N2", "N1", "None"))),
 	japaneseLearningDuration: Schema.NullOr(Schema.Number),
 	previousJapaneseScore: Schema.NullOr(Schema.Number),
 	mediaConsumption: Schema.NullOr(Schema.Number),

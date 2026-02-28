@@ -11,10 +11,8 @@ import { Rpc, logRpcError } from "../rpc-helper";
 export const listTopicsRpc = createServerFn()
 	.middleware([authMiddleware])
 	.handler(() =>
-		Effect.gen(function* () {
-			const rows = yield* listTopics();
-			return yield* Rpc.ok(rows);
-		}).pipe(
+		listTopics().pipe(
+			Effect.map(Rpc.ok),
 			Effect.withSpan("listTopics"),
 			Effect.tapError(logRpcError("listTopics")),
 			Effect.catchAll(() => Rpc.err("Internal server error")),
@@ -27,10 +25,8 @@ export const createTopicRpc = createServerFn()
 	.middleware([authMiddleware])
 	.inputValidator((raw) => Schema.decodeUnknownSync(CreateTopicInput)(raw))
 	.handler(({ data }) =>
-		Effect.gen(function* () {
-			const result = yield* createTopic(data);
-			return yield* Rpc.ok(result);
-		}).pipe(
+		createTopic(data).pipe(
+			Effect.map(Rpc.ok),
 			Effect.withSpan("createTopic"),
 			Effect.tapError(logRpcError("createTopic")),
 			Effect.catchAll(() => Rpc.err("Internal server error")),

@@ -1,4 +1,3 @@
-import { useQuery } from "@tanstack/react-query";
 import {
 	BookOpenIcon,
 	ClipboardListIcon,
@@ -18,6 +17,7 @@ import {
 	SidebarHeader,
 	SidebarRail,
 } from "@/components/ui/sidebar";
+import { useRpcQuery } from "@/hooks/use-rpc-query";
 import { ProfileRpc } from "@/server/rpc/profile";
 
 type Role = "teacher" | "admin" | "student";
@@ -74,7 +74,7 @@ const NAVBAR_ITEMS: NavItemWithRoles[] = [
 type AppSidebarProps = React.ComponentProps<typeof Sidebar>;
 
 export function AppSidebar(props: AppSidebarProps) {
-	const { data: me } = useQuery(ProfileRpc.getMe());
+	const { data: me } = useRpcQuery(ProfileRpc.getMe());
 	const displayName = me?.name ?? null;
 	const displayEmail = me?.email ?? null;
 	const displayAvatar = me?.image ?? null;

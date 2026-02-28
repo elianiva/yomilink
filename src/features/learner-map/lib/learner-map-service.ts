@@ -82,594 +82,569 @@ export const SubmitControlTextInput = Schema.Struct({
 
 export type SubmitControlTextInput = typeof SubmitControlTextInput.Type;
 
-export const listStudentAssignments = Effect.fn("listStudentAssignments")((userId: string) =>
-	Effect.gen(function* () {
-		const db = yield* Database;
+export const listStudentAssignments = Effect.fn("listStudentAssignments")(function* (
+	userId: string,
+) {
+	const db = yield* Database;
 
-		const userCohorts = yield* db
-			.select({ cohortId: cohortMembers.cohortId })
-			.from(cohortMembers)
-			.where(eq(cohortMembers.userId, userId));
+	const userCohorts = yield* db
+		.select({ cohortId: cohortMembers.cohortId })
+		.from(cohortMembers)
+		.where(eq(cohortMembers.userId, userId));
 
-		const cohortIds = userCohorts.map((c) => c.cohortId);
+	const cohortIds = userCohorts.map((c) => c.cohortId);
 
-		const assignmentsData = yield* db
-			.select({
+	const assignmentsData = yield* db
+		.select({
+			id: assignments.id,
+			title: assignments.title,
+			description: assignments.description,
+			goalMapId: assignments.goalMapId,
+			kitId: assignments.kitId,
+			dueAt: assignments.dueAt,
+			createdAt: assignments.createdAt,
+			goalMapTitle: goalMaps.title,
+			learnerMapStatus: learnerMaps.status,
+			learnerMapAttempt: learnerMaps.attempt,
+			learnerMapUpdatedAt: learnerMaps.updatedAt,
+		})
+		.from(assignments)
+		.leftJoin(assignmentTargets, eq(assignmentTargets.assignmentId, assignments.id))
+		.leftJoin(goalMaps, eq(assignments.goalMapId, goalMaps.id))
+		.leftJoin(
+			learnerMaps,
+			and(eq(learnerMaps.assignmentId, assignments.id), eq(learnerMaps.userId, userId)),
+		)
+		.where(
+			or(
+				eq(assignmentTargets.userId, userId),
+				cohortIds.length > 0
+					? inArray(assignmentTargets.cohortId, cohortIds)
+					: eq(assignmentTargets.userId, ""),
+			),
+		)
+		.orderBy(desc(assignments.createdAt));
+
+	const uniqueAssignments = new Map(
+		assignmentsData.map((row) => [
+			row.id,
+			{
+				...row,
+				dueAt: row.dueAt?.getTime(),
+				createdAt: row.createdAt?.getTime(),
+				status: row.learnerMapStatus || "not_started",
+				attempt: row.learnerMapAttempt || 0,
+				isLate:
+					row.dueAt &&
+					row.dueAt.getTime() < Date.now() &&
+					row.learnerMapStatus !== "submitted",
+				lastUpdated: row.learnerMapUpdatedAt?.getTime(),
+			},
+		]),
+	);
+
+	return Array.from(uniqueAssignments.values());
+});
+
+export const getAssignmentForStudent = Effect.fn("getAssignmentForStudent")(function* (
+	userId: string,
+	input: GetAssignmentForStudentInput,
+) {
+	const db = yield* Database;
+
+	const results = yield* db
+		.select({
+			assignment: {
 				id: assignments.id,
 				title: assignments.title,
 				description: assignments.description,
+				readingMaterial: assignments.readingMaterial,
+				timeLimitMinutes: assignments.timeLimitMinutes,
 				goalMapId: assignments.goalMapId,
 				kitId: assignments.kitId,
 				dueAt: assignments.dueAt,
-				createdAt: assignments.createdAt,
-				goalMapTitle: goalMaps.title,
-				learnerMapStatus: learnerMaps.status,
-				learnerMapAttempt: learnerMaps.attempt,
-				learnerMapUpdatedAt: learnerMaps.updatedAt,
-			})
-			.from(assignments)
-			.leftJoin(assignmentTargets, eq(assignmentTargets.assignmentId, assignments.id))
-			.leftJoin(goalMaps, eq(assignments.goalMapId, goalMaps.id))
-			.leftJoin(
-				learnerMaps,
-				and(eq(learnerMaps.assignmentId, assignments.id), eq(learnerMaps.userId, userId)),
-			)
-			.where(
+				preTestFormId: assignments.preTestFormId,
+				postTestFormId: assignments.postTestFormId,
+				delayedPostTestFormId: assignments.delayedPostTestFormId,
+				delayedPostTestDelayDays: assignments.delayedPostTestDelayDays,
+				tamFormId: assignments.tamFormId,
+			},
+			kit: {
+				id: kits.id,
+				nodes: kits.nodes,
+				edges: kits.edges,
+				textId: kits.textId,
+			},
+			materialText: texts.content,
+			learnerMap: {
+				id: learnerMaps.id,
+				nodes: learnerMaps.nodes,
+				edges: learnerMaps.edges,
+				status: learnerMaps.status,
+				attempt: learnerMaps.attempt,
+			},
+		})
+		.from(assignments)
+		.leftJoin(kits, eq(kits.id, assignments.kitId))
+		.leftJoin(texts, eq(texts.id, kits.textId))
+		.leftJoin(
+			learnerMaps,
+			and(eq(learnerMaps.assignmentId, assignments.id), eq(learnerMaps.userId, userId)),
+		)
+		.where(eq(assignments.id, input.assignmentId))
+		.limit(1);
+
+	const result = results[0];
+	if (!result || !result.kit) return null;
+
+	const kitNodes = Array.isArray(result.kit.nodes) ? result.kit.nodes : [];
+	const kitEdges = Array.isArray(result.kit.edges) ? result.kit.edges : [];
+
+	return {
+		assignment: {
+			...result.assignment,
+			dueAt: result.assignment.dueAt?.getTime(),
+		},
+		kit: {
+			id: result.kit.id,
+			nodes: kitNodes,
+			edges: kitEdges,
+		},
+		materialText: result.assignment.readingMaterial || result.materialText || null,
+		learnerMap: result.learnerMap
+			? {
+					id: result.learnerMap.id,
+					nodes: Array.isArray(result.learnerMap.nodes) ? result.learnerMap.nodes : [],
+					edges: Array.isArray(result.learnerMap.edges) ? result.learnerMap.edges : [],
+					status: result.learnerMap.status,
+					attempt: result.learnerMap.attempt,
+				}
+			: null,
+	};
+});
+
+export const saveLearnerMap = Effect.fn("saveLearnerMap")(function* (
+	userId: string,
+	data: {
+		assignmentId: string;
+		nodes?: string | null;
+		edges?: string | null;
+		controlText?: string | null;
+	},
+) {
+	const db = yield* Database;
+
+	const assignmentRows = yield* db
+		.select({
+			id: assignments.id,
+			goalMapId: assignments.goalMapId,
+			kitId: assignments.kitId,
+		})
+		.from(assignments)
+		.where(eq(assignments.id, data.assignmentId))
+		.limit(1);
+
+	const assignment = assignmentRows[0];
+	if (!assignment) {
+		return { success: false, error: "Assignment not found" } as const;
+	}
+
+	// Verify user has access via cohort or direct targeting
+	const userCohorts = yield* db
+		.select({ cohortId: cohortMembers.cohortId })
+		.from(cohortMembers)
+		.where(eq(cohortMembers.userId, userId));
+
+	const cohortIds = userCohorts.map((c) => c.cohortId);
+
+	const hasAccess = yield* db
+		.select({ id: assignments.id })
+		.from(assignments)
+		.leftJoin(assignmentTargets, eq(assignmentTargets.assignmentId, assignments.id))
+		.where(
+			and(
+				eq(assignments.id, data.assignmentId),
 				or(
 					eq(assignmentTargets.userId, userId),
 					cohortIds.length > 0
 						? inArray(assignmentTargets.cohortId, cohortIds)
 						: eq(assignmentTargets.userId, ""),
 				),
-			)
-			.orderBy(desc(assignments.createdAt));
+			),
+		)
+		.limit(1);
 
-		const uniqueAssignments = new Map(
-			assignmentsData.map((row) => [
-				row.id,
-				{
-					...row,
-					dueAt: row.dueAt?.getTime(),
-					createdAt: row.createdAt?.getTime(),
-					status: row.learnerMapStatus || "not_started",
-					attempt: row.learnerMapAttempt || 0,
-					isLate:
-						row.dueAt &&
-						row.dueAt.getTime() < Date.now() &&
-						row.learnerMapStatus !== "submitted",
-					lastUpdated: row.learnerMapUpdatedAt?.getTime(),
-				},
-			]),
-		);
+	if (hasAccess.length === 0) {
+		return { success: false, error: "Access denied" } as const;
+	}
 
-		return Array.from(uniqueAssignments.values());
-	}),
-);
+	const existingRows = yield* db
+		.select({ id: learnerMaps.id, status: learnerMaps.status })
+		.from(learnerMaps)
+		.where(and(eq(learnerMaps.assignmentId, data.assignmentId), eq(learnerMaps.userId, userId)))
+		.limit(1);
 
-export const getAssignmentForStudent = Effect.fn("getAssignmentForStudent")(
-	(userId: string, input: GetAssignmentForStudentInput) =>
-		Effect.gen(function* () {
-			const db = yield* Database;
-
-			const results = yield* db
-				.select({
-					assignment: {
-						id: assignments.id,
-						title: assignments.title,
-						description: assignments.description,
-						readingMaterial: assignments.readingMaterial,
-						timeLimitMinutes: assignments.timeLimitMinutes,
-						goalMapId: assignments.goalMapId,
-						kitId: assignments.kitId,
-						dueAt: assignments.dueAt,
-						preTestFormId: assignments.preTestFormId,
-						postTestFormId: assignments.postTestFormId,
-						delayedPostTestFormId: assignments.delayedPostTestFormId,
-						delayedPostTestDelayDays: assignments.delayedPostTestDelayDays,
-						tamFormId: assignments.tamFormId,
-					},
-					kit: {
-						id: kits.id,
-						nodes: kits.nodes,
-						edges: kits.edges,
-						textId: kits.textId,
-					},
-					materialText: texts.content,
-					learnerMap: {
-						id: learnerMaps.id,
-						nodes: learnerMaps.nodes,
-						edges: learnerMaps.edges,
-						status: learnerMaps.status,
-						attempt: learnerMaps.attempt,
-					},
-				})
-				.from(assignments)
-				.leftJoin(kits, eq(kits.id, assignments.kitId))
-				.leftJoin(texts, eq(texts.id, kits.textId))
-				.leftJoin(
-					learnerMaps,
-					and(
-						eq(learnerMaps.assignmentId, assignments.id),
-						eq(learnerMaps.userId, userId),
-					),
-				)
-				.where(eq(assignments.id, input.assignmentId))
-				.limit(1);
-
-			const result = results[0];
-			if (!result || !result.kit) return null;
-
-			const kitNodes = Array.isArray(result.kit.nodes) ? result.kit.nodes : [];
-			const kitEdges = Array.isArray(result.kit.edges) ? result.kit.edges : [];
-
+	const existing = existingRows[0];
+	if (existing) {
+		if (existing.status === "submitted") {
 			return {
-				assignment: {
-					...result.assignment,
-					dueAt: result.assignment.dueAt?.getTime(),
-				},
-				kit: {
-					id: result.kit.id,
-					nodes: kitNodes,
-					edges: kitEdges,
-				},
-				materialText: result.assignment.readingMaterial || result.materialText || null,
-				learnerMap: result.learnerMap
-					? {
-							id: result.learnerMap.id,
-							nodes: Array.isArray(result.learnerMap.nodes)
-								? result.learnerMap.nodes
-								: [],
-							edges: Array.isArray(result.learnerMap.edges)
-								? result.learnerMap.edges
-								: [],
-							status: result.learnerMap.status,
-							attempt: result.learnerMap.attempt,
-						}
-					: null,
-			};
-		}),
-);
-
-export const saveLearnerMap = Effect.fn("saveLearnerMap")(
-	(
-		userId: string,
-		data: {
-			assignmentId: string;
-			nodes?: string | null;
-			edges?: string | null;
-			controlText?: string | null;
-		},
-	) =>
-		Effect.gen(function* () {
-			const db = yield* Database;
-
-			const assignmentRows = yield* db
-				.select({
-					id: assignments.id,
-					goalMapId: assignments.goalMapId,
-					kitId: assignments.kitId,
-				})
-				.from(assignments)
-				.where(eq(assignments.id, data.assignmentId))
-				.limit(1);
-
-			const assignment = assignmentRows[0];
-			if (!assignment) {
-				return { success: false, error: "Assignment not found" } as const;
-			}
-
-			// Verify user has access via cohort or direct targeting
-			const userCohorts = yield* db
-				.select({ cohortId: cohortMembers.cohortId })
-				.from(cohortMembers)
-				.where(eq(cohortMembers.userId, userId));
-
-			const cohortIds = userCohorts.map((c) => c.cohortId);
-
-			const hasAccess = yield* db
-				.select({ id: assignments.id })
-				.from(assignments)
-				.leftJoin(assignmentTargets, eq(assignmentTargets.assignmentId, assignments.id))
-				.where(
-					and(
-						eq(assignments.id, data.assignmentId),
-						or(
-							eq(assignmentTargets.userId, userId),
-							cohortIds.length > 0
-								? inArray(assignmentTargets.cohortId, cohortIds)
-								: eq(assignmentTargets.userId, ""),
-						),
-					),
-				)
-				.limit(1);
-
-			if (hasAccess.length === 0) {
-				return { success: false, error: "Access denied" } as const;
-			}
-
-			const existingRows = yield* db
-				.select({ id: learnerMaps.id, status: learnerMaps.status })
-				.from(learnerMaps)
-				.where(
-					and(
-						eq(learnerMaps.assignmentId, data.assignmentId),
-						eq(learnerMaps.userId, userId),
-					),
-				)
-				.limit(1);
-
-			const existing = existingRows[0];
-			if (existing) {
-				if (existing.status === "submitted") {
-					return {
-						success: false,
-						error: "Cannot edit submitted map",
-					} as const;
-				}
-
-				yield* db
-					.update(learnerMaps)
-					.set({
-						...(data.nodes !== undefined && { nodes: data.nodes }),
-						...(data.edges !== undefined && { edges: data.edges }),
-						...(data.controlText !== undefined && {
-							controlText: data.controlText,
-						}),
-					})
-					.where(eq(learnerMaps.id, existing.id));
-
-				return { success: true, learnerMapId: existing.id } as const;
-			}
-
-			const learnerMapId = randomString();
-			yield* db.insert(learnerMaps).values({
-				id: learnerMapId,
-				assignmentId: data.assignmentId,
-				goalMapId: assignment.goalMapId,
-				kitId: assignment.kitId,
-				userId,
-				nodes: data.nodes ?? null,
-				edges: data.edges ?? null,
-				controlText: data.controlText ?? null,
-				status: "draft",
-				attempt: 1,
-			});
-
-			return { success: true, learnerMapId } as const;
-		}),
-);
-
-export const submitLearnerMap = Effect.fn("submitLearnerMap")(
-	(userId: string, input: SubmitLearnerMapInput) =>
-		Effect.gen(function* () {
-			const db = yield* Database;
-
-			const learnerMapRows = yield* db
-				.select()
-				.from(learnerMaps)
-				.where(
-					and(
-						eq(learnerMaps.assignmentId, input.assignmentId),
-						eq(learnerMaps.userId, userId),
-					),
-				)
-				.limit(1);
-
-			const learnerMap = learnerMapRows[0];
-			if (!learnerMap) {
-				return { success: false, error: "Learner map not found" } as const;
-			}
-
-			if (learnerMap.status === "submitted") {
-				return { success: false, error: "Already submitted" } as const;
-			}
-
-			const goalMapRows = yield* db
-				.select({ edges: goalMaps.edges })
-				.from(goalMaps)
-				.where(eq(goalMaps.id, learnerMap.goalMapId))
-				.limit(1);
-
-			const goalMap = goalMapRows[0];
-			if (!goalMap) {
-				return { success: false, error: "Goal map not found" } as const;
-			}
-
-			const goalMapEdges = Array.isArray(goalMap.edges) ? goalMap.edges : [];
-			const learnerEdges = Array.isArray(learnerMap.edges) ? learnerMap.edges : [];
-
-			const diagnosis = compareMaps(goalMapEdges, learnerEdges);
-
-			yield* db
-				.update(learnerMaps)
-				.set({
-					status: "submitted",
-					submittedAt: new Date(),
-				})
-				.where(eq(learnerMaps.id, learnerMap.id));
-
-			const diagnosisId = randomString();
-			yield* db.insert(diagnoses).values({
-				id: diagnosisId,
-				goalMapId: learnerMap.goalMapId,
-				learnerMapId: learnerMap.id,
-				summary: `Correct: ${diagnosis.correct.length}, Missing: ${diagnosis.missing.length}, Excessive: ${diagnosis.excessive.length}`,
-				perLink: JSON.stringify(diagnosis),
-				score: diagnosis.score,
-				rubricVersion: "1.0",
-			});
-
-			return {
-				success: true,
-				diagnosisId,
-				diagnosis,
+				success: false,
+				error: "Cannot edit submitted map",
 			} as const;
-		}),
-);
-
-export const getDiagnosis = Effect.fn("getDiagnosis")((userId: string, input: GetDiagnosisInput) =>
-	Effect.gen(function* () {
-		const db = yield* Database;
-
-		const results = yield* db
-			.select({
-				learnerMap: {
-					id: learnerMaps.id,
-					nodes: learnerMaps.nodes,
-					edges: learnerMaps.edges,
-					status: learnerMaps.status,
-					attempt: learnerMaps.attempt,
-					goalMapId: learnerMaps.goalMapId,
-				},
-				goalMap: {
-					nodes: goalMaps.nodes,
-					edges: goalMaps.edges,
-				},
-				assignment: {
-					postTestFormId: assignments.postTestFormId,
-					tamFormId: assignments.tamFormId,
-				},
-				diagnosis: {
-					id: diagnoses.id,
-					summary: diagnoses.summary,
-					score: diagnoses.score,
-					perLink: diagnoses.perLink,
-					createdAt: diagnoses.createdAt,
-				},
-			})
-			.from(learnerMaps)
-			.innerJoin(goalMaps, eq(goalMaps.id, learnerMaps.goalMapId))
-			.innerJoin(assignments, eq(assignments.id, learnerMaps.assignmentId))
-			.leftJoin(diagnoses, eq(diagnoses.learnerMapId, learnerMaps.id))
-			.where(
-				and(
-					eq(learnerMaps.assignmentId, input.assignmentId),
-					eq(learnerMaps.userId, userId),
-				),
-			)
-			.orderBy(desc(diagnoses.createdAt))
-			.limit(1);
-
-		const result = results[0];
-		if (!result) {
-			return null;
 		}
 
-		const diagnosisData = result.diagnosis?.perLink
-			? yield* parseJson(result.diagnosis.perLink, PerLinkDiagnosisSchema)
-			: null;
+		yield* db
+			.update(learnerMaps)
+			.set({
+				...(data.nodes !== undefined && { nodes: data.nodes }),
+				...(data.edges !== undefined && { edges: data.edges }),
+				...(data.controlText !== undefined && {
+					controlText: data.controlText,
+				}),
+			})
+			.where(eq(learnerMaps.id, existing.id));
 
-		const [learnerMapNodes, learnerMapEdges, goalMapNodes, goalMapEdges] = yield* Effect.all(
-			[
-				safeParseJson(result.learnerMap.nodes, [], Schema.Array(NodeSchema)),
-				safeParseJson(result.learnerMap.edges, [], Schema.Array(EdgeSchema)),
-				safeParseJson(result.goalMap.nodes, [], Schema.Array(NodeSchema)),
-				safeParseJson(result.goalMap.edges, [], Schema.Array(EdgeSchema)),
-			],
-			{ concurrency: "unbounded" },
-		);
+		return { success: true, learnerMapId: existing.id } as const;
+	}
 
-		return {
+	const learnerMapId = randomString();
+	yield* db.insert(learnerMaps).values({
+		id: learnerMapId,
+		assignmentId: data.assignmentId,
+		goalMapId: assignment.goalMapId,
+		kitId: assignment.kitId,
+		userId,
+		nodes: data.nodes ?? null,
+		edges: data.edges ?? null,
+		controlText: data.controlText ?? null,
+		status: "draft",
+		attempt: 1,
+	});
+
+	return { success: true, learnerMapId } as const;
+});
+
+export const submitLearnerMap = Effect.fn("submitLearnerMap")(function* (
+	userId: string,
+	input: SubmitLearnerMapInput,
+) {
+	const db = yield* Database;
+
+	const learnerMapRows = yield* db
+		.select()
+		.from(learnerMaps)
+		.where(
+			and(eq(learnerMaps.assignmentId, input.assignmentId), eq(learnerMaps.userId, userId)),
+		)
+		.limit(1);
+
+	const learnerMap = learnerMapRows[0];
+	if (!learnerMap) {
+		return { success: false, error: "Learner map not found" } as const;
+	}
+
+	if (learnerMap.status === "submitted") {
+		return { success: false, error: "Already submitted" } as const;
+	}
+
+	const goalMapRows = yield* db
+		.select({ edges: goalMaps.edges })
+		.from(goalMaps)
+		.where(eq(goalMaps.id, learnerMap.goalMapId))
+		.limit(1);
+
+	const goalMap = goalMapRows[0];
+	if (!goalMap) {
+		return { success: false, error: "Goal map not found" } as const;
+	}
+
+	const goalMapEdges = Array.isArray(goalMap.edges) ? goalMap.edges : [];
+	const learnerEdges = Array.isArray(learnerMap.edges) ? learnerMap.edges : [];
+
+	const diagnosis = compareMaps(goalMapEdges, learnerEdges);
+
+	yield* db
+		.update(learnerMaps)
+		.set({
+			status: "submitted",
+			submittedAt: new Date(),
+		})
+		.where(eq(learnerMaps.id, learnerMap.id));
+
+	const diagnosisId = randomString();
+	yield* db.insert(diagnoses).values({
+		id: diagnosisId,
+		goalMapId: learnerMap.goalMapId,
+		learnerMapId: learnerMap.id,
+		summary: `Correct: ${diagnosis.correct.length}, Missing: ${diagnosis.missing.length}, Excessive: ${diagnosis.excessive.length}`,
+		perLink: JSON.stringify(diagnosis),
+		score: diagnosis.score,
+		rubricVersion: "1.0",
+	});
+
+	return {
+		success: true,
+		diagnosisId,
+		diagnosis,
+	} as const;
+});
+
+export const getDiagnosis = Effect.fn("getDiagnosis")(function* (
+	userId: string,
+	input: GetDiagnosisInput,
+) {
+	const db = yield* Database;
+
+	const results = yield* db
+		.select({
 			learnerMap: {
-				id: result.learnerMap.id,
-				nodes: learnerMapNodes,
-				edges: learnerMapEdges,
-				status: result.learnerMap.status,
-				attempt: result.learnerMap.attempt,
+				id: learnerMaps.id,
+				nodes: learnerMaps.nodes,
+				edges: learnerMaps.edges,
+				status: learnerMaps.status,
+				attempt: learnerMaps.attempt,
+				goalMapId: learnerMaps.goalMapId,
 			},
 			goalMap: {
-				nodes: goalMapNodes,
-				edges: goalMapEdges,
+				nodes: goalMaps.nodes,
+				edges: goalMaps.edges,
 			},
 			assignment: {
-				postTestFormId: result.assignment.postTestFormId,
-				tamFormId: result.assignment.tamFormId,
+				postTestFormId: assignments.postTestFormId,
+				tamFormId: assignments.tamFormId,
 			},
-			diagnosis: result.diagnosis
-				? {
-						id: result.diagnosis.id,
-						summary: result.diagnosis.summary,
-						score: result.diagnosis.score,
-						correct: diagnosisData?.correct ?? [],
-						missing: diagnosisData?.missing ?? [],
-						excessive: diagnosisData?.excessive ?? [],
-					}
-				: null,
-		};
-	}),
-);
-
-export const startNewAttempt = Effect.fn("startNewAttempt")(
-	(userId: string, input: StartNewAttemptInput) =>
-		Effect.gen(function* () {
-			const db = yield* Database;
-
-			const existingRows = yield* db
-				.select()
-				.from(learnerMaps)
-				.where(
-					and(
-						eq(learnerMaps.assignmentId, input.assignmentId),
-						eq(learnerMaps.userId, userId),
-					),
-				)
-				.limit(1);
-
-			const existing = existingRows[0];
-			if (!existing) {
-				return { success: false, error: "No previous attempt found" } as const;
-			}
-
-			if (existing.status !== "submitted") {
-				return {
-					success: false,
-					error: "Previous attempt not submitted",
-				} as const;
-			}
-
-			yield* db
-				.update(learnerMaps)
-				.set({
-					status: "draft",
-					attempt: existing.attempt + 1,
-					submittedAt: null,
-				})
-				.where(eq(learnerMaps.id, existing.id));
-
-			return { success: true, attempt: existing.attempt + 1 } as const;
-		}),
-);
-
-export const getPeerStats = Effect.fn("getPeerStats")((userId: string, input: GetPeerStatsInput) =>
-	Effect.gen(function* () {
-		const db = yield* Database;
-
-		const allSubmittedMaps = yield* db
-			.select({
-				id: learnerMaps.id,
-				userId: learnerMaps.userId,
+			diagnosis: {
+				id: diagnoses.id,
+				summary: diagnoses.summary,
 				score: diagnoses.score,
-				attempt: learnerMaps.attempt,
-			})
-			.from(learnerMaps)
-			.leftJoin(diagnoses, eq(diagnoses.learnerMapId, learnerMaps.id))
-			.where(
-				and(
-					eq(learnerMaps.assignmentId, input.assignmentId),
-					eq(learnerMaps.status, "submitted"),
-				),
-			);
+				perLink: diagnoses.perLink,
+				createdAt: diagnoses.createdAt,
+			},
+		})
+		.from(learnerMaps)
+		.innerJoin(goalMaps, eq(goalMaps.id, learnerMaps.goalMapId))
+		.innerJoin(assignments, eq(assignments.id, learnerMaps.assignmentId))
+		.leftJoin(diagnoses, eq(diagnoses.learnerMapId, learnerMaps.id))
+		.where(
+			and(eq(learnerMaps.assignmentId, input.assignmentId), eq(learnerMaps.userId, userId)),
+		)
+		.orderBy(desc(diagnoses.createdAt))
+		.limit(1);
 
-		const currentUserMaps = allSubmittedMaps.filter((m) => m.userId === userId);
-		const peerMaps = allSubmittedMaps.filter((m) => m.userId !== userId);
+	const result = results[0];
+	if (!result) {
+		return null;
+	}
 
-		const peerScores = peerMaps
-			.map((m) => m.score)
-			.filter((s): s is number => s !== null && s !== undefined);
+	const diagnosisData = result.diagnosis?.perLink
+		? yield* parseJson(result.diagnosis.perLink, PerLinkDiagnosisSchema)
+		: null;
 
-		if (peerScores.length === 0) {
-			return {
-				count: 0,
-				avgScore: null,
-				medianScore: null,
-				highestScore: null,
-				lowestScore: null,
-				userPercentile: null,
-			};
-		}
+	const [learnerMapNodes, learnerMapEdges, goalMapNodes, goalMapEdges] = yield* Effect.all(
+		[
+			safeParseJson(result.learnerMap.nodes, [], Schema.Array(NodeSchema)),
+			safeParseJson(result.learnerMap.edges, [], Schema.Array(EdgeSchema)),
+			safeParseJson(result.goalMap.nodes, [], Schema.Array(NodeSchema)),
+			safeParseJson(result.goalMap.edges, [], Schema.Array(EdgeSchema)),
+		],
+		{ concurrency: "unbounded" },
+	);
 
-		const sortedScores = [...peerScores].sort((a, b) => a - b);
-		const avgScore = sortedScores.reduce((a, b) => a + b, 0) / sortedScores.length;
-		const medianScore = sortedScores[Math.floor(sortedScores.length / 2)];
-		const highestScore = sortedScores[sortedScores.length - 1];
-		const lowestScore = sortedScores[0];
+	return {
+		learnerMap: {
+			id: result.learnerMap.id,
+			nodes: learnerMapNodes,
+			edges: learnerMapEdges,
+			status: result.learnerMap.status,
+			attempt: result.learnerMap.attempt,
+		},
+		goalMap: {
+			nodes: goalMapNodes,
+			edges: goalMapEdges,
+		},
+		assignment: {
+			postTestFormId: result.assignment.postTestFormId,
+			tamFormId: result.assignment.tamFormId,
+		},
+		diagnosis: result.diagnosis
+			? {
+					id: result.diagnosis.id,
+					summary: result.diagnosis.summary,
+					score: result.diagnosis.score,
+					correct: diagnosisData?.correct ?? [],
+					missing: diagnosisData?.missing ?? [],
+					excessive: diagnosisData?.excessive ?? [],
+				}
+			: null,
+	};
+});
 
-		const userBestScore = Math.max(...currentUserMaps.map((m) => m.score ?? 0));
-		const userPercentile =
-			(peerScores.filter((s) => s < userBestScore).length / peerScores.length) * 100;
+export const startNewAttempt = Effect.fn("startNewAttempt")(function* (
+	userId: string,
+	input: StartNewAttemptInput,
+) {
+	const db = yield* Database;
 
+	const existingRows = yield* db
+		.select()
+		.from(learnerMaps)
+		.where(
+			and(eq(learnerMaps.assignmentId, input.assignmentId), eq(learnerMaps.userId, userId)),
+		)
+		.limit(1);
+
+	const existing = existingRows[0];
+	if (!existing) {
+		return { success: false, error: "No previous attempt found" } as const;
+	}
+
+	if (existing.status !== "submitted") {
 		return {
-			count: peerScores.length,
-			avgScore: roundToDecimals(avgScore, 2),
-			medianScore: roundToDecimals(medianScore, 2),
-			highestScore: roundToDecimals(highestScore, 2),
-			lowestScore: roundToDecimals(lowestScore, 2),
-			userPercentile: roundToDecimals(userPercentile, 1),
+			success: false,
+			error: "Previous attempt not submitted",
+		} as const;
+	}
+
+	yield* db
+		.update(learnerMaps)
+		.set({
+			status: "draft",
+			attempt: existing.attempt + 1,
+			submittedAt: null,
+		})
+		.where(eq(learnerMaps.id, existing.id));
+
+	return { success: true, attempt: existing.attempt + 1 } as const;
+});
+
+export const getPeerStats = Effect.fn("getPeerStats")(function* (
+	userId: string,
+	input: GetPeerStatsInput,
+) {
+	const db = yield* Database;
+
+	const allSubmittedMaps = yield* db
+		.select({
+			id: learnerMaps.id,
+			userId: learnerMaps.userId,
+			score: diagnoses.score,
+			attempt: learnerMaps.attempt,
+		})
+		.from(learnerMaps)
+		.leftJoin(diagnoses, eq(diagnoses.learnerMapId, learnerMaps.id))
+		.where(
+			and(
+				eq(learnerMaps.assignmentId, input.assignmentId),
+				eq(learnerMaps.status, "submitted"),
+			),
+		);
+
+	const currentUserMaps = allSubmittedMaps.filter((m) => m.userId === userId);
+	const peerMaps = allSubmittedMaps.filter((m) => m.userId !== userId);
+
+	const peerScores = peerMaps
+		.map((m) => m.score)
+		.filter((s): s is number => s !== null && s !== undefined);
+
+	if (peerScores.length === 0) {
+		return {
+			count: 0,
+			avgScore: null,
+			medianScore: null,
+			highestScore: null,
+			lowestScore: null,
+			userPercentile: null,
 		};
-	}),
-);
+	}
 
-export const submitControlText = Effect.fn("submitControlText")(
-	(userId: string, input: SubmitControlTextInput) =>
-		Effect.gen(function* () {
-			const db = yield* Database;
+	const sortedScores = [...peerScores].sort((a, b) => a - b);
+	const avgScore = sortedScores.reduce((a, b) => a + b, 0) / sortedScores.length;
+	const medianScore = sortedScores[Math.floor(sortedScores.length / 2)];
+	const highestScore = sortedScores[sortedScores.length - 1];
+	const lowestScore = sortedScores[0];
 
-			// Verify assignment exists
-			const assignmentRows = yield* db
-				.select({
-					id: assignments.id,
-					goalMapId: assignments.goalMapId,
-					kitId: assignments.kitId,
-				})
-				.from(assignments)
-				.where(eq(assignments.id, input.assignmentId))
-				.limit(1);
+	const userBestScore = Math.max(...currentUserMaps.map((m) => m.score ?? 0));
+	const userPercentile =
+		(peerScores.filter((s) => s < userBestScore).length / peerScores.length) * 100;
 
-			const assignment = assignmentRows[0];
-			if (!assignment) {
-				return { success: false, error: "Assignment not found" } as const;
-			}
+	return {
+		count: peerScores.length,
+		avgScore: roundToDecimals(avgScore, 2),
+		medianScore: roundToDecimals(medianScore, 2),
+		highestScore: roundToDecimals(highestScore, 2),
+		lowestScore: roundToDecimals(lowestScore, 2),
+		userPercentile: roundToDecimals(userPercentile, 1),
+	};
+});
 
-			// Check for existing submission
-			const existingRows = yield* db
-				.select({ id: learnerMaps.id, status: learnerMaps.status })
-				.from(learnerMaps)
-				.where(
-					and(
-						eq(learnerMaps.assignmentId, input.assignmentId),
-						eq(learnerMaps.userId, userId),
-					),
-				)
-				.limit(1);
+export const submitControlText = Effect.fn("submitControlText")(function* (
+	userId: string,
+	input: SubmitControlTextInput,
+) {
+	const db = yield* Database;
 
-			const existing = existingRows[0];
-			if (existing?.status === "submitted") {
-				return {
-					success: false,
-					error: "Already submitted",
-				} as const;
-			}
+	// Verify assignment exists
+	const assignmentRows = yield* db
+		.select({
+			id: assignments.id,
+			goalMapId: assignments.goalMapId,
+			kitId: assignments.kitId,
+		})
+		.from(assignments)
+		.where(eq(assignments.id, input.assignmentId))
+		.limit(1);
 
-			if (existing) {
-				// Update existing draft with control text and mark as submitted
-				yield* db
-					.update(learnerMaps)
-					.set({
-						controlText: input.text,
-						status: "submitted",
-						submittedAt: new Date(),
-					})
-					.where(eq(learnerMaps.id, existing.id));
+	const assignment = assignmentRows[0];
+	if (!assignment) {
+		return { success: false, error: "Assignment not found" } as const;
+	}
 
-				return { success: true, learnerMapId: existing.id } as const;
-			}
+	// Check for existing submission
+	const existingRows = yield* db
+		.select({ id: learnerMaps.id, status: learnerMaps.status })
+		.from(learnerMaps)
+		.where(
+			and(eq(learnerMaps.assignmentId, input.assignmentId), eq(learnerMaps.userId, userId)),
+		)
+		.limit(1);
 
-			// Create new learner map with control text
-			const learnerMapId = randomString();
-			yield* db.insert(learnerMaps).values({
-				id: learnerMapId,
-				assignmentId: input.assignmentId,
-				goalMapId: assignment.goalMapId,
-				kitId: assignment.kitId,
-				userId,
+	const existing = existingRows[0];
+	if (existing?.status === "submitted") {
+		return {
+			success: false,
+			error: "Already submitted",
+		} as const;
+	}
+
+	if (existing) {
+		// Update existing draft with control text and mark as submitted
+		yield* db
+			.update(learnerMaps)
+			.set({
 				controlText: input.text,
-				nodes: null,
-				edges: null,
 				status: "submitted",
-				attempt: 1,
 				submittedAt: new Date(),
-			});
+			})
+			.where(eq(learnerMaps.id, existing.id));
 
-			return { success: true, learnerMapId } as const;
-		}),
-);
+		return { success: true, learnerMapId: existing.id } as const;
+	}
+
+	// Create new learner map with control text
+	const learnerMapId = randomString();
+	yield* db.insert(learnerMaps).values({
+		id: learnerMapId,
+		assignmentId: input.assignmentId,
+		goalMapId: assignment.goalMapId,
+		kitId: assignment.kitId,
+		userId,
+		controlText: input.text,
+		nodes: null,
+		edges: null,
+		status: "submitted",
+		attempt: 1,
+		submittedAt: new Date(),
+	});
+
+	return { success: true, learnerMapId } as const;
+});

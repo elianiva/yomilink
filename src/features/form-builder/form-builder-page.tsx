@@ -63,10 +63,6 @@ export function FormBuilderPage() {
 		showSuccess: true,
 		successMessage: "Form created successfully",
 		onSuccess: (result) => {
-			if ("error" in result) {
-				toast.error("Failed to create form");
-				return;
-			}
 			queryClient.invalidateQueries({ queryKey: FormRpc.forms() });
 			void navigate({
 				to: "/dashboard/forms/builder",

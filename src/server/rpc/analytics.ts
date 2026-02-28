@@ -21,10 +21,8 @@ import { Rpc, logRpcError } from "../rpc-helper";
 export const getTeacherAssignmentsRpc = createServerFn()
 	.middleware([authMiddleware])
 	.handler(({ context }) =>
-		Effect.gen(function* () {
-			const rows = yield* getTeacherAssignments(context.user.id);
-			return yield* Rpc.ok(rows);
-		}).pipe(
+		getTeacherAssignments(context.user.id).pipe(
+			Effect.map(Rpc.ok),
 			Effect.withSpan("getTeacherAssignments"),
 			Effect.tapError(logRpcError("getTeacherAssignments")),
 			Effect.catchAll(() => Rpc.err("Internal server error")),
@@ -37,10 +35,8 @@ export const getAnalyticsForAssignmentRpc = createServerFn()
 	.middleware([authMiddleware])
 	.inputValidator((raw) => Schema.decodeUnknownSync(GetAnalyticsForAssignmentInput)(raw))
 	.handler(({ data, context }) =>
-		Effect.gen(function* () {
-			const result = yield* getAnalyticsForAssignment(context.user.id, data);
-			return yield* Rpc.ok(result);
-		}).pipe(
+		getAnalyticsForAssignment(context.user.id, data).pipe(
+			Effect.map(Rpc.ok),
 			Effect.withSpan("getAnalyticsForAssignment"),
 			Effect.tapError(logRpcError("getAnalyticsForAssignment")),
 			Effect.catchTags({
@@ -57,10 +53,8 @@ export const getLearnerMapForAnalyticsRpc = createServerFn()
 	.middleware([authMiddleware])
 	.inputValidator((raw) => Schema.decodeUnknownSync(GetLearnerMapForAnalyticsInput)(raw))
 	.handler(({ data }) =>
-		Effect.gen(function* () {
-			const result = yield* getLearnerMapForAnalytics(data);
-			return yield* Rpc.ok(result);
-		}).pipe(
+		getLearnerMapForAnalytics(data).pipe(
+			Effect.map(Rpc.ok),
 			Effect.withSpan("getLearnerMapForAnalytics"),
 			Effect.tapError(logRpcError("getLearnerMapForAnalytics")),
 			Effect.provide(AppLayer),
@@ -78,13 +72,10 @@ export const getMultipleLearnerMapsRpc = createServerFn()
 	.middleware([authMiddleware])
 	.inputValidator((raw) => Schema.decodeUnknownSync(GetMultipleLearnerMapsInput)(raw))
 	.handler(({ data }) =>
-		Effect.gen(function* () {
-			const result = yield* getMultipleLearnerMaps(data);
-			return yield* Rpc.ok(result);
-		}).pipe(
+		getMultipleLearnerMaps(data).pipe(
+			Effect.map(Rpc.ok),
 			Effect.withSpan("getMultipleLearnerMaps"),
 			Effect.tapError(logRpcError("getMultipleLearnerMaps")),
-			Effect.provide(AppLayer),
 			Effect.catchAll(() => Rpc.err("Internal server error")),
 			Effect.provide(AppLayer),
 			Effect.runPromise,
@@ -95,10 +86,8 @@ export const exportAnalyticsDataRpc = createServerFn()
 	.middleware([authMiddleware])
 	.inputValidator((raw) => Schema.decodeUnknownSync(ExportAnalyticsDataInput)(raw))
 	.handler(({ data }) =>
-		Effect.gen(function* () {
-			const result = yield* exportAnalyticsData(data);
-			return yield* Rpc.ok(result);
-		}).pipe(
+		exportAnalyticsData(data).pipe(
+			Effect.map(Rpc.ok),
 			Effect.withSpan("exportAnalyticsData"),
 			Effect.tapError(logRpcError("exportAnalyticsData")),
 			Effect.catchAll(() => Rpc.err("Internal server error")),

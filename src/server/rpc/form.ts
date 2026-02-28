@@ -48,10 +48,8 @@ export const createFormRpc = createServerFn()
 	.middleware([requireRoleMiddleware("teacher", "admin")])
 	.inputValidator((raw) => Schema.decodeUnknownSync(CreateFormInput)(raw))
 	.handler(({ data, context }) =>
-		Effect.gen(function* () {
-			const result = yield* createForm(context.user.id, data);
-			return yield* Rpc.ok(result);
-		}).pipe(
+		createForm(context.user.id, data).pipe(
+			Effect.map(Rpc.ok),
 			Effect.withSpan("createForm"),
 			Effect.tapError(logRpcError("createForm")),
 			Effect.provide(AppLayer),
@@ -64,10 +62,8 @@ export const getFormByIdRpc = createServerFn()
 	.middleware([requireRoleMiddleware("teacher", "admin")])
 	.inputValidator((raw) => Schema.decodeUnknownSync(GetFormByIdInput)(raw))
 	.handler(({ data }) =>
-		Effect.gen(function* () {
-			const result = yield* getFormById(data.id);
-			return yield* Rpc.ok(result);
-		}).pipe(
+		getFormById(data.id).pipe(
+			Effect.map(Rpc.ok),
 			Effect.withSpan("getFormById"),
 			Effect.tapError(logRpcError("getFormById")),
 			Effect.provide(AppLayer),
@@ -82,10 +78,8 @@ export const getFormByIdRpc = createServerFn()
 export const listFormsRpc = createServerFn()
 	.middleware([requireRoleMiddleware("teacher", "admin")])
 	.handler(({ context }) =>
-		Effect.gen(function* () {
-			const rows = yield* listForms(context.user.id);
-			return yield* Rpc.ok(rows);
-		}).pipe(
+		listForms(context.user.id).pipe(
+			Effect.map(Rpc.ok),
 			Effect.withSpan("listForms"),
 			Effect.tapError(logRpcError("listForms")),
 			Effect.provide(AppLayer),
@@ -97,10 +91,8 @@ export const listFormsRpc = createServerFn()
 export const getStudentFormsRpc = createServerFn()
 	.middleware([requireRoleMiddleware("student", "teacher", "admin")])
 	.handler(({ context }) =>
-		Effect.gen(function* () {
-			const rows = yield* getStudentForms(context.user.id);
-			return yield* Rpc.ok(rows);
-		}).pipe(
+		getStudentForms(context.user.id).pipe(
+			Effect.map(Rpc.ok),
 			Effect.withSpan("getStudentForms"),
 			Effect.tapError(logRpcError("getStudentForms")),
 			Effect.provide(AppLayer),
@@ -113,10 +105,8 @@ export const deleteFormRpc = createServerFn()
 	.middleware([requireRoleMiddleware("teacher", "admin")])
 	.inputValidator((raw) => Schema.decodeUnknownSync(GetFormByIdInput)(raw))
 	.handler(({ data }) =>
-		Effect.gen(function* () {
-			yield* deleteForm(data.id);
-			return yield* Rpc.ok(true);
-		}).pipe(
+		deleteForm(data.id).pipe(
+			Effect.map(() => Rpc.ok(true)),
 			Effect.withSpan("deleteForm"),
 			Effect.tapError(logRpcError("deleteForm")),
 			Effect.provide(AppLayer),
@@ -132,10 +122,8 @@ export const publishFormRpc = createServerFn()
 	.middleware([requireRoleMiddleware("teacher", "admin")])
 	.inputValidator((raw) => Schema.decodeUnknownSync(GetFormByIdInput)(raw))
 	.handler(({ data }) =>
-		Effect.gen(function* () {
-			yield* publishForm(data.id);
-			return yield* Rpc.ok(true);
-		}).pipe(
+		publishForm(data.id).pipe(
+			Effect.map(() => Rpc.ok(true)),
 			Effect.withSpan("publishForm"),
 			Effect.tapError(logRpcError("publishForm")),
 			Effect.provide(AppLayer),
@@ -151,10 +139,8 @@ export const unpublishFormRpc = createServerFn()
 	.middleware([requireRoleMiddleware("teacher", "admin")])
 	.inputValidator((raw) => Schema.decodeUnknownSync(GetFormByIdInput)(raw))
 	.handler(({ data }) =>
-		Effect.gen(function* () {
-			yield* unpublishForm(data.id);
-			return yield* Rpc.ok(true);
-		}).pipe(
+		unpublishForm(data.id).pipe(
+			Effect.map(() => Rpc.ok(true)),
 			Effect.withSpan("unpublishForm"),
 			Effect.tapError(logRpcError("unpublishForm")),
 			Effect.provide(AppLayer),
@@ -193,15 +179,13 @@ export const updateFormRpc = createServerFn()
 	.middleware([requireRoleMiddleware("teacher", "admin")])
 	.inputValidator((raw) => Schema.decodeUnknownSync(UpdateFormInput)(raw))
 	.handler(({ data }) =>
-		Effect.gen(function* () {
-			const result = yield* updateForm(data.formId, {
-				title: data.title,
-				description: data.description,
-				type: data.type,
-				status: data.status,
-			});
-			return yield* Rpc.ok(result);
+		updateForm(data.formId, {
+			title: data.title,
+			description: data.description,
+			type: data.type,
+			status: data.status,
 		}).pipe(
+			Effect.map(Rpc.ok),
 			Effect.withSpan("updateForm"),
 			Effect.tapError(logRpcError("updateForm")),
 			Effect.provide(AppLayer),
@@ -218,10 +202,8 @@ export const cloneFormRpc = createServerFn()
 	.middleware([requireRoleMiddleware("teacher", "admin")])
 	.inputValidator((raw) => Schema.decodeUnknownSync(CloneFormInput)(raw))
 	.handler(({ data, context }) =>
-		Effect.gen(function* () {
-			const result = yield* cloneForm(data.formId, context.user.id);
-			return yield* Rpc.ok(result);
-		}).pipe(
+		cloneForm(data.formId, context.user.id).pipe(
+			Effect.map(Rpc.ok),
 			Effect.withSpan("cloneForm"),
 			Effect.tapError(logRpcError("cloneForm")),
 			Effect.provide(AppLayer),
@@ -237,10 +219,8 @@ export const getFormResponsesRpc = createServerFn()
 	.middleware([requireRoleMiddleware("teacher", "admin")])
 	.inputValidator((raw) => Schema.decodeUnknownSync(GetFormResponsesInput)(raw))
 	.handler(({ data }) =>
-		Effect.gen(function* () {
-			const result = yield* getFormResponses(data);
-			return yield* Rpc.ok(result);
-		}).pipe(
+		getFormResponses(data).pipe(
+			Effect.map(Rpc.ok),
 			Effect.withSpan("getFormResponses"),
 			Effect.tapError(logRpcError("getFormResponses")),
 			Effect.provide(AppLayer),
@@ -256,10 +236,8 @@ export const submitFormResponseRpc = createServerFn()
 	.middleware([requireRoleMiddleware("student", "teacher", "admin")])
 	.inputValidator((raw) => Schema.decodeUnknownSync(SubmitFormResponseInput)(raw))
 	.handler(({ data }) =>
-		Effect.gen(function* () {
-			yield* submitFormResponse(data);
-			return yield* Rpc.ok(true);
-		}).pipe(
+		submitFormResponse(data).pipe(
+			Effect.map(() => Rpc.ok(true)),
 			Effect.withSpan("submitFormResponse"),
 			Effect.tapError(logRpcError("submitFormResponse")),
 			Effect.provide(AppLayer),
@@ -277,17 +255,17 @@ export const reorderQuestionsRpc = createServerFn()
 	.middleware([requireRoleMiddleware("teacher", "admin")])
 	.inputValidator((raw) => Schema.decodeUnknownSync(ReorderQuestionsInput)(raw))
 	.handler(({ data }) =>
-		Effect.gen(function* () {
-			yield* reorderQuestions(data);
-			return yield* Rpc.ok(true);
-		}).pipe(
+		reorderQuestions(data).pipe(
+			Effect.map(() => Rpc.ok(true)),
 			Effect.withSpan("reorderQuestions"),
 			Effect.tapError(logRpcError("reorderQuestions")),
 			Effect.provide(AppLayer),
 			Effect.catchTags({
 				FormNotFoundError: () => Rpc.notFound("Form"),
-				FormHasResponsesError: () => Rpc.err("Cannot reorder questions: form has responses"),
-				InvalidQuestionOrderError: () => Rpc.err("Invalid question order: question count mismatch or invalid IDs"),
+				FormHasResponsesError: () =>
+					Rpc.err("Cannot reorder questions: form has responses"),
+				InvalidQuestionOrderError: () =>
+					Rpc.err("Invalid question order: question count mismatch or invalid IDs"),
 			}),
 			Effect.catchAll(() => Rpc.err("Internal server error")),
 			Effect.runPromise,
@@ -298,10 +276,8 @@ export const createQuestionRpc = createServerFn()
 	.middleware([requireRoleMiddleware("teacher", "admin")])
 	.inputValidator((raw) => Schema.decodeUnknownSync(CreateQuestionInput)(raw))
 	.handler(({ data }) =>
-		Effect.gen(function* () {
-			const result = yield* createQuestion(data);
-			return yield* Rpc.ok(result);
-		}).pipe(
+		createQuestion(data).pipe(
+			Effect.map(Rpc.ok),
 			Effect.withSpan("createQuestion"),
 			Effect.tapError(logRpcError("createQuestion")),
 			Effect.provide(AppLayer),
@@ -324,10 +300,8 @@ export const updateQuestionRpc = createServerFn()
 	.middleware([requireRoleMiddleware("teacher", "admin")])
 	.inputValidator((raw) => Schema.decodeUnknownSync(UpdateQuestionInput)(raw))
 	.handler(({ data }) =>
-		Effect.gen(function* () {
-			const result = yield* updateQuestion(data);
-			return yield* Rpc.ok(result);
-		}).pipe(
+		updateQuestion(data).pipe(
+			Effect.map(Rpc.ok),
 			Effect.withSpan("updateQuestion"),
 			Effect.tapError(logRpcError("updateQuestion")),
 			Effect.provide(AppLayer),
@@ -344,10 +318,8 @@ export const deleteQuestionRpc = createServerFn()
 	.middleware([requireRoleMiddleware("teacher", "admin")])
 	.inputValidator((raw) => Schema.decodeUnknownSync(GetQuestionByIdInput)(raw))
 	.handler(({ data }) =>
-		Effect.gen(function* () {
-			yield* deleteQuestion(data.id);
-			return yield* Rpc.ok(true);
-		}).pipe(
+		deleteQuestion(data.id).pipe(
+			Effect.map(() => Rpc.ok(true)),
 			Effect.withSpan("deleteQuestion"),
 			Effect.tapError(logRpcError("deleteQuestion")),
 			Effect.provide(AppLayer),
@@ -364,10 +336,8 @@ export const checkFormUnlockRpc = createServerFn()
 	.middleware([requireRoleMiddleware("student", "teacher", "admin")])
 	.inputValidator((raw) => Schema.decodeUnknownSync(CheckFormUnlockInput)(raw))
 	.handler(({ data, context }) =>
-		Effect.gen(function* () {
-			const result = yield* checkFormUnlock({ formId: data.formId, userId: context.user.id });
-			return yield* Rpc.ok(result);
-		}).pipe(
+		checkFormUnlock({ formId: data.formId, userId: context.user.id }).pipe(
+			Effect.map(Rpc.ok),
 			Effect.withSpan("checkFormUnlock"),
 			Effect.tapError(logRpcError("checkFormUnlock")),
 			Effect.provide(AppLayer),
@@ -383,10 +353,8 @@ export const unlockFormRpc = createServerFn()
 	.middleware([requireRoleMiddleware("teacher", "admin")])
 	.inputValidator((raw) => Schema.decodeUnknownSync(UnlockFormInput)(raw))
 	.handler(({ data }) =>
-		Effect.gen(function* () {
-			yield* unlockForm({ formId: data.formId, userId: data.userId });
-			return yield* Rpc.ok(true);
-		}).pipe(
+		unlockForm({ formId: data.formId, userId: data.userId }).pipe(
+			Effect.map(() => Rpc.ok(true)),
 			Effect.withSpan("unlockForm"),
 			Effect.tapError(logRpcError("unlockForm")),
 			Effect.provide(AppLayer),
@@ -398,10 +366,8 @@ export const unlockFormRpc = createServerFn()
 export const getRegistrationFormStatusRpc = createServerFn()
 	.middleware([requireRoleMiddleware("student", "teacher", "admin")])
 	.handler(({ context }) =>
-		Effect.gen(function* () {
-			const result = yield* getRegistrationFormStatus(context.user.id);
-			return yield* Rpc.ok(result);
-		}).pipe(
+		getRegistrationFormStatus(context.user.id).pipe(
+			Effect.map(Rpc.ok),
 			Effect.withSpan("getRegistrationFormStatus"),
 			Effect.tapError(logRpcError("getRegistrationFormStatus")),
 			Effect.provide(AppLayer),

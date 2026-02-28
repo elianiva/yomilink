@@ -36,8 +36,8 @@ const createTooltipHandle = BaseTooltip.createHandle;
 const Tooltip = BaseTooltip.Root;
 
 const TooltipTrigger = React.forwardRef<
-  HTMLButtonElement,
-  React.ComponentPropsWithoutRef<typeof BaseTooltip.Trigger>
+	HTMLButtonElement,
+	React.ComponentPropsWithoutRef<typeof BaseTooltip.Trigger>
 >(({ className, ...props }, ref) => (
 	<BaseTooltip.Trigger
 		ref={ref}

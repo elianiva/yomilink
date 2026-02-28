@@ -45,147 +45,145 @@ export class FormNotFoundError extends Data.TaggedError("FormNotFoundError")<{
 	readonly formId: string;
 }> {}
 
-export const checkTimeBasedCondition = Effect.fn("checkTimeBasedCondition")(
-	(condition: UnlockConditionType) =>
-		Effect.gen(function* () {
-			const result = yield* Effect.sync(() => {
-				const isTimeCondition =
-					"unlockAt" in condition && (condition as { type?: string }).type === "time";
-				if (!isTimeCondition) {
-					return {
-						isUnlocked: false,
-						reason: "Invalid condition type",
-						unlockAt: null as string | null,
-					};
-				}
-				const unlockAtValue = (condition as { unlockAt: string }).unlockAt;
-				const now = new Date();
-				const unlockAt = new Date(unlockAtValue);
-				const isUnlocked = unlockAt <= now;
-
-				return {
-					isUnlocked,
-					reason: isUnlocked ? null : `Unlocks at ${unlockAt.toLocaleString()}`,
-					unlockAt: isUnlocked ? null : unlockAtValue,
-				};
-			});
-			return result;
-		}),
-);
-
-export const checkPrerequisiteCondition = Effect.fn("checkPrerequisiteCondition")(
-	(condition: UnlockConditionType, userId: string) =>
-		Effect.gen(function* () {
-			if (condition.type !== "prerequisite") {
-				return {
-					isUnlocked: false,
-					reason: "Invalid condition type",
-					unlockAt: null as string | null,
-				};
-			}
-
-			const db = yield* Database;
-
-			const requiredFormRows = yield* db
-				.select()
-				.from(forms)
-				.where(eq(forms.id, condition.requiredFormId))
-				.limit(1);
-
-			if (requiredFormRows.length === 0) {
-				return {
-					isUnlocked: false,
-					reason: "Required form not found",
-					unlockAt: null as string | null,
-				};
-			}
-
-			const progressRows = yield* db
-				.select()
-				.from(formProgress)
-				.where(
-					and(
-						eq(formProgress.formId, condition.requiredFormId),
-						eq(formProgress.userId, userId),
-					),
-				)
-				.limit(1);
-
-			const progress = progressRows[0];
-
-			if (!progress) {
-				return {
-					isUnlocked: false,
-					reason: `Complete "${requiredFormRows[0].title}" first`,
-					unlockAt: null as string | null,
-				};
-			}
-
-			const isUnlocked =
-				condition.requiredFormStatus === "completed"
-					? progress.status === "completed"
-					: progress.status !== "locked";
-
-			return {
-				isUnlocked,
-				reason: isUnlocked ? null : `Complete "${requiredFormRows[0].title}" first`,
-				unlockAt: null as string | null,
-			};
-		}),
-);
-
-export const checkManualCondition = Effect.fn("checkManualCondition")(
-	(condition: UnlockConditionType, userId: string, formId: string) =>
-		Effect.gen(function* () {
-			if (condition.type !== "manual") {
-				return {
-					isUnlocked: false,
-					reason: "Invalid condition type",
-					unlockAt: null as string | null,
-				};
-			}
-
-			const db = yield* Database;
-
-			const progressRows = yield* db
-				.select()
-				.from(formProgress)
-				.where(and(eq(formProgress.formId, formId), eq(formProgress.userId, userId)))
-				.limit(1);
-
-			const progress = progressRows[0];
-
-			const isUnlocked = progress
-				? progress.status === "available" || progress.status === "completed"
-				: false;
-
-			return {
-				isUnlocked,
-				reason: isUnlocked ? null : "Manually unlock required",
-				unlockAt: null as string | null,
-			};
-		}),
-);
-
-const checkUnlockCondition = Effect.fn("checkUnlockCondition")(
-	(condition: UnlockConditionType, userId: string, formId: string) =>
-		Effect.gen(function* () {
-			if (condition.type === "time") {
-				return yield* checkTimeBasedCondition(condition);
-			}
-			if (condition.type === "prerequisite") {
-				return yield* checkPrerequisiteCondition(condition, userId);
-			}
-			if (condition.type === "manual") {
-				return yield* checkManualCondition(condition, userId, formId);
-			}
+export const checkTimeBasedCondition = Effect.fn("checkTimeBasedCondition")(function* (
+	condition: UnlockConditionType,
+) {
+	const result = yield* Effect.sync(() => {
+		const isTimeCondition =
+			"unlockAt" in condition && (condition as { type?: string }).type === "time";
+		if (!isTimeCondition) {
 			return {
 				isUnlocked: false,
-				reason: "Unknown condition type",
+				reason: "Invalid condition type",
 				unlockAt: null as string | null,
 			};
-		}),
-);
+		}
+		const unlockAtValue = (condition as { unlockAt: string }).unlockAt;
+		const now = new Date();
+		const unlockAt = new Date(unlockAtValue);
+		const isUnlocked = unlockAt <= now;
+
+		return {
+			isUnlocked,
+			reason: isUnlocked ? null : `Unlocks at ${unlockAt.toLocaleString()}`,
+			unlockAt: isUnlocked ? null : unlockAtValue,
+		};
+	});
+	return result;
+});
+
+export const checkPrerequisiteCondition = Effect.fn("checkPrerequisiteCondition")(function* (
+	condition: UnlockConditionType,
+	userId: string,
+) {
+	if (condition.type !== "prerequisite") {
+		return {
+			isUnlocked: false,
+			reason: "Invalid condition type",
+			unlockAt: null as string | null,
+		};
+	}
+
+	const db = yield* Database;
+
+	const requiredFormRows = yield* db
+		.select()
+		.from(forms)
+		.where(eq(forms.id, condition.requiredFormId))
+		.limit(1);
+
+	if (requiredFormRows.length === 0) {
+		return {
+			isUnlocked: false,
+			reason: "Required form not found",
+			unlockAt: null as string | null,
+		};
+	}
+
+	const progressRows = yield* db
+		.select()
+		.from(formProgress)
+		.where(
+			and(eq(formProgress.formId, condition.requiredFormId), eq(formProgress.userId, userId)),
+		)
+		.limit(1);
+
+	const progress = progressRows[0];
+
+	if (!progress) {
+		return {
+			isUnlocked: false,
+			reason: `Complete "${requiredFormRows[0].title}" first`,
+			unlockAt: null as string | null,
+		};
+	}
+
+	const isUnlocked =
+		condition.requiredFormStatus === "completed"
+			? progress.status === "completed"
+			: progress.status !== "locked";
+
+	return {
+		isUnlocked,
+		reason: isUnlocked ? null : `Complete "${requiredFormRows[0].title}" first`,
+		unlockAt: null as string | null,
+	};
+});
+
+export const checkManualCondition = Effect.fn("checkManualCondition")(function* (
+	condition: UnlockConditionType,
+	userId: string,
+	formId: string,
+) {
+	if (condition.type !== "manual") {
+		return {
+			isUnlocked: false,
+			reason: "Invalid condition type",
+			unlockAt: null as string | null,
+		};
+	}
+
+	const db = yield* Database;
+
+	const progressRows = yield* db
+		.select()
+		.from(formProgress)
+		.where(and(eq(formProgress.formId, formId), eq(formProgress.userId, userId)))
+		.limit(1);
+
+	const progress = progressRows[0];
+
+	const isUnlocked = progress
+		? progress.status === "available" || progress.status === "completed"
+		: false;
+
+	return {
+		isUnlocked,
+		reason: isUnlocked ? null : "Manually unlock required",
+		unlockAt: null as string | null,
+	};
+});
+
+const checkUnlockCondition = Effect.fn("checkUnlockCondition")(function* (
+	condition: UnlockConditionType,
+	userId: string,
+	formId: string,
+) {
+	if (condition.type === "time") {
+		return yield* checkTimeBasedCondition(condition);
+	}
+	if (condition.type === "prerequisite") {
+		return yield* checkPrerequisiteCondition(condition, userId);
+	}
+	if (condition.type === "manual") {
+		return yield* checkManualCondition(condition, userId, formId);
+	}
+	return {
+		isUnlocked: false,
+		reason: "Unknown condition type",
+		unlockAt: null as string | null,
+	};
+});
 
 export const CheckFormUnlockInput = Schema.Struct({
 	formId: Schema.String,
@@ -200,55 +198,53 @@ export type CheckFormUnlockResult = {
 	earliestUnlockAt: string | null;
 };
 
-export const checkFormUnlock = Effect.fn("checkFormUnlock")((input: CheckFormUnlockInput) =>
-	Effect.gen(function* () {
-		const db = yield* Database;
+export const checkFormUnlock = Effect.fn("checkFormUnlock")(function* (
+	input: CheckFormUnlockInput,
+) {
+	const db = yield* Database;
 
-		const formRows = yield* db.select().from(forms).where(eq(forms.id, input.formId)).limit(1);
+	const formRows = yield* db.select().from(forms).where(eq(forms.id, input.formId)).limit(1);
 
-		if (formRows.length === 0) {
-			return yield* new FormNotFoundError({ formId: input.formId });
-		}
+	if (formRows.length === 0) {
+		return yield* new FormNotFoundError({ formId: input.formId });
+	}
 
-		const form = formRows[0];
-		const unlockConditions = form.unlockConditions as FormUnlockConditionsType | null;
+	const form = formRows[0];
+	const unlockConditions = form.unlockConditions as FormUnlockConditionsType | null;
 
-		if (!unlockConditions || unlockConditions.conditions.length === 0) {
-			return {
-				isUnlocked: true,
-				reason: null,
-				earliestUnlockAt: null,
-			};
-		}
-
-		const results = yield* Effect.all(
-			unlockConditions.conditions.map((condition) =>
-				checkUnlockCondition(condition, input.userId, input.formId),
-			),
-			{ concurrency: "unbounded" },
-		);
-
-		const logic = unlockConditions.logic ?? "all";
-		const isUnlocked =
-			logic === "all"
-				? results.every((r) => r.isUnlocked)
-				: results.some((r) => r.isUnlocked);
-
-		const resultsWithDates = results.filter(
-			(r): r is typeof r & { unlockAt: string } => !r.isUnlocked && r.unlockAt !== null,
-		);
-		resultsWithDates.sort((a, b) => a.unlockAt.localeCompare(b.unlockAt));
-		const earliestUnlockAt = resultsWithDates[0]?.unlockAt ?? null;
-
-		const failedReason = results.find((r) => !r.isUnlocked)?.reason;
-
+	if (!unlockConditions || unlockConditions.conditions.length === 0) {
 		return {
-			isUnlocked,
-			reason: isUnlocked ? null : failedReason,
-			earliestUnlockAt,
+			isUnlocked: true,
+			reason: null,
+			earliestUnlockAt: null,
 		};
-	}),
-);
+	}
+
+	const results = yield* Effect.all(
+		unlockConditions.conditions.map((condition) =>
+			checkUnlockCondition(condition, input.userId, input.formId),
+		),
+		{ concurrency: "unbounded" },
+	);
+
+	const logic = unlockConditions.logic ?? "all";
+	const isUnlocked =
+		logic === "all" ? results.every((r) => r.isUnlocked) : results.some((r) => r.isUnlocked);
+
+	const resultsWithDates = results.filter(
+		(r): r is typeof r & { unlockAt: string } => !r.isUnlocked && r.unlockAt !== null,
+	);
+	resultsWithDates.sort((a, b) => a.unlockAt.localeCompare(b.unlockAt));
+	const earliestUnlockAt = resultsWithDates[0]?.unlockAt ?? null;
+
+	const failedReason = results.find((r) => !r.isUnlocked)?.reason;
+
+	return {
+		isUnlocked,
+		reason: isUnlocked ? null : failedReason,
+		earliestUnlockAt,
+	};
+});
 
 export const UnlockFormInput = Schema.Struct({
 	formId: Schema.String,
@@ -257,41 +253,37 @@ export const UnlockFormInput = Schema.Struct({
 
 export type UnlockFormInput = typeof UnlockFormInput.Type;
 
-export const unlockForm = Effect.fn("unlockForm")((input: UnlockFormInput) =>
-	Effect.gen(function* () {
-		const db = yield* Database;
+export const unlockForm = Effect.fn("unlockForm")(function* (input: UnlockFormInput) {
+	const db = yield* Database;
 
-		const existingProgress = yield* db
-			.select()
-			.from(formProgress)
-			.where(
-				and(eq(formProgress.formId, input.formId), eq(formProgress.userId, input.userId)),
-			)
-			.limit(1);
+	const existingProgress = yield* db
+		.select()
+		.from(formProgress)
+		.where(and(eq(formProgress.formId, input.formId), eq(formProgress.userId, input.userId)))
+		.limit(1);
 
-		const now = new Date();
+	const now = new Date();
 
-		if (existingProgress.length > 0) {
-			yield* db
-				.update(formProgress)
-				.set({
-					status: "available",
-					unlockedAt: now,
-				})
-				.where(eq(formProgress.id, existingProgress[0].id));
-		} else {
-			yield* db.insert(formProgress).values({
-				id: crypto.randomUUID(),
-				formId: input.formId,
-				userId: input.userId,
+	if (existingProgress.length > 0) {
+		yield* db
+			.update(formProgress)
+			.set({
 				status: "available",
 				unlockedAt: now,
-			});
-		}
+			})
+			.where(eq(formProgress.id, existingProgress[0].id));
+	} else {
+		yield* db.insert(formProgress).values({
+			id: crypto.randomUUID(),
+			formId: input.formId,
+			userId: input.userId,
+			status: "available",
+			unlockedAt: now,
+		});
+	}
 
-		return { formId: input.formId, userId: input.userId, unlockedAt: now };
-	}),
-);
+	return { formId: input.formId, userId: input.userId, unlockedAt: now };
+});
 
 export const GetFormProgressInput = Schema.Struct({
 	formId: Schema.String,
@@ -309,33 +301,31 @@ export type FormProgressInfo = {
 	completedAt: Date | null;
 };
 
-export const getFormProgress = Effect.fn("getFormProgress")((input: GetFormProgressInput) =>
-	Effect.gen(function* () {
-		const db = yield* Database;
+export const getFormProgress = Effect.fn("getFormProgress")(function* (
+	input: GetFormProgressInput,
+) {
+	const db = yield* Database;
 
-		const progressRows = yield* db
-			.select()
-			.from(formProgress)
-			.where(
-				and(eq(formProgress.formId, input.formId), eq(formProgress.userId, input.userId)),
-			)
-			.limit(1);
+	const progressRows = yield* db
+		.select()
+		.from(formProgress)
+		.where(and(eq(formProgress.formId, input.formId), eq(formProgress.userId, input.userId)))
+		.limit(1);
 
-		if (progressRows.length === 0) {
-			return null;
-		}
+	if (progressRows.length === 0) {
+		return null;
+	}
 
-		const p = progressRows[0];
-		return {
-			id: p.id,
-			formId: p.formId,
-			userId: p.userId,
-			status: p.status,
-			unlockedAt: p.unlockedAt,
-			completedAt: p.completedAt,
-		};
-	}),
-);
+	const p = progressRows[0];
+	return {
+		id: p.id,
+		formId: p.formId,
+		userId: p.userId,
+		status: p.status,
+		unlockedAt: p.unlockedAt,
+		completedAt: p.completedAt,
+	};
+});
 
 export const GetUserCompletedFormsInput = Schema.Struct({
 	userId: Schema.String,
@@ -343,24 +333,18 @@ export const GetUserCompletedFormsInput = Schema.Struct({
 
 export type GetUserCompletedFormsInput = typeof GetUserCompletedFormsInput.Type;
 
-export const getUserCompletedForms = Effect.fn("getUserCompletedForms")(
-	(input: GetUserCompletedFormsInput) =>
-		Effect.gen(function* () {
-			const db = yield* Database;
+export const getUserCompletedForms = Effect.fn("getUserCompletedForms")(function* (
+	input: GetUserCompletedFormsInput,
+) {
+	const db = yield* Database;
 
-			const completedForms = yield* db
-				.select({ formId: formProgress.formId })
-				.from(formProgress)
-				.where(
-					and(
-						eq(formProgress.userId, input.userId),
-						eq(formProgress.status, "completed"),
-					),
-				);
+	const completedForms = yield* db
+		.select({ formId: formProgress.formId })
+		.from(formProgress)
+		.where(and(eq(formProgress.userId, input.userId), eq(formProgress.status, "completed")));
 
-			return completedForms.map((f) => f.formId);
-		}),
-);
+	return completedForms.map((f) => f.formId);
+});
 
 // ============================================================================
 // Post-Test Unlock Service
@@ -376,70 +360,69 @@ export const UnlockPostTestAfterAssignmentInput = Schema.Struct({
 
 export type UnlockPostTestAfterAssignmentInput = typeof UnlockPostTestAfterAssignmentInput.Type;
 
-export const unlockPostTestAfterAssignment = Effect.fn("unlockPostTestAfterAssignment")(
-	(input: UnlockPostTestAfterAssignmentInput) =>
-		Effect.gen(function* () {
-			const db = yield* Database;
+export const unlockPostTestAfterAssignment = Effect.fn("unlockPostTestAfterAssignment")(function* (
+	input: UnlockPostTestAfterAssignmentInput,
+) {
+	const db = yield* Database;
 
-			// Check if the assignment was submitted by checking learner_maps
-			const learnerMapRows = yield* db
-				.select()
-				.from(learnerMaps)
-				.where(
-					and(
-						eq(learnerMaps.assignmentId, input.assignmentId),
-						eq(learnerMaps.userId, input.userId),
-						eq(learnerMaps.status, "submitted"),
-						isNotNull(learnerMaps.submittedAt),
-					),
-				)
-				.limit(1);
+	// Check if the assignment was submitted by checking learner_maps
+	const learnerMapRows = yield* db
+		.select()
+		.from(learnerMaps)
+		.where(
+			and(
+				eq(learnerMaps.assignmentId, input.assignmentId),
+				eq(learnerMaps.userId, input.userId),
+				eq(learnerMaps.status, "submitted"),
+				isNotNull(learnerMaps.submittedAt),
+			),
+		)
+		.limit(1);
 
-			if (learnerMapRows.length === 0) {
-				return {
-					success: false,
-					reason: "Assignment not completed",
-				};
-			}
+	if (learnerMapRows.length === 0) {
+		return {
+			success: false,
+			reason: "Assignment not completed",
+		};
+	}
 
-			const completedAt = learnerMapRows[0].submittedAt;
-			if (!completedAt) {
-				return {
-					success: false,
-					reason: "Assignment not completed",
-				};
-			}
-			const now = new Date();
+	const completedAt = learnerMapRows[0].submittedAt;
+	if (!completedAt) {
+		return {
+			success: false,
+			reason: "Assignment not completed",
+		};
+	}
+	const now = new Date();
 
-			// If delay is specified, schedule the unlock for future
-			if (input.delayDays > 0) {
-				const unlockAt = new Date(completedAt);
-				unlockAt.setDate(unlockAt.getDate() + input.delayDays);
+	// If delay is specified, schedule the unlock for future
+	if (input.delayDays > 0) {
+		const unlockAt = new Date(completedAt);
+		unlockAt.setDate(unlockAt.getDate() + input.delayDays);
 
-				// Check if unlock time has passed
-				if (unlockAt > now) {
-					return {
-						success: true,
-						scheduled: true,
-						unlockAt: unlockAt.toISOString(),
-						message: `Post-test will be available on ${unlockAt.toLocaleDateString()}`,
-					};
-				}
-			}
-
-			// Unlock immediately
-			const result = yield* unlockForm({
-				formId: input.postTestFormId,
-				userId: input.userId,
-			});
-
+		// Check if unlock time has passed
+		if (unlockAt > now) {
 			return {
 				success: true,
-				scheduled: false,
-				unlockedAt: result.unlockedAt,
+				scheduled: true,
+				unlockAt: unlockAt.toISOString(),
+				message: `Post-test will be available on ${unlockAt.toLocaleDateString()}`,
 			};
-		}),
-);
+		}
+	}
+
+	// Unlock immediately
+	const result = yield* unlockForm({
+		formId: input.postTestFormId,
+		userId: input.userId,
+	});
+
+	return {
+		success: true,
+		scheduled: false,
+		unlockedAt: result.unlockedAt,
+	};
+});
 
 // ============================================================================
 // Delayed Test Scheduler Service
@@ -492,37 +475,36 @@ export type AssignmentCompletionStatus = {
 	formId: string | null;
 };
 
-export const getAssignmentCompletionStatus = Effect.fn("getAssignmentCompletionStatus")(
-	(input: GetAssignmentCompletionInput) =>
-		Effect.gen(function* () {
-			const db = yield* Database;
+export const getAssignmentCompletionStatus = Effect.fn("getAssignmentCompletionStatus")(function* (
+	input: GetAssignmentCompletionInput,
+) {
+	const db = yield* Database;
 
-			const learnerMapRows = yield* db
-				.select()
-				.from(learnerMaps)
-				.where(
-					and(
-						eq(learnerMaps.assignmentId, input.assignmentId),
-						eq(learnerMaps.userId, input.userId),
-						eq(learnerMaps.status, "submitted"),
-						isNotNull(learnerMaps.submittedAt),
-					),
-				)
-				.limit(1);
+	const learnerMapRows = yield* db
+		.select()
+		.from(learnerMaps)
+		.where(
+			and(
+				eq(learnerMaps.assignmentId, input.assignmentId),
+				eq(learnerMaps.userId, input.userId),
+				eq(learnerMaps.status, "submitted"),
+				isNotNull(learnerMaps.submittedAt),
+			),
+		)
+		.limit(1);
 
-			if (learnerMapRows.length === 0) {
-				return {
-					isCompleted: false,
-					completedAt: null,
-					formId: null,
-				};
-			}
+	if (learnerMapRows.length === 0) {
+		return {
+			isCompleted: false,
+			completedAt: null,
+			formId: null,
+		};
+	}
 
-			const map = learnerMapRows[0];
-			return {
-				isCompleted: true,
-				completedAt: map.submittedAt,
-				formId: map.id,
-			};
-		}),
-);
+	const map = learnerMapRows[0];
+	return {
+		isCompleted: true,
+		completedAt: map.submittedAt,
+		formId: map.id,
+	};
+});

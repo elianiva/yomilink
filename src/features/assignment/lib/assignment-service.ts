@@ -1,4 +1,4 @@
-import { desc, eq, sql } from "drizzle-orm";
+import { and, desc, eq, sql } from "drizzle-orm";
 import { Data, Effect, Schema } from "effect";
 
 import { randomString } from "@/lib/utils";
@@ -55,266 +55,255 @@ class AssignmentNotFoundError extends Data.TaggedError("AssignmentNotFoundError"
 	readonly assignmentId: string;
 }> {}
 
-export const createAssignment = Effect.fn("createAssignment")(
-	(_userId: string, data: CreateAssignmentInput) =>
-		Effect.gen(function* () {
-			const db = yield* Database;
+export const createAssignment = Effect.fn("createAssignment")(function* (
+	_userId: string,
+	data: CreateAssignmentInput,
+) {
+	const db = yield* Database;
 
-			const kitRows = yield* db
-				.select()
-				.from(kits)
-				.where(eq(kits.goalMapId, data.goalMapId))
-				.limit(1);
+	const kitRows = yield* db
+		.select()
+		.from(kits)
+		.where(eq(kits.goalMapId, data.goalMapId))
+		.limit(1);
 
-			const kit = kitRows[0];
-			if (!kit) {
-				return yield* new KitNotFoundError({ goalMapId: data.goalMapId });
-			}
+	const kit = kitRows[0];
+	if (!kit) {
+		return yield* new KitNotFoundError({ goalMapId: data.goalMapId });
+	}
 
-			const assignmentId = randomString();
+	const assignmentId = randomString();
 
-			yield* db.insert(assignments).values({
-				id: assignmentId,
-				goalMapId: data.goalMapId,
-				kitId: kit.id,
-				title: data.title,
-				description: data.description,
-				readingMaterial: null,
-				timeLimitMinutes: null,
-				startDate: data.startDate ? new Date(data.startDate) : new Date(),
-				dueAt: data.endDate ? new Date(data.endDate) : null,
-				preTestFormId: data.preTestFormId,
-				postTestFormId: data.postTestFormId,
-				delayedPostTestFormId: data.delayedPostTestFormId,
-				delayedPostTestDelayDays: data.delayedPostTestDelayDays,
-				tamFormId: data.tamFormId,
-				createdBy: kit.teacherId,
-			});
+	yield* db.insert(assignments).values({
+		id: assignmentId,
+		goalMapId: data.goalMapId,
+		kitId: kit.id,
+		title: data.title,
+		description: data.description,
+		readingMaterial: null,
+		timeLimitMinutes: null,
+		startDate: data.startDate ? new Date(data.startDate) : new Date(),
+		dueAt: data.endDate ? new Date(data.endDate) : null,
+		preTestFormId: data.preTestFormId,
+		postTestFormId: data.postTestFormId,
+		delayedPostTestFormId: data.delayedPostTestFormId,
+		delayedPostTestDelayDays: data.delayedPostTestDelayDays,
+		tamFormId: data.tamFormId,
+		createdBy: kit.teacherId,
+	});
 
-			const targets: Array<{
-				id: string;
-				assignmentId: string;
-				cohortId?: string;
-				userId?: string;
-			}> = [];
+	const targets: Array<{
+		id: string;
+		assignmentId: string;
+		cohortId?: string;
+		userId?: string;
+	}> = [];
 
-			for (const cohortId of data.cohortIds) {
-				targets.push({
-					id: randomString(),
-					assignmentId,
-					cohortId,
-				});
-			}
+	for (const cohortId of data.cohortIds) {
+		targets.push({
+			id: randomString(),
+			assignmentId,
+			cohortId,
+		});
+	}
 
-			for (const userId of data.userIds) {
-				targets.push({
-					id: randomString(),
-					assignmentId,
-					userId,
-				});
-			}
+	for (const userId of data.userIds) {
+		targets.push({
+			id: randomString(),
+			assignmentId,
+			userId,
+		});
+	}
 
-			if (targets.length > 0) {
-				yield* db.insert(assignmentTargets).values(targets);
-			}
+	if (targets.length > 0) {
+		yield* db.insert(assignmentTargets).values(targets);
+	}
 
-			return { success: true, assignmentId } as const;
-		}),
-);
+	return { success: true, assignmentId } as const;
+});
 
-export const listTeacherAssignments = Effect.fn("listTeacherAssignments")((userId: string) =>
-	Effect.gen(function* () {
-		const db = yield* Database;
-		const rows = yield* db
-			.select({
-				id: assignments.id,
-				title: assignments.title,
-				description: assignments.description,
-				goalMapId: assignments.goalMapId,
-				kitId: assignments.kitId,
-				startDate: assignments.startDate,
-				dueAt: assignments.dueAt,
-				preTestFormId: assignments.preTestFormId,
-				postTestFormId: assignments.postTestFormId,
-				delayedPostTestFormId: assignments.delayedPostTestFormId,
-				delayedPostTestDelayDays: assignments.delayedPostTestDelayDays,
-				tamFormId: assignments.tamFormId,
-				createdAt: assignments.createdAt,
-				updatedAt: assignments.updatedAt,
-				goalMapTitle: goalMaps.title,
-				goalMapDescription: goalMaps.description,
-			})
-			.from(assignments)
-			.leftJoin(goalMaps, eq(assignments.goalMapId, goalMaps.id))
-			.where(eq(assignments.createdBy, userId))
-			.orderBy(desc(assignments.createdAt));
+export const listTeacherAssignments = Effect.fn("listTeacherAssignments")(function* (
+	userId: string,
+) {
+	const db = yield* Database;
+	const rows = yield* db
+		.select({
+			id: assignments.id,
+			title: assignments.title,
+			description: assignments.description,
+			goalMapId: assignments.goalMapId,
+			kitId: assignments.kitId,
+			startDate: assignments.startDate,
+			dueAt: assignments.dueAt,
+			preTestFormId: assignments.preTestFormId,
+			postTestFormId: assignments.postTestFormId,
+			delayedPostTestFormId: assignments.delayedPostTestFormId,
+			delayedPostTestDelayDays: assignments.delayedPostTestDelayDays,
+			tamFormId: assignments.tamFormId,
+			createdAt: assignments.createdAt,
+			updatedAt: assignments.updatedAt,
+			goalMapTitle: goalMaps.title,
+			goalMapDescription: goalMaps.description,
+		})
+		.from(assignments)
+		.leftJoin(goalMaps, eq(assignments.goalMapId, goalMaps.id))
+		.where(eq(assignments.createdBy, userId))
+		.orderBy(desc(assignments.createdAt));
 
-		return rows.map((row) => ({
-			...row,
-			startDate: row.startDate?.getTime(),
-			dueAt: row.dueAt?.getTime(),
-			createdAt: row.createdAt?.getTime(),
-			updatedAt: row.updatedAt?.getTime(),
+	return rows.map((row) => ({
+		...row,
+		startDate: row.startDate?.getTime(),
+		dueAt: row.dueAt?.getTime(),
+		createdAt: row.createdAt?.getTime(),
+		updatedAt: row.updatedAt?.getTime(),
+	}));
+});
+
+export const deleteAssignment = Effect.fn("deleteAssignment")(function* (
+	userId: string,
+	input: DeleteAssignmentInput,
+) {
+	const db = yield* Database;
+
+	const assignmentRows = yield* db
+		.select({ createdBy: assignments.createdBy })
+		.from(assignments)
+		.where(eq(assignments.id, input.id))
+		.limit(1);
+
+	const assignment = assignmentRows[0];
+	if (!assignment || assignment.createdBy !== userId) {
+		return yield* new AssignmentNotFoundError({ assignmentId: input.id });
+	}
+
+	yield* db.delete(assignments).where(eq(assignments.id, input.id));
+
+	return { success: true } as const;
+});
+
+export const getAvailableCohorts = Effect.fn("getAvailableCohorts")(function* () {
+	const db = yield* Database;
+
+	const cohortRows = yield* db
+		.select({
+			id: cohorts.id,
+			name: cohorts.name,
+			description: cohorts.description,
+			memberCount: sql<number>`COUNT(${cohortMembers.id})`,
+		})
+		.from(cohorts)
+		.leftJoin(cohortMembers, eq(cohortMembers.cohortId, cohorts.id))
+		.groupBy(cohorts.id, cohorts.name, cohorts.description)
+		.orderBy(cohorts.name);
+
+	return cohortRows.map((row) => ({
+		...row,
+		memberCount: Number(row.memberCount ?? 0),
+	}));
+});
+
+export const getAvailableUsers = Effect.fn("getAvailableUsers")(function* () {
+	const db = yield* Database;
+	const rows = yield* db
+		.select({
+			id: user.id,
+			name: user.name,
+			email: user.email,
+			role: user.role,
+		})
+		.from(user)
+		.orderBy(user.name);
+
+	return rows;
+});
+
+export const getTeacherGoalMaps = Effect.fn("getTeacherGoalMaps")(function* () {
+	const db = yield* Database;
+	const rows = yield* db
+		.select({
+			id: goalMaps.id,
+			title: goalMaps.title,
+			description: goalMaps.description,
+			createdAt: goalMaps.createdAt,
+			updatedAt: goalMaps.updatedAt,
+		})
+		.from(goalMaps)
+		.orderBy(desc(goalMaps.updatedAt));
+
+	return rows.map((row) => ({
+		...row,
+		createdAt: row.createdAt?.getTime(),
+		updatedAt: row.updatedAt?.getTime(),
+	}));
+});
+
+export const saveExperimentGroups = Effect.fn("saveExperimentGroups")(function* (
+	input: SaveExperimentGroupsInput,
+) {
+	const db = yield* Database;
+
+	// Delete existing groups for this assignment
+	yield* db.delete(experimentGroups).where(eq(experimentGroups.assignmentId, input.assignmentId));
+
+	// Insert new groups
+	if (input.groups.length > 0) {
+		const values = input.groups.map((g) => ({
+			id: randomString(),
+			assignmentId: input.assignmentId,
+			userId: g.userId,
+			groupName: g.groupName ?? null,
+			condition: g.condition,
 		}));
-	}),
-);
 
-export const deleteAssignment = Effect.fn("deleteAssignment")(
-	(userId: string, input: DeleteAssignmentInput) =>
-		Effect.gen(function* () {
-			const db = yield* Database;
+		yield* db.insert(experimentGroups).values(values);
+	}
 
-			const assignmentRows = yield* db
-				.select({ createdBy: assignments.createdBy })
-				.from(assignments)
-				.where(eq(assignments.id, input.id))
-				.limit(1);
-
-			const assignment = assignmentRows[0];
-			if (!assignment || assignment.createdBy !== userId) {
-				return yield* new AssignmentNotFoundError({ assignmentId: input.id });
-			}
-
-			yield* db.delete(assignments).where(eq(assignments.id, input.id));
-
-			return { success: true } as const;
-		}),
-);
-
-export const getAvailableCohorts = Effect.fn("getAvailableCohorts")(() =>
-	Effect.gen(function* () {
-		const db = yield* Database;
-
-		const cohortRows = yield* db
-			.select({
-				id: cohorts.id,
-				name: cohorts.name,
-				description: cohorts.description,
-				memberCount: sql<number>`COUNT(${cohortMembers.id})`,
-			})
-			.from(cohorts)
-			.leftJoin(cohortMembers, eq(cohortMembers.cohortId, cohorts.id))
-			.groupBy(cohorts.id, cohorts.name, cohorts.description)
-			.orderBy(cohorts.name);
-
-		return cohortRows.map((row) => ({
-			...row,
-			memberCount: Number(row.memberCount ?? 0),
-		}));
-	}),
-);
-
-export const getAvailableUsers = Effect.fn("getAvailableUsers")(() =>
-	Effect.gen(function* () {
-		const db = yield* Database;
-		const rows = yield* db
-			.select({
-				id: user.id,
-				name: user.name,
-				email: user.email,
-				role: user.role,
-			})
-			.from(user)
-			.orderBy(user.name);
-
-		return rows;
-	}),
-);
-
-export const getTeacherGoalMaps = Effect.fn("getTeacherGoalMaps")(() =>
-	Effect.gen(function* () {
-		const db = yield* Database;
-		const rows = yield* db
-			.select({
-				id: goalMaps.id,
-				title: goalMaps.title,
-				description: goalMaps.description,
-				createdAt: goalMaps.createdAt,
-				updatedAt: goalMaps.updatedAt,
-			})
-			.from(goalMaps)
-			.orderBy(desc(goalMaps.updatedAt));
-
-		return rows.map((row) => ({
-			...row,
-			createdAt: row.createdAt?.getTime(),
-			updatedAt: row.updatedAt?.getTime(),
-		}));
-	}),
-);
-
-export const saveExperimentGroups = Effect.fn("saveExperimentGroups")(
-	(input: SaveExperimentGroupsInput) =>
-		Effect.gen(function* () {
-			const db = yield* Database;
-
-			// Delete existing groups for this assignment
-			yield* db
-				.delete(experimentGroups)
-				.where(eq(experimentGroups.assignmentId, input.assignmentId));
-
-			// Insert new groups
-			if (input.groups.length > 0) {
-				const values = input.groups.map((g) => ({
-					id: randomString(),
-					assignmentId: input.assignmentId,
-					userId: g.userId,
-					groupName: g.groupName ?? null,
-					condition: g.condition,
-				}));
-
-				yield* db.insert(experimentGroups).values(values);
-			}
-
-			return { success: true };
-		}),
-);
+	return { success: true };
+});
 
 export const getExperimentGroupsByAssignmentId = Effect.fn("getExperimentGroupsByAssignmentId")(
-	(assignmentId: string) =>
-		Effect.gen(function* () {
-			const db = yield* Database;
+	function* (assignmentId: string) {
+		const db = yield* Database;
 
-			const rows = yield* db
-				.select()
-				.from(experimentGroups)
-				.where(eq(experimentGroups.assignmentId, assignmentId));
+		const rows = yield* db
+			.select()
+			.from(experimentGroups)
+			.where(eq(experimentGroups.assignmentId, assignmentId));
 
-			return rows;
-		}),
+		return rows;
+	},
 );
 
-export const getAssignmentByPreTestFormId = Effect.fn("getAssignmentByPreTestFormId")(
-	(formId: string) =>
-		Effect.gen(function* () {
-			const db = yield* Database;
+export const getAssignmentByPreTestFormId = Effect.fn("getAssignmentByPreTestFormId")(function* (
+	formId: string,
+) {
+	const db = yield* Database;
 
-			const rows = yield* db
-				.select()
-				.from(assignments)
-				.where(eq(assignments.preTestFormId, formId))
-				.limit(1);
+	const rows = yield* db
+		.select()
+		.from(assignments)
+		.where(eq(assignments.preTestFormId, formId))
+		.limit(1);
 
-			return rows[0] ?? null;
-		}),
-);
+	return rows[0] ?? null;
+});
 
-export const getExperimentCondition = Effect.fn("getExperimentCondition")(
-	(assignmentId: string, userId: string) =>
-		Effect.gen(function* () {
-			const db = yield* Database;
+export const getExperimentCondition = Effect.fn("getExperimentCondition")(function* (
+	assignmentId: string,
+	userId: string,
+) {
+	const db = yield* Database;
 
-			const rows = yield* db
-				.select()
-				.from(experimentGroups)
-				.where(
-					and(
-						eq(experimentGroups.assignmentId, assignmentId),
-						eq(experimentGroups.userId, userId),
-					),
-				)
-				.limit(1);
+	const rows = yield* db
+		.select()
+		.from(experimentGroups)
+		.where(
+			and(
+				eq(experimentGroups.assignmentId, assignmentId),
+				eq(experimentGroups.userId, userId),
+			),
+		)
+		.limit(1);
 
-			return rows[0] ?? null;
-		}),
-);
+	return rows[0] ?? null;
+});

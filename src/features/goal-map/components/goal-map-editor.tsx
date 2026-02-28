@@ -43,7 +43,6 @@ import { FloatingEdge } from "@/features/kitbuild/components/floating-edge";
 import { NodeContextMenu } from "@/features/kitbuild/components/node-context-menu";
 import { SearchNodesPanel } from "@/features/kitbuild/components/search-nodes-panel";
 import { TextNode } from "@/features/kitbuild/components/text-node";
-import { isErrorResponse } from "@/hooks/use-rpc-error";
 import { useRpcMutation, useRpcQuery } from "@/hooks/use-rpc-query";
 import { toast } from "@/lib/error-toast";
 import { pageTitleAtom } from "@/lib/page-title";
@@ -88,13 +87,8 @@ export function GoalMapEditor() {
 	const { goalMapId } = routeApi.useParams();
 	const navigate = useNavigate();
 
-	const { data: existing } = useRpcQuery({
-		...GoalMapRpc.getGoalMap({ goalMapId }),
-		enabled: goalMapId !== "new",
-	});
-
+	const { data: existing } = useRpcQuery(GoalMapRpc.getGoalMap({ goalMapId }));
 	const { data: topics, isLoading: topicsLoading } = useRpcQuery(TopicRpc.listTopics());
-
 	const { data: kitStatus } = useRpcQuery(KitRpc.getKitStatus(goalMapId));
 
 	const generateKitMutation = useRpcMutation(KitRpc.generateKit(), {
@@ -407,7 +401,7 @@ export function GoalMapEditor() {
 			<SaveDialog
 				open={saveOpen}
 				saving={saving}
-				topics={!isErrorResponse(topics) ? topics ?? [] : []}
+				topics={!isErrorResponse(topics) ? (topics ?? []) : []}
 				topicsLoading={topicsLoading}
 				defaultTopicId={saveMeta.topicId}
 				defaultName={saveMeta.name}
@@ -421,7 +415,7 @@ export function GoalMapEditor() {
 			<SaveDialog
 				open={saveAsOpen}
 				saving={saving}
-				topics={!isErrorResponse(topics) ? topics ?? [] : []}
+				topics={!isErrorResponse(topics) ? (topics ?? []) : []}
 				topicsLoading={topicsLoading}
 				defaultTopicId={saveMeta.topicId}
 				defaultName={saveMeta.name ? `${saveMeta.name} (copy)` : ""}
@@ -486,7 +480,7 @@ export function GoalMapEditor() {
 					onCreateKit={handleCreateKit}
 					saving={saving}
 					isNewMap={isNewMap}
-				kitStatus={!isErrorResponse(kitStatus) ? kitStatus : undefined}
+					kitStatus={!isErrorResponse(kitStatus) ? kitStatus : undefined}
 					isGeneratingKit={generateKitMutation.isPending}
 				/>
 

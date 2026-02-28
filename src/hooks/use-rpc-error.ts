@@ -142,9 +142,7 @@ export type RpcState<T> = {
  * renderAssignments(data);
  * ```
  */
-export function getRpcState<T>(
-	response: RpcResult<T> | null | undefined,
-): RpcState<T> {
+export function getRpcState<T>(response: RpcResult<T> | null | undefined): RpcState<T> {
 	if (response === null || response === undefined) {
 		return {
 			data: undefined,
@@ -214,4 +212,8 @@ export function filterArrayResponse<T>(response: unknown): T[] {
 }
 
 // Re-export for backward compatibility with old naming
-export type { RpcError as RpcErrorResponse, RpcSuccess as RpcSuccessResponse, RpcResult as RpcResponse };
+export type {
+	RpcError as RpcErrorResponse,
+	RpcSuccess as RpcSuccessResponse,
+	RpcResult as RpcResponse,
+};

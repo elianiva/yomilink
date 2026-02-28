@@ -21,28 +21,9 @@ import { getErrorDetails, isRetryableError } from "@/lib/error-types";
 import { isError, type RpcResult, unwrap } from "./use-rpc-error";
 
 /**
- * Configuration options for useRpcQuery.
+ * Extracted RPC result fields shared by query and mutation hooks.
  */
-export type UseRpcQueryConfig = {
-	/** Whether to show error inline (via returned error state). Default: true */
-	showError?: boolean;
-	/** Custom error message to display */
-	errorMessage?: string;
-	/** Custom error title */
-	errorTitle?: string;
-	/** Number of retry attempts for retryable errors. Default: 3 */
-	retryCount?: number;
-	/** Retry delays in milliseconds. Default: [1000, 2000, 4000] */
-	retryDelays?: number[];
-};
-
-/**
- * Extended result type for useRpcQuery.
- */
-export type UseRpcQueryResult<TData> = Omit<
-	UseQueryResult<RpcResult<TData>, Error>,
-	"data"
-> & {
+export type RpcExtractedResult<TData> = {
 	/** Extracted data (undefined if loading or error) */
 	data: TData | undefined;
 	/** RPC error message (undefined if no error) */
@@ -54,22 +35,36 @@ export type UseRpcQueryResult<TData> = Omit<
 };
 
 /**
- * Default retry delays (exponential backoff): 1s, 2s, 4s
+ * Extracts data and error info from an RPC result.
  */
-const DEFAULT_RETRY_DELAYS = [1000, 2000, 4000];
+function extractRpcResult<TData>(rawData: RpcResult<TData> | undefined): RpcExtractedResult<TData> {
+	if (isError(rawData)) {
+		const errorDetails = getErrorDetails(rawData);
+		return {
+			data: undefined,
+			rpcError: errorDetails.message,
+			rpcErrorCode: rawData.code,
+			isRpcError: true,
+		};
+	}
+	return {
+		data: unwrap(rawData) ?? undefined,
+		rpcError: undefined,
+		rpcErrorCode: undefined,
+		isRpcError: false,
+	};
+}
+export type UseRpcQueryResult<TData> = Omit<UseQueryResult<RpcResult<TData>, Error>, "data"> &
+	RpcExtractedResult<TData>;
 
 /**
  * useRpcQuery - Custom React Query hook for RPC queries.
  *
- * Automatically handles RPC error responses, provides type-safe data extraction,
- * and implements exponential backoff retry for network/server errors.
+ * Automatically unwraps RPC result types and provides typed error handling.
  *
  * @example
  * ```tsx
- * // Basic usage
- * const { data, isLoading, rpcError, refetch } = useRpcQuery(
- *   GoalMapRpc.getGoalMap(goalMapId)
- * );
+ * const { data, isLoading, rpcError, refetch } = useRpcQuery(GoalMapRpc.getGoalMap(goalMapId));
  *
  * if (isLoading) return <Spinner />;
  * if (rpcError) return <ErrorCard title="Error" description={rpcError} onRetry={refetch} />;
@@ -80,61 +75,16 @@ const DEFAULT_RETRY_DELAYS = [1000, 2000, 4000];
  */
 export function useRpcQuery<TData, TQueryKey extends readonly unknown[] = readonly unknown[]>(
 	options: UseQueryOptions<RpcResult<TData>, Error, RpcResult<TData>, TQueryKey>,
-	config: UseRpcQueryConfig = {},
 ): UseRpcQueryResult<TData> {
-	const {
-		showError = true,
-		errorMessage,
-		retryCount = 3,
-		retryDelays = DEFAULT_RETRY_DELAYS,
-	} = config;
-
-	// Custom retry logic
-	const retry = (failureCount: number, error: Error) => {
-		// Don't retry beyond max attempts
-		if (failureCount >= retryCount) {
-			return false;
-		}
-		// Only retry for retryable errors
-		return isRetryableError(error);
-	};
-
-	// Custom retry delay
-	const retryDelay = (attemptIndex: number) => {
-		return retryDelays[attemptIndex] ?? retryDelays[retryDelays.length - 1] ?? 4000;
-	};
-
 	const queryResult = useQuery<RpcResult<TData>, Error, RpcResult<TData>, TQueryKey>({
 		...options,
-		retry,
-		retryDelay,
+		retry: (failureCount, error) => failureCount < 3 && isRetryableError(error),
+		retryDelay: (attemptIndex) => [1000, 2000, 4000][attemptIndex] ?? 4000,
 	});
 
-	// Extract data and error state
 	const { data: rawData } = queryResult;
+	const processedResult = useMemo(() => extractRpcResult(rawData), [rawData]);
 
-	const processedResult = useMemo(() => {
-		// Check if response is an RPC error
-		if (isError(rawData)) {
-			const errorDetails = getErrorDetails(rawData);
-			return {
-				data: undefined,
-				rpcError: showError ? (errorMessage ?? errorDetails.message) : undefined,
-				rpcErrorCode: rawData.code,
-				isRpcError: true,
-			};
-		}
-		// Success case - extract data
-		const extracted = unwrap(rawData);
-		return {
-			data: extracted ?? undefined,
-			rpcError: undefined,
-			rpcErrorCode: undefined,
-			isRpcError: false,
-		};
-	}, [rawData, showError, errorMessage]);
-
-	// Spread queryResult but override data to avoid type conflicts
 	const { data: _rawData, ...restQueryResult } = queryResult;
 
 	return {
@@ -146,7 +96,7 @@ export function useRpcQuery<TData, TQueryKey extends readonly unknown[] = readon
 /**
  * Configuration options for useRpcMutation.
  */
-export type UseRpcMutationConfig = {
+export type UseRpcMutationConfig<TData = unknown> = {
 	/** Whether to show success toast. Default: false */
 	showSuccess?: boolean;
 	/** Custom success message */
@@ -160,7 +110,7 @@ export type UseRpcMutationConfig = {
 	/** Additional error toast options */
 	errorToastOptions?: Omit<ErrorToastOptions, "operation">;
 	/** Callback when mutation succeeds */
-	onSuccess?: (data: unknown) => void;
+	onSuccess?: (data: TData) => void;
 };
 
 /**
@@ -170,16 +120,8 @@ export type UseRpcMutationResult<TData, TVariables> = UseMutationResult<
 	RpcResult<TData>,
 	Error,
 	TVariables
-> & {
-	/** Whether the last mutation resulted in an RPC error */
-	isRpcError: boolean;
-	/** RPC error message from last mutation (undefined if no error) */
-	rpcError: string | undefined;
-	/** Error code if available */
-	rpcErrorCode: string | undefined;
-	/** Extracted data from last mutation */
-	data: TData | undefined;
-};
+> &
+	RpcExtractedResult<TData>;
 
 /**
  * useRpcMutation - Custom React Query hook for RPC mutations.
@@ -189,7 +131,7 @@ export type UseRpcMutationResult<TData, TVariables> = UseMutationResult<
  */
 export function useRpcMutation<TData, TVariables, TContext = unknown>(
 	options: UseMutationOptions<RpcResult<TData>, Error, TVariables, TContext>,
-	config: UseRpcMutationConfig = {},
+	config: UseRpcMutationConfig<TData> = {},
 ): UseRpcMutationResult<TData, TVariables> {
 	const {
 		showSuccess = false,
@@ -240,16 +182,10 @@ export function useRpcMutation<TData, TVariables, TContext = unknown>(
 		},
 	});
 
-	// Compute RPC error state
-	const { data } = mutationResult;
-	const rpcErrorData = isError(data) ? data : undefined;
-	const extractedData = data ? unwrap(data) : undefined;
-
+	// Compute RPC error state using shared extraction
+	const extracted = extractRpcResult(mutationResult.data);
 	return {
 		...mutationResult,
-		data: extractedData ?? undefined,
-		isRpcError: !!rpcErrorData,
-		rpcError: rpcErrorData?.error,
-		rpcErrorCode: rpcErrorData?.code,
+		...extracted,
 	} as UseRpcMutationResult<TData, TVariables>;
 }

@@ -1,5 +1,5 @@
 import type { Edge, Node } from "@xyflow/react";
-import { Effect, Schema } from "effect";
+import { Schema } from "effect";
 
 // Types for validation
 export interface ConceptNode extends Node {
@@ -70,10 +70,7 @@ const composePropositions = (nodes: Readonly<Node[]>, edges: Readonly<Edge[]>): 
 	return propositions;
 };
 
-export const validateNodes = Effect.fn(function* (
-	nodes: Readonly<Node[]>,
-	edges: Readonly<Edge[]>,
-) {
+export const validateNodes = (nodes: Readonly<Node[]>, edges: Readonly<Edge[]>) => {
 	const errors: string[] = [];
 	const warnings: string[] = [];
 
@@ -167,7 +164,7 @@ export const validateNodes = Effect.fn(function* (
 		}
 	});
 
-	const composedPropositions = yield* composePropositions(nodes, edges);
+	const composedPropositions = composePropositions(nodes, edges);
 
 	if (
 		composedPropositions.length === 0 &&
@@ -203,7 +200,7 @@ export const validateNodes = Effect.fn(function* (
 			targetId: p.target.id,
 		})),
 	};
-});
+};
 
 export function findConnectedComponents(
 	nodes: Readonly<Node[]>,

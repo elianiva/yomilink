@@ -27,10 +27,8 @@ import { Rpc, logRpcError } from "../rpc-helper";
 export const listStudentAssignmentsRpc = createServerFn()
 	.middleware([authMiddleware])
 	.handler(({ context }) =>
-		Effect.gen(function* () {
-			const rows = yield* listStudentAssignments(context.user.id);
-			return yield* Rpc.ok(rows);
-		}).pipe(
+		listStudentAssignments(context.user.id).pipe(
+			Effect.map(Rpc.ok),
 			Effect.withSpan("listStudentAssignments"),
 			Effect.tapError(logRpcError("listStudentAssignments")),
 			Effect.catchAll(() => Rpc.err("Internal server error")),
@@ -43,10 +41,8 @@ export const getAssignmentForStudentRpc = createServerFn()
 	.middleware([authMiddleware])
 	.inputValidator((raw) => Schema.decodeUnknownSync(GetAssignmentForStudentInput)(raw))
 	.handler(({ data, context }) =>
-		Effect.gen(function* () {
-			const result = yield* getAssignmentForStudent(context.user.id, data);
-			return yield* Rpc.ok(result);
-		}).pipe(
+		getAssignmentForStudent(context.user.id, data).pipe(
+			Effect.map(Rpc.ok),
 			Effect.withSpan("getAssignmentForStudent"),
 			Effect.tapError(logRpcError("getAssignmentForStudent")),
 			Effect.catchAll(() => Rpc.err("Internal server error")),
@@ -59,10 +55,8 @@ export const saveLearnerMapRpc = createServerFn()
 	.middleware([authMiddleware])
 	.inputValidator((raw) => Schema.decodeUnknownSync(SaveLearnerMapInput)(raw))
 	.handler(({ data, context }) =>
-		Effect.gen(function* () {
-			yield* saveLearnerMap(context.user.id, data);
-			return yield* Rpc.ok(true);
-		}).pipe(
+		saveLearnerMap(context.user.id, data).pipe(
+			Effect.map(() => Rpc.ok(true)),
 			Effect.withSpan("saveLearnerMap"),
 			Effect.provide(AppLayer),
 			Effect.runPromise,
@@ -73,10 +67,8 @@ export const submitLearnerMapRpc = createServerFn()
 	.middleware([authMiddleware])
 	.inputValidator((raw) => Schema.decodeUnknownSync(SubmitLearnerMapInput)(raw))
 	.handler(({ data, context }) =>
-		Effect.gen(function* () {
-			const result = yield* submitLearnerMap(context.user.id, data);
-			return yield* Rpc.ok(result);
-		}).pipe(
+		submitLearnerMap(context.user.id, data).pipe(
+			Effect.map(Rpc.ok),
 			Effect.withSpan("submitLearnerMap"),
 			Effect.tapError(logRpcError("submitLearnerMap")),
 			Effect.catchAll(() => Rpc.err("Internal server error")),
@@ -89,10 +81,8 @@ export const getDiagnosisRpc = createServerFn()
 	.middleware([authMiddleware])
 	.inputValidator((raw) => Schema.decodeUnknownSync(GetDiagnosisInput)(raw))
 	.handler(({ data, context }) =>
-		Effect.gen(function* () {
-			const result = yield* getDiagnosis(context.user.id, data);
-			return yield* Rpc.ok(result);
-		}).pipe(
+		getDiagnosis(context.user.id, data).pipe(
+			Effect.map(Rpc.ok),
 			Effect.withSpan("getDiagnosis"),
 			Effect.tapError(logRpcError("getDiagnosis")),
 			Effect.catchAll(() => Rpc.err("Internal server error")),
@@ -105,10 +95,8 @@ export const startNewAttemptRpc = createServerFn()
 	.middleware([authMiddleware])
 	.inputValidator((raw) => Schema.decodeUnknownSync(StartNewAttemptInput)(raw))
 	.handler(({ data, context }) =>
-		Effect.gen(function* () {
-			const result = yield* startNewAttempt(context.user.id, data);
-			return yield* Rpc.ok(result);
-		}).pipe(
+		startNewAttempt(context.user.id, data).pipe(
+			Effect.map(Rpc.ok),
 			Effect.withSpan("startNewAttempt"),
 			Effect.tapError(logRpcError("startNewAttempt")),
 			Effect.catchAll(() => Rpc.err("Internal server error")),
@@ -121,10 +109,8 @@ export const getPeerStatsRpc = createServerFn()
 	.middleware([authMiddleware])
 	.inputValidator((raw) => Schema.decodeUnknownSync(GetPeerStatsInput)(raw))
 	.handler(({ data, context }) =>
-		Effect.gen(function* () {
-			const result = yield* getPeerStats(context.user.id, data);
-			return yield* Rpc.ok(result);
-		}).pipe(
+		getPeerStats(context.user.id, data).pipe(
+			Effect.map(Rpc.ok),
 			Effect.withSpan("getPeerStats"),
 			Effect.tapError(logRpcError("getPeerStats")),
 			Effect.catchAll(() => Rpc.err("Internal server error")),
@@ -137,10 +123,8 @@ export const submitControlTextRpc = createServerFn()
 	.middleware([authMiddleware])
 	.inputValidator((raw) => Schema.decodeUnknownSync(SubmitControlTextInput)(raw))
 	.handler(({ data, context }) =>
-		Effect.gen(function* () {
-			yield* submitControlText(context.user.id, data);
-			return yield* Rpc.ok(true);
-		}).pipe(
+		submitControlText(context.user.id, data).pipe(
+			Effect.map(() => Rpc.ok(true)),
 			Effect.withSpan("submitControlText"),
 			Effect.tapError(logRpcError("submitControlText")),
 			Effect.catchAll(() => Rpc.err("Internal server error")),

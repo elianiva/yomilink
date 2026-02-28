@@ -237,7 +237,8 @@ function AnalyticsPage() {
 								<SelectContent>
 									<AssignmentSelectContent
 										assignments={
-											!isErrorResponse(assignments) && Array.isArray(assignments)
+											!isErrorResponse(assignments) &&
+											Array.isArray(assignments)
 												? assignments.map((a) => ({
 														id: a.id,
 														title: a.title,
