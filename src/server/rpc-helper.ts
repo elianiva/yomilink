@@ -17,6 +17,8 @@ export const logRpcError =
 /**
  * Create a standardized error response.
  * Use with Effect.catchTags for type-safe error handling.
+ * @param error - Human-readable error message
+ * @param code - Optional error code for client-side handling
  */
-export const errorResponse = (error: string) =>
-	Effect.succeed({ success: false, error } as const);
+export const errorResponse = (error: string, code?: string) =>
+	Effect.succeed({ success: false, error, ...(code && { code }) } as const);

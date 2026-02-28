@@ -18,18 +18,16 @@ export class ParseJsonError extends Data.TaggedError("ParseJsonError")<{
 export function parseJson<A = unknown>(
 	input: string | unknown,
 ): Effect.Effect<A, ParseJsonError>;
+
 export function parseJson<S extends Schema.Schema<any, any, any>>(
 	input: string | unknown,
 	schema: S,
-): Effect.Effect<
-	S extends Schema.Schema<infer A, any, any> ? A : never,
-	ParseJsonError,
-	S extends Schema.Schema<any, any, infer R> ? R : never
->;
+): Effect.Effect<Schema.Schema.Type<S>, ParseJsonError, Schema.Schema.Context<S>>;
+
 export function parseJson<S extends Schema.Schema<any, any, any>>(
 	input: string | unknown,
 	schema?: S,
-): Effect.Effect<any, ParseJsonError, any> {
+): Effect.Effect<unknown, ParseJsonError, never> {
 	return Effect.gen(function* () {
 		let parsed: unknown;
 		if (typeof input === "string") {
@@ -46,7 +44,7 @@ export function parseJson<S extends Schema.Schema<any, any, any>>(
 			return result;
 		}
 		return parsed;
-	}) as any;
+	});
 }
 
 export function safeParseJson<A = unknown>(
@@ -56,19 +54,15 @@ export function safeParseJson<A = unknown>(
 
 export function safeParseJson<S extends Schema.Schema<any, any, any>>(
 	input: string | unknown,
-	defaultValue: S extends Schema.Schema<infer A, any, any> ? A : never,
+	defaultValue: Schema.Schema.Type<S>,
 	schema: S,
-): Effect.Effect<
-	S extends Schema.Schema<infer A, any, any> ? A : never,
-	never,
-	S extends Schema.Schema<any, any, infer R> ? R : never
->;
+): Effect.Effect<Schema.Schema.Type<S>, never, Schema.Schema.Context<S>>;
 
 export function safeParseJson<S extends Schema.Schema<any, any, any>>(
 	input: string | unknown,
 	defaultValue: unknown,
 	schema?: S,
-): Effect.Effect<unknown, never, any> {
+): Effect.Effect<unknown, never, never> {
 	return schema
 		? parseJson(input, schema).pipe(
 				Effect.orElse(() => Effect.succeed(defaultValue)),
@@ -79,4 +73,32 @@ export function safeParseJson<S extends Schema.Schema<any, any, any>>(
 export function roundToDecimals(value: number, decimals: number): number {
 	const factor = 10 ** decimals;
 	return Math.round(value * factor) / factor;
+}
+
+/**
+ * Converts a URL path to breadcrumb segments.
+ * @param pathname - The URL pathname (e.g., "/dashboard/forms/edit/abc123")
+ * @param dynamicTitle - Optional dynamic title to use for the last segment
+ * @returns Array of breadcrumb items with href and label
+ */
+export function pathToCrumbs(
+	pathname: string,
+	dynamicTitle?: string | null,
+): Array<{ href: string; label: string }> {
+	const segments = pathname.split("/").filter(Boolean);
+	return segments.map((seg, idx) => {
+		const href = `/${segments.slice(0, idx + 1).join("/")}`;
+		let label = decodeURIComponent(seg)
+			.replace(/[-_]/g, " ")
+			.split(" ")
+			.filter(Boolean)
+			.map((w) => w.charAt(0).toUpperCase() + w.slice(1))
+			.join(" ");
+
+		if (idx === segments.length - 1 && dynamicTitle) {
+			label = dynamicTitle;
+		}
+
+		return { href, label };
+	});
 }

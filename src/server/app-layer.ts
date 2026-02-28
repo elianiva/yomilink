@@ -1,8 +1,7 @@
 import { Layer } from "effect";
-import { DatabaseLive } from "./db/client";
+import { DatabaseLive, DatabaseTest } from "./db/client";
 import { LoggerLive } from "./logger";
 import { ServerTelemetry } from "./telemetry";
-
 /**
  * Centralized application layer that combines all server-side dependencies.
  *
@@ -26,14 +25,12 @@ import { ServerTelemetry } from "./telemetry";
  * ```
  */
 export const AppLayer = Layer.mergeAll(DatabaseLive, LoggerLive, ServerTelemetry);
-
 /**
  * Test variant of AppLayer - uses in-memory database.
  * Use in tests where you don't want to hit the real database.
  */
 export const AppLayerTest = Layer.mergeAll(
-	DatabaseLive,
+	DatabaseTest,
 	LoggerLive,
 	ServerTelemetry,
 );
-// TODO: export DatabaseTest when needed for tests

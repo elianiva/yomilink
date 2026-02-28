@@ -23,6 +23,7 @@ import {
 } from "@/components/ui/sidebar";
 import type { AuthUser } from "@/lib/auth";
 import { pageTitleAtom } from "@/lib/page-title";
+import { pathToCrumbs } from "@/lib/utils";
 import { getRegistrationFormStatusRpc } from "@/server/rpc/form";
 import { getMe, ProfileRpc } from "@/server/rpc/profile";
 
@@ -37,10 +38,13 @@ export const Route = createFileRoute("/dashboard")({
 
 			// Check if result is an error response
 			if ("success" in result && !result.success) {
-				// Error checking registration status - log and continue
-				console.error(
-					"Failed to check registration form status:",
-					result.error,
+				// Error checking registration status - log with structured format
+				console.warn(
+					JSON.stringify({
+						operation: "getRegistrationFormStatus",
+						error: result.error,
+						message: "Failed to check registration form status",
+					}),
 				);
 			} else {
 				const registrationStatus = result as {
@@ -81,22 +85,7 @@ function DashboardLayout() {
 	const location = useLocation();
 	const dynamicTitle = useAtomValue(pageTitleAtom);
 
-	const segments = location.pathname.split("/").filter(Boolean);
-	const crumbs = segments.map((seg, idx) => {
-		const href = `/${segments.slice(0, idx + 1).join("/")}`;
-		let label = decodeURIComponent(seg)
-			.replace(/[-_]/g, " ")
-			.split(" ")
-			.filter(Boolean)
-			.map((w) => w.charAt(0).toUpperCase() + w.slice(1))
-			.join(" ");
-
-		if (idx === segments.length - 1 && dynamicTitle) {
-			label = dynamicTitle;
-		}
-
-		return { href, label };
-	});
+	const crumbs = pathToCrumbs(location.pathname, dynamicTitle);
 
 	return (
 		<SidebarProvider>

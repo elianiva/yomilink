@@ -11,22 +11,29 @@ import {
 import { user } from "@/server/db/schema/auth-schema";
 import type { FormUnlockConditions } from "./unlock-service";
 
+/** Shared form type literals */
+export const FORM_TYPES = [
+	"pre_test",
+	"post_test",
+	"delayed_test",
+	"registration",
+	"tam",
+	"control",
+] as const;
+
+export type FormType = (typeof FORM_TYPES)[number];
+
+/** Schema for form type validation */
+export const FormTypeSchema = Schema.Union(
+	...FORM_TYPES.map((t) => Schema.Literal(t)),
+);
+
 export const CreateFormInput = Schema.Struct({
 	title: Schema.NonEmptyString,
 	description: Schema.optionalWith(Schema.NonEmptyString, {
 		nullable: true,
 	}),
-	type: Schema.optionalWith(
-		Schema.Union(
-			Schema.Literal("pre_test"),
-			Schema.Literal("post_test"),
-			Schema.Literal("delayed_test"),
-			Schema.Literal("registration"),
-			Schema.Literal("tam"),
-			Schema.Literal("control"),
-		),
-		{ nullable: true },
-	),
+	type: Schema.optionalWith(FormTypeSchema, { nullable: true }),
 	unlockConditions: Schema.optionalWith(Schema.Unknown, { nullable: true }),
 });
 
@@ -165,13 +172,7 @@ export const updateForm = Effect.fn("updateForm")(
 		data: Partial<{
 			title: string;
 			description: string | null;
-			type:
-				| "pre_test"
-				| "post_test"
-				| "delayed_test"
-				| "registration"
-				| "tam"
-				| "control";
+			type: FormType;
 			status: "draft" | "published";
 			unlockConditions: unknown;
 		}>,

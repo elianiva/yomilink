@@ -65,6 +65,7 @@ function SaveDialogImpl({
 
 	const topicFieldId = useId();
 	const nameId = useId();
+	const descriptionId = useId();
 
 	const handleSubmit = async () => {
 		const n = name.trim();
@@ -110,8 +111,9 @@ function SaveDialogImpl({
 						/>
 					</div>
 					<div className="space-y-1.5">
-						<Label htmlFor={nameId}>Description</Label>
+					<Label htmlFor={descriptionId}>Description</Label>
 						<Textarea
+							id={descriptionId}
 							value={description}
 							onChange={(e) => setDescription(e.target.value)}
 							placeholder="Enter a description for this goal map (optional)"

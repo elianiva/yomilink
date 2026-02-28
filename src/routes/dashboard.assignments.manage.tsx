@@ -26,11 +26,11 @@ import { Progress } from "@/components/ui/progress";
 import { SearchableSelect } from "@/components/ui/searchable-select";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Textarea } from "@/components/ui/textarea";
-import { formatDate, parseDateInput } from "@/lib/date-utils";
 import { useRpcMutation, useRpcQuery } from "@/hooks/use-rpc-query";
+import { formatDate, parseDateInput } from "@/lib/date-utils";
 import { AssignmentRpc } from "@/server/rpc/assignment";
-import { KitRpc } from "@/server/rpc/kit";
 import { FormRpc } from "@/server/rpc/form";
+import { KitRpc } from "@/server/rpc/kit";
 
 export const Route = createFileRoute("/dashboard/assignments/manage")({
 	component: () => (
@@ -219,6 +219,7 @@ function CreateAssignmentDialog({ onSuccess }: { onSuccess: () => void }) {
 				return selectedCohorts.length > 0 || selectedUsers.length > 0;
 			default:
 				return false;
+		}
 	};
 
 	const handleSubmit = (e: React.FormEvent) => {
@@ -411,7 +412,10 @@ function CreateAssignmentDialog({ onSuccess }: { onSuccess: () => void }) {
 								onChange={setDelayedPostTestFormId}
 								options={
 									forms
-										?.filter((f) => f.type === "delayed_test" || f.type === "post_test")
+										?.filter(
+											(f) =>
+												f.type === "delayed_test" || f.type === "post_test",
+										)
 										.map((f) => ({
 											id: f.id,
 											label: f.title,

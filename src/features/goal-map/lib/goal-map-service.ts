@@ -5,11 +5,50 @@ import { requireGoalMapOwner } from "@/lib/auth-authorization";
 import { safeParseJson } from "@/lib/utils";
 import { Database } from "@/server/db/client";
 import { goalMaps, kits, texts } from "@/server/db/schema/app-schema";
+/** Constant for new goal map identifier */
+export const NEW_GOAL_MAP_ID = "new";
+/** Position schema for node positioning */
+const PositionSchema = Schema.Struct({
+	x: Schema.Number,
+	y: Schema.Number,
+});
 
+/** Node data schema for goal map nodes */
+const NodeDataSchema = Schema.Struct({
+	label: Schema.optionalWith(Schema.String, { nullable: true }),
+	propositionType: Schema.optionalWith(Schema.String, { nullable: true }),
+	description: Schema.optionalWith(Schema.String, { nullable: true }),
+	examples: Schema.optionalWith(Schema.Array(Schema.String), { nullable: true }),
+});
+
+/** Edge data schema for goal map edges */
+const EdgeDataSchema = Schema.Struct({
+	label: Schema.optionalWith(Schema.String, { nullable: true }),
+	relationshipType: Schema.optionalWith(Schema.String, { nullable: true }),
+});
+
+/** Node schema for ReactFlow nodes */
+export const NodeSchema = Schema.Struct({
+	id: Schema.String,
+	type: Schema.optionalWith(Schema.String, { nullable: true }),
+	position: PositionSchema,
+	data: NodeDataSchema,
+	width: Schema.optionalWith(Schema.Number, { nullable: true }),
+	height: Schema.optionalWith(Schema.Number, { nullable: true }),
+});
+
+/** Edge schema for ReactFlow edges */
+export const EdgeSchema = Schema.Struct({
+	id: Schema.String,
+	source: Schema.String,
+	target: Schema.String,
+	type: Schema.optionalWith(Schema.String, { nullable: true }),
+	label: Schema.optionalWith(Schema.String, { nullable: true }),
+	data: Schema.optionalWith(EdgeDataSchema, { nullable: true }),
+});
 export const GetGoalMapInput = Schema.Struct({
 	goalMapId: Schema.NonEmptyString,
 });
-
 export type GetGoalMapInput = typeof GetGoalMapInput.Type;
 
 export const SaveGoalMapInput = Schema.Struct({
@@ -18,8 +57,8 @@ export const SaveGoalMapInput = Schema.Struct({
 	description: Schema.optionalWith(Schema.NonEmptyString, {
 		nullable: true,
 	}),
-	nodes: Schema.Any,
-	edges: Schema.Any,
+	nodes: Schema.Array(NodeSchema),
+	edges: Schema.Array(EdgeSchema),
 	topicId: Schema.optionalWith(Schema.NonEmptyString, { nullable: true }),
 	materialText: Schema.optionalWith(Schema.String, { nullable: true }),
 	materialImages: Schema.optionalWith(Schema.Array(Schema.Any), {
@@ -97,7 +136,7 @@ export const saveGoalMap = Effect.fn("saveGoalMap")(
 		Effect.gen(function* () {
 			const db = yield* Database;
 
-			if (data.goalMapId !== "new") {
+			if (data.goalMapId !== NEW_GOAL_MAP_ID) {
 				yield* requireGoalMapOwner(userId, data.goalMapId);
 			}
 
