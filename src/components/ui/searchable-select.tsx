@@ -1,5 +1,6 @@
 import { CheckIcon, SearchIcon } from "lucide-react";
 import { useState } from "react";
+
 import { Button } from "@/components/ui/button";
 import {
 	Command,
@@ -9,11 +10,7 @@ import {
 	CommandItem,
 	CommandList,
 } from "@/components/ui/command";
-import {
-	Popover,
-	PopoverContent,
-	PopoverTrigger,
-} from "@/components/ui/popover";
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { cn } from "@/lib/utils";
 
 export type SearchableSelectOption = {
@@ -52,10 +49,7 @@ export function SearchableSelect({
 				<Button
 					variant="outline"
 					role="combobox"
-					className={cn(
-						"w-full justify-between",
-						!value && "text-muted-foreground",
-					)}
+					className={cn("w-full justify-between", !value && "text-muted-foreground")}
 				>
 					{selectedOption?.label ?? placeholder}
 					<SearchIcon className="ml-2 size-4 opacity-50" />

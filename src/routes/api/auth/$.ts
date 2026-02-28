@@ -1,5 +1,6 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { Effect } from "effect";
+
 import { Auth } from "@/lib/auth";
 
 const authHandler = (request: Request) =>
@@ -25,10 +26,7 @@ const authHandler = (request: Request) =>
 					method: request.method,
 					url: request.url,
 				});
-				return Response.json(
-					{ message: "Internal Server Error" },
-					{ status: 500 },
-				);
+				return Response.json({ message: "Internal Server Error" }, { status: 500 });
 			}),
 		),
 		Effect.runPromise,

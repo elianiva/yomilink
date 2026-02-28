@@ -13,8 +13,7 @@ export function FormProgressBar({
 	totalQuestions,
 	className,
 }: FormProgressBarProps) {
-	const progress =
-		totalQuestions > 0 ? (currentQuestion / totalQuestions) * 100 : 0;
+	const progress = totalQuestions > 0 ? (currentQuestion / totalQuestions) * 100 : 0;
 
 	return (
 		<div className={cn("space-y-2", className)}>
@@ -22,9 +21,7 @@ export function FormProgressBar({
 				<span className="text-muted-foreground">
 					Question {currentQuestion} of {totalQuestions}
 				</span>
-				<span className="text-muted-foreground">
-					{Math.round(progress)}% complete
-				</span>
+				<span className="text-muted-foreground">{Math.round(progress)}% complete</span>
 			</div>
 			<div className="h-2 w-full overflow-hidden rounded-full bg-muted">
 				<div

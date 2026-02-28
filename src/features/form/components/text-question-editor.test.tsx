@@ -1,10 +1,8 @@
 import { render, screen } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { describe, expect, it, vi } from "vitest";
-import {
-	createDefaultTextData,
-	TextQuestionEditor,
-} from "./text-question-editor";
+
+import { createDefaultTextData, TextQuestionEditor } from "./text-question-editor";
 
 describe("TextQuestionEditor", () => {
 	const defaultData = createDefaultTextData();
@@ -71,9 +69,7 @@ describe("TextQuestionEditor", () => {
 		};
 		render(<TextQuestionEditor data={data} onChange={vi.fn()} />);
 
-		expect(screen.getByTestId("placeholder-input")).toHaveValue(
-			"Test placeholder",
-		);
+		expect(screen.getByTestId("placeholder-input")).toHaveValue("Test placeholder");
 	});
 
 	it("toggles required switch", async () => {
@@ -90,13 +86,7 @@ describe("TextQuestionEditor", () => {
 	});
 
 	it("disables all inputs when disabled prop is true", () => {
-		render(
-			<TextQuestionEditor
-				data={defaultData}
-				onChange={vi.fn()}
-				disabled={true}
-			/>,
-		);
+		render(<TextQuestionEditor data={defaultData} onChange={vi.fn()} disabled={true} />);
 
 		expect(screen.getByTestId("question-text-input")).toBeDisabled();
 		expect(screen.getByTestId("min-length-input")).toBeDisabled();
@@ -114,9 +104,7 @@ describe("TextQuestionEditor", () => {
 		render(<TextQuestionEditor data={data} onChange={vi.fn()} />);
 
 		expect(screen.getByTestId("validation-preview")).toBeInTheDocument();
-		expect(
-			screen.getByText(/must be between 10 and 500 characters/),
-		).toBeInTheDocument();
+		expect(screen.getByText(/must be between 10 and 500 characters/)).toBeInTheDocument();
 	});
 
 	it("does not show validation preview when min is null", () => {

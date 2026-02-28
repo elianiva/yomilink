@@ -12,17 +12,16 @@ Yomilink is a personalized Japanese learning path platform built with TanStack S
 - `bun run test:watch` - Run UI tests in watch mode
 - `bun run coverage` - Run tests with coverage
 - `bun run coverage:ui` - Run tests with interactive coverage UI
-- `bun run lint` - Run biome linter with auto-fix
-- `bun run format` - Format code with biome
-- `bun run check` - Run all biome checks (lint + format)
+- `bun run lint` - Run linter with auto-fix
+- `bun run format` - Format code
 - `bun run typecheck` - Run TypeScript type checking
 - `bun ui add` - Add component from shadcn ui (one at a time)
 
 ## Code Style
 
 ### Formatting
-- Use Biome (tab indentation, double quotes)
-- Import organization handled by Biome assist
+- Auto-format using oxfmt
+- Import organization handled by oxfmt
 
 ### Imports
 - Import React types: `import type * as React from "react"`

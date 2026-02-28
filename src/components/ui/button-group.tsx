@@ -1,5 +1,6 @@
 import { Slot } from "@radix-ui/react-slot";
 import { cva, type VariantProps } from "class-variance-authority";
+
 import { Separator } from "@/components/ui/separator";
 import { cn } from "@/lib/utils";
 
@@ -24,8 +25,7 @@ function ButtonGroup({
 	className,
 	orientation,
 	...props
-}: React.ComponentProps<"fieldset"> &
-	VariantProps<typeof buttonGroupVariants>) {
+}: React.ComponentProps<"fieldset"> & VariantProps<typeof buttonGroupVariants>) {
 	return (
 		<fieldset
 			data-slot="button-group"
@@ -74,9 +74,4 @@ function ButtonGroupSeparator({
 	);
 }
 
-export {
-	ButtonGroup,
-	ButtonGroupSeparator,
-	ButtonGroupText,
-	buttonGroupVariants,
-};
+export { ButtonGroup, ButtonGroupSeparator, ButtonGroupText, buttonGroupVariants };

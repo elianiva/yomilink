@@ -1,4 +1,5 @@
 import { describe, expect, it } from "vitest";
+
 import {
 	categorizeError,
 	getErrorDetails,
@@ -17,15 +18,11 @@ describe("categorizeError", () => {
 		});
 
 		it("categorizes GoalMapNotFoundError tag", () => {
-			expect(categorizeError({ _tag: "GoalMapNotFoundError" })).toBe(
-				"not-found",
-			);
+			expect(categorizeError({ _tag: "GoalMapNotFoundError" })).toBe("not-found");
 		});
 
 		it("categorizes AssignmentNotFoundError tag", () => {
-			expect(categorizeError({ _tag: "AssignmentNotFoundError" })).toBe(
-				"not-found",
-			);
+			expect(categorizeError({ _tag: "AssignmentNotFoundError" })).toBe("not-found");
 		});
 
 		it("categorizes KitNotFoundError tag", () => {
@@ -57,9 +54,9 @@ describe("categorizeError", () => {
 		});
 
 		it("falls back to message analysis for unknown tags", () => {
-			expect(
-				categorizeError({ _tag: "CustomError", message: "Network failed" }),
-			).toBe("network");
+			expect(categorizeError({ _tag: "CustomError", message: "Network failed" })).toBe(
+				"network",
+			);
 		});
 
 		it("uses tag as message if message is missing", () => {
@@ -70,20 +67,14 @@ describe("categorizeError", () => {
 	describe("standard Error objects", () => {
 		it("categorizes network errors by message", () => {
 			expect(categorizeError(new Error("Failed to fetch"))).toBe("network");
-			expect(categorizeError(new Error("Network request failed"))).toBe(
-				"network",
-			);
+			expect(categorizeError(new Error("Network request failed"))).toBe("network");
 			expect(categorizeError(new Error("Connection timeout"))).toBe("network");
 			expect(categorizeError(new Error("ECONNREFUSED"))).toBe("network");
 		});
 
 		it("categorizes not-found errors by message", () => {
-			expect(categorizeError(new Error("Resource not found"))).toBe(
-				"not-found",
-			);
-			expect(categorizeError(new Error("404 Page does not exist"))).toBe(
-				"not-found",
-			);
+			expect(categorizeError(new Error("Resource not found"))).toBe("not-found");
+			expect(categorizeError(new Error("404 Page does not exist"))).toBe("not-found");
 		});
 
 		it("categorizes forbidden errors by message", () => {
@@ -93,29 +84,19 @@ describe("categorizeError", () => {
 		});
 
 		it("categorizes validation errors by message", () => {
-			expect(categorizeError(new Error("Validation failed"))).toBe(
-				"validation",
-			);
-			expect(categorizeError(new Error("Invalid email format"))).toBe(
-				"validation",
-			);
-			expect(categorizeError(new Error("Field is required"))).toBe(
-				"validation",
-			);
+			expect(categorizeError(new Error("Validation failed"))).toBe("validation");
+			expect(categorizeError(new Error("Invalid email format"))).toBe("validation");
+			expect(categorizeError(new Error("Field is required"))).toBe("validation");
 		});
 
 		it("categorizes server errors by message", () => {
-			expect(categorizeError(new Error("Internal server error"))).toBe(
-				"server",
-			);
+			expect(categorizeError(new Error("Internal server error"))).toBe("server");
 			expect(categorizeError(new Error("500 Server error"))).toBe("server");
 			expect(categorizeError(new Error("502 Bad Gateway"))).toBe("server");
 		});
 
 		it("returns unknown for unrecognized messages", () => {
-			expect(categorizeError(new Error("Something went wrong"))).toBe(
-				"unknown",
-			);
+			expect(categorizeError(new Error("Something went wrong"))).toBe("unknown");
 		});
 	});
 
@@ -131,15 +112,15 @@ describe("categorizeError", () => {
 
 	describe("RPC error response objects", () => {
 		it("categorizes RPC error responses", () => {
-			expect(
-				categorizeError({ success: false, error: "Network unavailable" }),
-			).toBe("network");
-			expect(
-				categorizeError({ success: false, error: "Goal map not found" }),
-			).toBe("not-found");
-			expect(
-				categorizeError({ success: false, error: "Access forbidden" }),
-			).toBe("forbidden");
+			expect(categorizeError({ success: false, error: "Network unavailable" })).toBe(
+				"network",
+			);
+			expect(categorizeError({ success: false, error: "Goal map not found" })).toBe(
+				"not-found",
+			);
+			expect(categorizeError({ success: false, error: "Access forbidden" })).toBe(
+				"forbidden",
+			);
 		});
 	});
 
@@ -210,9 +191,7 @@ describe("getErrorDetails", () => {
 	it("uses default message for generic internal errors", () => {
 		// The original message is kept unless it contains "internal" or is the default
 		const details = getErrorDetails(new Error("Internal database issue"));
-		expect(details.message).toBe(
-			"An unexpected error occurred. Please try again.",
-		);
+		expect(details.message).toBe("An unexpected error occurred. Please try again.");
 	});
 
 	it("preserves specific error messages for non-internal errors", () => {
@@ -230,9 +209,7 @@ describe("getErrorDetails", () => {
 	it("handles unknown errors with default message", () => {
 		const details = getErrorDetails({ randomField: "value" });
 		expect(details.category).toBe("unknown");
-		expect(details.message).toBe(
-			"An unexpected error occurred. Please try again.",
-		);
+		expect(details.message).toBe("An unexpected error occurred. Please try again.");
 	});
 });
 

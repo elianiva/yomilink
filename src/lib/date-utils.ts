@@ -61,9 +61,7 @@ export function formatRelativeTime(timestamp: number | Date | string): string {
 	return formatDate(then);
 }
 
-export function parseDateInput(
-	dateStr: string | undefined,
-): number | undefined {
+export function parseDateInput(dateStr: string | undefined): number | undefined {
 	if (!dateStr) return undefined;
 	const date = new Date(dateStr);
 	if (Number.isNaN(date.getTime())) return undefined;

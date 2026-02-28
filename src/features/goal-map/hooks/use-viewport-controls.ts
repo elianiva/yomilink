@@ -1,8 +1,10 @@
+import { useReactFlow, type MarkerType } from "@xyflow/react";
 import { useAtom } from "jotai";
 import { useCallback } from "react";
-import { useReactFlow, type MarkerType } from "@xyflow/react";
-import { edgesAtom, nodesAtom, directionEnabledAtom } from "../lib/atoms";
+
 import { getLayoutedElements } from "@/features/kitbuild/lib/layout";
+
+import { edgesAtom, nodesAtom, directionEnabledAtom } from "../lib/atoms";
 
 const LAYOUT_TIMEOUT_MS = 50;
 const FIT_PADDING = 0.2;

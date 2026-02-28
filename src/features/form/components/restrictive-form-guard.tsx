@@ -3,6 +3,7 @@
 import { useNavigate } from "@tanstack/react-router";
 import { Loader2 } from "lucide-react";
 import { useEffect, useState } from "react";
+
 import { Button } from "@/components/ui/button";
 import { type FormUnlockStatus, useFormUnlock } from "@/hooks/use-form-unlock";
 
@@ -82,15 +83,12 @@ export function RestrictiveFormGuard({
 					</p>
 					{status.earliestUnlockAt && (
 						<p className="text-sm text-muted-foreground">
-							Available after:{" "}
-							{new Date(status.earliestUnlockAt).toLocaleString()}
+							Available after: {new Date(status.earliestUnlockAt).toLocaleString()}
 						</p>
 					)}
 				</div>
 				{redirectUrl && (
-					<Button onClick={() => navigate({ to: redirectUrl })}>
-						Complete Form
-					</Button>
+					<Button onClick={() => navigate({ to: redirectUrl })}>Complete Form</Button>
 				)}
 			</div>
 		);
@@ -107,8 +105,7 @@ export function RestrictiveFormGuard({
 					</p>
 					{status.earliestUnlockAt && (
 						<p className="text-sm text-muted-foreground">
-							Available after:{" "}
-							{new Date(status.earliestUnlockAt).toLocaleString()}
+							Available after: {new Date(status.earliestUnlockAt).toLocaleString()}
 						</p>
 					)}
 				</div>

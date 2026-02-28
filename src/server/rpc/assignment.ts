@@ -1,7 +1,7 @@
 import { mutationOptions, queryOptions } from "@tanstack/react-query";
 import { createServerFn } from "@tanstack/react-start";
 import { Effect, Schema } from "effect";
-import { requireRoleMiddleware } from "@/middlewares/auth";
+
 import {
 	createAssignment,
 	listTeacherAssignments,
@@ -17,6 +17,8 @@ import {
 	getExperimentCondition,
 	DeleteAssignmentInput,
 } from "@/features/assignment/lib/assignment-service";
+import { requireRoleMiddleware } from "@/middlewares/auth";
+
 import { AppLayer } from "../app-layer";
 import { errorResponse, logRpcError } from "../rpc-helper";
 
@@ -104,9 +106,7 @@ export const getTeacherGoalMapsRpc = createServerFn()
 
 export const saveExperimentGroupsRpc = createServerFn()
 	.middleware([requireRoleMiddleware("teacher", "admin")])
-	.inputValidator((raw) =>
-		Schema.decodeUnknownSync(SaveExperimentGroupsInput)(raw),
-	)
+	.inputValidator((raw) => Schema.decodeUnknownSync(SaveExperimentGroupsInput)(raw))
 	.handler(({ data }) =>
 		saveExperimentGroups(data).pipe(
 			Effect.withSpan("saveExperimentGroups"),
@@ -120,9 +120,7 @@ export const saveExperimentGroupsRpc = createServerFn()
 export const getExperimentGroupsByAssignmentIdRpc = createServerFn()
 	.middleware([requireRoleMiddleware("teacher", "admin")])
 	.inputValidator((raw) =>
-		Schema.decodeUnknownSync(Schema.Struct({ assignmentId: Schema.String }))(
-			raw,
-		),
+		Schema.decodeUnknownSync(Schema.Struct({ assignmentId: Schema.String }))(raw),
 	)
 	.handler(({ data }) =>
 		getExperimentGroupsByAssignmentId(data.assignmentId).pipe(
@@ -152,9 +150,7 @@ export const getAssignmentByPreTestFormIdRpc = createServerFn()
 export const getExperimentConditionRpc = createServerFn()
 	.middleware([requireRoleMiddleware("student", "teacher", "admin")])
 	.inputValidator((raw) =>
-		Schema.decodeUnknownSync(Schema.Struct({ assignmentId: Schema.String }))(
-			raw,
-		),
+		Schema.decodeUnknownSync(Schema.Struct({ assignmentId: Schema.String }))(raw),
 	)
 	.handler(({ data, context }) =>
 		getExperimentCondition(data.assignmentId, context.user.id).pipe(
@@ -171,8 +167,7 @@ export const AssignmentRpc = {
 	createAssignment: () =>
 		mutationOptions({
 			mutationKey: [...AssignmentRpc.assignments(), "create"],
-			mutationFn: (data: CreateAssignmentInput) =>
-				createAssignmentRpc({ data }),
+			mutationFn: (data: CreateAssignmentInput) => createAssignmentRpc({ data }),
 		}),
 	listTeacherAssignments: () =>
 		queryOptions({
@@ -182,8 +177,7 @@ export const AssignmentRpc = {
 	deleteAssignment: () =>
 		mutationOptions({
 			mutationKey: [...AssignmentRpc.assignments(), "delete"],
-			mutationFn: (data: DeleteAssignmentInput) =>
-				deleteAssignmentRpc({ data }),
+			mutationFn: (data: DeleteAssignmentInput) => deleteAssignmentRpc({ data }),
 		}),
 	getAvailableCohorts: () =>
 		queryOptions({
@@ -203,14 +197,12 @@ export const AssignmentRpc = {
 	saveExperimentGroups: () =>
 		mutationOptions({
 			mutationKey: [...AssignmentRpc.assignments(), "saveGroups"],
-			mutationFn: (data: SaveExperimentGroupsInput) =>
-				saveExperimentGroupsRpc({ data }),
+			mutationFn: (data: SaveExperimentGroupsInput) => saveExperimentGroupsRpc({ data }),
 		}),
 	getExperimentGroupsByAssignmentId: (assignmentId: string) =>
 		queryOptions({
 			queryKey: [...AssignmentRpc.assignments(), "groups", assignmentId],
-			queryFn: () =>
-				getExperimentGroupsByAssignmentIdRpc({ data: { assignmentId } }),
+			queryFn: () => getExperimentGroupsByAssignmentIdRpc({ data: { assignmentId } }),
 		}),
 	getAssignmentByPreTestFormId: (formId: string) =>
 		queryOptions({

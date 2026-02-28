@@ -1,17 +1,12 @@
 import type { Edge, MarkerType, Node } from "@xyflow/react";
-import {
-	Background,
-	MiniMap,
-	ReactFlow,
-	ReactFlowProvider,
-	useReactFlow,
-} from "@xyflow/react";
+import { Background, MiniMap, ReactFlow, ReactFlowProvider, useReactFlow } from "@xyflow/react";
 import { ZoomIn, ZoomOut } from "lucide-react";
 import { useEffect, useMemo, useState } from "react";
-import { useGraphChangeHandlers } from "@/hooks/use-graph-change-handlers";
+
 import { ConnectorNode } from "@/features/kitbuild/components/connector-node";
 import { FloatingEdge } from "@/features/kitbuild/components/floating-edge";
 import { TextNode } from "@/features/kitbuild/components/text-node";
+import { useGraphChangeHandlers } from "@/hooks/use-graph-change-handlers";
 
 interface AnalyticsCanvasProps {
 	goalMap: {
@@ -69,9 +64,7 @@ const edgeTypes = {
 	floating: FloatingEdge,
 };
 
-function getEdgeStyleByType(
-	type: "correct" | "missing" | "excessive" | "neutral",
-) {
+function getEdgeStyleByType(type: "correct" | "missing" | "excessive" | "neutral") {
 	switch (type) {
 		case "correct":
 			return {
@@ -128,8 +121,7 @@ function AnalyticsCanvasInner({
 		[isMultiView, learnerMaps, learnerMap],
 	);
 	const currentEdgeClassifications = useMemo(
-		() =>
-			isMultiView ? allEdgeClassifications || [] : edgeClassifications || [],
+		() => (isMultiView ? allEdgeClassifications || [] : edgeClassifications || []),
 		[isMultiView, allEdgeClassifications, edgeClassifications],
 	);
 
@@ -206,8 +198,12 @@ function AnalyticsCanvasInner({
 				// Create separate edges for each type with different curves
 				for (const [key, counts] of edgeCounts.entries()) {
 					const [source, target] = key.split("-");
-					const types: Array<"correct" | "missing" | "excessive" | "neutral"> =
-						["correct", "missing", "excessive", "neutral"];
+					const types: Array<"correct" | "missing" | "excessive" | "neutral"> = [
+						"correct",
+						"missing",
+						"excessive",
+						"neutral",
+					];
 					let curveOffset = 0;
 
 					for (const type of types) {

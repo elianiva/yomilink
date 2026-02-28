@@ -1,5 +1,6 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { lazy, Suspense } from "react";
+
 import { Guard } from "@/components/auth/Guard";
 import { Skeleton } from "@/components/ui/skeleton";
 
@@ -48,9 +49,7 @@ function ResultSkeleton() {
 	);
 }
 
-export const Route = createFileRoute(
-	"/dashboard/learner-map/$assignmentId/result",
-)({
+export const Route = createFileRoute("/dashboard/learner-map/$assignmentId/result")({
 	component: () => (
 		<Guard roles={["student"]}>
 			<Suspense fallback={<ResultSkeleton />}>

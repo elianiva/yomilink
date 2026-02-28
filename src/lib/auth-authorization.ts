@@ -1,11 +1,8 @@
 import { and, eq, inArray } from "drizzle-orm";
 import { Data, Effect } from "effect";
+
 import { Database } from "@/server/db/client";
-import {
-	assignments,
-	assignmentTargets,
-	goalMaps,
-} from "@/server/db/schema/app-schema";
+import { assignments, assignmentTargets, goalMaps } from "@/server/db/schema/app-schema";
 import { cohortMembers, user } from "@/server/db/schema/auth-schema";
 
 class ForbiddenError extends Data.TaggedError("ForbiddenError")<{
@@ -16,9 +13,7 @@ class GoalMapNotFoundError extends Data.TaggedError("GoalMapNotFoundError")<{
 	readonly goalMapId: string;
 }> {}
 
-class AssignmentNotFoundError extends Data.TaggedError(
-	"AssignmentNotFoundError",
-)<{
+class AssignmentNotFoundError extends Data.TaggedError("AssignmentNotFoundError")<{
 	readonly assignmentId: string;
 }> {}
 
@@ -68,10 +63,7 @@ export const canAccessGoalMap = (userId: string, goalMapId: string) =>
 					targetUserId: assignmentTargets.userId,
 				})
 				.from(assignments)
-				.leftJoin(
-					assignmentTargets,
-					eq(assignments.id, assignmentTargets.assignmentId),
-				)
+				.leftJoin(assignmentTargets, eq(assignments.id, assignmentTargets.assignmentId))
 				.where(eq(assignments.goalMapId, goalMapId))
 				.all(),
 		);
@@ -174,11 +166,7 @@ export const isRole = (userId: string, role: string) =>
 	Effect.gen(function* () {
 		const db = yield* Database;
 		const userRecord = yield* Effect.tryPromise(() =>
-			db
-				.select({ role: user.role })
-				.from(user)
-				.where(eq(user.id, userId))
-				.get(),
+			db.select({ role: user.role }).from(user).where(eq(user.id, userId)).get(),
 		);
 
 		return userRecord?.role === role;
@@ -228,11 +216,7 @@ export const requireAnyRole =
 		Effect.gen(function* () {
 			const db = yield* Database;
 			const userRecord = yield* Effect.tryPromise(() =>
-				db
-					.select({ role: user.role })
-					.from(user)
-					.where(eq(user.id, userId))
-					.get(),
+				db.select({ role: user.role }).from(user).where(eq(user.id, userId)).get(),
 			);
 
 			if (!userRecord || !userRecord.role || !roles.includes(userRecord.role)) {

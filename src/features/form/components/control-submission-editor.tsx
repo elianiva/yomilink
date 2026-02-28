@@ -1,9 +1,11 @@
 "use client";
 
 import { useState } from "react";
+
 import { Card, CardContent } from "@/components/ui/card";
 import { FormattingToolbar } from "@/components/ui/formatting-toolbar";
 import { cn } from "@/lib/utils";
+
 import { WordCountValidator, countWords } from "./word-count-validator";
 
 export interface ControlSubmissionData {
@@ -41,10 +43,7 @@ export function ControlSubmissionEditor({
 	};
 
 	return (
-		<Card
-			className={cn("overflow-hidden", className)}
-			data-testid="control-submission-editor"
-		>
+		<Card className={cn("overflow-hidden", className)} data-testid="control-submission-editor">
 			<FormattingToolbar disabled={disabled} />
 
 			<CardContent className="p-0">

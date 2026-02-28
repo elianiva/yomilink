@@ -1,12 +1,8 @@
 import { and, desc, eq, inArray, or } from "drizzle-orm";
 import { Data, Effect, Schema } from "effect";
+
 import { PerLinkDiagnosisSchema } from "@/features/analyzer/lib/analytics-service";
-import {
-	parseJson,
-	randomString,
-	roundToDecimals,
-	safeParseJson,
-} from "@/lib/utils";
+import { parseJson, randomString, roundToDecimals, safeParseJson } from "@/lib/utils";
 import { Database } from "@/server/db/client";
 import {
 	assignments,
@@ -18,17 +14,14 @@ import {
 	texts,
 } from "@/server/db/schema/app-schema";
 import { cohortMembers } from "@/server/db/schema/auth-schema";
+
 import { compareMaps, EdgeSchema, NodeSchema } from "./comparator";
 
-export class AssignmentNotFoundError extends Data.TaggedError(
-	"AssignmentNotFoundError",
-)<{
+export class AssignmentNotFoundError extends Data.TaggedError("AssignmentNotFoundError")<{
 	readonly assignmentId: string;
 }> {}
 
-export class LearnerMapNotFoundError extends Data.TaggedError(
-	"LearnerMapNotFoundError",
-)<{
+export class LearnerMapNotFoundError extends Data.TaggedError("LearnerMapNotFoundError")<{
 	readonly assignmentId: string;
 	readonly userId: string;
 }> {}
@@ -39,9 +32,7 @@ export class LearnerMapAlreadySubmittedError extends Data.TaggedError(
 	readonly learnerMapId: string;
 }> {}
 
-export class GoalMapNotFoundError extends Data.TaggedError(
-	"GoalMapNotFoundError",
-)<{
+export class GoalMapNotFoundError extends Data.TaggedError("GoalMapNotFoundError")<{
 	readonly goalMapId: string;
 }> {}
 
@@ -49,8 +40,7 @@ export const GetAssignmentForStudentInput = Schema.Struct({
 	assignmentId: Schema.NonEmptyString,
 });
 
-export type GetAssignmentForStudentInput =
-	typeof GetAssignmentForStudentInput.Type;
+export type GetAssignmentForStudentInput = typeof GetAssignmentForStudentInput.Type;
 
 export const SaveLearnerMapInput = Schema.Struct({
 	assignmentId: Schema.NonEmptyString,
@@ -92,75 +82,68 @@ export const SubmitControlTextInput = Schema.Struct({
 
 export type SubmitControlTextInput = typeof SubmitControlTextInput.Type;
 
-export const listStudentAssignments = Effect.fn("listStudentAssignments")(
-	(userId: string) =>
-		Effect.gen(function* () {
-			const db = yield* Database;
+export const listStudentAssignments = Effect.fn("listStudentAssignments")((userId: string) =>
+	Effect.gen(function* () {
+		const db = yield* Database;
 
-			const userCohorts = yield* db
-				.select({ cohortId: cohortMembers.cohortId })
-				.from(cohortMembers)
-				.where(eq(cohortMembers.userId, userId));
+		const userCohorts = yield* db
+			.select({ cohortId: cohortMembers.cohortId })
+			.from(cohortMembers)
+			.where(eq(cohortMembers.userId, userId));
 
-			const cohortIds = userCohorts.map((c) => c.cohortId);
+		const cohortIds = userCohorts.map((c) => c.cohortId);
 
-			const assignmentsData = yield* db
-				.select({
-					id: assignments.id,
-					title: assignments.title,
-					description: assignments.description,
-					goalMapId: assignments.goalMapId,
-					kitId: assignments.kitId,
-					dueAt: assignments.dueAt,
-					createdAt: assignments.createdAt,
-					goalMapTitle: goalMaps.title,
-					learnerMapStatus: learnerMaps.status,
-					learnerMapAttempt: learnerMaps.attempt,
-					learnerMapUpdatedAt: learnerMaps.updatedAt,
-				})
-				.from(assignments)
-				.leftJoin(
-					assignmentTargets,
-					eq(assignmentTargets.assignmentId, assignments.id),
-				)
-				.leftJoin(goalMaps, eq(assignments.goalMapId, goalMaps.id))
-				.leftJoin(
-					learnerMaps,
-					and(
-						eq(learnerMaps.assignmentId, assignments.id),
-						eq(learnerMaps.userId, userId),
-					),
-				)
-				.where(
-					or(
-						eq(assignmentTargets.userId, userId),
-						cohortIds.length > 0
-							? inArray(assignmentTargets.cohortId, cohortIds)
-							: eq(assignmentTargets.userId, ""),
-					),
-				)
-				.orderBy(desc(assignments.createdAt));
+		const assignmentsData = yield* db
+			.select({
+				id: assignments.id,
+				title: assignments.title,
+				description: assignments.description,
+				goalMapId: assignments.goalMapId,
+				kitId: assignments.kitId,
+				dueAt: assignments.dueAt,
+				createdAt: assignments.createdAt,
+				goalMapTitle: goalMaps.title,
+				learnerMapStatus: learnerMaps.status,
+				learnerMapAttempt: learnerMaps.attempt,
+				learnerMapUpdatedAt: learnerMaps.updatedAt,
+			})
+			.from(assignments)
+			.leftJoin(assignmentTargets, eq(assignmentTargets.assignmentId, assignments.id))
+			.leftJoin(goalMaps, eq(assignments.goalMapId, goalMaps.id))
+			.leftJoin(
+				learnerMaps,
+				and(eq(learnerMaps.assignmentId, assignments.id), eq(learnerMaps.userId, userId)),
+			)
+			.where(
+				or(
+					eq(assignmentTargets.userId, userId),
+					cohortIds.length > 0
+						? inArray(assignmentTargets.cohortId, cohortIds)
+						: eq(assignmentTargets.userId, ""),
+				),
+			)
+			.orderBy(desc(assignments.createdAt));
 
-			const uniqueAssignments = new Map(
-				assignmentsData.map((row) => [
-					row.id,
-					{
-						...row,
-						dueAt: row.dueAt?.getTime(),
-						createdAt: row.createdAt?.getTime(),
-						status: row.learnerMapStatus || "not_started",
-						attempt: row.learnerMapAttempt || 0,
-						isLate:
-							row.dueAt &&
-							row.dueAt.getTime() < Date.now() &&
-							row.learnerMapStatus !== "submitted",
-						lastUpdated: row.learnerMapUpdatedAt?.getTime(),
-					},
-				]),
-			);
+		const uniqueAssignments = new Map(
+			assignmentsData.map((row) => [
+				row.id,
+				{
+					...row,
+					dueAt: row.dueAt?.getTime(),
+					createdAt: row.createdAt?.getTime(),
+					status: row.learnerMapStatus || "not_started",
+					attempt: row.learnerMapAttempt || 0,
+					isLate:
+						row.dueAt &&
+						row.dueAt.getTime() < Date.now() &&
+						row.learnerMapStatus !== "submitted",
+					lastUpdated: row.learnerMapUpdatedAt?.getTime(),
+				},
+			]),
+		);
 
-			return Array.from(uniqueAssignments.values());
-		}),
+		return Array.from(uniqueAssignments.values());
+	}),
 );
 
 export const getAssignmentForStudent = Effect.fn("getAssignmentForStudent")(
@@ -229,8 +212,7 @@ export const getAssignmentForStudent = Effect.fn("getAssignmentForStudent")(
 					nodes: kitNodes,
 					edges: kitEdges,
 				},
-				materialText:
-					result.assignment.readingMaterial || result.materialText || null,
+				materialText: result.assignment.readingMaterial || result.materialText || null,
 				learnerMap: result.learnerMap
 					? {
 							id: result.learnerMap.id,
@@ -287,10 +269,7 @@ export const saveLearnerMap = Effect.fn("saveLearnerMap")(
 			const hasAccess = yield* db
 				.select({ id: assignments.id })
 				.from(assignments)
-				.leftJoin(
-					assignmentTargets,
-					eq(assignmentTargets.assignmentId, assignments.id),
-				)
+				.leftJoin(assignmentTargets, eq(assignmentTargets.assignmentId, assignments.id))
 				.where(
 					and(
 						eq(assignments.id, data.assignmentId),
@@ -397,9 +376,7 @@ export const submitLearnerMap = Effect.fn("submitLearnerMap")(
 			}
 
 			const goalMapEdges = Array.isArray(goalMap.edges) ? goalMap.edges : [];
-			const learnerEdges = Array.isArray(learnerMap.edges)
-				? learnerMap.edges
-				: [];
+			const learnerEdges = Array.isArray(learnerMap.edges) ? learnerMap.edges : [];
 
 			const diagnosis = compareMaps(goalMapEdges, learnerEdges);
 
@@ -430,106 +407,96 @@ export const submitLearnerMap = Effect.fn("submitLearnerMap")(
 		}),
 );
 
-export const getDiagnosis = Effect.fn("getDiagnosis")(
-	(userId: string, input: GetDiagnosisInput) =>
-		Effect.gen(function* () {
-			const db = yield* Database;
+export const getDiagnosis = Effect.fn("getDiagnosis")((userId: string, input: GetDiagnosisInput) =>
+	Effect.gen(function* () {
+		const db = yield* Database;
 
-			const results = yield* db
-				.select({
-					learnerMap: {
-						id: learnerMaps.id,
-						nodes: learnerMaps.nodes,
-						edges: learnerMaps.edges,
-						status: learnerMaps.status,
-						attempt: learnerMaps.attempt,
-						goalMapId: learnerMaps.goalMapId,
-					},
-					goalMap: {
-						nodes: goalMaps.nodes,
-						edges: goalMaps.edges,
-					},
-					assignment: {
-						postTestFormId: assignments.postTestFormId,
-						tamFormId: assignments.tamFormId,
-					},
-					diagnosis: {
-						id: diagnoses.id,
-						summary: diagnoses.summary,
-						score: diagnoses.score,
-						perLink: diagnoses.perLink,
-						createdAt: diagnoses.createdAt,
-					},
-				})
-				.from(learnerMaps)
-				.innerJoin(goalMaps, eq(goalMaps.id, learnerMaps.goalMapId))
-				.innerJoin(assignments, eq(assignments.id, learnerMaps.assignmentId))
-				.leftJoin(diagnoses, eq(diagnoses.learnerMapId, learnerMaps.id))
-				.where(
-					and(
-						eq(learnerMaps.assignmentId, input.assignmentId),
-						eq(learnerMaps.userId, userId),
-					),
-				)
-				.orderBy(desc(diagnoses.createdAt))
-				.limit(1);
-
-			const result = results[0];
-			if (!result) {
-				return null;
-			}
-
-			const diagnosisData = result.diagnosis?.perLink
-				? yield* parseJson(result.diagnosis.perLink, PerLinkDiagnosisSchema)
-				: null;
-
-			const [learnerMapNodes, learnerMapEdges, goalMapNodes, goalMapEdges] =
-				yield* Effect.all(
-					[
-						safeParseJson(
-							result.learnerMap.nodes,
-							[],
-							Schema.Array(NodeSchema),
-						),
-						safeParseJson(
-							result.learnerMap.edges,
-							[],
-							Schema.Array(EdgeSchema),
-						),
-						safeParseJson(result.goalMap.nodes, [], Schema.Array(NodeSchema)),
-						safeParseJson(result.goalMap.edges, [], Schema.Array(EdgeSchema)),
-					],
-					{ concurrency: "unbounded" },
-				);
-
-			return {
+		const results = yield* db
+			.select({
 				learnerMap: {
-					id: result.learnerMap.id,
-					nodes: learnerMapNodes,
-					edges: learnerMapEdges,
-					status: result.learnerMap.status,
-					attempt: result.learnerMap.attempt,
+					id: learnerMaps.id,
+					nodes: learnerMaps.nodes,
+					edges: learnerMaps.edges,
+					status: learnerMaps.status,
+					attempt: learnerMaps.attempt,
+					goalMapId: learnerMaps.goalMapId,
 				},
 				goalMap: {
-					nodes: goalMapNodes,
-					edges: goalMapEdges,
+					nodes: goalMaps.nodes,
+					edges: goalMaps.edges,
 				},
 				assignment: {
-					postTestFormId: result.assignment.postTestFormId,
-					tamFormId: result.assignment.tamFormId,
+					postTestFormId: assignments.postTestFormId,
+					tamFormId: assignments.tamFormId,
 				},
-				diagnosis: result.diagnosis
-					? {
-							id: result.diagnosis.id,
-							summary: result.diagnosis.summary,
-							score: result.diagnosis.score,
-							correct: diagnosisData?.correct ?? [],
-							missing: diagnosisData?.missing ?? [],
-							excessive: diagnosisData?.excessive ?? [],
-						}
-					: null,
-			};
-		}),
+				diagnosis: {
+					id: diagnoses.id,
+					summary: diagnoses.summary,
+					score: diagnoses.score,
+					perLink: diagnoses.perLink,
+					createdAt: diagnoses.createdAt,
+				},
+			})
+			.from(learnerMaps)
+			.innerJoin(goalMaps, eq(goalMaps.id, learnerMaps.goalMapId))
+			.innerJoin(assignments, eq(assignments.id, learnerMaps.assignmentId))
+			.leftJoin(diagnoses, eq(diagnoses.learnerMapId, learnerMaps.id))
+			.where(
+				and(
+					eq(learnerMaps.assignmentId, input.assignmentId),
+					eq(learnerMaps.userId, userId),
+				),
+			)
+			.orderBy(desc(diagnoses.createdAt))
+			.limit(1);
+
+		const result = results[0];
+		if (!result) {
+			return null;
+		}
+
+		const diagnosisData = result.diagnosis?.perLink
+			? yield* parseJson(result.diagnosis.perLink, PerLinkDiagnosisSchema)
+			: null;
+
+		const [learnerMapNodes, learnerMapEdges, goalMapNodes, goalMapEdges] = yield* Effect.all(
+			[
+				safeParseJson(result.learnerMap.nodes, [], Schema.Array(NodeSchema)),
+				safeParseJson(result.learnerMap.edges, [], Schema.Array(EdgeSchema)),
+				safeParseJson(result.goalMap.nodes, [], Schema.Array(NodeSchema)),
+				safeParseJson(result.goalMap.edges, [], Schema.Array(EdgeSchema)),
+			],
+			{ concurrency: "unbounded" },
+		);
+
+		return {
+			learnerMap: {
+				id: result.learnerMap.id,
+				nodes: learnerMapNodes,
+				edges: learnerMapEdges,
+				status: result.learnerMap.status,
+				attempt: result.learnerMap.attempt,
+			},
+			goalMap: {
+				nodes: goalMapNodes,
+				edges: goalMapEdges,
+			},
+			assignment: {
+				postTestFormId: result.assignment.postTestFormId,
+				tamFormId: result.assignment.tamFormId,
+			},
+			diagnosis: result.diagnosis
+				? {
+						id: result.diagnosis.id,
+						summary: result.diagnosis.summary,
+						score: result.diagnosis.score,
+						correct: diagnosisData?.correct ?? [],
+						missing: diagnosisData?.missing ?? [],
+						excessive: diagnosisData?.excessive ?? [],
+					}
+				: null,
+		};
+	}),
 );
 
 export const startNewAttempt = Effect.fn("startNewAttempt")(
@@ -573,71 +540,63 @@ export const startNewAttempt = Effect.fn("startNewAttempt")(
 		}),
 );
 
-export const getPeerStats = Effect.fn("getPeerStats")(
-	(userId: string, input: GetPeerStatsInput) =>
-		Effect.gen(function* () {
-			const db = yield* Database;
+export const getPeerStats = Effect.fn("getPeerStats")((userId: string, input: GetPeerStatsInput) =>
+	Effect.gen(function* () {
+		const db = yield* Database;
 
-			const allSubmittedMaps = yield* db
-				.select({
-					id: learnerMaps.id,
-					userId: learnerMaps.userId,
-					score: diagnoses.score,
-					attempt: learnerMaps.attempt,
-				})
-				.from(learnerMaps)
-				.leftJoin(diagnoses, eq(diagnoses.learnerMapId, learnerMaps.id))
-				.where(
-					and(
-						eq(learnerMaps.assignmentId, input.assignmentId),
-						eq(learnerMaps.status, "submitted"),
-					),
-				);
-
-			const currentUserMaps = allSubmittedMaps.filter(
-				(m) => m.userId === userId,
+		const allSubmittedMaps = yield* db
+			.select({
+				id: learnerMaps.id,
+				userId: learnerMaps.userId,
+				score: diagnoses.score,
+				attempt: learnerMaps.attempt,
+			})
+			.from(learnerMaps)
+			.leftJoin(diagnoses, eq(diagnoses.learnerMapId, learnerMaps.id))
+			.where(
+				and(
+					eq(learnerMaps.assignmentId, input.assignmentId),
+					eq(learnerMaps.status, "submitted"),
+				),
 			);
-			const peerMaps = allSubmittedMaps.filter((m) => m.userId !== userId);
 
-			const peerScores = peerMaps
-				.map((m) => m.score)
-				.filter((s): s is number => s !== null && s !== undefined);
+		const currentUserMaps = allSubmittedMaps.filter((m) => m.userId === userId);
+		const peerMaps = allSubmittedMaps.filter((m) => m.userId !== userId);
 
-			if (peerScores.length === 0) {
-				return {
-					count: 0,
-					avgScore: null,
-					medianScore: null,
-					highestScore: null,
-					lowestScore: null,
-					userPercentile: null,
-				};
-			}
+		const peerScores = peerMaps
+			.map((m) => m.score)
+			.filter((s): s is number => s !== null && s !== undefined);
 
-			const sortedScores = [...peerScores].sort((a, b) => a - b);
-			const avgScore =
-				sortedScores.reduce((a, b) => a + b, 0) / sortedScores.length;
-			const medianScore = sortedScores[Math.floor(sortedScores.length / 2)];
-			const highestScore = sortedScores[sortedScores.length - 1];
-			const lowestScore = sortedScores[0];
-
-			const userBestScore = Math.max(
-				...currentUserMaps.map((m) => m.score ?? 0),
-			);
-			const userPercentile =
-				(peerScores.filter((s) => s < userBestScore).length /
-					peerScores.length) *
-				100;
-
+		if (peerScores.length === 0) {
 			return {
-				count: peerScores.length,
-				avgScore: roundToDecimals(avgScore, 2),
-				medianScore: roundToDecimals(medianScore, 2),
-				highestScore: roundToDecimals(highestScore, 2),
-				lowestScore: roundToDecimals(lowestScore, 2),
-				userPercentile: roundToDecimals(userPercentile, 1),
+				count: 0,
+				avgScore: null,
+				medianScore: null,
+				highestScore: null,
+				lowestScore: null,
+				userPercentile: null,
 			};
-		}),
+		}
+
+		const sortedScores = [...peerScores].sort((a, b) => a - b);
+		const avgScore = sortedScores.reduce((a, b) => a + b, 0) / sortedScores.length;
+		const medianScore = sortedScores[Math.floor(sortedScores.length / 2)];
+		const highestScore = sortedScores[sortedScores.length - 1];
+		const lowestScore = sortedScores[0];
+
+		const userBestScore = Math.max(...currentUserMaps.map((m) => m.score ?? 0));
+		const userPercentile =
+			(peerScores.filter((s) => s < userBestScore).length / peerScores.length) * 100;
+
+		return {
+			count: peerScores.length,
+			avgScore: roundToDecimals(avgScore, 2),
+			medianScore: roundToDecimals(medianScore, 2),
+			highestScore: roundToDecimals(highestScore, 2),
+			lowestScore: roundToDecimals(lowestScore, 2),
+			userPercentile: roundToDecimals(userPercentile, 1),
+		};
+	}),
 );
 
 export const submitControlText = Effect.fn("submitControlText")(

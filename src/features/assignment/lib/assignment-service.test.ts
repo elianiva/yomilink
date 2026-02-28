@@ -1,8 +1,7 @@
 import { assert, beforeEach, describe, it } from "@effect/vitest";
-import { Effect, Either } from "effect";
 import { eq } from "drizzle-orm";
-import { cohortMembers, cohorts } from "@/server/db/schema/auth-schema";
-import { assignmentTargets } from "@/server/db/schema/app-schema";
+import { Effect, Either } from "effect";
+
 import {
 	createTestAssignment,
 	createTestGoalMap,
@@ -11,6 +10,9 @@ import {
 } from "@/__tests__/fixtures/service-fixtures";
 import { resetDatabase } from "@/__tests__/utils/test-helpers";
 import { Database, DatabaseTest } from "@/server/db/client";
+import { assignmentTargets } from "@/server/db/schema/app-schema";
+import { cohortMembers, cohorts } from "@/server/db/schema/auth-schema";
+
 import {
 	createAssignment,
 	deleteAssignment,
@@ -21,9 +23,7 @@ import {
 } from "./assignment-service";
 
 describe("assignment-service", () => {
-	beforeEach(() =>
-		Effect.runPromise(resetDatabase.pipe(Effect.provide(DatabaseTest))),
-	);
+	beforeEach(() => Effect.runPromise(resetDatabase.pipe(Effect.provide(DatabaseTest))));
 
 	describe("createAssignment", () => {
 		it.effect("should create assignment with valid data", () =>
@@ -154,41 +154,37 @@ describe("assignment-service", () => {
 			}).pipe(Effect.provide(DatabaseTest)),
 		);
 
-		it.effect(
-			"should create assignment targets for both cohorts and users",
-			() =>
-				Effect.gen(function* () {
-					const db = yield* Database;
-					const teacher = yield* createTestUser();
-					const student = yield* createTestUser({ email: "student@test.com" });
-					const goalMap = yield* createTestGoalMap(teacher.id);
-					yield* createTestKit(goalMap.id, teacher.id);
+		it.effect("should create assignment targets for both cohorts and users", () =>
+			Effect.gen(function* () {
+				const db = yield* Database;
+				const teacher = yield* createTestUser();
+				const student = yield* createTestUser({ email: "student@test.com" });
+				const goalMap = yield* createTestGoalMap(teacher.id);
+				yield* createTestKit(goalMap.id, teacher.id);
 
-					// Create cohort
-					const cohortId = crypto.randomUUID();
-					yield* db
-						.insert(cohorts)
-						.values([{ id: cohortId, name: "Test Cohort" }]);
+				// Create cohort
+				const cohortId = crypto.randomUUID();
+				yield* db.insert(cohorts).values([{ id: cohortId, name: "Test Cohort" }]);
 
-					const result = yield* createAssignment(teacher.id, {
-						title: "Test Assignment",
-						goalMapId: goalMap.id,
-						cohortIds: [cohortId],
-						userIds: [student.id],
-					});
+				const result = yield* createAssignment(teacher.id, {
+					title: "Test Assignment",
+					goalMapId: goalMap.id,
+					cohortIds: [cohortId],
+					userIds: [student.id],
+				});
 
-					assert.isTrue(result.success);
+				assert.isTrue(result.success);
 
-					// Verify targets were created
-					const targets = yield* db
-						.select()
-						.from(assignmentTargets)
-						.where(eq(assignmentTargets.assignmentId, result.assignmentId));
+				// Verify targets were created
+				const targets = yield* db
+					.select()
+					.from(assignmentTargets)
+					.where(eq(assignmentTargets.assignmentId, result.assignmentId));
 
-					assert.strictEqual(targets.length, 2);
-					assert.isTrue(targets.some((t) => t.cohortId === cohortId));
-					assert.isTrue(targets.some((t) => t.userId === student.id));
-				}).pipe(Effect.provide(DatabaseTest)),
+				assert.strictEqual(targets.length, 2);
+				assert.isTrue(targets.some((t) => t.cohortId === cohortId));
+				assert.isTrue(targets.some((t) => t.userId === student.id));
+			}).pipe(Effect.provide(DatabaseTest)),
 		);
 	});
 
@@ -332,56 +328,50 @@ describe("assignment-service", () => {
 			}).pipe(Effect.provide(DatabaseTest)),
 		);
 
-		it.effect(
-			"should return AssignmentNotFoundError when assignment does not exist",
-			() =>
-				Effect.gen(function* () {
-					const teacher = yield* createTestUser();
+		it.effect("should return AssignmentNotFoundError when assignment does not exist", () =>
+			Effect.gen(function* () {
+				const teacher = yield* createTestUser();
 
-					const result = yield* Effect.either(
-						deleteAssignment(teacher.id, { id: "non-existent-id" }),
-					);
+				const result = yield* Effect.either(
+					deleteAssignment(teacher.id, { id: "non-existent-id" }),
+				);
 
-					Either.match(result, {
-						onLeft: (error) =>
-							assert.strictEqual(error._tag, "AssignmentNotFoundError"),
-						onRight: () => assert.fail("Expected Left but got Right"),
-					});
-				}).pipe(Effect.provide(DatabaseTest)),
+				Either.match(result, {
+					onLeft: (error) => assert.strictEqual(error._tag, "AssignmentNotFoundError"),
+					onRight: () => assert.fail("Expected Left but got Right"),
+				});
+			}).pipe(Effect.provide(DatabaseTest)),
 		);
 
-		it.effect(
-			"should return AssignmentNotFoundError when user is not creator",
-			() =>
-				Effect.gen(function* () {
-					const teacher1 = yield* createTestUser({
-						email: "teacher1@test.com",
-					});
-					const teacher2 = yield* createTestUser({
-						email: "teacher2@test.com",
-					});
-					const goalMap = yield* createTestGoalMap(teacher1.id);
-					yield* createTestKit(goalMap.id, teacher1.id);
+		it.effect("should return AssignmentNotFoundError when user is not creator", () =>
+			Effect.gen(function* () {
+				const teacher1 = yield* createTestUser({
+					email: "teacher1@test.com",
+				});
+				const teacher2 = yield* createTestUser({
+					email: "teacher2@test.com",
+				});
+				const goalMap = yield* createTestGoalMap(teacher1.id);
+				yield* createTestKit(goalMap.id, teacher1.id);
 
-					const assignmentResult = yield* createAssignment(teacher1.id, {
-						title: "Test Assignment",
-						goalMapId: goalMap.id,
-						cohortIds: [],
-						userIds: [],
-					});
+				const assignmentResult = yield* createAssignment(teacher1.id, {
+					title: "Test Assignment",
+					goalMapId: goalMap.id,
+					cohortIds: [],
+					userIds: [],
+				});
 
-					const result = yield* Effect.either(
-						deleteAssignment(teacher2.id, {
-							id: assignmentResult.assignmentId,
-						}),
-					);
+				const result = yield* Effect.either(
+					deleteAssignment(teacher2.id, {
+						id: assignmentResult.assignmentId,
+					}),
+				);
 
-					Either.match(result, {
-						onLeft: (error) =>
-							assert.strictEqual(error._tag, "AssignmentNotFoundError"),
-						onRight: () => assert.fail("Expected Left but got Right"),
-					});
-				}).pipe(Effect.provide(DatabaseTest)),
+				Either.match(result, {
+					onLeft: (error) => assert.strictEqual(error._tag, "AssignmentNotFoundError"),
+					onRight: () => assert.fail("Expected Left but got Right"),
+				});
+			}).pipe(Effect.provide(DatabaseTest)),
 		);
 	});
 
@@ -435,9 +425,7 @@ describe("assignment-service", () => {
 				// Add 1 member to Cohort B
 				yield* db
 					.insert(cohortMembers)
-					.values([
-						{ id: crypto.randomUUID(), cohortId: cohortId2, userId: user3.id },
-					]);
+					.values([{ id: crypto.randomUUID(), cohortId: cohortId2, userId: user3.id }]);
 
 				const result = yield* getAvailableCohorts();
 

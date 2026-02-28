@@ -1,6 +1,7 @@
 "use client";
 
 import { Bold, Italic, List, ListOrdered } from "lucide-react";
+
 import { Button } from "@/components/ui/button";
 import { Separator } from "@/components/ui/separator";
 import { cn } from "@/lib/utils";
@@ -64,10 +65,7 @@ export function FormattingToolbar({
 
 	return (
 		<div
-			className={cn(
-				"flex items-center gap-1 border-b bg-muted/30 p-2",
-				className,
-			)}
+			className={cn("flex items-center gap-1 border-b bg-muted/30 p-2", className)}
 			data-testid="formatting-toolbar"
 			role="toolbar"
 			aria-label="Text formatting"

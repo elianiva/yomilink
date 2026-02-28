@@ -18,6 +18,7 @@ import {
 } from "@dnd-kit/sortable";
 import { CSS } from "@dnd-kit/utilities";
 import { GripVertical, Pencil, Trash2 } from "lucide-react";
+
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
@@ -49,8 +50,7 @@ const questionTypeLabels: Record<QuestionType, string> = {
 
 const questionTypeColors: Record<QuestionType, string> = {
 	mcq: "bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-200",
-	likert:
-		"bg-purple-100 text-purple-800 dark:bg-purple-900 dark:text-purple-200",
+	likert: "bg-purple-100 text-purple-800 dark:bg-purple-900 dark:text-purple-200",
 	text: "bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200",
 };
 
@@ -70,14 +70,7 @@ function SortableQuestionItem({
 	onReorder,
 }: SortableQuestionItemProps) {
 	const sortable = useSortable({ id: question.id, disabled: !onReorder });
-	const {
-		attributes,
-		listeners,
-		setNodeRef,
-		transform,
-		transition,
-		isDragging,
-	} = sortable;
+	const { attributes, listeners, setNodeRef, transform, transition, isDragging } = sortable;
 
 	const style = {
 		transform: CSS.Transform.toString(transform),
@@ -191,9 +184,7 @@ export function QuestionList({
 		}),
 	);
 
-	const sortedQuestions = [...questions].sort(
-		(a, b) => a.orderIndex - b.orderIndex,
-	);
+	const sortedQuestions = [...questions].sort((a, b) => a.orderIndex - b.orderIndex);
 
 	const handleDragEnd = (event: DragEndEvent) => {
 		const { active, over } = event;
@@ -252,11 +243,7 @@ export function QuestionList({
 	}
 
 	return (
-		<DndContext
-			sensors={sensors}
-			collisionDetection={closestCenter}
-			onDragEnd={handleDragEnd}
-		>
+		<DndContext sensors={sensors} collisionDetection={closestCenter} onDragEnd={handleDragEnd}>
 			<SortableContext
 				items={sortedQuestions.map((q) => q.id)}
 				strategy={verticalListSortingStrategy}

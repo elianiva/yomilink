@@ -20,10 +20,8 @@ function getNodeCenter(node: InternalNode | NodeWithMeasured): {
 			? ((node as InternalNode).measured?.height ?? 0)
 			: ((node as NodeWithMeasured).measured?.height ?? 0);
 
-	const posX =
-		(node as InternalNode).internals?.positionAbsolute?.x ?? node.position.x;
-	const posY =
-		(node as InternalNode).internals?.positionAbsolute?.y ?? node.position.y;
+	const posX = (node as InternalNode).internals?.positionAbsolute?.x ?? node.position.x;
+	const posY = (node as InternalNode).internals?.positionAbsolute?.y ?? node.position.y;
 
 	return {
 		x: posX + width / 2,
@@ -48,10 +46,8 @@ function getNodeIntersection(
 			? ((node as InternalNode).measured?.height ?? 0)
 			: ((node as NodeWithMeasured).measured?.height ?? 0);
 
-	const posX =
-		(node as InternalNode).internals?.positionAbsolute?.x ?? node.position.x;
-	const posY =
-		(node as InternalNode).internals?.positionAbsolute?.y ?? node.position.y;
+	const posX = (node as InternalNode).internals?.positionAbsolute?.x ?? node.position.x;
+	const posY = (node as InternalNode).internals?.positionAbsolute?.y ?? node.position.y;
 
 	const nodeCenter = getNodeCenter(node);
 

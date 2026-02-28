@@ -1,6 +1,7 @@
 "use client";
 
 import { FileText, AlertTriangle, Eye, Send, X } from "lucide-react";
+
 import {
 	AlertDialog,
 	AlertDialogAction,
@@ -40,9 +41,7 @@ export function ControlSubmissionConfirmModal({
 	// Format content for preview (limit display if too long)
 	const previewContent = content.trim() || "No content provided";
 	const displayContent =
-		previewContent.length > 1000
-			? `${previewContent.slice(0, 1000)}...`
-			: previewContent;
+		previewContent.length > 1000 ? `${previewContent.slice(0, 1000)}...` : previewContent;
 
 	return (
 		<AlertDialog open={isOpen} onOpenChange={onClose}>
@@ -56,8 +55,8 @@ export function ControlSubmissionConfirmModal({
 						<AlertDialogTitle>Confirm Submission</AlertDialogTitle>
 					</div>
 					<AlertDialogDescription>
-						Please review your submission before confirming. This action cannot
-						be undone.
+						Please review your submission before confirming. This action cannot be
+						undone.
 					</AlertDialogDescription>
 				</AlertDialogHeader>
 
@@ -70,8 +69,8 @@ export function ControlSubmissionConfirmModal({
 						<div className="text-sm text-amber-800 dark:text-amber-200">
 							<p className="font-medium">Word count below minimum</p>
 							<p>
-								Your submission has {wordCount} words, but the minimum required
-								is {minWordCount} words.
+								Your submission has {wordCount} words, but the minimum required is{" "}
+								{minWordCount} words.
 							</p>
 						</div>
 					</div>
@@ -84,10 +83,7 @@ export function ControlSubmissionConfirmModal({
 					</div>
 
 					<ScrollArea className="h-[200px] rounded-md border bg-muted/30 p-4">
-						<div
-							className="whitespace-pre-wrap text-sm"
-							data-testid="content-preview"
-						>
+						<div className="whitespace-pre-wrap text-sm" data-testid="content-preview">
 							{displayContent}
 						</div>
 					</ScrollArea>

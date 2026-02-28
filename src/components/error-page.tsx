@@ -2,6 +2,7 @@ import * as Sentry from "@sentry/tanstackstart-react";
 import type { ErrorComponentProps } from "@tanstack/react-router";
 import { Link } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
+
 import { Button } from "@/components/ui/button";
 import { Separator } from "@/components/ui/separator";
 
@@ -22,8 +23,7 @@ export function ErrorPage({ error, reset }: ErrorComponentProps) {
 					<h1 className="text-xl font-semibold">Something went wrong</h1>
 				</div>
 				<p className="mt-3 text-sm text-neutral-600">
-					We hit a snag while loading this page. You can try again or head back
-					home.
+					We hit a snag while loading this page. You can try again or head back home.
 				</p>
 				<div className="mt-6 flex gap-3">
 					<Button onClick={() => reset?.()} variant="default">

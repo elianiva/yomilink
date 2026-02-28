@@ -1,4 +1,5 @@
 import { Layer } from "effect";
+
 import { DatabaseLive, DatabaseTest } from "./db/client";
 import { LoggerLive } from "./logger";
 import { ServerTelemetry } from "./telemetry";
@@ -24,17 +25,9 @@ import { ServerTelemetry } from "./telemetry";
  * );
  * ```
  */
-export const AppLayer = Layer.mergeAll(
-	DatabaseLive,
-	LoggerLive,
-	ServerTelemetry,
-);
+export const AppLayer = Layer.mergeAll(DatabaseLive, LoggerLive, ServerTelemetry);
 /**
  * Test variant of AppLayer - uses in-memory database.
  * Use in tests where you don't want to hit the real database.
  */
-export const AppLayerTest = Layer.mergeAll(
-	DatabaseTest,
-	LoggerLive,
-	ServerTelemetry,
-);
+export const AppLayerTest = Layer.mergeAll(DatabaseTest, LoggerLive, ServerTelemetry);

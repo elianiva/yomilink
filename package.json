@@ -16,9 +16,8 @@
     "test:service:watch": "vitest run -c vitest.service.config.ts --watch",
     "coverage": "vitest run --coverage",
     "coverage:ui": "vitest run --coverage --coverage.ui",
-    "format": "biome format --write",
-    "lint": "biome lint --write",
-    "check": "biome check",
+    "format": "oxfmt --write ./src/**/*",
+    "lint": "oxlint --fix ./src/**/*",
     "typecheck": "tsgo --noEmit",
     "cf-typegen": "wrangler types",
     "deploy": "wrangler deploy",
@@ -85,6 +84,8 @@
     "jotai": "^2.18.0",
     "lucide-react": "^0.575.0",
     "next-themes": "^0.4.6",
+    "oxfmt": "^0.35.0",
+    "oxlint": "^1.50.0",
     "papaparse": "^5.5.3",
     "radix-ui": "^1.4.3",
     "react": "^19.2.4",
@@ -97,7 +98,6 @@
     "zod": "^4.3.6"
   },
   "devDependencies": {
-    "@biomejs/biome": "2.4.4",
     "@effect/language-service": "^0.75.1",
     "@spotlightjs/spotlight": "^4.10.0",
     "@testing-library/dom": "^10.4.0",

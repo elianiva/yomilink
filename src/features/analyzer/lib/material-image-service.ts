@@ -9,13 +9,10 @@ class InvalidFileTypeError extends Schema.TaggedError<InvalidFileTypeError>()(
 	},
 ) {}
 
-class FileTooLargeError extends Schema.TaggedError<FileTooLargeError>()(
-	"FileTooLargeError",
-	{
-		size: Schema.Number,
-		maxSize: Schema.Number,
-	},
-) {}
+class FileTooLargeError extends Schema.TaggedError<FileTooLargeError>()("FileTooLargeError", {
+	size: Schema.Number,
+	maxSize: Schema.Number,
+}) {}
 
 export const UploadMaterialImageInput = Schema.Struct({
 	goalMapId: Schema.NonEmptyString,
@@ -62,9 +59,7 @@ export const uploadMaterialImage = Effect.fn("uploadMaterialImage")(
 			const imageId = crypto.randomUUID();
 			const key = `materials/${input.goalMapId}/${imageId}`;
 
-			const arrayBuffer = yield* Effect.tryPromise(() =>
-				input.file.arrayBuffer(),
-			);
+			const arrayBuffer = yield* Effect.tryPromise(() => input.file.arrayBuffer());
 			yield* Effect.tryPromise(() =>
 				env.MATERIAL_IMAGES.put(key, arrayBuffer, {
 					httpMetadata: {

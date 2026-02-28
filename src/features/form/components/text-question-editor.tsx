@@ -2,6 +2,7 @@
 
 import { Check, Type } from "lucide-react";
 import type * as React from "react";
+
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Switch } from "@/components/ui/switch";
@@ -21,14 +22,8 @@ interface TextQuestionEditorProps {
 	disabled?: boolean;
 }
 
-export function TextQuestionEditor({
-	data,
-	onChange,
-	disabled = false,
-}: TextQuestionEditorProps) {
-	const handleQuestionTextChange = (
-		e: React.ChangeEvent<HTMLTextAreaElement>,
-	) => {
+export function TextQuestionEditor({ data, onChange, disabled = false }: TextQuestionEditorProps) {
+	const handleQuestionTextChange = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
 		onChange({ ...data, questionText: e.target.value });
 	};
 
@@ -108,9 +103,7 @@ export function TextQuestionEditor({
 							placeholder="No minimum"
 							disabled={disabled}
 						/>
-						<p className="text-xs text-muted-foreground">
-							Leave empty for no minimum
-						</p>
+						<p className="text-xs text-muted-foreground">Leave empty for no minimum</p>
 					</div>
 
 					<div className="space-y-2">
@@ -127,9 +120,7 @@ export function TextQuestionEditor({
 							placeholder="No maximum"
 							disabled={disabled}
 						/>
-						<p className="text-xs text-muted-foreground">
-							Leave empty for no maximum
-						</p>
+						<p className="text-xs text-muted-foreground">Leave empty for no maximum</p>
 					</div>
 				</div>
 
@@ -180,8 +171,7 @@ export function TextQuestionEditor({
 					data-testid="validation-preview"
 				>
 					<p className="text-xs text-info">
-						Answer must be between {data.minLength} and {data.maxLength}{" "}
-						characters
+						Answer must be between {data.minLength} and {data.maxLength} characters
 					</p>
 				</div>
 			)}

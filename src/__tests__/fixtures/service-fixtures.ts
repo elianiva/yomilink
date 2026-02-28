@@ -1,5 +1,6 @@
 import { eq } from "drizzle-orm";
 import { Effect } from "effect";
+
 import { Database } from "@/server/db/client";
 import {
 	assignments,
@@ -60,17 +61,11 @@ export const createTestGoalMap = (userId: string, overrides = {}) =>
 			...overrides,
 		};
 
-		yield* db
-			.insert(goalMaps)
-			.values(goalMapData as typeof goalMaps.$inferInsert);
+		yield* db.insert(goalMaps).values(goalMapData as typeof goalMaps.$inferInsert);
 		return goalMapData as typeof goalMaps.$inferInsert;
 	});
 
-export const createTestKit = (
-	goalMapId: string,
-	teacherId: string,
-	overrides = {},
-) =>
+export const createTestKit = (goalMapId: string, teacherId: string, overrides = {}) =>
 	Effect.gen(function* () {
 		const db = yield* Database;
 		const kitId = crypto.randomUUID();
@@ -111,9 +106,7 @@ export const createTestAssignment = (
 			...overrides,
 		};
 
-		yield* db
-			.insert(assignments)
-			.values(assignmentData as typeof assignments.$inferInsert);
+		yield* db.insert(assignments).values(assignmentData as typeof assignments.$inferInsert);
 		return assignmentData as typeof assignments.$inferInsert;
 	});
 
@@ -170,17 +163,11 @@ export const createTestLearnerMap = (
 			...overrides,
 		};
 
-		yield* db
-			.insert(learnerMaps)
-			.values(learnerMapData as typeof learnerMaps.$inferInsert);
+		yield* db.insert(learnerMaps).values(learnerMapData as typeof learnerMaps.$inferInsert);
 		return learnerMapData as typeof learnerMaps.$inferInsert;
 	});
 
-export const createTestDiagnosis = (
-	goalMapId: string,
-	learnerMapId: string,
-	overrides = {},
-) =>
+export const createTestDiagnosis = (goalMapId: string, learnerMapId: string, overrides = {}) =>
 	Effect.gen(function* () {
 		const db = yield* Database;
 		const diagnosisData = {
@@ -194,9 +181,7 @@ export const createTestDiagnosis = (
 			...overrides,
 		};
 
-		yield* db
-			.insert(diagnoses)
-			.values(diagnosisData as typeof diagnoses.$inferInsert);
+		yield* db.insert(diagnoses).values(diagnosisData as typeof diagnoses.$inferInsert);
 		return diagnosisData as typeof diagnoses.$inferInsert;
 	});
 

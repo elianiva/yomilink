@@ -6,13 +6,7 @@ interface DiagnosisStatsProps {
 	score: number;
 }
 
-export function DiagnosisStats({
-	correct,
-	missing,
-	excessive,
-	total,
-	score,
-}: DiagnosisStatsProps) {
+export function DiagnosisStats({ correct, missing, excessive, total, score }: DiagnosisStatsProps) {
 	const percentage = Math.round(score * 100);
 
 	return (

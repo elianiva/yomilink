@@ -2,11 +2,13 @@ import { useForm } from "@tanstack/react-form";
 import { createFileRoute, redirect, useNavigate } from "@tanstack/react-router";
 import { Schema } from "effect";
 import { useState } from "react";
+
 import { Button } from "@/components/ui/button";
 import { FieldInfo } from "@/components/ui/field-info";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { getMe } from "@/server/rpc/profile";
+
 import { authClient } from "../lib/auth-client";
 
 function getFriendlyAuthErrorMessage(err: unknown) {
@@ -25,11 +27,7 @@ function getFriendlyAuthErrorMessage(err: unknown) {
 	if (msg.includes("rate") && msg.includes("limit")) {
 		return "Too many attempts. Please wait a moment and try again.";
 	}
-	if (
-		msg.includes("network") ||
-		msg.includes("fetch") ||
-		msg.includes("failed to fetch")
-	) {
+	if (msg.includes("network") || msg.includes("fetch") || msg.includes("failed to fetch")) {
 		return "Network error. Check your connection and try again.";
 	}
 
@@ -91,9 +89,7 @@ function LoginPage() {
 						</div>
 						<div>
 							<h1 className="text-2xl font-semibold">KitBuild</h1>
-							<p className="text-sm text-muted-foreground">
-								Sign in to your account
-							</p>
+							<p className="text-sm text-muted-foreground">Sign in to your account</p>
 						</div>
 					</div>
 
@@ -147,9 +143,7 @@ function LoginPage() {
 							)}
 						</form.Field>
 
-						<form.Subscribe
-							selector={(s) => [s.canSubmit, s.isSubmitting] as const}
-						>
+						<form.Subscribe selector={(s) => [s.canSubmit, s.isSubmitting] as const}>
 							{([canSubmit, isSubmitting]) => (
 								<Button
 									type="submit"

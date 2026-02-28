@@ -1,14 +1,9 @@
-import { useState } from "react";
 import { useQueryClient } from "@tanstack/react-query";
-import {
-	AlertTriangle,
-	Download,
-	Users,
-	Save,
-	CheckCircle2,
-} from "lucide-react";
-import { Button } from "@/components/ui/button";
+import { AlertTriangle, Download, Users, Save, CheckCircle2 } from "lucide-react";
+import { useState } from "react";
+
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
+import { Button } from "@/components/ui/button";
 import {
 	Table,
 	TableBody,
@@ -19,10 +14,8 @@ import {
 } from "@/components/ui/table";
 import { useRpcMutation, useRpcQuery } from "@/hooks/use-rpc-query";
 import { AssignmentRpc } from "@/server/rpc/assignment";
-import type {
-	FormResponse,
-	ResponseQuestion,
-} from "./individual-responses-table";
+
+import type { FormResponse, ResponseQuestion } from "./individual-responses-table";
 
 type StratifiedGroupingProps = {
 	responses: FormResponse[];
@@ -36,11 +29,7 @@ type Group = {
 	condition: "summarizing" | "concept_map";
 };
 
-export function StratifiedGrouping({
-	responses,
-	questions,
-	formId,
-}: StratifiedGroupingProps) {
+export function StratifiedGrouping({ responses, questions, formId }: StratifiedGroupingProps) {
 	const [groups, setGroups] = useState<Group[] | null>(null);
 	const [randomStudent, setRandomStudent] = useState<{
 		student: FormResponse;
@@ -51,20 +40,16 @@ export function StratifiedGrouping({
 	const { data: assignmentData } = useRpcQuery(
 		AssignmentRpc.getAssignmentByPreTestFormId(formId),
 	);
-	const assignment =
-		assignmentData && "id" in assignmentData ? assignmentData : null;
+	const assignment = assignmentData && "id" in assignmentData ? assignmentData : null;
 
 	const { data: existingGroups } = useRpcQuery(
 		AssignmentRpc.getExperimentGroupsByAssignmentId(assignment?.id ?? ""),
 	);
 
-	const saveGroupsMutation = useRpcMutation(
-		AssignmentRpc.saveExperimentGroups(),
-		{
-			operation: "save groups",
-			showSuccess: true,
-		},
-	);
+	const saveGroupsMutation = useRpcMutation(AssignmentRpc.saveExperimentGroups(), {
+		operation: "save groups",
+		showSuccess: true,
+	});
 
 	const calculateScore = (response: FormResponse) => {
 		let score = 0;
@@ -114,10 +99,7 @@ export function StratifiedGrouping({
 		for (let i = 0; i < halfway; i++) {
 			newGroups.push({
 				id: i + 1,
-				members: [
-					lowHalf[i].student,
-					highHalf[highHalf.length - 1 - i].student,
-				],
+				members: [lowHalf[i].student, highHalf[highHalf.length - 1 - i].student],
 				condition: i % 2 === 0 ? "concept_map" : "summarizing",
 			});
 		}
@@ -228,9 +210,7 @@ export function StratifiedGrouping({
 						}
 						const csvContent = [
 							exportHeaders.join(","),
-							...exportRows.map((row) =>
-								row.map((cell) => `"${cell}"`).join(","),
-							),
+							...exportRows.map((row) => row.map((cell) => `"${cell}"`).join(",")),
 						].join("\n");
 						const blob = new Blob([csvContent], { type: "text/csv" });
 						const url = URL.createObjectURL(blob);
@@ -253,8 +233,8 @@ export function StratifiedGrouping({
 					<div className="flex items-center gap-2 text-sm text-green-600 mb-4">
 						<CheckCircle2 className="h-4 w-4" />
 						<span>
-							This assignment already has saved groups. Re-assigning will
-							overwrite them.
+							This assignment already has saved groups. Re-assigning will overwrite
+							them.
 						</span>
 					</div>
 				)}
@@ -264,8 +244,8 @@ export function StratifiedGrouping({
 					<AlertTriangle className="h-4 w-4" />
 					<AlertTitle>Odd student count</AlertTitle>
 					<AlertDescription>
-						There are {responses.length} students. One student will be placed at
-						random if you proceed with grouping.
+						There are {responses.length} students. One student will be placed at random
+						if you proceed with grouping.
 					</AlertDescription>
 				</Alert>
 			)}
@@ -279,8 +259,7 @@ export function StratifiedGrouping({
 							<AlertDescription>
 								{randomStudent.student.user.name ||
 									randomStudent.student.user.email}{" "}
-								was placed at random (not paired) because the student count was
-								odd.
+								was placed at random (not paired) because the student count was odd.
 							</AlertDescription>
 						</Alert>
 					)}

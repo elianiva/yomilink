@@ -1,5 +1,7 @@
 import { describe, expect, it } from "vitest";
+
 import type { Node } from "@/features/learner-map/lib/comparator";
+
 import { getLayoutedElements } from "./layout";
 
 describe("getLayoutedElements", () => {
@@ -13,10 +15,7 @@ describe("getLayoutedElements", () => {
 		const result = getLayoutedElements(nodes, edges, "LR");
 
 		expect(result.nodes).toHaveLength(2);
-		// biome-ignore lint/style/noNonNullAssertion: false positive
-		expect(result.nodes[0].position!.x).toBeLessThan(
-			result.nodes[1].position!.x,
-		);
+		expect(result.nodes[0].position!.x).toBeLessThan(result.nodes[1].position!.x);
 	});
 
 	it("should layout nodes in top-to-bottom direction", () => {
@@ -29,10 +28,7 @@ describe("getLayoutedElements", () => {
 		const result = getLayoutedElements(nodes, edges, "TB");
 
 		expect(result.nodes).toHaveLength(2);
-		// biome-ignore lint/style/noNonNullAssertion: false positive
-		expect(result.nodes[0].position!.y).toBeLessThan(
-			result.nodes[1].position!.y,
-		);
+		expect(result.nodes[0].position!.y).toBeLessThan(result.nodes[1].position!.y);
 	});
 
 	it("should handle multiple connected nodes", () => {

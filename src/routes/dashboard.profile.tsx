@@ -2,12 +2,13 @@ import { useForm } from "@tanstack/react-form";
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { Schema } from "effect";
 import { useState } from "react";
+
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
 import { FieldInfo } from "@/components/ui/field-info";
 import { Input } from "@/components/ui/input";
-import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
+import { Textarea } from "@/components/ui/textarea";
 import { authClient } from "@/lib/auth-client";
 import { getMe } from "@/server/rpc/profile";
 import { updateProfileRpc } from "@/server/rpc/profile";
@@ -88,18 +89,13 @@ function ProfilePage() {
 				<div className="p-8 space-y-6">
 					<div className="flex items-center gap-4">
 						<Avatar className="h-14 w-14 rounded-xl ring-4 ring-primary/10">
-							<AvatarImage
-								src={me.image ?? ""}
-								alt={me.name ?? me.email ?? "User"}
-							/>
+							<AvatarImage src={me.image ?? ""} alt={me.name ?? me.email ?? "User"} />
 							<AvatarFallback className="rounded-xl bg-primary/90 text-primary-foreground text-lg font-bold">
 								{((me.name ?? me.email ?? "U")[0] ?? "U").toUpperCase()}
 							</AvatarFallback>
 						</Avatar>
 						<div className="min-w-0">
-							<h1 className="text-xl font-semibold truncate">
-								{me.name ?? "User"}
-							</h1>
+							<h1 className="text-xl font-semibold truncate">{me.name ?? "User"}</h1>
 							<p className="text-sm text-muted-foreground truncate">
 								{me.email ?? ""}
 							</p>
@@ -265,9 +261,7 @@ function ProfilePage() {
 								disabled
 								className="bg-muted/50"
 							/>
-							<p className="text-xs text-muted-foreground">
-								Email cannot be changed
-							</p>
+							<p className="text-xs text-muted-foreground">Email cannot be changed</p>
 						</div>
 
 						<div className="space-y-1.5">
@@ -303,11 +297,7 @@ function ProfilePage() {
 					</form>
 
 					<div className="border-t pt-4">
-						<Button
-							variant="destructive"
-							className="w-full"
-							onClick={handleSignOut}
-						>
+						<Button variant="destructive" className="w-full" onClick={handleSignOut}>
 							Sign out
 						</Button>
 					</div>

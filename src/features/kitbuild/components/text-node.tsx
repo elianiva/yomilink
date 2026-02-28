@@ -1,6 +1,7 @@
 import { Handle, type Node, type NodeProps, Position } from "@xyflow/react";
 import { useAtomValue } from "jotai";
 import { memo } from "react";
+
 import { contextMenuAtom } from "@/features/goal-map/lib/atoms";
 import { cn } from "@/lib/utils";
 
@@ -69,9 +70,7 @@ function TextNodeComponent({ id, data }: NodeProps<Node<TextNodeData>>) {
 				isActive && "ring-4 scale-105 z-50 shadow-lg",
 			)}
 		>
-			<div className="text-sm font-medium leading-tight">
-				{data?.label ?? "Text"}
-			</div>
+			<div className="text-sm font-medium leading-tight">{data?.label ?? "Text"}</div>
 
 			{/* Small invisible handles at center - only for edge anchoring, not for initiating connections */}
 			<Handle

@@ -1,6 +1,7 @@
 import { render, screen } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { describe, expect, it, vi } from "vitest";
+
 import { type Question, QuestionList } from "./question-list";
 
 const mockQuestions: Question[] = [
@@ -34,18 +35,14 @@ describe("QuestionList", () => {
 
 			expect(screen.getByTestId("question-list-empty")).toBeInTheDocument();
 			expect(
-				screen.getByText(
-					"No questions yet. Add your first question to get started.",
-				),
+				screen.getByText("No questions yet. Add your first question to get started."),
 			).toBeInTheDocument();
 		});
 
 		it("does not render empty state when questions exist", () => {
 			render(<QuestionList questions={mockQuestions} />);
 
-			expect(
-				screen.queryByTestId("question-list-empty"),
-			).not.toBeInTheDocument();
+			expect(screen.queryByTestId("question-list-empty")).not.toBeInTheDocument();
 		});
 
 		it("renders list container with aria-label", () => {
@@ -86,15 +83,9 @@ describe("QuestionList", () => {
 		it("displays question text correctly", () => {
 			render(<QuestionList questions={mockQuestions} />);
 
-			expect(
-				screen.getByText("What is the capital of France?"),
-			).toBeInTheDocument();
-			expect(
-				screen.getByText("Rate your experience from 1-5"),
-			).toBeInTheDocument();
-			expect(
-				screen.getByText("Please describe your thoughts"),
-			).toBeInTheDocument();
+			expect(screen.getByText("What is the capital of France?")).toBeInTheDocument();
+			expect(screen.getByText("Rate your experience from 1-5")).toBeInTheDocument();
+			expect(screen.getByText("Please describe your thoughts")).toBeInTheDocument();
 		});
 
 		it("shows required indicator for required questions", () => {
@@ -156,9 +147,7 @@ describe("QuestionList", () => {
 			render(<QuestionList questions={mockQuestions} />);
 
 			expect(screen.queryByTestId(/question-edit-btn/)).not.toBeInTheDocument();
-			expect(
-				screen.queryByTestId(/question-delete-btn/),
-			).not.toBeInTheDocument();
+			expect(screen.queryByTestId(/question-delete-btn/)).not.toBeInTheDocument();
 		});
 
 		it("shows edit button when onEdit callback provided", () => {
@@ -204,9 +193,7 @@ describe("QuestionList", () => {
 		it("does not show drag handle when onReorder not provided", () => {
 			render(<QuestionList questions={mockQuestions} />);
 
-			expect(
-				screen.queryByTestId(/question-drag-handle/),
-			).not.toBeInTheDocument();
+			expect(screen.queryByTestId(/question-drag-handle/)).not.toBeInTheDocument();
 		});
 
 		it("shows drag handles when onReorder callback provided", () => {
@@ -273,15 +260,9 @@ describe("QuestionList", () => {
 		it("provides accessible labels for drag handles", () => {
 			render(<QuestionList questions={mockQuestions} onReorder={() => {}} />);
 
-			expect(
-				screen.getByLabelText("Drag to reorder question 1"),
-			).toBeInTheDocument();
-			expect(
-				screen.getByLabelText("Drag to reorder question 2"),
-			).toBeInTheDocument();
-			expect(
-				screen.getByLabelText("Drag to reorder question 3"),
-			).toBeInTheDocument();
+			expect(screen.getByLabelText("Drag to reorder question 1")).toBeInTheDocument();
+			expect(screen.getByLabelText("Drag to reorder question 2")).toBeInTheDocument();
+			expect(screen.getByLabelText("Drag to reorder question 3")).toBeInTheDocument();
 		});
 
 		it("uses semantic list structure", () => {
@@ -308,21 +289,15 @@ describe("QuestionList", () => {
 				<QuestionList questions={mockQuestions} onReorder={() => {}} />,
 			);
 
-			expect(
-				container.querySelector('[data-testid="question-list"]'),
-			).toBeInTheDocument();
+			expect(container.querySelector('[data-testid="question-list"]')).toBeInTheDocument();
 			expect(screen.getByTestId("question-drag-handle-q1")).toBeInTheDocument();
 		});
 
 		it("renders without DndContext when onReorder is not provided", () => {
 			const { container } = render(<QuestionList questions={mockQuestions} />);
 
-			expect(
-				container.querySelector('[data-testid="question-list"]'),
-			).toBeInTheDocument();
-			expect(
-				screen.queryByTestId("question-drag-handle-q1"),
-			).not.toBeInTheDocument();
+			expect(container.querySelector('[data-testid="question-list"]')).toBeInTheDocument();
+			expect(screen.queryByTestId("question-drag-handle-q1")).not.toBeInTheDocument();
 		});
 	});
 });

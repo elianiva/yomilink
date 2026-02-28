@@ -1,17 +1,13 @@
 "use client";
 
-import {
-	CheckCircle2,
-	ChevronLeft,
-	ChevronRight,
-	Save,
-	Send,
-} from "lucide-react";
+import { CheckCircle2, ChevronLeft, ChevronRight, Save, Send } from "lucide-react";
 import { useEffect, useState } from "react";
+
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Separator } from "@/components/ui/separator";
 import { cn } from "@/lib/utils";
+
 import { QuestionRenderer } from "./form-renderer";
 import type { QuestionType } from "./question-list";
 
@@ -19,13 +15,7 @@ export interface FormData {
 	id: string;
 	title: string;
 	description?: string;
-	type:
-		| "pre_test"
-		| "post_test"
-		| "delayed_test"
-		| "registration"
-		| "tam"
-		| "control";
+	type: "pre_test" | "post_test" | "delayed_test" | "registration" | "tam" | "control";
 	status: "draft" | "published";
 }
 
@@ -75,10 +65,7 @@ function loadDraft(formId: string): Record<string, string | number> | null {
 	}
 }
 
-function saveDraft(
-	formId: string,
-	answers: Record<string, string | number>,
-): void {
+function saveDraft(formId: string, answers: Record<string, string | number>): void {
 	if (typeof window === "undefined") return;
 	try {
 		localStorage.setItem(getDraftKey(formId), JSON.stringify(answers));
@@ -107,24 +94,19 @@ export function FormTaker({
 }: FormTakerProps) {
 	const [currentIndex, setCurrentIndex] = useState(0);
 	const [submitted, setSubmitted] = useState(false);
-	const [answers, setAnswers] = useState<Record<string, string | number>>(
-		() => {
-			if (initialAnswers && Object.keys(initialAnswers).length > 0) {
-				return initialAnswers;
-			}
-			return loadDraft(form.id) ?? {};
-		},
-	);
+	const [answers, setAnswers] = useState<Record<string, string | number>>(() => {
+		if (initialAnswers && Object.keys(initialAnswers).length > 0) {
+			return initialAnswers;
+		}
+		return loadDraft(form.id) ?? {};
+	});
 	const [lastSaved, setLastSaved] = useState<Date | null>(null);
 
-	const sortedQuestions = [...questions].sort(
-		(a, b) => a.orderIndex - b.orderIndex,
-	);
+	const sortedQuestions = [...questions].sort((a, b) => a.orderIndex - b.orderIndex);
 
 	const currentQuestion = sortedQuestions[currentIndex];
 	const totalQuestions = sortedQuestions.length;
-	const progress =
-		totalQuestions > 0 ? ((currentIndex + 1) / totalQuestions) * 100 : 0;
+	const progress = totalQuestions > 0 ? ((currentIndex + 1) / totalQuestions) * 100 : 0;
 
 	const isFirstQuestion = currentIndex === 0;
 	const isLastQuestion = currentIndex === totalQuestions - 1;
@@ -175,16 +157,11 @@ export function FormTaker({
 
 	if (submitted) {
 		return (
-			<Card
-				className={cn("overflow-hidden", className)}
-				data-testid="form-taker"
-			>
+			<Card className={cn("overflow-hidden", className)} data-testid="form-taker">
 				<CardContent className="flex flex-col items-center justify-center py-12">
 					<CheckCircle2 className="h-16 w-16 text-green-500" />
 					<CardTitle className="mt-4 text-2xl">Form Submitted!</CardTitle>
-					<p className="mt-2 text-muted-foreground">
-						Thank you for your response.
-					</p>
+					<p className="mt-2 text-muted-foreground">Thank you for your response.</p>
 				</CardContent>
 			</Card>
 		);
@@ -192,10 +169,7 @@ export function FormTaker({
 
 	if (totalQuestions === 0) {
 		return (
-			<Card
-				className={cn("overflow-hidden", className)}
-				data-testid="form-taker"
-			>
+			<Card className={cn("overflow-hidden", className)} data-testid="form-taker">
 				<CardHeader className="space-y-4 bg-muted/30">
 					<CardTitle className="text-2xl font-bold">{form.title}</CardTitle>
 					{form.description && (

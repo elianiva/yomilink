@@ -1,7 +1,7 @@
 import { mutationOptions, queryOptions } from "@tanstack/react-query";
 import { createServerFn } from "@tanstack/react-start";
 import { Effect, Schema } from "effect";
-import { authMiddleware } from "@/middlewares/auth";
+
 import {
 	listStudentAssignments,
 	getAssignmentForStudent,
@@ -19,6 +19,8 @@ import {
 	GetPeerStatsInput,
 	SubmitControlTextInput,
 } from "@/features/learner-map/lib/learner-map-service";
+import { authMiddleware } from "@/middlewares/auth";
+
 import { AppLayer } from "../app-layer";
 import { errorResponse, logRpcError } from "../rpc-helper";
 
@@ -36,9 +38,7 @@ export const listStudentAssignmentsRpc = createServerFn()
 
 export const getAssignmentForStudentRpc = createServerFn()
 	.middleware([authMiddleware])
-	.inputValidator((raw) =>
-		Schema.decodeUnknownSync(GetAssignmentForStudentInput)(raw),
-	)
+	.inputValidator((raw) => Schema.decodeUnknownSync(GetAssignmentForStudentInput)(raw))
 	.handler(({ data, context }) =>
 		getAssignmentForStudent(context.user.id, data).pipe(
 			Effect.withSpan("getAssignmentForStudent"),
@@ -114,9 +114,7 @@ export const getPeerStatsRpc = createServerFn()
 
 export const submitControlTextRpc = createServerFn()
 	.middleware([authMiddleware])
-	.inputValidator((raw) =>
-		Schema.decodeUnknownSync(SubmitControlTextInput)(raw),
-	)
+	.inputValidator((raw) => Schema.decodeUnknownSync(SubmitControlTextInput)(raw))
 	.handler(({ data, context }) =>
 		submitControlText(context.user.id, data).pipe(
 			Effect.withSpan("submitControlText"),
@@ -147,16 +145,11 @@ export const LearnerMapRpc = {
 	submitLearnerMap: () =>
 		mutationOptions({
 			mutationKey: [...LearnerMapRpc.learnerMaps(), "submit"],
-			mutationFn: (data: SubmitLearnerMapInput) =>
-				submitLearnerMapRpc({ data }),
+			mutationFn: (data: SubmitLearnerMapInput) => submitLearnerMapRpc({ data }),
 		}),
 	getDiagnosis: (data: GetDiagnosisInput) =>
 		queryOptions({
-			queryKey: [
-				...LearnerMapRpc.learnerMaps(),
-				data.assignmentId,
-				"diagnosis",
-			],
+			queryKey: [...LearnerMapRpc.learnerMaps(), data.assignmentId, "diagnosis"],
 			queryFn: () => getDiagnosisRpc({ data }),
 		}),
 	startNewAttempt: () =>
@@ -166,17 +159,12 @@ export const LearnerMapRpc = {
 		}),
 	getPeerStats: (data: GetPeerStatsInput) =>
 		queryOptions({
-			queryKey: [
-				...LearnerMapRpc.learnerMaps(),
-				data.assignmentId,
-				"peer-stats",
-			],
+			queryKey: [...LearnerMapRpc.learnerMaps(), data.assignmentId, "peer-stats"],
 			queryFn: () => getPeerStatsRpc({ data }),
 		}),
 	submitControlText: () =>
 		mutationOptions({
 			mutationKey: [...LearnerMapRpc.learnerMaps(), "submit-control-text"],
-			mutationFn: (data: SubmitControlTextInput) =>
-				submitControlTextRpc({ data }),
+			mutationFn: (data: SubmitControlTextInput) => submitControlTextRpc({ data }),
 		}),
 };

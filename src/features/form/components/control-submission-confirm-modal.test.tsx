@@ -1,5 +1,6 @@
 import { render, screen, fireEvent } from "@testing-library/react";
 import { describe, it, expect, vi } from "vitest";
+
 import { ControlSubmissionConfirmModal } from "./control-submission-confirm-modal";
 
 describe("ControlSubmissionConfirmModal", () => {
@@ -16,36 +17,26 @@ describe("ControlSubmissionConfirmModal", () => {
 	it("renders when isOpen is true", () => {
 		render(<ControlSubmissionConfirmModal {...defaultProps} />);
 
-		expect(
-			screen.getByTestId("control-submission-confirm-modal"),
-		).toBeInTheDocument();
-		expect(
-			screen.getByRole("heading", { name: "Confirm Submission" }),
-		).toBeInTheDocument();
+		expect(screen.getByTestId("control-submission-confirm-modal")).toBeInTheDocument();
+		expect(screen.getByRole("heading", { name: "Confirm Submission" })).toBeInTheDocument();
 	});
 
 	it("does not render when isOpen is false", () => {
 		render(<ControlSubmissionConfirmModal {...defaultProps} isOpen={false} />);
 
-		expect(
-			screen.queryByTestId("control-submission-confirm-modal"),
-		).not.toBeInTheDocument();
+		expect(screen.queryByTestId("control-submission-confirm-modal")).not.toBeInTheDocument();
 	});
 
 	it("displays content preview", () => {
 		render(<ControlSubmissionConfirmModal {...defaultProps} />);
 
-		expect(screen.getByTestId("content-preview")).toHaveTextContent(
-			defaultProps.content,
-		);
+		expect(screen.getByTestId("content-preview")).toHaveTextContent(defaultProps.content);
 	});
 
 	it("displays word count", () => {
 		render(<ControlSubmissionConfirmModal {...defaultProps} />);
 
-		expect(screen.getByTestId("preview-word-count")).toHaveTextContent(
-			"10 words",
-		);
+		expect(screen.getByTestId("preview-word-count")).toHaveTextContent("10 words");
 	});
 
 	it("shows warning when word count is below minimum", () => {
@@ -94,9 +85,7 @@ describe("ControlSubmissionConfirmModal", () => {
 
 	it("calls onClose when cancel button clicked", () => {
 		const handleClose = vi.fn();
-		render(
-			<ControlSubmissionConfirmModal {...defaultProps} onClose={handleClose} />,
-		);
+		render(<ControlSubmissionConfirmModal {...defaultProps} onClose={handleClose} />);
 
 		fireEvent.click(screen.getByTestId("cancel-button"));
 		expect(handleClose).toHaveBeenCalledTimes(1);
@@ -105,9 +94,7 @@ describe("ControlSubmissionConfirmModal", () => {
 	it("shows submitting state", () => {
 		render(<ControlSubmissionConfirmModal {...defaultProps} isSubmitting />);
 
-		expect(screen.getByTestId("confirm-button")).toHaveTextContent(
-			"Submitting...",
-		);
+		expect(screen.getByTestId("confirm-button")).toHaveTextContent("Submitting...");
 		expect(screen.getByTestId("confirm-button")).toBeDisabled();
 		expect(screen.getByTestId("cancel-button")).toBeDisabled();
 	});
@@ -115,16 +102,12 @@ describe("ControlSubmissionConfirmModal", () => {
 	it("displays preview for empty content", () => {
 		render(<ControlSubmissionConfirmModal {...defaultProps} content="" />);
 
-		expect(screen.getByTestId("content-preview")).toHaveTextContent(
-			"No content provided",
-		);
+		expect(screen.getByTestId("content-preview")).toHaveTextContent("No content provided");
 	});
 
 	it("truncates long content in preview", () => {
 		const longContent = "a".repeat(1500);
-		render(
-			<ControlSubmissionConfirmModal {...defaultProps} content={longContent} />,
-		);
+		render(<ControlSubmissionConfirmModal {...defaultProps} content={longContent} />);
 
 		const preview = screen.getByTestId("content-preview");
 		expect(preview.textContent).toHaveLength(1003); // 1000 + "..."

@@ -1,6 +1,7 @@
 import * as SqliteDrizzle from "@effect/sql-drizzle/Sqlite";
 import { LibsqlClient } from "@effect/sql-libsql";
 import { Effect, Layer } from "effect";
+
 import { ServerConfig } from "@/config";
 
 const SqlLive = Layer.unwrapEffect(

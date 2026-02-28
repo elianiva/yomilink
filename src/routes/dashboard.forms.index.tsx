@@ -4,6 +4,7 @@ import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { FilePlusIcon, Loader2 } from "lucide-react";
 import { useState } from "react";
+
 import { Guard } from "@/components/auth/Guard";
 import { Button } from "@/components/ui/button";
 import {
@@ -14,10 +15,7 @@ import {
 	DialogHeader,
 	DialogTitle,
 } from "@/components/ui/dialog";
-import {
-	FormList,
-	type FormListItem,
-} from "@/features/form/components/form-list";
+import { FormList, type FormListItem } from "@/features/form/components/form-list";
 import { useRpcMutation } from "@/hooks/use-rpc-query";
 import { FormRpc } from "@/server/rpc/form";
 
@@ -124,15 +122,11 @@ function AdminFormsPage() {
 					<DialogHeader>
 						<DialogTitle>Delete Form</DialogTitle>
 						<DialogDescription>
-							Are you sure you want to delete this form? This action cannot be
-							undone.
+							Are you sure you want to delete this form? This action cannot be undone.
 						</DialogDescription>
 					</DialogHeader>
 					<DialogFooter>
-						<Button
-							variant="outline"
-							onClick={() => setDeleteDialogOpen(false)}
-						>
+						<Button variant="outline" onClick={() => setDeleteDialogOpen(false)}>
 							Cancel
 						</Button>
 						<Button

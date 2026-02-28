@@ -1,16 +1,9 @@
 import { useForm } from "@tanstack/react-form";
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { Schema } from "effect";
-import {
-	CheckCircle,
-	Circle,
-	Edit,
-	GitFork,
-	Loader2,
-	Plus,
-	Trash2,
-} from "lucide-react";
+import { CheckCircle, Circle, Edit, GitFork, Loader2, Plus, Trash2 } from "lucide-react";
 import { useMemo, useState } from "react";
+
 import {
 	AlertDialog,
 	AlertDialogAction,
@@ -38,8 +31,8 @@ import { Label } from "@/components/ui/label";
 import { Skeleton } from "@/components/ui/skeleton";
 import type { Topic } from "@/features/analyzer/lib/topic-service";
 import { useRpcMutation, useRpcQuery } from "@/hooks/use-rpc-query";
-import { cn, safeParseJson } from "@/lib/utils";
 import { formatRelativeTime } from "@/lib/date-utils";
+import { cn, safeParseJson } from "@/lib/utils";
 import { GoalMapRpc } from "@/server/rpc/goal-map";
 import { TopicRpc } from "@/server/rpc/topic";
 
@@ -55,10 +48,8 @@ function parseGoalMapStats(nodes: unknown, edges: unknown) {
 	let edgeCount = 0;
 
 	try {
-		const parsedNodes =
-			typeof nodes === "string" ? safeParseJson(nodes, []) : nodes;
-		const parsedEdges =
-			typeof edges === "string" ? safeParseJson(edges, []) : edges;
+		const parsedNodes = typeof nodes === "string" ? safeParseJson(nodes, []) : nodes;
+		const parsedEdges = typeof edges === "string" ? safeParseJson(edges, []) : edges;
 
 		if (Array.isArray(parsedNodes)) {
 			nodeCount = parsedNodes.length;
@@ -95,9 +86,7 @@ function DashboardHome() {
 		data: goalMapsData,
 		isLoading: goalMapsLoading,
 		rpcError: goalMapsError,
-	} = useRpcQuery(
-		GoalMapRpc.listGoalMapsByTopic({ topicId: selectedTopic?.id }),
-	);
+	} = useRpcQuery(GoalMapRpc.listGoalMapsByTopic({ topicId: selectedTopic?.id }));
 
 	// Ensure goal maps is always an array
 	const goalMaps = useMemo(() => {
@@ -219,7 +208,6 @@ function DashboardHome() {
 								.fill(0)
 								.map((_, i) => (
 									<Skeleton
-										// biome-ignore lint/suspicious/noArrayIndexKey: skeleton placeholders
 										key={i}
 										className="w-full h-32 rounded-xl"
 										style={{
@@ -277,7 +265,10 @@ function DashboardHome() {
 											</span>
 											{goalMap.kitId && (
 												<span className="inline-flex items-center gap-1 text-green-600">
-													<CheckCircle className="size-3" aria-hidden="true" />
+													<CheckCircle
+														className="size-3"
+														aria-hidden="true"
+													/>
 													Kit ready
 												</span>
 											)}
@@ -307,7 +298,8 @@ function DashboardHome() {
 											</Button>
 											<AlertDialog
 												open={
-													deleteConfirmOpen && goalMapToDelete === goalMap.id
+													deleteConfirmOpen &&
+													goalMapToDelete === goalMap.id
 												}
 											>
 												<AlertDialogTrigger asChild>
@@ -324,10 +316,13 @@ function DashboardHome() {
 												</AlertDialogTrigger>
 												<AlertDialogContent>
 													<AlertDialogHeader>
-														<AlertDialogTitle>Delete Goal Map</AlertDialogTitle>
+														<AlertDialogTitle>
+															Delete Goal Map
+														</AlertDialogTitle>
 														<AlertDialogDescription>
-															Are you sure you want to delete "{goalMap.title}"?
-															This action cannot be undone.
+															Are you sure you want to delete "
+															{goalMap.title}"? This action cannot be
+															undone.
 														</AlertDialogDescription>
 													</AlertDialogHeader>
 													<AlertDialogFooter>
@@ -378,12 +373,9 @@ const TopicSchema = Schema.Struct({
 function NewTopicDialog() {
 	const [isOpen, setIsOpen] = useState(false);
 	const [error, setError] = useState<string | null>(null);
-	const { mutate: createTopic, isPending } = useRpcMutation(
-		TopicRpc.createTopic(),
-		{
-			operation: "create topic",
-		},
-	);
+	const { mutate: createTopic, isPending } = useRpcMutation(TopicRpc.createTopic(), {
+		operation: "create topic",
+	});
 
 	const form = useForm({
 		defaultValues: {

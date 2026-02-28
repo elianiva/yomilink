@@ -1,14 +1,11 @@
 import { and, count, desc, eq } from "drizzle-orm";
 import { Data, Effect, Schema } from "effect";
+
 import { randomString } from "@/lib/utils";
 import { Database } from "@/server/db/client";
-import {
-	formProgress,
-	formResponses,
-	forms,
-	questions,
-} from "@/server/db/schema/app-schema";
+import { formProgress, formResponses, forms, questions } from "@/server/db/schema/app-schema";
 import { user } from "@/server/db/schema/auth-schema";
+
 import type { FormUnlockConditions } from "./unlock-service";
 
 /** Shared form type literals */
@@ -24,9 +21,7 @@ export const FORM_TYPES = [
 export type FormType = (typeof FORM_TYPES)[number];
 
 /** Schema for form type validation */
-export const FormTypeSchema = Schema.Union(
-	...FORM_TYPES.map((t) => Schema.Literal(t)),
-);
+export const FormTypeSchema = Schema.Union(...FORM_TYPES.map((t) => Schema.Literal(t)));
 
 export const CreateFormInput = Schema.Struct({
 	title: Schema.NonEmptyString,
@@ -48,9 +43,7 @@ class FormHasResponsesError extends Data.TaggedError("FormHasResponsesError")<{
 	readonly responseCount: number;
 }> {}
 
-class InvalidQuestionOrderError extends Data.TaggedError(
-	"InvalidQuestionOrderError",
-)<{
+class InvalidQuestionOrderError extends Data.TaggedError("InvalidQuestionOrderError")<{
 	readonly formId: string;
 	readonly reason: string;
 }> {}
@@ -59,9 +52,7 @@ class FormNotPublishedError extends Data.TaggedError("FormNotPublishedError")<{
 	readonly formId: string;
 }> {}
 
-class FormAlreadySubmittedError extends Data.TaggedError(
-	"FormAlreadySubmittedError",
-)<{
+class FormAlreadySubmittedError extends Data.TaggedError("FormAlreadySubmittedError")<{
 	readonly formId: string;
 	readonly userId: string;
 }> {}
@@ -72,36 +63,31 @@ export const CloneFormInput = Schema.Struct({
 
 export type CloneFormInput = typeof CloneFormInput.Type;
 
-export const createForm = Effect.fn("createForm")(
-	(userId: string, data: CreateFormInput) =>
-		Effect.gen(function* () {
-			const db = yield* Database;
+export const createForm = Effect.fn("createForm")((userId: string, data: CreateFormInput) =>
+	Effect.gen(function* () {
+		const db = yield* Database;
 
-			const formId = randomString();
+		const formId = randomString();
 
-			yield* db.insert(forms).values({
-				id: formId,
-				title: data.title,
-				description: data.description ?? null,
-				type: data.type ?? "registration",
-				status: "draft",
-				unlockConditions: data.unlockConditions ?? null,
-				createdBy: userId,
-			});
+		yield* db.insert(forms).values({
+			id: formId,
+			title: data.title,
+			description: data.description ?? null,
+			type: data.type ?? "registration",
+			status: "draft",
+			unlockConditions: data.unlockConditions ?? null,
+			createdBy: userId,
+		});
 
-			return { id: formId };
-		}),
+		return { id: formId };
+	}),
 );
 
 export const getFormById = Effect.fn("getFormById")((formId: string) =>
 	Effect.gen(function* () {
 		const db = yield* Database;
 
-		const formRows = yield* db
-			.select()
-			.from(forms)
-			.where(eq(forms.id, formId))
-			.limit(1);
+		const formRows = yield* db.select().from(forms).where(eq(forms.id, formId)).limit(1);
 
 		const formRow = formRows[0];
 		if (!formRow) {
@@ -180,11 +166,7 @@ export const updateForm = Effect.fn("updateForm")(
 		Effect.gen(function* () {
 			const db = yield* Database;
 
-			const formRows = yield* db
-				.select()
-				.from(forms)
-				.where(eq(forms.id, formId))
-				.limit(1);
+			const formRows = yield* db.select().from(forms).where(eq(forms.id, formId)).limit(1);
 
 			const form = formRows[0];
 			if (!form) {
@@ -233,11 +215,7 @@ export const deleteForm = Effect.fn("deleteForm")((formId: string) =>
 	Effect.gen(function* () {
 		const db = yield* Database;
 
-		const formRows = yield* db
-			.select()
-			.from(forms)
-			.where(eq(forms.id, formId))
-			.limit(1);
+		const formRows = yield* db.select().from(forms).where(eq(forms.id, formId)).limit(1);
 
 		const form = formRows[0];
 		if (!form) {
@@ -254,21 +232,14 @@ export const publishForm = Effect.fn("publishForm")((formId: string) =>
 	Effect.gen(function* () {
 		const db = yield* Database;
 
-		const formRows = yield* db
-			.select()
-			.from(forms)
-			.where(eq(forms.id, formId))
-			.limit(1);
+		const formRows = yield* db.select().from(forms).where(eq(forms.id, formId)).limit(1);
 
 		const form = formRows[0];
 		if (!form) {
 			return yield* new FormNotFoundError({ formId });
 		}
 
-		yield* db
-			.update(forms)
-			.set({ status: "published" })
-			.where(eq(forms.id, formId));
+		yield* db.update(forms).set({ status: "published" }).where(eq(forms.id, formId));
 
 		return { id: formId, status: "published" };
 	}),
@@ -278,74 +249,62 @@ export const unpublishForm = Effect.fn("unpublishForm")((formId: string) =>
 	Effect.gen(function* () {
 		const db = yield* Database;
 
-		const formRows = yield* db
-			.select()
-			.from(forms)
-			.where(eq(forms.id, formId))
-			.limit(1);
+		const formRows = yield* db.select().from(forms).where(eq(forms.id, formId)).limit(1);
 
 		const form = formRows[0];
 		if (!form) {
 			return yield* new FormNotFoundError({ formId });
 		}
 
-		yield* db
-			.update(forms)
-			.set({ status: "draft" })
-			.where(eq(forms.id, formId));
+		yield* db.update(forms).set({ status: "draft" }).where(eq(forms.id, formId));
 
 		return { id: formId, status: "draft" };
 	}),
 );
 
-export const cloneForm = Effect.fn("cloneForm")(
-	(formId: string, userId: string) =>
-		Effect.gen(function* () {
-			const db = yield* Database;
+export const cloneForm = Effect.fn("cloneForm")((formId: string, userId: string) =>
+	Effect.gen(function* () {
+		const db = yield* Database;
 
-			const formRows = yield* db
-				.select()
-				.from(forms)
-				.where(eq(forms.id, formId))
-				.limit(1);
+		const formRows = yield* db.select().from(forms).where(eq(forms.id, formId)).limit(1);
 
-			const originalForm = formRows[0];
-			if (!originalForm) {
-				return yield* new FormNotFoundError({ formId });
-			}
+		const originalForm = formRows[0];
+		if (!originalForm) {
+			return yield* new FormNotFoundError({ formId });
+		}
 
-			const originalQuestions = yield* db
-				.select()
-				.from(questions)
-				.where(eq(questions.formId, formId))
-				.orderBy(questions.orderIndex);
+		const originalQuestions = yield* db
+			.select()
+			.from(questions)
+			.where(eq(questions.formId, formId))
+			.orderBy(questions.orderIndex);
 
-			const newFormId = randomString();
+		const newFormId = randomString();
 
-			yield* db.insert(forms).values({
-				id: newFormId,
-				title: `${originalForm.title} (Copy)`,
-				description: originalForm.description,
-				type: originalForm.type,
-				status: "draft",
-				unlockConditions: originalForm.unlockConditions,
-				createdBy: userId,
+		yield* db.insert(forms).values({
+			id: newFormId,
+			title: `${originalForm.title} (Copy)`,
+			description: originalForm.description,
+			type: originalForm.type,
+			status: "draft",
+			unlockConditions: originalForm.unlockConditions,
+			createdBy: userId,
+		});
+
+		for (const question of originalQuestions) {
+			yield* db.insert(questions).values({
+				id: randomString(),
+				formId: newFormId,
+				type: question.type,
+				questionText: question.questionText,
+				options: question.options,
+				orderIndex: question.orderIndex,
+				required: question.required,
 			});
+		}
 
-			for (const question of originalQuestions) {
-				yield* db.insert(questions).values({
-					id: randomString(),
-					formId: newFormId,
-					type: question.type,
-					questionText: question.questionText,
-					options: question.options,
-					orderIndex: question.orderIndex,
-					required: question.required,
-				});
-			}
-
-			return { id: newFormId, originalFormId: formId };
-		}),
+		return { id: newFormId, originalFormId: formId };
+	}),
 );
 
 export const SubmitFormResponseInput = Schema.Struct({
@@ -369,71 +328,66 @@ export type GetFormResponsesInput = {
 	limit?: number;
 };
 
-export const getFormResponses = Effect.fn("getFormResponses")(
-	(input: GetFormResponsesInput) =>
-		Effect.gen(function* () {
-			const db = yield* Database;
+export const getFormResponses = Effect.fn("getFormResponses")((input: GetFormResponsesInput) =>
+	Effect.gen(function* () {
+		const db = yield* Database;
 
-			const formRows = yield* db
-				.select()
-				.from(forms)
-				.where(eq(forms.id, input.formId))
-				.limit(1);
+		const formRows = yield* db.select().from(forms).where(eq(forms.id, input.formId)).limit(1);
 
-			const form = formRows[0];
-			if (!form) {
-				return yield* new FormNotFoundError({ formId: input.formId });
-			}
+		const form = formRows[0];
+		if (!form) {
+			return yield* new FormNotFoundError({ formId: input.formId });
+		}
 
-			const page = Math.max(1, input.page ?? 1);
-			const limit = Math.min(100, Math.max(1, input.limit ?? 20));
-			const offset = (page - 1) * limit;
+		const page = Math.max(1, input.page ?? 1);
+		const limit = Math.min(100, Math.max(1, input.limit ?? 20));
+		const offset = (page - 1) * limit;
 
-			const [responseRows, countResult] = yield* Effect.all([
-				db
-					.select({
-						response: formResponses,
-						user: {
-							id: user.id,
-							name: user.name,
-							email: user.email,
-						},
-					})
-					.from(formResponses)
-					.where(eq(formResponses.formId, input.formId))
-					.innerJoin(user, eq(formResponses.userId, user.id))
-					.orderBy(desc(formResponses.submittedAt))
-					.limit(limit)
-					.offset(offset),
-				db
-					.select({ total: count() })
-					.from(formResponses)
-					.where(eq(formResponses.formId, input.formId)),
-			]);
+		const [responseRows, countResult] = yield* Effect.all([
+			db
+				.select({
+					response: formResponses,
+					user: {
+						id: user.id,
+						name: user.name,
+						email: user.email,
+					},
+				})
+				.from(formResponses)
+				.where(eq(formResponses.formId, input.formId))
+				.innerJoin(user, eq(formResponses.userId, user.id))
+				.orderBy(desc(formResponses.submittedAt))
+				.limit(limit)
+				.offset(offset),
+			db
+				.select({ total: count() })
+				.from(formResponses)
+				.where(eq(formResponses.formId, input.formId)),
+		]);
 
-			const total = countResult[0]?.total ?? 0;
-			const totalPages = Math.ceil(total / limit);
+		const total = countResult[0]?.total ?? 0;
+		const totalPages = Math.ceil(total / limit);
 
-			return {
-				responses: responseRows.map((row) => ({
-					id: row.response.id,
-					formId: row.response.formId,
-					userId: row.response.userId,
-					answers: row.response.answers as { [x: string]: {} },
-					submittedAt: row.response.submittedAt,
-					timeSpentSeconds: row.response.timeSpentSeconds,
-					user: row.user,
-				})),
-				pagination: {
-					page,
-					limit,
-					total,
-					totalPages,
-					hasNextPage: page < totalPages,
-					hasPrevPage: page > 1,
-				},
-			};
-		}),
+		return {
+			responses: responseRows.map((row) => ({
+				id: row.response.id,
+				formId: row.response.formId,
+				userId: row.response.userId,
+				answers: row.response.answers as { [x: string]: {} },
+				submittedAt: row.response.submittedAt,
+				timeSpentSeconds: row.response.timeSpentSeconds,
+				user: row.user,
+			})),
+			pagination: {
+				page,
+				limit,
+				total,
+				totalPages,
+				hasNextPage: page < totalPages,
+				hasPrevPage: page > 1,
+			},
+		};
+	}),
 );
 
 export const ReorderQuestionsInput = Schema.Struct({
@@ -443,159 +397,138 @@ export const ReorderQuestionsInput = Schema.Struct({
 
 export type ReorderQuestionsInput = typeof ReorderQuestionsInput.Type;
 
-export const reorderQuestions = Effect.fn("reorderQuestions")(
-	(input: ReorderQuestionsInput) =>
-		Effect.gen(function* () {
-			const db = yield* Database;
+export const reorderQuestions = Effect.fn("reorderQuestions")((input: ReorderQuestionsInput) =>
+	Effect.gen(function* () {
+		const db = yield* Database;
 
-			const formRows = yield* db
-				.select()
-				.from(forms)
-				.where(eq(forms.id, input.formId))
-				.limit(1);
+		const formRows = yield* db.select().from(forms).where(eq(forms.id, input.formId)).limit(1);
 
-			const form = formRows[0];
-			if (!form) {
-				return yield* new FormNotFoundError({ formId: input.formId });
-			}
+		const form = formRows[0];
+		if (!form) {
+			return yield* new FormNotFoundError({ formId: input.formId });
+		}
 
-			const responseRows = yield* db
-				.select()
-				.from(formResponses)
-				.where(eq(formResponses.formId, input.formId));
+		const responseRows = yield* db
+			.select()
+			.from(formResponses)
+			.where(eq(formResponses.formId, input.formId));
 
-			if (responseRows.length > 0) {
-				return yield* new FormHasResponsesError({
-					formId: input.formId,
-					responseCount: responseRows.length,
-				});
-			}
+		if (responseRows.length > 0) {
+			return yield* new FormHasResponsesError({
+				formId: input.formId,
+				responseCount: responseRows.length,
+			});
+		}
 
-			const existingQuestions = yield* db
-				.select()
-				.from(questions)
-				.where(eq(questions.formId, input.formId));
+		const existingQuestions = yield* db
+			.select()
+			.from(questions)
+			.where(eq(questions.formId, input.formId));
 
-			const existingQuestionIds = new Set(existingQuestions.map((q) => q.id));
-			const providedQuestionIds = new Set(input.questionIds);
+		const existingQuestionIds = new Set(existingQuestions.map((q) => q.id));
+		const providedQuestionIds = new Set(input.questionIds);
 
-			if (existingQuestionIds.size !== providedQuestionIds.size) {
+		if (existingQuestionIds.size !== providedQuestionIds.size) {
+			return yield* new InvalidQuestionOrderError({
+				formId: input.formId,
+				reason: "Question count mismatch",
+			});
+		}
+
+		for (const id of input.questionIds) {
+			if (!existingQuestionIds.has(id)) {
 				return yield* new InvalidQuestionOrderError({
 					formId: input.formId,
-					reason: "Question count mismatch",
+					reason: `Invalid question ID: ${id}`,
 				});
 			}
+		}
 
-			for (const id of input.questionIds) {
-				if (!existingQuestionIds.has(id)) {
-					return yield* new InvalidQuestionOrderError({
-						formId: input.formId,
-						reason: `Invalid question ID: ${id}`,
-					});
-				}
-			}
+		for (let i = 0; i < input.questionIds.length; i++) {
+			yield* db
+				.update(questions)
+				.set({ orderIndex: i })
+				.where(
+					and(eq(questions.id, input.questionIds[i]), eq(questions.formId, input.formId)),
+				);
+		}
 
-			for (let i = 0; i < input.questionIds.length; i++) {
-				yield* db
-					.update(questions)
-					.set({ orderIndex: i })
-					.where(
-						and(
-							eq(questions.id, input.questionIds[i]),
-							eq(questions.formId, input.formId),
-						),
-					);
-			}
-
-			return { formId: input.formId, reordered: input.questionIds.length };
-		}),
+		return { formId: input.formId, reordered: input.questionIds.length };
+	}),
 );
 
-export const submitFormResponse = Effect.fn("submitFormResponse")(
-	(data: SubmitFormResponseInput) =>
-		Effect.gen(function* () {
-			const db = yield* Database;
+export const submitFormResponse = Effect.fn("submitFormResponse")((data: SubmitFormResponseInput) =>
+	Effect.gen(function* () {
+		const db = yield* Database;
 
-			const formRows = yield* db
-				.select()
-				.from(forms)
-				.where(eq(forms.id, data.formId))
-				.limit(1);
+		const formRows = yield* db.select().from(forms).where(eq(forms.id, data.formId)).limit(1);
 
-			const form = formRows[0];
-			if (!form) {
-				return yield* new FormNotFoundError({ formId: data.formId });
-			}
+		const form = formRows[0];
+		if (!form) {
+			return yield* new FormNotFoundError({ formId: data.formId });
+		}
 
-			if (form.status !== "published") {
-				return yield* new FormNotPublishedError({ formId: data.formId });
-			}
+		if (form.status !== "published") {
+			return yield* new FormNotPublishedError({ formId: data.formId });
+		}
 
-			const existingResponse = yield* db
-				.select()
-				.from(formResponses)
-				.where(
-					and(
-						eq(formResponses.formId, data.formId),
-						eq(formResponses.userId, data.userId),
-					),
-				)
-				.limit(1);
+		const existingResponse = yield* db
+			.select()
+			.from(formResponses)
+			.where(
+				and(eq(formResponses.formId, data.formId), eq(formResponses.userId, data.userId)),
+			)
+			.limit(1);
 
-			if (existingResponse.length > 0) {
-				return yield* new FormAlreadySubmittedError({
-					formId: data.formId,
-					userId: data.userId,
-				});
-			}
-
-			const responseId = randomString();
-			const submittedAt = new Date();
-
-			yield* db.insert(formResponses).values({
-				id: responseId,
+		if (existingResponse.length > 0) {
+			return yield* new FormAlreadySubmittedError({
 				formId: data.formId,
 				userId: data.userId,
-				answers: data.answers,
-				submittedAt,
-				timeSpentSeconds: data.timeSpentSeconds ?? null,
 			});
+		}
 
-			const existingProgress = yield* db
-				.select()
-				.from(formProgress)
-				.where(
-					and(
-						eq(formProgress.formId, data.formId),
-						eq(formProgress.userId, data.userId),
-					),
-				)
-				.limit(1);
+		const responseId = randomString();
+		const submittedAt = new Date();
 
-			if (existingProgress.length > 0) {
-				yield* db
-					.update(formProgress)
-					.set({
-						status: "completed",
-						completedAt: submittedAt,
-					})
-					.where(eq(formProgress.id, existingProgress[0].id));
-			} else {
-				yield* db.insert(formProgress).values({
-					id: randomString(),
-					formId: data.formId,
-					userId: data.userId,
+		yield* db.insert(formResponses).values({
+			id: responseId,
+			formId: data.formId,
+			userId: data.userId,
+			answers: data.answers,
+			submittedAt,
+			timeSpentSeconds: data.timeSpentSeconds ?? null,
+		});
+
+		const existingProgress = yield* db
+			.select()
+			.from(formProgress)
+			.where(and(eq(formProgress.formId, data.formId), eq(formProgress.userId, data.userId)))
+			.limit(1);
+
+		if (existingProgress.length > 0) {
+			yield* db
+				.update(formProgress)
+				.set({
 					status: "completed",
 					completedAt: submittedAt,
-				});
-			}
-
-			return {
-				id: responseId,
+				})
+				.where(eq(formProgress.id, existingProgress[0].id));
+		} else {
+			yield* db.insert(formProgress).values({
+				id: randomString(),
 				formId: data.formId,
-				submittedAt,
-			};
-		}),
+				userId: data.userId,
+				status: "completed",
+				completedAt: submittedAt,
+			});
+		}
+
+		return {
+			id: responseId,
+			formId: data.formId,
+			submittedAt,
+		};
+	}),
 );
 
 // Question CRUD operations
@@ -631,19 +564,11 @@ export const TextOptions = Schema.Struct({
 
 export type TextOptions = typeof TextOptions.Type;
 
-export const QuestionOptions = Schema.Union(
-	McqOptions,
-	LikertOptions,
-	TextOptions,
-);
+export const QuestionOptions = Schema.Union(McqOptions, LikertOptions, TextOptions);
 
 export const CreateQuestionInput = Schema.Struct({
 	formId: Schema.NonEmptyString,
-	type: Schema.Union(
-		Schema.Literal("mcq"),
-		Schema.Literal("likert"),
-		Schema.Literal("text"),
-	),
+	type: Schema.Union(Schema.Literal("mcq"), Schema.Literal("likert"), Schema.Literal("text")),
 	questionText: Schema.NonEmptyString,
 	options: Schema.optionalWith(QuestionOptions, { nullable: true }),
 	required: Schema.optionalWith(Schema.Boolean, { default: () => true }),
@@ -655,63 +580,58 @@ class QuestionNotFoundError extends Data.TaggedError("QuestionNotFoundError")<{
 	readonly questionId: string;
 }> {}
 
-export const createQuestion = Effect.fn("createQuestion")(
-	(data: CreateQuestionInput) =>
-		Effect.gen(function* () {
-			const db = yield* Database;
+export const createQuestion = Effect.fn("createQuestion")((data: CreateQuestionInput) =>
+	Effect.gen(function* () {
+		const db = yield* Database;
 
-			const formRows = yield* db
-				.select()
-				.from(forms)
-				.where(eq(forms.id, data.formId))
-				.limit(1);
+		const formRows = yield* db.select().from(forms).where(eq(forms.id, data.formId)).limit(1);
 
-			const form = formRows[0];
-			if (!form) {
-				return yield* new FormNotFoundError({ formId: data.formId });
-			}
+		const form = formRows[0];
+		if (!form) {
+			return yield* new FormNotFoundError({ formId: data.formId });
+		}
 
-			const responseRows = yield* db
-				.select()
-				.from(formResponses)
-				.where(eq(formResponses.formId, data.formId));
+		const responseRows = yield* db
+			.select()
+			.from(formResponses)
+			.where(eq(formResponses.formId, data.formId));
 
-			if (responseRows.length > 0) {
-				return yield* new FormHasResponsesError({
-					formId: data.formId,
-					responseCount: responseRows.length,
-				});
-			}
-
-			const existingQuestions = yield* db
-				.select()
-				.from(questions)
-				.where(eq(questions.formId, data.formId));
-
-			const orderIndex = existingQuestions.length;
-
-			const questionId = randomString();
-
-			yield* db.insert(questions).values({
-				id: questionId,
+		if (responseRows.length > 0) {
+			return yield* new FormHasResponsesError({
 				formId: data.formId,
-				type: data.type,
-				questionText: data.questionText,
-				options: data.options ?? null,
-				orderIndex,
-				required: data.required,
+				responseCount: responseRows.length,
 			});
+		}
 
-			return {
-				id: questionId,
-				formId: data.formId,
-				type: data.type,
-				questionText: data.questionText,
-				options: data.options ?? null,
-				orderIndex,
-				required: data.required,
-			};
-		}),
+		const existingQuestions = yield* db
+			.select()
+			.from(questions)
+			.where(eq(questions.formId, data.formId));
+
+		const orderIndex = existingQuestions.length;
+
+		const questionId = randomString();
+
+		yield* db.insert(questions).values({
+			id: questionId,
+			formId: data.formId,
+			type: data.type,
+			questionText: data.questionText,
+			options: data.options ?? null,
+			orderIndex,
+			required: data.required,
+		});
+
+		return {
+			id: questionId,
+			formId: data.formId,
+			type: data.type,
+			questionText: data.questionText,
+			options: data.options ?? null,
+			orderIndex,
+			required: data.required,
+		};
+	}),
 );
 
 export const UpdateQuestionInput = Schema.Struct({
@@ -723,134 +643,129 @@ export const UpdateQuestionInput = Schema.Struct({
 
 export type UpdateQuestionInput = typeof UpdateQuestionInput.Type;
 
-export const updateQuestion = Effect.fn("updateQuestion")(
-	(data: UpdateQuestionInput) =>
-		Effect.gen(function* () {
-			const db = yield* Database;
+export const updateQuestion = Effect.fn("updateQuestion")((data: UpdateQuestionInput) =>
+	Effect.gen(function* () {
+		const db = yield* Database;
 
-			const questionRows = yield* db
-				.select()
-				.from(questions)
-				.where(eq(questions.id, data.questionId))
-				.limit(1);
+		const questionRows = yield* db
+			.select()
+			.from(questions)
+			.where(eq(questions.id, data.questionId))
+			.limit(1);
 
-			const question = questionRows[0];
-			if (!question) {
-				return yield* new QuestionNotFoundError({
-					questionId: data.questionId,
-				});
-			}
+		const question = questionRows[0];
+		if (!question) {
+			return yield* new QuestionNotFoundError({
+				questionId: data.questionId,
+			});
+		}
 
-			const responseRows = yield* db
-				.select()
-				.from(formResponses)
-				.where(eq(formResponses.formId, question.formId));
+		const responseRows = yield* db
+			.select()
+			.from(formResponses)
+			.where(eq(formResponses.formId, question.formId));
 
-			if (responseRows.length > 0) {
-				return yield* new FormHasResponsesError({
-					formId: question.formId,
-					responseCount: responseRows.length,
-				});
-			}
+		if (responseRows.length > 0) {
+			return yield* new FormHasResponsesError({
+				formId: question.formId,
+				responseCount: responseRows.length,
+			});
+		}
 
-			yield* db
-				.update(questions)
-				.set({
-					...(data.questionText !== undefined && {
-						questionText: data.questionText,
-					}),
-					...(data.options !== undefined && { options: data.options }),
-					...(data.required !== undefined && { required: data.required }),
-				})
-				.where(eq(questions.id, data.questionId));
+		yield* db
+			.update(questions)
+			.set({
+				...(data.questionText !== undefined && {
+					questionText: data.questionText,
+				}),
+				...(data.options !== undefined && { options: data.options }),
+				...(data.required !== undefined && { required: data.required }),
+			})
+			.where(eq(questions.id, data.questionId));
 
-			return { id: data.questionId };
-		}),
+		return { id: data.questionId };
+	}),
 );
 
-export const deleteQuestion = Effect.fn("deleteQuestion")(
-	(questionId: string) =>
-		Effect.gen(function* () {
-			const db = yield* Database;
+export const deleteQuestion = Effect.fn("deleteQuestion")((questionId: string) =>
+	Effect.gen(function* () {
+		const db = yield* Database;
 
-			const questionRows = yield* db
-				.select()
-				.from(questions)
-				.where(eq(questions.id, questionId))
-				.limit(1);
+		const questionRows = yield* db
+			.select()
+			.from(questions)
+			.where(eq(questions.id, questionId))
+			.limit(1);
 
-			const question = questionRows[0];
-			if (!question) {
-				return yield* new QuestionNotFoundError({ questionId });
-			}
+		const question = questionRows[0];
+		if (!question) {
+			return yield* new QuestionNotFoundError({ questionId });
+		}
 
-			const responseRows = yield* db
-				.select()
-				.from(formResponses)
-				.where(eq(formResponses.formId, question.formId));
+		const responseRows = yield* db
+			.select()
+			.from(formResponses)
+			.where(eq(formResponses.formId, question.formId));
 
-			if (responseRows.length > 0) {
-				return yield* new FormHasResponsesError({
-					formId: question.formId,
-					responseCount: responseRows.length,
-				});
-			}
+		if (responseRows.length > 0) {
+			return yield* new FormHasResponsesError({
+				formId: question.formId,
+				responseCount: responseRows.length,
+			});
+		}
 
-			yield* db.delete(questions).where(eq(questions.id, questionId));
+		yield* db.delete(questions).where(eq(questions.id, questionId));
 
-			return { id: questionId };
-		}),
+		return { id: questionId };
+	}),
 );
 
 // Check if user has completed the registration form
 // Returns the registration form ID if it exists and user's completion status
 
-export const getRegistrationFormStatus = Effect.fn("getRegistrationFormStatus")(
-	(userId: string) =>
-		Effect.gen(function* () {
-			const db = yield* Database;
+export const getRegistrationFormStatus = Effect.fn("getRegistrationFormStatus")((userId: string) =>
+	Effect.gen(function* () {
+		const db = yield* Database;
 
-			// Get the first published registration form
-			const registrationForms = yield* db
-				.select()
-				.from(forms)
-				.where(
-					and(eq(forms.type, "registration"), eq(forms.status, "published")),
-				)
-				.limit(1);
+		// Get the first published registration form
+		const registrationForms = yield* db
+			.select()
+			.from(forms)
+			.where(and(eq(forms.type, "registration"), eq(forms.status, "published")))
+			.limit(1);
 
-			const registrationForm = registrationForms[0];
+		const registrationForm = registrationForms[0];
 
-			// No registration form configured - user can proceed
-			if (!registrationForm) {
-				return {
-					hasRegistrationForm: false as const,
-					isCompleted: true,
-					formId: null,
-				};
-			}
-
-			// Check if user has completed this form
-			const userProgress = yield* db
-				.select()
-				.from(formProgress)
-				.where(
-					and(
-						eq(formProgress.formId, registrationForm.id),
-						eq(formProgress.userId, userId),
-						eq(formProgress.status, "completed"),
-					),
-				)
-				.limit(1);
-
-			const isCompleted = userProgress.length > 0;
-
+		// No registration form configured - user can proceed
+		if (!registrationForm) {
 			return {
-				hasRegistrationForm: true as const,
-				isCompleted,
-				formId: registrationForm.id,
+				hasRegistrationForm: false as const,
+				isCompleted: true,
+				formId: null,
 			};
-		}),
+		}
+
+		// Check if user has completed this form
+		const userProgress = yield* db
+			.select()
+			.from(formProgress)
+			.where(
+				and(
+					eq(formProgress.formId, registrationForm.id),
+					eq(formProgress.userId, userId),
+					eq(formProgress.status, "completed"),
+				),
+			)
+			.limit(1);
+
+		const isCompleted = userProgress.length > 0;
+
+		return {
+			hasRegistrationForm: true as const,
+			isCompleted,
+			formId: registrationForm.id,
+		};
+	}),
 );
 
 // Get all published forms for students with unlock status
@@ -882,8 +797,7 @@ export const getStudentForms = Effect.fn("getStudentForms")((userId: string) =>
 			let isUnlocked = false;
 
 			// Check unlock conditions
-			const unlockConditions =
-				form.unlockConditions as FormUnlockConditions | null;
+			const unlockConditions = form.unlockConditions as FormUnlockConditions | null;
 
 			if (!unlockConditions || unlockConditions.conditions.length === 0) {
 				// No conditions = available by default
@@ -891,8 +805,7 @@ export const getStudentForms = Effect.fn("getStudentForms")((userId: string) =>
 				isUnlocked = true;
 			} else if (progress) {
 				unlockStatus = progress.status;
-				isUnlocked =
-					progress.status === "available" || progress.status === "completed";
+				isUnlocked = progress.status === "available" || progress.status === "completed";
 			}
 
 			return {

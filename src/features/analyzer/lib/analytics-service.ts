@@ -1,6 +1,7 @@
 import { and, avg, count, desc, eq } from "drizzle-orm";
 import { Data, Effect, Schema } from "effect";
 import Papa from "papaparse";
+
 import {
 	classifyEdges,
 	compareMaps,
@@ -9,35 +10,26 @@ import {
 } from "@/features/learner-map/lib/comparator";
 import { parseJson } from "@/lib/utils";
 import { Database } from "@/server/db/client";
-import {
-	assignments,
-	diagnoses,
-	goalMaps,
-	kits,
-	learnerMaps,
-} from "@/server/db/schema/app-schema";
+import { assignments, diagnoses, goalMaps, kits, learnerMaps } from "@/server/db/schema/app-schema";
 import { user } from "@/server/db/schema/auth-schema";
 
 export const GetAnalyticsForAssignmentInput = Schema.Struct({
 	assignmentId: Schema.NonEmptyString,
 });
 
-export type GetAnalyticsForAssignmentInput =
-	typeof GetAnalyticsForAssignmentInput.Type;
+export type GetAnalyticsForAssignmentInput = typeof GetAnalyticsForAssignmentInput.Type;
 
 export const GetLearnerMapForAnalyticsInput = Schema.Struct({
 	learnerMapId: Schema.NonEmptyString,
 });
 
-export type GetLearnerMapForAnalyticsInput =
-	typeof GetLearnerMapForAnalyticsInput.Type;
+export type GetLearnerMapForAnalyticsInput = typeof GetLearnerMapForAnalyticsInput.Type;
 
 export const GetMultipleLearnerMapsInput = Schema.Struct({
 	learnerMapIds: Schema.Array(Schema.NonEmptyString),
 });
 
-export type GetMultipleLearnerMapsInput =
-	typeof GetMultipleLearnerMapsInput.Type;
+export type GetMultipleLearnerMapsInput = typeof GetMultipleLearnerMapsInput.Type;
 
 export const MapStatusSchema = Schema.Union(
 	Schema.Literal("draft"),
@@ -72,9 +64,7 @@ export type LearnerMapResult = Awaited<
 	Effect.Effect.Success<ReturnType<typeof getLearnerMapForAnalytics>>
 >;
 
-class AssignmentNotFoundError extends Data.TaggedError(
-	"AssignmentNotFoundError",
-)<{
+class AssignmentNotFoundError extends Data.TaggedError("AssignmentNotFoundError")<{
 	readonly assignmentId: string;
 }> {}
 
@@ -82,9 +72,7 @@ class GoalMapNotFoundError extends Data.TaggedError("GoalMapNotFoundError")<{
 	readonly goalMapId: string;
 }> {}
 
-class LearnerMapNotFoundError extends Data.TaggedError(
-	"LearnerMapNotFoundError",
-)<{
+class LearnerMapNotFoundError extends Data.TaggedError("LearnerMapNotFoundError")<{
 	readonly learnerMapId: string;
 }> {}
 
@@ -189,58 +177,54 @@ export type LearnerMapDetails = typeof LearnerMapDetailsSchema.Type;
 export const ExportResultSchema = Schema.Struct({
 	filename: Schema.String,
 	data: Schema.String,
-	contentType: Schema.Union(
-		Schema.Literal("text/csv"),
-		Schema.Literal("application/json"),
-	),
+	contentType: Schema.Union(Schema.Literal("text/csv"), Schema.Literal("application/json")),
 });
 
 export type ExportResult = typeof ExportResultSchema.Type;
 
-export const getTeacherAssignments = Effect.fn("getTeacherAssignments")(
-	(userId: string) =>
-		Effect.gen(function* () {
-			const db = yield* Database;
+export const getTeacherAssignments = Effect.fn("getTeacherAssignments")((userId: string) =>
+	Effect.gen(function* () {
+		const db = yield* Database;
 
-			const assignmentsWithStats = yield* db
-				.select({
-					id: assignments.id,
-					title: assignments.title,
-					goalMapId: assignments.goalMapId,
-					goalMapTitle: goalMaps.title,
-					kitId: kits.id,
-					createdAt: assignments.createdAt,
-					dueAt: assignments.dueAt,
-					submissionCount: count(learnerMaps.id),
-					avgScore: avg(diagnoses.score),
-				})
-				.from(assignments)
-				.leftJoin(goalMaps, eq(assignments.goalMapId, goalMaps.id))
-				.leftJoin(kits, eq(assignments.kitId, kits.id))
-				.leftJoin(learnerMaps, eq(learnerMaps.assignmentId, assignments.id))
-				.leftJoin(diagnoses, eq(diagnoses.learnerMapId, learnerMaps.id))
-				.where(eq(assignments.createdBy, userId))
-				.groupBy(
-					assignments.id,
-					goalMaps.title,
-					kits.id,
-					assignments.createdAt,
-					assignments.dueAt,
-				)
-				.orderBy(desc(assignments.createdAt));
+		const assignmentsWithStats = yield* db
+			.select({
+				id: assignments.id,
+				title: assignments.title,
+				goalMapId: assignments.goalMapId,
+				goalMapTitle: goalMaps.title,
+				kitId: kits.id,
+				createdAt: assignments.createdAt,
+				dueAt: assignments.dueAt,
+				submissionCount: count(learnerMaps.id),
+				avgScore: avg(diagnoses.score),
+			})
+			.from(assignments)
+			.leftJoin(goalMaps, eq(assignments.goalMapId, goalMaps.id))
+			.leftJoin(kits, eq(assignments.kitId, kits.id))
+			.leftJoin(learnerMaps, eq(learnerMaps.assignmentId, assignments.id))
+			.leftJoin(diagnoses, eq(diagnoses.learnerMapId, learnerMaps.id))
+			.where(eq(assignments.createdBy, userId))
+			.groupBy(
+				assignments.id,
+				goalMaps.title,
+				kits.id,
+				assignments.createdAt,
+				assignments.dueAt,
+			)
+			.orderBy(desc(assignments.createdAt));
 
-			return assignmentsWithStats.map((row) => ({
-				id: row.id,
-				title: row.title,
-				goalMapId: row.goalMapId,
-				goalMapTitle: row.goalMapTitle,
-				kitId: row.kitId,
-				totalSubmissions: Number(row.submissionCount ?? 0),
-				avgScore: row.avgScore ? Number(row.avgScore) : null,
-				createdAt: row.createdAt?.getTime() ?? 0,
-				dueAt: row.dueAt?.getTime() ?? null,
-			}));
-		}),
+		return assignmentsWithStats.map((row) => ({
+			id: row.id,
+			title: row.title,
+			goalMapId: row.goalMapId,
+			goalMapTitle: row.goalMapTitle,
+			kitId: row.kitId,
+			totalSubmissions: Number(row.submissionCount ?? 0),
+			avgScore: row.avgScore ? Number(row.avgScore) : null,
+			createdAt: row.createdAt?.getTime() ?? 0,
+			dueAt: row.dueAt?.getTime() ?? null,
+		}));
+	}),
 );
 
 export const getAnalyticsForAssignment = Effect.fn("getAnalyticsForAssignment")(
@@ -259,10 +243,7 @@ export const getAnalyticsForAssignment = Effect.fn("getAnalyticsForAssignment")(
 				})
 				.from(assignments)
 				.where(
-					and(
-						eq(assignments.id, input.assignmentId),
-						eq(assignments.createdBy, userId),
-					),
+					and(eq(assignments.id, input.assignmentId), eq(assignments.createdBy, userId)),
 				)
 				.limit(1);
 
@@ -326,10 +307,7 @@ export const getAnalyticsForAssignment = Effect.fn("getAnalyticsForAssignment")(
 						let totalGoalEdges = 0;
 
 						if (lm.perLink) {
-							const parsed = yield* parseJson(
-								lm.perLink,
-								PerLinkDiagnosisSchema,
-							);
+							const parsed = yield* parseJson(lm.perLink, PerLinkDiagnosisSchema);
 							correct = parsed.correct?.length ?? 0;
 							missing = parsed.missing?.length ?? 0;
 							excessive = parsed.excessive?.length ?? 0;
@@ -354,19 +332,14 @@ export const getAnalyticsForAssignment = Effect.fn("getAnalyticsForAssignment")(
 				{ concurrency: 10 },
 			);
 
-			const scores = finalLearners
-				.map((l) => l.score)
-				.filter((s): s is number => s !== null);
+			const scores = finalLearners.map((l) => l.score).filter((s): s is number => s !== null);
 
 			const summary = {
 				totalLearners: finalLearners.length,
-				submittedCount: finalLearners.filter((l) => l.status === "submitted")
-					.length,
+				submittedCount: finalLearners.filter((l) => l.status === "submitted").length,
 				draftCount: finalLearners.filter((l) => l.status === "draft").length,
 				avgScore:
-					scores.length > 0
-						? scores.reduce((a, b) => a + b, 0) / scores.length
-						: null,
+					scores.length > 0 ? scores.reduce((a, b) => a + b, 0) / scores.length : null,
 				medianScore:
 					scores.length > 0
 						? scores.sort((a, b) => a - b)[Math.floor(scores.length / 2)]
@@ -391,9 +364,7 @@ export const getAnalyticsForAssignment = Effect.fn("getAnalyticsForAssignment")(
 					title: goalMap.title,
 					nodes: parsedGoalMapNodes,
 					edges: parsedGoalMapEdges,
-					direction: yield* Schema.encode(GoalMapDirectionSchema)(
-						goalMap.direction,
-					),
+					direction: yield* Schema.encode(GoalMapDirectionSchema)(goalMap.direction),
 				},
 				learners: finalLearners,
 				summary,
@@ -465,10 +436,7 @@ export const getLearnerMapForAnalytics = Effect.fn("getLearnerMapForAnalytics")(
 			);
 
 			const diagnosis = compareMaps(parsedGoalMapEdges, parsedLearnerMapEdges);
-			const edgeClassifications = classifyEdges(
-				parsedGoalMapEdges,
-				parsedLearnerMapEdges,
-			);
+			const edgeClassifications = classifyEdges(parsedGoalMapEdges, parsedLearnerMapEdges);
 
 			return {
 				learnerMap: {
@@ -486,9 +454,7 @@ export const getLearnerMapForAnalytics = Effect.fn("getLearnerMapForAnalytics")(
 					title: goalMap.title,
 					nodes: parsedGoalMapNodes,
 					edges: parsedGoalMapEdges,
-					direction: yield* Schema.encode(GoalMapDirectionSchema)(
-						goalMap.direction,
-					),
+					direction: yield* Schema.encode(GoalMapDirectionSchema)(goalMap.direction),
 				},
 				diagnosis,
 				edgeClassifications,
@@ -519,10 +485,7 @@ export const getMultipleLearnerMaps = Effect.fn("getMultipleLearnerMaps")(
 export const exportAnalyticsData = Effect.fn("exportAnalyticsData")(
 	(input: ExportAnalyticsDataInput) =>
 		Effect.gen(function* () {
-			const timestamp = new Date()
-				.toISOString()
-				.replace(/[:.]/g, "")
-				.substring(0, 15);
+			const timestamp = new Date().toISOString().replace(/[:.]/g, "").substring(0, 15);
 
 			if (input.format === "csv") {
 				const csvData = [
@@ -554,9 +517,7 @@ export const exportAnalyticsData = Effect.fn("exportAnalyticsData")(
 						learner.missing.toString(),
 						learner.excessive.toString(),
 						learner.totalGoalEdges.toString(),
-						learner.submittedAt
-							? new Date(learner.submittedAt).toISOString()
-							: "",
+						learner.submittedAt ? new Date(learner.submittedAt).toISOString() : "",
 						input.analytics.assignment.title,
 					]);
 				}

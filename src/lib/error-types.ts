@@ -80,13 +80,7 @@ const NETWORK_ERROR_PATTERNS = [
 /**
  * Common not-found error patterns.
  */
-const NOT_FOUND_PATTERNS = [
-	"not found",
-	"notfound",
-	"404",
-	"does not exist",
-	"missing",
-] as const;
+const NOT_FOUND_PATTERNS = ["not found", "notfound", "404", "does not exist", "missing"] as const;
 
 /**
  * Common forbidden/unauthorized error patterns.
@@ -130,10 +124,7 @@ const SERVER_ERROR_PATTERNS = [
 /**
  * Checks if a message matches any of the given patterns.
  */
-function matchesPatterns(
-	message: string,
-	patterns: readonly string[],
-): boolean {
+function matchesPatterns(message: string, patterns: readonly string[]): boolean {
 	const lowerMessage = message.toLowerCase();
 	return patterns.some((pattern) => lowerMessage.includes(pattern));
 }
@@ -247,8 +238,7 @@ function categorizeByMessage(message: string): ErrorCategory {
  * Default user-friendly messages by category.
  */
 const DEFAULT_MESSAGES: Record<ErrorCategory, string> = {
-	network:
-		"Unable to connect. Please check your internet connection and try again.",
+	network: "Unable to connect. Please check your internet connection and try again.",
 	"not-found": "The requested resource could not be found.",
 	forbidden: "You don't have permission to perform this action.",
 	validation: "The provided data is invalid. Please check your input.",
@@ -316,8 +306,7 @@ export function getErrorDetails(error: unknown): ErrorDetails {
 
 	// Use default message for unknown errors or internal error details
 	const isInternalMessage =
-		rawMessage.toLowerCase().includes("internal") ||
-		rawMessage === "An unknown error occurred";
+		rawMessage.toLowerCase().includes("internal") || rawMessage === "An unknown error occurred";
 
 	const message = isInternalMessage ? DEFAULT_MESSAGES[category] : rawMessage;
 

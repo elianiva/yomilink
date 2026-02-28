@@ -11,10 +11,7 @@ interface ContextMenuOverlayProps {
  * A dark overlay that appears when a context menu is open.
  * This provides visual feedback that the canvas is in a special interaction state.
  */
-export function ContextMenuOverlay({
-	visible,
-	className,
-}: ContextMenuOverlayProps) {
+export function ContextMenuOverlay({ visible, className }: ContextMenuOverlayProps) {
 	if (!visible) return null;
 
 	return (

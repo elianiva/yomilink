@@ -1,6 +1,7 @@
 import { useQuery } from "@tanstack/react-query";
 import { Navigate, useLocation } from "@tanstack/react-router";
 import type { ReactNode } from "react";
+
 import { ProfileRpc } from "@/server/rpc/profile";
 
 export type Role = "teacher" | "admin" | "student";
@@ -22,12 +23,7 @@ type GuardProps = {
  *
  * If roles is omitted or empty, it allows any authenticated user (or anyone when auth gate is disabled).
  */
-export function Guard({
-	roles,
-	children,
-	fallback,
-	redirectTo = "/dashboard",
-}: GuardProps) {
+export function Guard({ roles, children, fallback, redirectTo = "/dashboard" }: GuardProps) {
 	const location = useLocation();
 	const { data: user } = useQuery(ProfileRpc.getMe());
 
@@ -51,7 +47,5 @@ export function Guard({
 		return <Navigate to={redirectTo} />;
 	}
 
-	return (
-		<div className="p-4 text-sm text-muted-foreground">Access restricted.</div>
-	);
+	return <div className="p-4 text-sm text-muted-foreground">Access restricted.</div>;
 }

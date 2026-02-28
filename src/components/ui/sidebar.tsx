@@ -12,6 +12,7 @@ import {
 	useMemo,
 	useState,
 } from "react";
+
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Separator } from "@/components/ui/separator";
@@ -99,17 +100,13 @@ function SidebarProvider({
 			try {
 				// Prefer Cookie Store API when available
 				const anyGlobal: any = globalThis as any;
-				if (
-					anyGlobal.cookieStore &&
-					typeof anyGlobal.cookieStore.set === "function"
-				) {
+				if (anyGlobal.cookieStore && typeof anyGlobal.cookieStore.set === "function") {
 					anyGlobal.cookieStore.set({
 						name: SIDEBAR_COOKIE_NAME,
 						value: String(openState),
 						path: "/",
 					});
 				} else if (typeof document !== "undefined") {
-					// biome-ignore lint/suspicious/noDocumentCookie: Fallback for older browsers
 					document.cookie = `${SIDEBAR_COOKIE_NAME}=${openState}; path=/; max-age=${SIDEBAR_COOKIE_MAX_AGE}`;
 				}
 			} catch {
@@ -127,10 +124,7 @@ function SidebarProvider({
 	// Adds a keyboard shortcut to toggle the sidebar.
 	useEffect(() => {
 		const handleKeyDown = (event: KeyboardEvent) => {
-			if (
-				event.key === SIDEBAR_KEYBOARD_SHORTCUT &&
-				(event.metaKey || event.ctrlKey)
-			) {
+			if (event.key === SIDEBAR_KEYBOARD_SHORTCUT && (event.metaKey || event.ctrlKey)) {
 				event.preventDefault();
 				toggleSidebar();
 			}
@@ -296,11 +290,7 @@ function Sidebar({
 	);
 }
 
-function SidebarTrigger({
-	className,
-	onClick,
-	...props
-}: ComponentProps<typeof Button>) {
+function SidebarTrigger({ className, onClick, ...props }: ComponentProps<typeof Button>) {
 	const { toggleSidebar } = useSidebar();
 
 	return (
@@ -394,10 +384,7 @@ function SidebarFooter({ className, ...props }: ComponentProps<"div">) {
 	);
 }
 
-function SidebarSeparator({
-	className,
-	...props
-}: ComponentProps<typeof Separator>) {
+function SidebarSeparator({ className, ...props }: ComponentProps<typeof Separator>) {
 	return (
 		<Separator
 			data-slot="sidebar-separator"
@@ -564,8 +551,7 @@ function SidebarMenuButton({
 		);
 	}
 
-	const tooltipContent =
-		typeof tooltip === "string" ? tooltip : tooltip.children;
+	const tooltipContent = typeof tooltip === "string" ? tooltip : tooltip.children;
 
 	return (
 		<TooltipTrigger
@@ -576,10 +562,7 @@ function SidebarMenuButton({
 					data-sidebar="menu-button"
 					data-size={size}
 					data-active={isActive}
-					className={cn(
-						sidebarMenuButtonVariants({ variant, size }),
-						className,
-					)}
+					className={cn(sidebarMenuButtonVariants({ variant, size }), className)}
 					{...props}
 				>
 					{children}
@@ -661,10 +644,7 @@ function SidebarMenuSkeleton({
 			{...props}
 		>
 			{showIcon && (
-				<Skeleton
-					className="size-4 rounded-md"
-					data-sidebar="menu-skeleton-icon"
-				/>
+				<Skeleton className="size-4 rounded-md" data-sidebar="menu-skeleton-icon" />
 			)}
 			<Skeleton
 				className="h-4 max-w-(--skeleton-width) flex-1"

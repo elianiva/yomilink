@@ -41,9 +41,7 @@ export type RpcResponse<T = unknown> = RpcErrorResponse | RpcSuccessResponse<T>;
  * // response is now narrowed to success type
  * ```
  */
-export function isErrorResponse(
-	response: unknown,
-): response is RpcErrorResponse {
+export function isErrorResponse(response: unknown): response is RpcErrorResponse {
 	if (response === null || response === undefined) {
 		return false;
 	}
@@ -66,9 +64,7 @@ export function isErrorResponse(
  * }
  * ```
  */
-export function isSuccess<T>(
-	response: unknown,
-): response is RpcSuccessResponse<T> {
+export function isSuccess<T>(response: unknown): response is RpcSuccessResponse<T> {
 	if (response === null || response === undefined) {
 		return false;
 	}
@@ -94,9 +90,7 @@ export function isSuccess<T>(
  * // Use goalMaps safely
  * ```
  */
-export function extractData<T>(
-	response: RpcResponse<T> | T | null | undefined,
-): T | null {
+export function extractData<T>(response: RpcResponse<T> | T | null | undefined): T | null {
 	if (response === null || response === undefined) {
 		return null;
 	}
@@ -109,7 +103,6 @@ export function extractData<T>(
 	// Check if it's a success response with explicit success: true
 	if (isSuccess<T>(response)) {
 		// Return the response without the success field
-		// biome-ignore lint/suspicious/noExplicitAny: need to extract success from response
 		const { success: _, ...data } = response as any;
 		return data as T;
 	}

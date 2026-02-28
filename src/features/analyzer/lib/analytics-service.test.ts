@@ -1,5 +1,7 @@
 import { assert, beforeEach, describe, it } from "@effect/vitest";
 import { Effect, Either } from "effect";
+
+import { simpleGoalMap } from "@/__tests__/fixtures/goal-maps";
 import {
 	createTestAssignment,
 	createTestDiagnosis,
@@ -8,9 +10,9 @@ import {
 	createTestLearnerMap,
 	createTestUser,
 } from "@/__tests__/fixtures/service-fixtures";
-import { simpleGoalMap } from "@/__tests__/fixtures/goal-maps";
 import { resetDatabase } from "@/__tests__/utils/test-helpers";
 import { DatabaseTest } from "@/server/db/client";
+
 import {
 	exportAnalyticsData,
 	getAnalyticsForAssignment,
@@ -20,9 +22,7 @@ import {
 } from "./analytics-service";
 
 describe("analytics-service", () => {
-	beforeEach(() =>
-		Effect.runPromise(resetDatabase.pipe(Effect.provide(DatabaseTest))),
-	);
+	beforeEach(() => Effect.runPromise(resetDatabase.pipe(Effect.provide(DatabaseTest))));
 
 	describe("getTeacherAssignments", () => {
 		it.effect("should return empty array when no assignments exist", () =>
@@ -151,56 +151,46 @@ describe("analytics-service", () => {
 	});
 
 	describe("getAnalyticsForAssignment", () => {
-		it.effect(
-			"should return AssignmentNotFoundError when assignment does not exist",
-			() =>
-				Effect.gen(function* () {
-					const teacher = yield* createTestUser();
+		it.effect("should return AssignmentNotFoundError when assignment does not exist", () =>
+			Effect.gen(function* () {
+				const teacher = yield* createTestUser();
 
-					const result = yield* Effect.either(
-						getAnalyticsForAssignment(teacher.id, {
-							assignmentId: "non-existent-id",
-						}),
-					);
+				const result = yield* Effect.either(
+					getAnalyticsForAssignment(teacher.id, {
+						assignmentId: "non-existent-id",
+					}),
+				);
 
-					Either.match(result, {
-						onLeft: (error) =>
-							assert.strictEqual(error._tag, "AssignmentNotFoundError"),
-						onRight: () => assert.fail("Expected Left but got Right"),
-					});
-				}).pipe(Effect.provide(DatabaseTest)),
+				Either.match(result, {
+					onLeft: (error) => assert.strictEqual(error._tag, "AssignmentNotFoundError"),
+					onRight: () => assert.fail("Expected Left but got Right"),
+				});
+			}).pipe(Effect.provide(DatabaseTest)),
 		);
 
-		it.effect(
-			"should return AssignmentNotFoundError when user is not the creator",
-			() =>
-				Effect.gen(function* () {
-					const teacher1 = yield* createTestUser({
-						email: "teacher1@test.com",
-					});
-					const teacher2 = yield* createTestUser({
-						email: "teacher2@test.com",
-					});
-					const goalMap = yield* createTestGoalMap(teacher1.id);
-					const kit = yield* createTestKit(goalMap.id, teacher1.id);
-					const assignment = yield* createTestAssignment(
-						teacher1.id,
-						goalMap.id,
-						kit.id,
-					);
+		it.effect("should return AssignmentNotFoundError when user is not the creator", () =>
+			Effect.gen(function* () {
+				const teacher1 = yield* createTestUser({
+					email: "teacher1@test.com",
+				});
+				const teacher2 = yield* createTestUser({
+					email: "teacher2@test.com",
+				});
+				const goalMap = yield* createTestGoalMap(teacher1.id);
+				const kit = yield* createTestKit(goalMap.id, teacher1.id);
+				const assignment = yield* createTestAssignment(teacher1.id, goalMap.id, kit.id);
 
-					const result = yield* Effect.either(
-						getAnalyticsForAssignment(teacher2.id, {
-							assignmentId: assignment.id,
-						}),
-					);
+				const result = yield* Effect.either(
+					getAnalyticsForAssignment(teacher2.id, {
+						assignmentId: assignment.id,
+					}),
+				);
 
-					Either.match(result, {
-						onLeft: (error) =>
-							assert.strictEqual(error._tag, "AssignmentNotFoundError"),
-						onRight: () => assert.fail("Expected Left but got Right"),
-					});
-				}).pipe(Effect.provide(DatabaseTest)),
+				Either.match(result, {
+					onLeft: (error) => assert.strictEqual(error._tag, "AssignmentNotFoundError"),
+					onRight: () => assert.fail("Expected Left but got Right"),
+				});
+			}).pipe(Effect.provide(DatabaseTest)),
 		);
 
 		it.effect("should return analytics for assignment with no learners", () =>
@@ -212,12 +202,9 @@ describe("analytics-service", () => {
 					edges: JSON.stringify(simpleGoalMap.edges),
 				});
 				const kit = yield* createTestKit(goalMap.id, teacher.id);
-				const assignment = yield* createTestAssignment(
-					teacher.id,
-					goalMap.id,
-					kit.id,
-					{ title: "Test Assignment" },
-				);
+				const assignment = yield* createTestAssignment(teacher.id, goalMap.id, kit.id, {
+					title: "Test Assignment",
+				});
 
 				const result = yield* getAnalyticsForAssignment(teacher.id, {
 					assignmentId: assignment.id,
@@ -246,21 +233,11 @@ describe("analytics-service", () => {
 					edges: JSON.stringify(simpleGoalMap.edges),
 				});
 				const kit = yield* createTestKit(goalMap.id, teacher.id);
-				const assignment = yield* createTestAssignment(
-					teacher.id,
-					goalMap.id,
-					kit.id,
-				);
-				yield* createTestLearnerMap(
-					student.id,
-					assignment.id,
-					goalMap.id,
-					kit.id,
-					{
-						status: "submitted",
-						submittedAt: new Date(),
-					},
-				);
+				const assignment = yield* createTestAssignment(teacher.id, goalMap.id, kit.id);
+				yield* createTestLearnerMap(student.id, assignment.id, goalMap.id, kit.id, {
+					status: "submitted",
+					submittedAt: new Date(),
+				});
 
 				const result = yield* getAnalyticsForAssignment(teacher.id, {
 					assignmentId: assignment.id,
@@ -295,11 +272,7 @@ describe("analytics-service", () => {
 					edges: JSON.stringify(simpleGoalMap.edges),
 				});
 				const kit = yield* createTestKit(goalMap.id, teacher.id);
-				const assignment = yield* createTestAssignment(
-					teacher.id,
-					goalMap.id,
-					kit.id,
-				);
+				const assignment = yield* createTestAssignment(teacher.id, goalMap.id, kit.id);
 
 				// Create learner maps with diagnoses
 				const lm1 = yield* createTestLearnerMap(
@@ -320,13 +293,9 @@ describe("analytics-service", () => {
 				);
 				yield* createTestDiagnosis(goalMap.id, lm2.id, { score: 0.6 });
 
-				yield* createTestLearnerMap(
-					student3.id,
-					assignment.id,
-					goalMap.id,
-					kit.id,
-					{ status: "draft" },
-				);
+				yield* createTestLearnerMap(student3.id, assignment.id, goalMap.id, kit.id, {
+					status: "draft",
+				});
 
 				const result = yield* getAnalyticsForAssignment(teacher.id, {
 					assignmentId: assignment.id,
@@ -353,11 +322,7 @@ describe("analytics-service", () => {
 					edges: JSON.stringify(simpleGoalMap.edges),
 				});
 				const kit = yield* createTestKit(goalMap.id, teacher.id);
-				const assignment = yield* createTestAssignment(
-					teacher.id,
-					goalMap.id,
-					kit.id,
-				);
+				const assignment = yield* createTestAssignment(teacher.id, goalMap.id, kit.id);
 				const learnerMap = yield* createTestLearnerMap(
 					student.id,
 					assignment.id,
@@ -398,11 +363,7 @@ describe("analytics-service", () => {
 					direction: "uni",
 				});
 				const kit = yield* createTestKit(goalMap.id, teacher.id);
-				const assignment = yield* createTestAssignment(
-					teacher.id,
-					goalMap.id,
-					kit.id,
-				);
+				const assignment = yield* createTestAssignment(teacher.id, goalMap.id, kit.id);
 
 				const result = yield* getAnalyticsForAssignment(teacher.id, {
 					assignmentId: assignment.id,
@@ -416,20 +377,17 @@ describe("analytics-service", () => {
 	});
 
 	describe("getLearnerMapForAnalytics", () => {
-		it.effect(
-			"should return LearnerMapNotFoundError when learner map does not exist",
-			() =>
-				Effect.gen(function* () {
-					const result = yield* Effect.either(
-						getLearnerMapForAnalytics({ learnerMapId: "non-existent-id" }),
-					);
+		it.effect("should return LearnerMapNotFoundError when learner map does not exist", () =>
+			Effect.gen(function* () {
+				const result = yield* Effect.either(
+					getLearnerMapForAnalytics({ learnerMapId: "non-existent-id" }),
+				);
 
-					Either.match(result, {
-						onLeft: (error) =>
-							assert.strictEqual(error._tag, "LearnerMapNotFoundError"),
-						onRight: () => assert.fail("Expected Left but got Right"),
-					});
-				}).pipe(Effect.provide(DatabaseTest)),
+				Either.match(result, {
+					onLeft: (error) => assert.strictEqual(error._tag, "LearnerMapNotFoundError"),
+					onRight: () => assert.fail("Expected Left but got Right"),
+				});
+			}).pipe(Effect.provide(DatabaseTest)),
 		);
 
 		it.effect("should return learner map details with diagnosis", () =>
@@ -444,11 +402,7 @@ describe("analytics-service", () => {
 					edges: JSON.stringify(simpleGoalMap.edges),
 				});
 				const kit = yield* createTestKit(goalMap.id, teacher.id);
-				const assignment = yield* createTestAssignment(
-					teacher.id,
-					goalMap.id,
-					kit.id,
-				);
+				const assignment = yield* createTestAssignment(teacher.id, goalMap.id, kit.id);
 				const learnerNodes = simpleGoalMap.nodes;
 				const learnerEdges = [simpleGoalMap.edges[0]]; // Only one edge
 				const learnerMap = yield* createTestLearnerMap(
@@ -487,11 +441,7 @@ describe("analytics-service", () => {
 					direction: "multi",
 				});
 				const kit = yield* createTestKit(goalMap.id, teacher.id);
-				const assignment = yield* createTestAssignment(
-					teacher.id,
-					goalMap.id,
-					kit.id,
-				);
+				const assignment = yield* createTestAssignment(teacher.id, goalMap.id, kit.id);
 				const learnerMap = yield* createTestLearnerMap(
 					student.id,
 					assignment.id,
@@ -523,11 +473,7 @@ describe("analytics-service", () => {
 					edges: JSON.stringify(simpleGoalMap.edges),
 				});
 				const kit = yield* createTestKit(goalMap.id, teacher.id);
-				const assignment = yield* createTestAssignment(
-					teacher.id,
-					goalMap.id,
-					kit.id,
-				);
+				const assignment = yield* createTestAssignment(teacher.id, goalMap.id, kit.id);
 
 				// Learner has one correct edge and one excessive edge
 				const learnerEdges = [
@@ -567,11 +513,7 @@ describe("analytics-service", () => {
 					edges: JSON.stringify(simpleGoalMap.edges),
 				});
 				const kit = yield* createTestKit(goalMap.id, teacher.id);
-				const assignment = yield* createTestAssignment(
-					teacher.id,
-					goalMap.id,
-					kit.id,
-				);
+				const assignment = yield* createTestAssignment(teacher.id, goalMap.id, kit.id);
 
 				const learnerEdges = [simpleGoalMap.edges[0]]; // Only first edge
 				const learnerMap = yield* createTestLearnerMap(
@@ -799,8 +741,7 @@ describe("analytics-service", () => {
 
 				// Filename format: KB-Analytics-YYYY-MM-DDTHHMM (15 chars from ISO string with colons/periods removed)
 				// ISO: "2026-01-01T16:05:39.123Z" -> replace ":" and "." -> "2026-01-01T160539123Z" -> substring(0,15) -> "2026-01-01T1605"
-				const filenamePattern =
-					/KB-Analytics-\d{4}-\d{2}-\d{2}T\d{4}\.(csv|json)/;
+				const filenamePattern = /KB-Analytics-\d{4}-\d{2}-\d{2}T\d{4}\.(csv|json)/;
 				assert.isTrue(
 					filenamePattern.test(csvResult.filename),
 					`CSV filename ${csvResult.filename} should match pattern`,
@@ -812,20 +753,18 @@ describe("analytics-service", () => {
 			}),
 		);
 
-		it.effect(
-			"should include submittedAt as ISO string in CSV when present",
-			() =>
-				Effect.gen(function* () {
-					const analytics = createMockAnalytics();
+		it.effect("should include submittedAt as ISO string in CSV when present", () =>
+			Effect.gen(function* () {
+				const analytics = createMockAnalytics();
 
-					const result = yield* exportAnalyticsData({
-						analytics,
-						format: "csv",
-					});
+				const result = yield* exportAnalyticsData({
+					analytics,
+					format: "csv",
+				});
 
-					// Student One has submittedAt
-					assert.isTrue(result.data.includes("2024-01-01T"));
-				}),
+				// Student One has submittedAt
+				assert.isTrue(result.data.includes("2024-01-01T"));
+			}),
 		);
 
 		it.effect("should include all learner data in JSON export", () =>

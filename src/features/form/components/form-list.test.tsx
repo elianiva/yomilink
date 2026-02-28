@@ -1,6 +1,7 @@
 import { render, screen } from "@testing-library/react";
 import { userEvent } from "@testing-library/user-event";
 import { describe, expect, it, vi } from "vitest";
+
 import { FormList, type FormListItem } from "./form-list";
 
 const mockForms: FormListItem[] = [
@@ -88,9 +89,7 @@ describe("FormList", () => {
 	it("should show dropdown menu with edit and delete options", () => {
 		const onEdit = vi.fn();
 		const onDelete = vi.fn();
-		render(
-			<FormList forms={[mockForms[0]]} onEdit={onEdit} onDelete={onDelete} />,
-		);
+		render(<FormList forms={[mockForms[0]]} onEdit={onEdit} onDelete={onDelete} />);
 
 		const moreButton = screen.getByRole("button", { hidden: true });
 		expect(moreButton).toBeInTheDocument();
@@ -98,9 +97,7 @@ describe("FormList", () => {
 
 	it("should not show dropdown menu when no handlers provided", () => {
 		render(<FormList forms={mockForms} />);
-		expect(
-			screen.queryByRole("button", { name: /more/i }),
-		).not.toBeInTheDocument();
+		expect(screen.queryByRole("button", { name: /more/i })).not.toBeInTheDocument();
 	});
 
 	it("should handle forms without description", () => {
@@ -131,9 +128,7 @@ describe("FormList", () => {
 
 	it("should apply custom className", () => {
 		render(<FormList forms={mockForms} className="custom-class" />);
-		const container = screen
-			.getByText("Pre-test Form")
-			.closest(".custom-class");
+		const container = screen.getByText("Pre-test Form").closest(".custom-class");
 		expect(container).toBeInTheDocument();
 	});
 

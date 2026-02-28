@@ -1,6 +1,7 @@
 "use client";
 
 import { Type, AlertCircle, CheckCircle2 } from "lucide-react";
+
 import { cn } from "@/lib/utils";
 
 export interface WordCountValidatorProps {
@@ -64,16 +65,11 @@ export function WordCountValidator({
 				className={cn("font-medium", status.textClassName)}
 				data-testid="word-count-message"
 			>
-				<StatusIcon
-					className={cn("mr-1 inline h-4 w-4", status.iconClassName)}
-				/>
+				<StatusIcon className={cn("mr-1 inline h-4 w-4", status.iconClassName)} />
 				{status.message}
 			</span>
 			{showLabels && minWordCount !== undefined && minWordCount > 0 && (
-				<span
-					className="text-xs text-muted-foreground"
-					data-testid="min-word-label"
-				>
+				<span className="text-xs text-muted-foreground" data-testid="min-word-label">
 					Minimum {minWordCount} words required
 				</span>
 			)}

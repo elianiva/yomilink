@@ -1,6 +1,7 @@
 import type { Node } from "@xyflow/react";
 import { Search, X } from "lucide-react";
 import { memo, useEffect, useId, useMemo, useState } from "react";
+
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { cn } from "@/lib/utils";
@@ -12,12 +13,7 @@ export type SearchNodesPanelProps = {
 	onSelectNode: (nodeId: string) => void;
 };
 
-function SearchNodesPanelImpl({
-	open,
-	nodes,
-	onClose,
-	onSelectNode,
-}: SearchNodesPanelProps) {
+function SearchNodesPanelImpl({ open, nodes, onClose, onSelectNode }: SearchNodesPanelProps) {
 	const [query, setQuery] = useState("");
 	const inputId = useId();
 

@@ -1,6 +1,7 @@
 import { render, screen } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { describe, expect, it, vi, beforeEach, afterEach } from "vitest";
+
 import { FormattingToolbar } from "./formatting-toolbar";
 
 describe("FormattingToolbar", () => {
@@ -35,10 +36,7 @@ describe("FormattingToolbar", () => {
 		expect(screen.getByLabelText("Italic")).toBeInTheDocument();
 		expect(screen.getByLabelText("Bullet list")).toBeInTheDocument();
 		expect(screen.getByLabelText("Numbered list")).toBeInTheDocument();
-		expect(screen.getByRole("toolbar")).toHaveAttribute(
-			"aria-label",
-			"Text formatting",
-		);
+		expect(screen.getByRole("toolbar")).toHaveAttribute("aria-label", "Text formatting");
 	});
 
 	it("applies bold formatting when bold button is clicked", async () => {
@@ -138,9 +136,7 @@ describe("FormattingToolbar", () => {
 	it("applies custom className", () => {
 		render(<FormattingToolbar className="custom-class" />);
 
-		expect(screen.getByTestId("formatting-toolbar")).toHaveClass(
-			"custom-class",
-		);
+		expect(screen.getByTestId("formatting-toolbar")).toHaveClass("custom-class");
 	});
 
 	it("renders separator between text and list buttons", () => {
@@ -157,14 +153,8 @@ describe("FormattingToolbar", () => {
 		render(<FormattingToolbar />);
 
 		expect(screen.getByTestId("bold-button")).toHaveAttribute("title", "Bold");
-		expect(screen.getByTestId("italic-button")).toHaveAttribute(
-			"title",
-			"Italic",
-		);
-		expect(screen.getByTestId("bullet-list-button")).toHaveAttribute(
-			"title",
-			"Bullet list",
-		);
+		expect(screen.getByTestId("italic-button")).toHaveAttribute("title", "Italic");
+		expect(screen.getByTestId("bullet-list-button")).toHaveAttribute("title", "Bullet list");
 		expect(screen.getByTestId("numbered-list-button")).toHaveAttribute(
 			"title",
 			"Numbered list",

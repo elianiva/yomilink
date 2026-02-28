@@ -1,7 +1,6 @@
 import { assert, beforeEach, describe, it } from "@effect/vitest";
 import { Effect, Either } from "effect";
-import { cohortMembers, cohorts } from "@/server/db/schema/auth-schema";
-import { assignmentTargets } from "@/server/db/schema/app-schema";
+
 import {
 	createTestAssignment,
 	createTestGoalMap,
@@ -10,6 +9,9 @@ import {
 } from "@/__tests__/fixtures/service-fixtures";
 import { resetDatabase } from "@/__tests__/utils/test-helpers";
 import { Database, DatabaseTest } from "@/server/db/client";
+import { assignmentTargets } from "@/server/db/schema/app-schema";
+import { cohortMembers, cohorts } from "@/server/db/schema/auth-schema";
+
 import {
 	canAccessAssignment,
 	canAccessGoalMap,
@@ -22,9 +24,7 @@ import {
 } from "./auth-authorization";
 
 describe("auth-authorization", () => {
-	beforeEach(() =>
-		Effect.runPromise(resetDatabase.pipe(Effect.provide(DatabaseTest))),
-	);
+	beforeEach(() => Effect.runPromise(resetDatabase.pipe(Effect.provide(DatabaseTest))));
 
 	describe("isGoalMapOwner", () => {
 		it.effect("should return true when user is the goal map owner", () =>
@@ -54,14 +54,11 @@ describe("auth-authorization", () => {
 			Effect.gen(function* () {
 				const user = yield* createTestUser();
 
-				const result = yield* Effect.either(
-					isGoalMapOwner(user.id, "non-existent-id"),
-				);
+				const result = yield* Effect.either(isGoalMapOwner(user.id, "non-existent-id"));
 
 				// Should either fail with GoalMapNotFoundError or return false
 				Either.match(result, {
-					onLeft: (error) =>
-						assert.strictEqual(error._tag, "GoalMapNotFoundError"),
+					onLeft: (error) => assert.strictEqual(error._tag, "GoalMapNotFoundError"),
 					onRight: (value) => assert.isFalse(value),
 				});
 			}).pipe(Effect.provide(DatabaseTest)),
@@ -69,87 +66,71 @@ describe("auth-authorization", () => {
 	});
 
 	describe("canAccessGoalMap", () => {
-		it.effect(
-			"should return true when user is the goal map owner (direct ownership)",
-			() =>
-				Effect.gen(function* () {
-					const teacher = yield* createTestUser();
-					const goalMap = yield* createTestGoalMap(teacher.id);
+		it.effect("should return true when user is the goal map owner (direct ownership)", () =>
+			Effect.gen(function* () {
+				const teacher = yield* createTestUser();
+				const goalMap = yield* createTestGoalMap(teacher.id);
 
-					const result = yield* canAccessGoalMap(teacher.id, goalMap.id);
+				const result = yield* canAccessGoalMap(teacher.id, goalMap.id);
 
-					assert.isTrue(result);
-				}).pipe(Effect.provide(DatabaseTest)),
+				assert.isTrue(result);
+			}).pipe(Effect.provide(DatabaseTest)),
 		);
 
-		it.effect(
-			"should return true when user has direct assignment target access",
-			() =>
-				Effect.gen(function* () {
-					const db = yield* Database;
-					const teacher = yield* createTestUser({ email: "teacher@test.com" });
-					const student = yield* createTestUser({
-						email: "student@test.com",
-						role: "student",
-					});
-					const goalMap = yield* createTestGoalMap(teacher.id);
-					const kit = yield* createTestKit(goalMap.id, teacher.id);
-					const assignment = yield* createTestAssignment(
-						teacher.id,
-						goalMap.id,
-						kit.id,
-					);
+		it.effect("should return true when user has direct assignment target access", () =>
+			Effect.gen(function* () {
+				const db = yield* Database;
+				const teacher = yield* createTestUser({ email: "teacher@test.com" });
+				const student = yield* createTestUser({
+					email: "student@test.com",
+					role: "student",
+				});
+				const goalMap = yield* createTestGoalMap(teacher.id);
+				const kit = yield* createTestKit(goalMap.id, teacher.id);
+				const assignment = yield* createTestAssignment(teacher.id, goalMap.id, kit.id);
 
-					yield* db.insert(assignmentTargets).values({
-						id: crypto.randomUUID(),
-						assignmentId: assignment.id,
-						userId: student.id,
-					});
+				yield* db.insert(assignmentTargets).values({
+					id: crypto.randomUUID(),
+					assignmentId: assignment.id,
+					userId: student.id,
+				});
 
-					const result = yield* canAccessGoalMap(student.id, goalMap.id);
+				const result = yield* canAccessGoalMap(student.id, goalMap.id);
 
-					assert.isTrue(result);
-				}).pipe(Effect.provide(DatabaseTest)),
+				assert.isTrue(result);
+			}).pipe(Effect.provide(DatabaseTest)),
 		);
 
-		it.effect(
-			"should return true when user is in a cohort targeted by assignment",
-			() =>
-				Effect.gen(function* () {
-					const db = yield* Database;
-					const teacher = yield* createTestUser({ email: "teacher@test.com" });
-					const student = yield* createTestUser({
-						email: "student@test.com",
-						role: "student",
-					});
-					const goalMap = yield* createTestGoalMap(teacher.id);
-					const kit = yield* createTestKit(goalMap.id, teacher.id);
-					const assignment = yield* createTestAssignment(
-						teacher.id,
-						goalMap.id,
-						kit.id,
-					);
+		it.effect("should return true when user is in a cohort targeted by assignment", () =>
+			Effect.gen(function* () {
+				const db = yield* Database;
+				const teacher = yield* createTestUser({ email: "teacher@test.com" });
+				const student = yield* createTestUser({
+					email: "student@test.com",
+					role: "student",
+				});
+				const goalMap = yield* createTestGoalMap(teacher.id);
+				const kit = yield* createTestKit(goalMap.id, teacher.id);
+				const assignment = yield* createTestAssignment(teacher.id, goalMap.id, kit.id);
 
-					const cohortId = crypto.randomUUID();
-					yield* db
-						.insert(cohorts)
-						.values({ id: cohortId, name: "Test Cohort" });
-					yield* db.insert(cohortMembers).values({
-						id: crypto.randomUUID(),
-						cohortId,
-						userId: student.id,
-					});
+				const cohortId = crypto.randomUUID();
+				yield* db.insert(cohorts).values({ id: cohortId, name: "Test Cohort" });
+				yield* db.insert(cohortMembers).values({
+					id: crypto.randomUUID(),
+					cohortId,
+					userId: student.id,
+				});
 
-					yield* db.insert(assignmentTargets).values({
-						id: crypto.randomUUID(),
-						assignmentId: assignment.id,
-						cohortId,
-					});
+				yield* db.insert(assignmentTargets).values({
+					id: crypto.randomUUID(),
+					assignmentId: assignment.id,
+					cohortId,
+				});
 
-					const result = yield* canAccessGoalMap(student.id, goalMap.id);
+				const result = yield* canAccessGoalMap(student.id, goalMap.id);
 
-					assert.isTrue(result);
-				}).pipe(Effect.provide(DatabaseTest)),
+				assert.isTrue(result);
+			}).pipe(Effect.provide(DatabaseTest)),
 		);
 
 		it.effect("should return false when user has no access", () =>
@@ -166,91 +147,78 @@ describe("auth-authorization", () => {
 			}).pipe(Effect.provide(DatabaseTest)),
 		);
 
-		it.effect(
-			"should return false when user is in cohort but cohort is not targeted",
-			() =>
-				Effect.gen(function* () {
-					const db = yield* Database;
-					const teacher = yield* createTestUser({ email: "teacher@test.com" });
-					const student = yield* createTestUser({
-						email: "student@test.com",
-						role: "student",
-					});
-					const goalMap = yield* createTestGoalMap(teacher.id);
+		it.effect("should return false when user is in cohort but cohort is not targeted", () =>
+			Effect.gen(function* () {
+				const db = yield* Database;
+				const teacher = yield* createTestUser({ email: "teacher@test.com" });
+				const student = yield* createTestUser({
+					email: "student@test.com",
+					role: "student",
+				});
+				const goalMap = yield* createTestGoalMap(teacher.id);
 
-					const cohortId = crypto.randomUUID();
-					yield* db
-						.insert(cohorts)
-						.values({ id: cohortId, name: "Test Cohort" });
-					yield* db.insert(cohortMembers).values({
-						id: crypto.randomUUID(),
-						cohortId,
-						userId: student.id,
-					});
+				const cohortId = crypto.randomUUID();
+				yield* db.insert(cohorts).values({ id: cohortId, name: "Test Cohort" });
+				yield* db.insert(cohortMembers).values({
+					id: crypto.randomUUID(),
+					cohortId,
+					userId: student.id,
+				});
 
-					const result = yield* canAccessGoalMap(student.id, goalMap.id);
+				const result = yield* canAccessGoalMap(student.id, goalMap.id);
 
-					assert.isFalse(result);
-				}).pipe(Effect.provide(DatabaseTest)),
+				assert.isFalse(result);
+			}).pipe(Effect.provide(DatabaseTest)),
 		);
 
 		it.effect("should handle non-existent goal map appropriately", () =>
 			Effect.gen(function* () {
 				const user = yield* createTestUser();
 
-				const result = yield* Effect.either(
-					canAccessGoalMap(user.id, "non-existent-id"),
-				);
+				const result = yield* Effect.either(canAccessGoalMap(user.id, "non-existent-id"));
 
 				Either.match(result, {
-					onLeft: (error) =>
-						assert.strictEqual(error._tag, "GoalMapNotFoundError"),
+					onLeft: (error) => assert.strictEqual(error._tag, "GoalMapNotFoundError"),
 					onRight: (value) => assert.isFalse(value),
 				});
 			}).pipe(Effect.provide(DatabaseTest)),
 		);
 
-		it.effect(
-			"should return false when user is in different cohort than assigned",
-			() =>
-				Effect.gen(function* () {
-					const db = yield* Database;
-					const teacher = yield* createTestUser({ email: "teacher@test.com" });
-					const student = yield* createTestUser({
-						email: "student@test.com",
-						role: "student",
-					});
-					const goalMap = yield* createTestGoalMap(teacher.id);
-					const kit = yield* createTestKit(goalMap.id, teacher.id);
-					const assignment = yield* createTestAssignment(
-						teacher.id,
-						goalMap.id,
-						kit.id,
-					);
+		it.effect("should return false when user is in different cohort than assigned", () =>
+			Effect.gen(function* () {
+				const db = yield* Database;
+				const teacher = yield* createTestUser({ email: "teacher@test.com" });
+				const student = yield* createTestUser({
+					email: "student@test.com",
+					role: "student",
+				});
+				const goalMap = yield* createTestGoalMap(teacher.id);
+				const kit = yield* createTestKit(goalMap.id, teacher.id);
+				const assignment = yield* createTestAssignment(teacher.id, goalMap.id, kit.id);
 
-					const cohortA = crypto.randomUUID();
-					const cohortB = crypto.randomUUID();
-					yield* db.insert(cohorts).values([
-						{ id: cohortA, name: "Cohort A" },
-						{ id: cohortB, name: "Cohort B" },
-					]);
+				const cohortA = crypto.randomUUID();
+				const cohortB = crypto.randomUUID();
+				yield* db.insert(cohorts).values([
+					{ id: cohortA, name: "Cohort A" },
+					{ id: cohortB, name: "Cohort B" },
+				]);
 
-					yield* db.insert(cohortMembers).values({
-						id: crypto.randomUUID(),
-						cohortId: cohortA,
-						userId: student.id,
-					});
+				yield* db.insert(cohortMembers).values({
+					id: crypto.randomUUID(),
+					cohortId: cohortA,
+					userId: student.id,
+				});
 
-					yield* db.insert(assignmentTargets).values({
-						id: crypto.randomUUID(),
-						assignmentId: assignment.id,
-						cohortId: cohortB,
-					});
+				yield* db.insert(assignmentTargets).values({
+					id: crypto.randomUUID(),
+					assignmentId: assignment.id,
+					cohortId: cohortB,
+				});
 
-					const result = yield* canAccessGoalMap(student.id, goalMap.id);
+				const result = yield* canAccessGoalMap(student.id, goalMap.id);
 
-					assert.isFalse(result);
-				}).pipe(Effect.provide(DatabaseTest)),
+				assert.isFalse(result);
+			}).pipe(Effect.provide(DatabaseTest)),
 		);
 	});
 
@@ -260,11 +228,7 @@ describe("auth-authorization", () => {
 				const teacher = yield* createTestUser();
 				const goalMap = yield* createTestGoalMap(teacher.id);
 				const kit = yield* createTestKit(goalMap.id, teacher.id);
-				const assignment = yield* createTestAssignment(
-					teacher.id,
-					goalMap.id,
-					kit.id,
-				);
+				const assignment = yield* createTestAssignment(teacher.id, goalMap.id, kit.id);
 
 				const result = yield* canAccessAssignment(teacher.id, assignment.id);
 
@@ -282,11 +246,7 @@ describe("auth-authorization", () => {
 				});
 				const goalMap = yield* createTestGoalMap(teacher.id);
 				const kit = yield* createTestKit(goalMap.id, teacher.id);
-				const assignment = yield* createTestAssignment(
-					teacher.id,
-					goalMap.id,
-					kit.id,
-				);
+				const assignment = yield* createTestAssignment(teacher.id, goalMap.id, kit.id);
 
 				yield* db.insert(assignmentTargets).values({
 					id: crypto.randomUUID(),
@@ -310,11 +270,7 @@ describe("auth-authorization", () => {
 				});
 				const goalMap = yield* createTestGoalMap(teacher.id);
 				const kit = yield* createTestKit(goalMap.id, teacher.id);
-				const assignment = yield* createTestAssignment(
-					teacher.id,
-					goalMap.id,
-					kit.id,
-				);
+				const assignment = yield* createTestAssignment(teacher.id, goalMap.id, kit.id);
 
 				const cohortId = crypto.randomUUID();
 				yield* db.insert(cohorts).values({ id: cohortId, name: "Test Cohort" });
@@ -344,16 +300,9 @@ describe("auth-authorization", () => {
 				});
 				const goalMap = yield* createTestGoalMap(teacher.id);
 				const kit = yield* createTestKit(goalMap.id, teacher.id);
-				const assignment = yield* createTestAssignment(
-					teacher.id,
-					goalMap.id,
-					kit.id,
-				);
+				const assignment = yield* createTestAssignment(teacher.id, goalMap.id, kit.id);
 
-				const result = yield* canAccessAssignment(
-					unauthorizedUser.id,
-					assignment.id,
-				);
+				const result = yield* canAccessAssignment(unauthorizedUser.id, assignment.id);
 
 				assert.isFalse(result);
 			}).pipe(Effect.provide(DatabaseTest)),
@@ -368,54 +317,47 @@ describe("auth-authorization", () => {
 				);
 
 				Either.match(result, {
-					onLeft: (error) =>
-						assert.strictEqual(error._tag, "AssignmentNotFoundError"),
+					onLeft: (error) => assert.strictEqual(error._tag, "AssignmentNotFoundError"),
 					onRight: (value) => assert.isFalse(value),
 				});
 			}).pipe(Effect.provide(DatabaseTest)),
 		);
 
-		it.effect(
-			"should return false when user is in different cohort than assigned",
-			() =>
-				Effect.gen(function* () {
-					const db = yield* Database;
-					const teacher = yield* createTestUser({ email: "teacher@test.com" });
-					const student = yield* createTestUser({
-						email: "student@test.com",
-						role: "student",
-					});
-					const goalMap = yield* createTestGoalMap(teacher.id);
-					const kit = yield* createTestKit(goalMap.id, teacher.id);
-					const assignment = yield* createTestAssignment(
-						teacher.id,
-						goalMap.id,
-						kit.id,
-					);
+		it.effect("should return false when user is in different cohort than assigned", () =>
+			Effect.gen(function* () {
+				const db = yield* Database;
+				const teacher = yield* createTestUser({ email: "teacher@test.com" });
+				const student = yield* createTestUser({
+					email: "student@test.com",
+					role: "student",
+				});
+				const goalMap = yield* createTestGoalMap(teacher.id);
+				const kit = yield* createTestKit(goalMap.id, teacher.id);
+				const assignment = yield* createTestAssignment(teacher.id, goalMap.id, kit.id);
 
-					const studentCohort = crypto.randomUUID();
-					const assignedCohort = crypto.randomUUID();
-					yield* db.insert(cohorts).values([
-						{ id: studentCohort, name: "Student Cohort" },
-						{ id: assignedCohort, name: "Assigned Cohort" },
-					]);
+				const studentCohort = crypto.randomUUID();
+				const assignedCohort = crypto.randomUUID();
+				yield* db.insert(cohorts).values([
+					{ id: studentCohort, name: "Student Cohort" },
+					{ id: assignedCohort, name: "Assigned Cohort" },
+				]);
 
-					yield* db.insert(cohortMembers).values({
-						id: crypto.randomUUID(),
-						cohortId: studentCohort,
-						userId: student.id,
-					});
+				yield* db.insert(cohortMembers).values({
+					id: crypto.randomUUID(),
+					cohortId: studentCohort,
+					userId: student.id,
+				});
 
-					yield* db.insert(assignmentTargets).values({
-						id: crypto.randomUUID(),
-						assignmentId: assignment.id,
-						cohortId: assignedCohort,
-					});
+				yield* db.insert(assignmentTargets).values({
+					id: crypto.randomUUID(),
+					assignmentId: assignment.id,
+					cohortId: assignedCohort,
+				});
 
-					const result = yield* canAccessAssignment(student.id, assignment.id);
+				const result = yield* canAccessAssignment(student.id, assignment.id);
 
-					assert.isFalse(result);
-				}).pipe(Effect.provide(DatabaseTest)),
+				assert.isFalse(result);
+			}).pipe(Effect.provide(DatabaseTest)),
 		);
 
 		it.effect("should handle mixed cohort and user targets correctly", () =>
@@ -432,11 +374,7 @@ describe("auth-authorization", () => {
 				});
 				const goalMap = yield* createTestGoalMap(teacher.id);
 				const kit = yield* createTestKit(goalMap.id, teacher.id);
-				const assignment = yield* createTestAssignment(
-					teacher.id,
-					goalMap.id,
-					kit.id,
-				);
+				const assignment = yield* createTestAssignment(teacher.id, goalMap.id, kit.id);
 
 				const cohortId = crypto.randomUUID();
 				yield* db.insert(cohorts).values({ id: cohortId, name: "Test Cohort" });
@@ -479,16 +417,14 @@ describe("auth-authorization", () => {
 			}).pipe(Effect.provide(DatabaseTest)),
 		);
 
-		it.effect(
-			"should return false when user does not have the specified role",
-			() =>
-				Effect.gen(function* () {
-					const student = yield* createTestUser({ role: "student" });
+		it.effect("should return false when user does not have the specified role", () =>
+			Effect.gen(function* () {
+				const student = yield* createTestUser({ role: "student" });
 
-					const result = yield* isRole(student.id, "teacher");
+				const result = yield* isRole(student.id, "teacher");
 
-					assert.isFalse(result);
-				}).pipe(Effect.provide(DatabaseTest)),
+				assert.isFalse(result);
+			}).pipe(Effect.provide(DatabaseTest)),
 		);
 
 		it.effect("should return false when user has no role", () =>
@@ -533,33 +469,27 @@ describe("auth-authorization", () => {
 			}).pipe(Effect.provide(DatabaseTest)),
 		);
 
-		it.effect(
-			"should return ForbiddenError when user does not have the required role",
-			() =>
-				Effect.gen(function* () {
-					const student = yield* createTestUser({ role: "student" });
+		it.effect("should return ForbiddenError when user does not have the required role", () =>
+			Effect.gen(function* () {
+				const student = yield* createTestUser({ role: "student" });
 
-					const result = yield* Effect.either(
-						requireRole("teacher")(student.id),
-					);
+				const result = yield* Effect.either(requireRole("teacher")(student.id));
 
-					Either.match(result, {
-						onLeft: (error) => {
-							assert.strictEqual(error._tag, "ForbiddenError");
-							assert.include(error.message, "teacher");
-						},
-						onRight: () => assert.fail("Expected Left but got Right"),
-					});
-				}).pipe(Effect.provide(DatabaseTest)),
+				Either.match(result, {
+					onLeft: (error) => {
+						assert.strictEqual(error._tag, "ForbiddenError");
+						assert.include(error.message, "teacher");
+					},
+					onRight: () => assert.fail("Expected Left but got Right"),
+				});
+			}).pipe(Effect.provide(DatabaseTest)),
 		);
 
 		it.effect("should return ForbiddenError when user has no role", () =>
 			Effect.gen(function* () {
 				const userWithNoRole = yield* createTestUser({ role: null });
 
-				const result = yield* Effect.either(
-					requireRole("teacher")(userWithNoRole.id),
-				);
+				const result = yield* Effect.either(requireRole("teacher")(userWithNoRole.id));
 
 				Either.match(result, {
 					onLeft: (error) => assert.strictEqual(error._tag, "ForbiddenError"),
@@ -570,49 +500,41 @@ describe("auth-authorization", () => {
 	});
 
 	describe("requireAnyRole", () => {
-		it.effect(
-			"should return userId when user has one of the required roles",
-			() =>
-				Effect.gen(function* () {
-					const teacher = yield* createTestUser({ role: "teacher" });
+		it.effect("should return userId when user has one of the required roles", () =>
+			Effect.gen(function* () {
+				const teacher = yield* createTestUser({ role: "teacher" });
 
-					const result = yield* requireAnyRole("teacher", "admin")(teacher.id);
+				const result = yield* requireAnyRole("teacher", "admin")(teacher.id);
 
-					assert.strictEqual(result, teacher.id);
-				}).pipe(Effect.provide(DatabaseTest)),
+				assert.strictEqual(result, teacher.id);
+			}).pipe(Effect.provide(DatabaseTest)),
 		);
 
-		it.effect(
-			"should return userId when user has the second role in the list",
-			() =>
-				Effect.gen(function* () {
-					const admin = yield* createTestUser({ role: "admin" });
+		it.effect("should return userId when user has the second role in the list", () =>
+			Effect.gen(function* () {
+				const admin = yield* createTestUser({ role: "admin" });
 
-					const result = yield* requireAnyRole("teacher", "admin")(admin.id);
+				const result = yield* requireAnyRole("teacher", "admin")(admin.id);
 
-					assert.strictEqual(result, admin.id);
-				}).pipe(Effect.provide(DatabaseTest)),
+				assert.strictEqual(result, admin.id);
+			}).pipe(Effect.provide(DatabaseTest)),
 		);
 
-		it.effect(
-			"should return ForbiddenError when user has none of the required roles",
-			() =>
-				Effect.gen(function* () {
-					const student = yield* createTestUser({ role: "student" });
+		it.effect("should return ForbiddenError when user has none of the required roles", () =>
+			Effect.gen(function* () {
+				const student = yield* createTestUser({ role: "student" });
 
-					const result = yield* Effect.either(
-						requireAnyRole("teacher", "admin")(student.id),
-					);
+				const result = yield* Effect.either(requireAnyRole("teacher", "admin")(student.id));
 
-					Either.match(result, {
-						onLeft: (error) => {
-							assert.strictEqual(error._tag, "ForbiddenError");
-							assert.include(error.message, "teacher");
-							assert.include(error.message, "admin");
-						},
-						onRight: () => assert.fail("Expected Left but got Right"),
-					});
-				}).pipe(Effect.provide(DatabaseTest)),
+				Either.match(result, {
+					onLeft: (error) => {
+						assert.strictEqual(error._tag, "ForbiddenError");
+						assert.include(error.message, "teacher");
+						assert.include(error.message, "admin");
+					},
+					onRight: () => assert.fail("Expected Left but got Right"),
+				});
+			}).pipe(Effect.provide(DatabaseTest)),
 		);
 
 		it.effect("should return ForbiddenError when user has no role", () =>
@@ -657,11 +579,7 @@ describe("auth-authorization", () => {
 			Effect.gen(function* () {
 				const moderator = yield* createTestUser({ role: "moderator" });
 
-				const result = yield* requireAnyRole(
-					"teacher",
-					"admin",
-					"moderator",
-				)(moderator.id);
+				const result = yield* requireAnyRole("teacher", "admin", "moderator")(moderator.id);
 
 				assert.strictEqual(result, moderator.id);
 			}).pipe(Effect.provide(DatabaseTest)),
@@ -680,26 +598,22 @@ describe("auth-authorization", () => {
 			}).pipe(Effect.provide(DatabaseTest)),
 		);
 
-		it.effect(
-			"should return ForbiddenError when user is not the goal map owner",
-			() =>
-				Effect.gen(function* () {
-					const teacher = yield* createTestUser({ email: "teacher@test.com" });
-					const otherUser = yield* createTestUser({ email: "other@test.com" });
-					const goalMap = yield* createTestGoalMap(teacher.id);
+		it.effect("should return ForbiddenError when user is not the goal map owner", () =>
+			Effect.gen(function* () {
+				const teacher = yield* createTestUser({ email: "teacher@test.com" });
+				const otherUser = yield* createTestUser({ email: "other@test.com" });
+				const goalMap = yield* createTestGoalMap(teacher.id);
 
-					const result = yield* Effect.either(
-						requireGoalMapOwner(otherUser.id, goalMap.id),
-					);
+				const result = yield* Effect.either(requireGoalMapOwner(otherUser.id, goalMap.id));
 
-					Either.match(result, {
-						onLeft: (error) => {
-							assert.strictEqual(error._tag, "ForbiddenError");
-							assert.include(error.message, "owner");
-						},
-						onRight: () => assert.fail("Expected Left but got Right"),
-					});
-				}).pipe(Effect.provide(DatabaseTest)),
+				Either.match(result, {
+					onLeft: (error) => {
+						assert.strictEqual(error._tag, "ForbiddenError");
+						assert.include(error.message, "owner");
+					},
+					onRight: () => assert.fail("Expected Left but got Right"),
+				});
+			}).pipe(Effect.provide(DatabaseTest)),
 		);
 
 		it.effect("should fail when goal map does not exist", () =>
@@ -735,58 +649,50 @@ describe("auth-authorization", () => {
 			}).pipe(Effect.provide(DatabaseTest)),
 		);
 
-		it.effect(
-			"should return userId when user has access via assignment target",
-			() =>
-				Effect.gen(function* () {
-					const db = yield* Database;
-					const teacher = yield* createTestUser({ email: "teacher@test.com" });
-					const student = yield* createTestUser({
-						email: "student@test.com",
-						role: "student",
-					});
-					const goalMap = yield* createTestGoalMap(teacher.id);
-					const kit = yield* createTestKit(goalMap.id, teacher.id);
-					const assignment = yield* createTestAssignment(
-						teacher.id,
-						goalMap.id,
-						kit.id,
-					);
+		it.effect("should return userId when user has access via assignment target", () =>
+			Effect.gen(function* () {
+				const db = yield* Database;
+				const teacher = yield* createTestUser({ email: "teacher@test.com" });
+				const student = yield* createTestUser({
+					email: "student@test.com",
+					role: "student",
+				});
+				const goalMap = yield* createTestGoalMap(teacher.id);
+				const kit = yield* createTestKit(goalMap.id, teacher.id);
+				const assignment = yield* createTestAssignment(teacher.id, goalMap.id, kit.id);
 
-					yield* db.insert(assignmentTargets).values({
-						id: crypto.randomUUID(),
-						assignmentId: assignment.id,
-						userId: student.id,
-					});
+				yield* db.insert(assignmentTargets).values({
+					id: crypto.randomUUID(),
+					assignmentId: assignment.id,
+					userId: student.id,
+				});
 
-					const result = yield* requireGoalMapAccess(student.id, goalMap.id);
+				const result = yield* requireGoalMapAccess(student.id, goalMap.id);
 
-					assert.strictEqual(result, student.id);
-				}).pipe(Effect.provide(DatabaseTest)),
+				assert.strictEqual(result, student.id);
+			}).pipe(Effect.provide(DatabaseTest)),
 		);
 
-		it.effect(
-			"should return ForbiddenError when user has no access to goal map",
-			() =>
-				Effect.gen(function* () {
-					const teacher = yield* createTestUser({ email: "teacher@test.com" });
-					const unauthorizedUser = yield* createTestUser({
-						email: "unauthorized@test.com",
-					});
-					const goalMap = yield* createTestGoalMap(teacher.id);
+		it.effect("should return ForbiddenError when user has no access to goal map", () =>
+			Effect.gen(function* () {
+				const teacher = yield* createTestUser({ email: "teacher@test.com" });
+				const unauthorizedUser = yield* createTestUser({
+					email: "unauthorized@test.com",
+				});
+				const goalMap = yield* createTestGoalMap(teacher.id);
 
-					const result = yield* Effect.either(
-						requireGoalMapAccess(unauthorizedUser.id, goalMap.id),
-					);
+				const result = yield* Effect.either(
+					requireGoalMapAccess(unauthorizedUser.id, goalMap.id),
+				);
 
-					Either.match(result, {
-						onLeft: (error) => {
-							assert.strictEqual(error._tag, "ForbiddenError");
-							assert.include(error.message, "access");
-						},
-						onRight: () => assert.fail("Expected Left but got Right"),
-					});
-				}).pipe(Effect.provide(DatabaseTest)),
+				Either.match(result, {
+					onLeft: (error) => {
+						assert.strictEqual(error._tag, "ForbiddenError");
+						assert.include(error.message, "access");
+					},
+					onRight: () => assert.fail("Expected Left but got Right"),
+				});
+			}).pipe(Effect.provide(DatabaseTest)),
 		);
 
 		it.effect("should fail when goal map does not exist", () =>

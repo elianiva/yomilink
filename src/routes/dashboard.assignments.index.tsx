@@ -7,10 +7,11 @@ import {
 	ChevronRightIcon,
 	ClockIcon,
 } from "lucide-react";
+
 import { Guard } from "@/components/auth/Guard";
 import { Button } from "@/components/ui/button";
-import { formatDate } from "@/lib/date-utils";
 import { useRpcQuery } from "@/hooks/use-rpc-query";
+import { formatDate } from "@/lib/date-utils";
 import { LearnerMapRpc } from "@/server/rpc/learner-map";
 
 export const Route = createFileRoute("/dashboard/assignments/")({
@@ -22,9 +23,7 @@ export const Route = createFileRoute("/dashboard/assignments/")({
 });
 
 function AssignmentsPage() {
-	const { data: assignments } = useRpcQuery(
-		LearnerMapRpc.listStudentAssignments(),
-	);
+	const { data: assignments } = useRpcQuery(LearnerMapRpc.listStudentAssignments());
 
 	const getStatusInfo = (
 		status: string,
@@ -40,9 +39,7 @@ function AssignmentsPage() {
 		if (status === "draft") {
 			return {
 				label: isLate ? "In Progress (Late)" : "In Progress",
-				color: isLate
-					? "text-amber-600 bg-amber-50"
-					: "text-blue-600 bg-blue-50",
+				color: isLate ? "text-amber-600 bg-amber-50" : "text-blue-600 bg-blue-50",
 				icon: ClockIcon,
 			};
 		}
@@ -128,7 +125,9 @@ function AssignmentsPage() {
 												>
 													<Link
 														to="/dashboard/forms/take"
-														search={{ formId: assignment.preTestFormId }}
+														search={{
+															formId: assignment.preTestFormId,
+														}}
 													>
 														Pre-Test
 													</Link>
@@ -144,7 +143,9 @@ function AssignmentsPage() {
 													>
 														<Link
 															to="/dashboard/forms/take"
-															search={{ formId: assignment.postTestFormId }}
+															search={{
+																formId: assignment.postTestFormId,
+															}}
 														>
 															Post-Test
 														</Link>
@@ -160,7 +161,9 @@ function AssignmentsPage() {
 													>
 														<Link
 															to="/dashboard/forms/take"
-															search={{ formId: assignment.tamFormId }}
+															search={{
+																formId: assignment.tamFormId,
+															}}
 														>
 															TAM Survey
 														</Link>

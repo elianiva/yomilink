@@ -1,23 +1,12 @@
-import {
-	BaseEdge,
-	type EdgeProps,
-	getStraightPath,
-	useInternalNode,
-} from "@xyflow/react";
+import { BaseEdge, type EdgeProps, getStraightPath, useInternalNode } from "@xyflow/react";
+
 import { getEdgeParams } from "../lib/floating-edge-utils";
 
 /**
  * A custom edge that connects to the closest point on the node boundary
  * rather than fixed handle positions.
  */
-export function FloatingEdge({
-	id,
-	source,
-	target,
-	markerEnd,
-	style,
-	data,
-}: EdgeProps) {
+export function FloatingEdge({ id, source, target, markerEnd, style, data }: EdgeProps) {
 	const sourceNode = useInternalNode(source);
 	const targetNode = useInternalNode(target);
 

@@ -1,4 +1,5 @@
 import { toast as sonnerToast } from "sonner";
+
 import { type ErrorCategory, getErrorDetails } from "./error-types";
 
 /**
@@ -77,9 +78,7 @@ function buildDescription(
 	// If we have a specific error message that's not the default, use it
 	const defaultCategoryMessage = CATEGORY_DESCRIPTIONS[category];
 	const hasSpecificMessage =
-		message &&
-		message !== defaultCategoryMessage &&
-		message !== "An unknown error occurred";
+		message && message !== defaultCategoryMessage && message !== "An unknown error occurred";
 
 	let description = hasSpecificMessage ? message : defaultCategoryMessage;
 
@@ -148,10 +147,7 @@ function showError(error: unknown, options: ErrorToastOptions = {}): string {
  * toast.success("Changes saved", { title: "Success" });
  * ```
  */
-function showSuccess(
-	message: string,
-	options: SuccessToastOptions = {},
-): string {
+function showSuccess(message: string, options: SuccessToastOptions = {}): string {
 	const { title, duration = 3000 } = options;
 
 	const toastId = sonnerToast.success(title || message, {
@@ -170,10 +166,7 @@ function showSuccess(
  * toast.info("Your changes will be saved automatically");
  * ```
  */
-function showInfo(
-	message: string,
-	options: { title?: string; duration?: number } = {},
-): string {
+function showInfo(message: string, options: { title?: string; duration?: number } = {}): string {
 	const { title, duration = 4000 } = options;
 
 	const toastId = sonnerToast.info(title || message, {
@@ -192,10 +185,7 @@ function showInfo(
  * toast.warning("This action cannot be undone");
  * ```
  */
-function showWarning(
-	message: string,
-	options: { title?: string; duration?: number } = {},
-): string {
+function showWarning(message: string, options: { title?: string; duration?: number } = {}): string {
 	const { title, duration = 5000 } = options;
 
 	const toastId = sonnerToast.warning(title || message, {
@@ -243,11 +233,7 @@ function updateSuccess(
 /**
  * Updates a toast to show an error.
  */
-function updateError(
-	toastId: string,
-	error: unknown,
-	options: ErrorToastOptions = {},
-): void {
+function updateError(toastId: string, error: unknown, options: ErrorToastOptions = {}): void {
 	const errorDetails = getErrorDetails(error);
 	const { title, duration = 5000 } = options;
 

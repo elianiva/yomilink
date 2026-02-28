@@ -1,6 +1,7 @@
 import { mutationOptions, queryOptions } from "@tanstack/react-query";
 import { createServerFn } from "@tanstack/react-start";
 import { Effect, Schema } from "effect";
+
 import {
 	ExportAnalyticsDataInput,
 	exportAnalyticsData,
@@ -13,6 +14,7 @@ import {
 	getTeacherAssignments,
 } from "@/features/analyzer/lib/analytics-service";
 import { authMiddleware } from "@/middlewares/auth";
+
 import { AppLayer } from "../app-layer";
 import { errorResponse, logRpcError } from "../rpc-helper";
 
@@ -30,9 +32,7 @@ export const getTeacherAssignmentsRpc = createServerFn()
 
 export const getAnalyticsForAssignmentRpc = createServerFn()
 	.middleware([authMiddleware])
-	.inputValidator((raw) =>
-		Schema.decodeUnknownSync(GetAnalyticsForAssignmentInput)(raw),
-	)
+	.inputValidator((raw) => Schema.decodeUnknownSync(GetAnalyticsForAssignmentInput)(raw))
 	.handler(({ data, context }) =>
 		getAnalyticsForAssignment(context.user.id, data).pipe(
 			Effect.withSpan("getAnalyticsForAssignment"),
@@ -40,8 +40,7 @@ export const getAnalyticsForAssignmentRpc = createServerFn()
 			Effect.catchTags({
 				AssignmentNotFoundError: (e) =>
 					errorResponse(`Assignment not found: ${e.assignmentId}`),
-				GoalMapNotFoundError: (e) =>
-					errorResponse(`Goal map not found: ${e.goalMapId}`),
+				GoalMapNotFoundError: (e) => errorResponse(`Goal map not found: ${e.goalMapId}`),
 			}),
 			Effect.catchAll(() => errorResponse("Internal server error")),
 			Effect.provide(AppLayer),
@@ -51,9 +50,7 @@ export const getAnalyticsForAssignmentRpc = createServerFn()
 
 export const getLearnerMapForAnalyticsRpc = createServerFn()
 	.middleware([authMiddleware])
-	.inputValidator((raw) =>
-		Schema.decodeUnknownSync(GetLearnerMapForAnalyticsInput)(raw),
-	)
+	.inputValidator((raw) => Schema.decodeUnknownSync(GetLearnerMapForAnalyticsInput)(raw))
 	.handler(({ data }) =>
 		getLearnerMapForAnalytics(data).pipe(
 			Effect.withSpan("getLearnerMapForAnalytics"),
@@ -62,8 +59,7 @@ export const getLearnerMapForAnalyticsRpc = createServerFn()
 			Effect.catchTags({
 				LearnerMapNotFoundError: (e) =>
 					errorResponse(`Learner map not found: ${e.learnerMapId}`),
-				GoalMapNotFoundError: (e) =>
-					errorResponse(`Goal map not found: ${e.goalMapId}`),
+				GoalMapNotFoundError: (e) => errorResponse(`Goal map not found: ${e.goalMapId}`),
 			}),
 			Effect.catchAll(() => errorResponse("Internal server error")),
 			Effect.runPromise,
@@ -72,9 +68,7 @@ export const getLearnerMapForAnalyticsRpc = createServerFn()
 
 export const getMultipleLearnerMapsRpc = createServerFn()
 	.middleware([authMiddleware])
-	.inputValidator((raw) =>
-		Schema.decodeUnknownSync(GetMultipleLearnerMapsInput)(raw),
-	)
+	.inputValidator((raw) => Schema.decodeUnknownSync(GetMultipleLearnerMapsInput)(raw))
 	.handler(({ data }) =>
 		getMultipleLearnerMaps(data).pipe(
 			Effect.withSpan("getMultipleLearnerMaps"),
@@ -87,9 +81,7 @@ export const getMultipleLearnerMapsRpc = createServerFn()
 
 export const exportAnalyticsDataRpc = createServerFn()
 	.middleware([authMiddleware])
-	.inputValidator((raw) =>
-		Schema.decodeUnknownSync(ExportAnalyticsDataInput)(raw),
-	)
+	.inputValidator((raw) => Schema.decodeUnknownSync(ExportAnalyticsDataInput)(raw))
 	.handler(({ data }) =>
 		exportAnalyticsData(data).pipe(
 			Effect.withSpan("exportAnalyticsData"),
@@ -125,7 +117,6 @@ export const AnalyticsRpc = {
 	exportAnalyticsData: () =>
 		mutationOptions({
 			mutationKey: [...AnalyticsRpc.analytics(), "export"],
-			mutationFn: (data: ExportAnalyticsDataInput) =>
-				exportAnalyticsDataRpc({ data }),
+			mutationFn: (data: ExportAnalyticsDataInput) => exportAnalyticsDataRpc({ data }),
 		}),
 };

@@ -1,7 +1,9 @@
 import { useQueryErrorResetBoundary } from "@tanstack/react-query";
 import type * as React from "react";
 import { Component, useCallback, useEffect, useRef } from "react";
+
 import { getErrorDetails } from "@/lib/error-types";
+
 import { ErrorCard } from "./ui/error-card";
 
 /**

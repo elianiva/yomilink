@@ -11,9 +11,9 @@ export function RouteProgress() {
 			const anyS = s as any;
 			return Boolean(
 				anyS?.isLoading ??
-					anyS?.isTransitioning ??
-					(typeof anyS?.status === "string" && anyS.status === "pending") ??
-					anyS?.pending,
+				anyS?.isTransitioning ??
+				(typeof anyS?.status === "string" && anyS.status === "pending") ??
+				anyS?.pending,
 			);
 		},
 	});

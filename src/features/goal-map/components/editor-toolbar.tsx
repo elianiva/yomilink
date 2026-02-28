@@ -11,16 +11,11 @@ import {
 	Trash2,
 } from "lucide-react";
 import { memo } from "react";
+
 import { ToolbarButton } from "@/components/toolbar/toolbar-button";
-import {
-	NavigationButtons,
-	ZoomButtons,
-} from "@/components/toolbar/toolbar-groups";
+import { NavigationButtons, ZoomButtons } from "@/components/toolbar/toolbar-groups";
 import { Button } from "@/components/ui/button";
-import {
-	ButtonGroup,
-	ButtonGroupSeparator,
-} from "@/components/ui/button-group";
+import { ButtonGroup, ButtonGroupSeparator } from "@/components/ui/button-group";
 import { Separator } from "@/components/ui/separator";
 import {
 	createTooltipHandle,
@@ -28,6 +23,7 @@ import {
 	TooltipProvider,
 	TooltipTrigger,
 } from "@/components/ui/tooltip";
+
 import { useSaveDialog } from "../hooks/use-save-dialog";
 import {
 	conceptDialogOpenAtom,
@@ -181,11 +177,7 @@ function EditorToolbarImpl({
 				/>
 				<ToolbarButton
 					icon={ArrowRight}
-					label={
-						directionEnabled
-							? "Disable edge direction"
-							: "Enable edge direction"
-					}
+					label={directionEnabled ? "Disable edge direction" : "Enable edge direction"}
 					onClick={onToggleDirection}
 					handle={tooltipHandle}
 				/>
@@ -216,12 +208,7 @@ function EditorToolbarImpl({
 				<Separator orientation="vertical" className="h-5! mx-1" />
 
 				<ButtonGroup className="ml-1">
-					<Button
-						size="sm"
-						variant="default"
-						onClick={handleSave}
-						disabled={saving}
-					>
+					<Button size="sm" variant="default" onClick={handleSave} disabled={saving}>
 						{saving ? (
 							<Loader2 className="size-4 animate-spin" />
 						) : (
@@ -267,7 +254,9 @@ function EditorToolbarImpl({
 												{kitStatus.exists ? (
 													<>
 														<div className="w-2 h-2 bg-green-500 rounded-full" />
-														<span className="font-medium">Kit Generated</span>
+														<span className="font-medium">
+															Kit Generated
+														</span>
 													</>
 												) : (
 													<>

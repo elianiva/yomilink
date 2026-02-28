@@ -1,5 +1,6 @@
 import { desc, eq, isNull } from "drizzle-orm";
 import { Effect, Schema } from "effect";
+
 import { validateNodes } from "@/features/goal-map/lib/validator";
 import { requireGoalMapOwner } from "@/lib/auth-authorization";
 import { safeParseJson } from "@/lib/utils";
@@ -111,11 +112,7 @@ export const getGoalMap = Effect.fn("getGoalMap")((input: GetGoalMapInput) =>
 		const nodes = Array.isArray(row.nodes) ? row.nodes : [];
 		const edges = Array.isArray(row.edges) ? row.edges : [];
 		const materialImages = row.materialImages
-			? yield* safeParseJson(
-					row.materialImages as string,
-					[],
-					Schema.Array(Schema.Unknown),
-				)
+			? yield* safeParseJson(row.materialImages as string, [], Schema.Array(Schema.Unknown))
 			: [];
 
 		return {
@@ -133,94 +130,92 @@ export const getGoalMap = Effect.fn("getGoalMap")((input: GetGoalMapInput) =>
 	}),
 );
 
-export const saveGoalMap = Effect.fn("saveGoalMap")(
-	(userId: string, data: SaveGoalMapInput) =>
-		Effect.gen(function* () {
-			const db = yield* Database;
+export const saveGoalMap = Effect.fn("saveGoalMap")((userId: string, data: SaveGoalMapInput) =>
+	Effect.gen(function* () {
+		const db = yield* Database;
 
-			if (data.goalMapId !== NEW_GOAL_MAP_ID) {
-				yield* requireGoalMapOwner(userId, data.goalMapId);
-			}
+		if (data.goalMapId !== NEW_GOAL_MAP_ID) {
+			yield* requireGoalMapOwner(userId, data.goalMapId);
+		}
 
-			const validationResult = yield* validateNodes(data.nodes, data.edges);
+		const validationResult = yield* validateNodes(data.nodes, data.edges);
 
-			if (!validationResult.isValid) {
-				return {
-					success: false,
-					errors: validationResult.errors,
-					warnings: validationResult.warnings,
-				} as const;
-			}
+		if (!validationResult.isValid) {
+			return {
+				success: false,
+				errors: validationResult.errors,
+				warnings: validationResult.warnings,
+			} as const;
+		}
 
-			let textId: string | null = null;
-			const hasMaterial =
-				data.materialText?.trim() ||
-				(data.materialImages && data.materialImages.length > 0);
+		let textId: string | null = null;
+		const hasMaterial =
+			data.materialText?.trim() || (data.materialImages && data.materialImages.length > 0);
 
-			if (hasMaterial) {
-				const existingRows = yield* db
-					.select({ textId: goalMaps.textId })
-					.from(goalMaps)
-					.where(eq(goalMaps.id, data.goalMapId))
-					.limit(1);
+		if (hasMaterial) {
+			const existingRows = yield* db
+				.select({ textId: goalMaps.textId })
+				.from(goalMaps)
+				.where(eq(goalMaps.id, data.goalMapId))
+				.limit(1);
 
-				const existing = existingRows[0];
-				if (existing?.textId) {
-					textId = existing.textId;
-					yield* db
-						.update(texts)
-						.set({
-							content: data.materialText || "",
-							images:
-								data.materialImages && data.materialImages.length > 0
-									? JSON.stringify(data.materialImages)
-									: null,
-							updatedAt: new Date(),
-						})
-						.where(eq(texts.id, textId as string));
-				} else {
-					textId = crypto.randomUUID();
-					yield* db.insert(texts).values({
-						id: textId as string,
-						title: `Material for ${data.title}`,
+			const existing = existingRows[0];
+			if (existing?.textId) {
+				textId = existing.textId;
+				yield* db
+					.update(texts)
+					.set({
 						content: data.materialText || "",
 						images:
 							data.materialImages && data.materialImages.length > 0
 								? JSON.stringify(data.materialImages)
 								: null,
-					});
-				}
-			}
-
-			const payload = {
-				id: data.goalMapId,
-				goalMapId: data.goalMapId,
-				title: data.title,
-				description: data.description ?? null,
-				nodes: JSON.stringify(data.nodes ?? []),
-				edges: JSON.stringify(data.edges ?? []),
-				updatedAt: new Date(),
-				teacherId: userId,
-				topicId: data.topicId ?? null,
-				textId,
-			};
-
-			yield* db
-				.insert(goalMaps)
-				.values(payload)
-				.onConflictDoUpdate({
-					where: eq(goalMaps.id, data.goalMapId),
-					target: goalMaps.id,
-					set: payload,
+						updatedAt: new Date(),
+					})
+					.where(eq(texts.id, textId as string));
+			} else {
+				textId = crypto.randomUUID();
+				yield* db.insert(texts).values({
+					id: textId as string,
+					title: `Material for ${data.title}`,
+					content: data.materialText || "",
+					images:
+						data.materialImages && data.materialImages.length > 0
+							? JSON.stringify(data.materialImages)
+							: null,
 				});
+			}
+		}
 
-			return {
-				success: true,
-				errors: validationResult.errors,
-				warnings: validationResult.warnings,
-				propositions: validationResult.propositions,
-			} as const;
-		}),
+		const payload = {
+			id: data.goalMapId,
+			goalMapId: data.goalMapId,
+			title: data.title,
+			description: data.description ?? null,
+			nodes: JSON.stringify(data.nodes ?? []),
+			edges: JSON.stringify(data.edges ?? []),
+			updatedAt: new Date(),
+			teacherId: userId,
+			topicId: data.topicId ?? null,
+			textId,
+		};
+
+		yield* db
+			.insert(goalMaps)
+			.values(payload)
+			.onConflictDoUpdate({
+				where: eq(goalMaps.id, data.goalMapId),
+				target: goalMaps.id,
+				set: payload,
+			});
+
+		return {
+			success: true,
+			errors: validationResult.errors,
+			warnings: validationResult.warnings,
+			propositions: validationResult.propositions,
+		} as const;
+	}),
 );
 
 export const listGoalMaps = Effect.fn("listGoalMaps")((userId: string) =>

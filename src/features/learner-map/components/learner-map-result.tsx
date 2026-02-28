@@ -2,9 +2,11 @@ import { useQueryClient } from "@tanstack/react-query";
 import { Link, useNavigate, getRouteApi } from "@tanstack/react-router";
 import type { Edge, MarkerType, Node } from "@xyflow/react";
 import { Background, MiniMap, ReactFlow } from "@xyflow/react";
+
 import "@xyflow/react/dist/style.css";
 import { ArrowLeftIcon, RefreshCwIcon } from "lucide-react";
 import { useMemo } from "react";
+
 import { Button } from "@/components/ui/button";
 import { ConnectorNode } from "@/features/kitbuild/components/connector-node";
 import { FloatingEdge } from "@/features/kitbuild/components/floating-edge";
@@ -36,13 +38,9 @@ export function LearnerMapResult() {
 		[],
 	);
 
-	const { data, isLoading } = useRpcQuery(
-		LearnerMapRpc.getDiagnosis({ assignmentId }),
-	);
+	const { data, isLoading } = useRpcQuery(LearnerMapRpc.getDiagnosis({ assignmentId }));
 
-	const { data: peerStats } = useRpcQuery(
-		LearnerMapRpc.getPeerStats({ assignmentId }),
-	);
+	const { data: peerStats } = useRpcQuery(LearnerMapRpc.getPeerStats({ assignmentId }));
 
 	const newAttemptMutation = useRpcMutation(LearnerMapRpc.startNewAttempt(), {
 		operation: "start new attempt",
@@ -67,9 +65,7 @@ export function LearnerMapResult() {
 	const processedEdges = useMemo(() => {
 		if (!data?.diagnosis || !data?.learnerMap) return [];
 
-		const correctSet = new Set(
-			data.diagnosis.correct.map((e) => `${e.source}-${e.target}`),
-		);
+		const correctSet = new Set(data.diagnosis.correct.map((e) => `${e.source}-${e.target}`));
 
 		// Color existing edges based on diagnosis
 		const coloredEdges = data.learnerMap.edges.map((edge) => {
@@ -90,23 +86,21 @@ export function LearnerMapResult() {
 		});
 
 		// Add missing edges as dashed lines
-		const missingEdges: Edge[] = data.diagnosis.missing.map(
-			(missing, index) => {
-				const style = getEdgeStyleByType("missing");
-				return {
-					id: `missing-${index}`,
-					source: missing.source,
-					target: missing.target,
-					type: "floating",
-					style,
-					animated: true,
-					markerEnd: {
-						type: "arrowclosed" as MarkerType,
-						color: style.stroke,
-					},
-				};
-			},
-		);
+		const missingEdges: Edge[] = data.diagnosis.missing.map((missing, index) => {
+			const style = getEdgeStyleByType("missing");
+			return {
+				id: `missing-${index}`,
+				source: missing.source,
+				target: missing.target,
+				type: "floating",
+				style,
+				animated: true,
+				markerEnd: {
+					type: "arrowclosed" as MarkerType,
+					color: style.stroke,
+				},
+			};
+		});
 
 		return [...coloredEdges, ...missingEdges];
 	}, [data]);
@@ -218,9 +212,7 @@ export function LearnerMapResult() {
 					{diagnosis.summary && (
 						<div className="bg-card border rounded-lg p-4">
 							<h3 className="font-medium mb-2">Summary</h3>
-							<p className="text-sm text-muted-foreground">
-								{diagnosis.summary}
-							</p>
+							<p className="text-sm text-muted-foreground">{diagnosis.summary}</p>
 						</div>
 					)}
 
@@ -262,8 +254,7 @@ export function LearnerMapResult() {
 						<div className="bg-primary/5 border border-primary/20 rounded-lg p-4 space-y-3">
 							<h3 className="font-medium text-primary">Next Steps</h3>
 							<p className="text-sm text-muted-foreground">
-								Please complete the following activities to finish the
-								experiment.
+								Please complete the following activities to finish the experiment.
 							</p>
 							<div className="space-y-2">
 								{assignment.postTestFormId && (

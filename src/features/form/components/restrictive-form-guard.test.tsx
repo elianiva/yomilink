@@ -1,6 +1,8 @@
 import { render, screen, waitFor } from "@testing-library/react";
 import { beforeEach, describe, expect, it, vi } from "vitest";
+
 import * as useFormUnlockModule from "@/hooks/use-form-unlock";
+
 import { RestrictiveFormGuard } from "./restrictive-form-guard";
 
 vi.mock("@/hooks/use-form-unlock", () => ({
@@ -91,9 +93,7 @@ describe("RestrictiveFormGuard", () => {
 		);
 
 		expect(screen.queryByTestId("children")).not.toBeInTheDocument();
-		expect(
-			screen.getByText(/Failed to check form status/i),
-		).toBeInTheDocument();
+		expect(screen.getByText(/Failed to check form status/i)).toBeInTheDocument();
 	});
 
 	it("shows blocked message when form is locked without redirect URL", async () => {
@@ -123,9 +123,7 @@ describe("RestrictiveFormGuard", () => {
 
 		await waitFor(() => {
 			expect(screen.getByText(/Form Required/i)).toBeInTheDocument();
-			expect(
-				screen.getByText(/Complete registration form first/i),
-			).toBeInTheDocument();
+			expect(screen.getByText(/Complete registration form first/i)).toBeInTheDocument();
 		});
 	});
 
@@ -156,12 +154,8 @@ describe("RestrictiveFormGuard", () => {
 
 		await waitFor(() => {
 			expect(screen.getByText(/Form Required/i)).toBeInTheDocument();
-			expect(
-				screen.getByText(/Complete registration form first/i),
-			).toBeInTheDocument();
-			expect(
-				screen.getByRole("button", { name: /Complete Form/i }),
-			).toBeInTheDocument();
+			expect(screen.getByText(/Complete registration form first/i)).toBeInTheDocument();
+			expect(screen.getByRole("button", { name: /Complete Form/i })).toBeInTheDocument();
 		});
 	});
 

@@ -1,15 +1,14 @@
 import { render, screen } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { describe, expect, it, vi } from "vitest";
+
 import {
 	createDefaultLikertData,
 	type LikertQuestionData,
 	LikertQuestionEditor,
 } from "./likert-question-editor";
 
-function createDefaultData(
-	overrides: Partial<LikertQuestionData> = {},
-): LikertQuestionData {
+function createDefaultData(overrides: Partial<LikertQuestionData> = {}): LikertQuestionData {
 	return {
 		questionText: "",
 		scaleSize: 5,
@@ -28,18 +27,14 @@ function createDefaultData(
 describe("LikertQuestionEditor", () => {
 	describe("rendering", () => {
 		it("renders question text textarea", () => {
-			render(
-				<LikertQuestionEditor data={createDefaultData()} onChange={vi.fn()} />,
-			);
+			render(<LikertQuestionEditor data={createDefaultData()} onChange={vi.fn()} />);
 
 			expect(screen.getByTestId("question-text-input")).toBeInTheDocument();
 			expect(screen.getByLabelText(/question text/i)).toBeInTheDocument();
 		});
 
 		it("renders scale size buttons", () => {
-			render(
-				<LikertQuestionEditor data={createDefaultData()} onChange={vi.fn()} />,
-			);
+			render(<LikertQuestionEditor data={createDefaultData()} onChange={vi.fn()} />);
 
 			expect(screen.getByTestId("scale-size-buttons")).toBeInTheDocument();
 			expect(screen.getByTestId("scale-size-5")).toBeInTheDocument();
@@ -47,46 +42,34 @@ describe("LikertQuestionEditor", () => {
 		});
 
 		it("renders label inputs for each scale point", () => {
-			render(
-				<LikertQuestionEditor data={createDefaultData()} onChange={vi.fn()} />,
-			);
+			render(<LikertQuestionEditor data={createDefaultData()} onChange={vi.fn()} />);
 
 			expect(screen.getByTestId("label-input-1")).toBeInTheDocument();
 			expect(screen.getByTestId("label-input-5")).toBeInTheDocument();
 		});
 
 		it("renders required toggle", () => {
-			render(
-				<LikertQuestionEditor data={createDefaultData()} onChange={vi.fn()} />,
-			);
+			render(<LikertQuestionEditor data={createDefaultData()} onChange={vi.fn()} />);
 
 			expect(screen.getByTestId("required-toggle")).toBeInTheDocument();
 		});
 
 		it("renders preview label", () => {
-			render(
-				<LikertQuestionEditor data={createDefaultData()} onChange={vi.fn()} />,
-			);
+			render(<LikertQuestionEditor data={createDefaultData()} onChange={vi.fn()} />);
 
 			expect(screen.getByTestId("preview-label")).toBeInTheDocument();
 		});
 
 		it("renders reset labels button", () => {
-			render(
-				<LikertQuestionEditor data={createDefaultData()} onChange={vi.fn()} />,
-			);
+			render(<LikertQuestionEditor data={createDefaultData()} onChange={vi.fn()} />);
 
 			expect(screen.getByTestId("reset-labels-button")).toBeInTheDocument();
 		});
 
 		it("applies correct styling for the editor container", () => {
-			render(
-				<LikertQuestionEditor data={createDefaultData()} onChange={vi.fn()} />,
-			);
+			render(<LikertQuestionEditor data={createDefaultData()} onChange={vi.fn()} />);
 
-			expect(screen.getByTestId("likert-question-editor")).toHaveClass(
-				"space-y-6",
-			);
+			expect(screen.getByTestId("likert-question-editor")).toHaveClass("space-y-6");
 		});
 	});
 
@@ -94,14 +77,9 @@ describe("LikertQuestionEditor", () => {
 		it("calls onChange when question text changes", async () => {
 			const user = userEvent.setup();
 			const onChange = vi.fn();
-			render(
-				<LikertQuestionEditor data={createDefaultData()} onChange={onChange} />,
-			);
+			render(<LikertQuestionEditor data={createDefaultData()} onChange={onChange} />);
 
-			await user.type(
-				screen.getByTestId("question-text-input"),
-				"Test question?",
-			);
+			await user.type(screen.getByTestId("question-text-input"), "Test question?");
 
 			expect(onChange).toHaveBeenCalled();
 		});
@@ -109,9 +87,7 @@ describe("LikertQuestionEditor", () => {
 		it("calls onChange when scale size button is clicked", async () => {
 			const user = userEvent.setup();
 			const onChange = vi.fn();
-			render(
-				<LikertQuestionEditor data={createDefaultData()} onChange={onChange} />,
-			);
+			render(<LikertQuestionEditor data={createDefaultData()} onChange={onChange} />);
 
 			await user.click(screen.getByTestId("scale-size-7"));
 
@@ -125,9 +101,7 @@ describe("LikertQuestionEditor", () => {
 		it("calls onChange when required toggle is clicked", async () => {
 			const user = userEvent.setup();
 			const onChange = vi.fn();
-			render(
-				<LikertQuestionEditor data={createDefaultData()} onChange={onChange} />,
-			);
+			render(<LikertQuestionEditor data={createDefaultData()} onChange={onChange} />);
 
 			await user.click(screen.getByTestId("required-toggle"));
 
@@ -141,9 +115,7 @@ describe("LikertQuestionEditor", () => {
 		it("calls onChange when label input changes", async () => {
 			const user = userEvent.setup();
 			const onChange = vi.fn();
-			render(
-				<LikertQuestionEditor data={createDefaultData()} onChange={onChange} />,
-			);
+			render(<LikertQuestionEditor data={createDefaultData()} onChange={onChange} />);
 
 			const input = screen.getByTestId("label-input-1");
 			await user.click(input);
@@ -187,9 +159,7 @@ describe("LikertQuestionEditor", () => {
 		it("updates label count when scale size changes to 7", async () => {
 			const user = userEvent.setup();
 			const onChange = vi.fn();
-			render(
-				<LikertQuestionEditor data={createDefaultData()} onChange={onChange} />,
-			);
+			render(<LikertQuestionEditor data={createDefaultData()} onChange={onChange} />);
 
 			await user.click(screen.getByTestId("scale-size-7"));
 

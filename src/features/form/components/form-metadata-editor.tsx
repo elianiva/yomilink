@@ -1,6 +1,7 @@
 "use client";
 
 import type * as React from "react";
+
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import {
@@ -61,9 +62,7 @@ export function FormMetadataEditor({
 		onChange({ ...metadata, title: e.target.value });
 	};
 
-	const handleDescriptionChange = (
-		e: React.ChangeEvent<HTMLTextAreaElement>,
-	) => {
+	const handleDescriptionChange = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
 		onChange({ ...metadata, description: e.target.value || null });
 	};
 
@@ -107,16 +106,8 @@ export function FormMetadataEditor({
 
 			<div className="space-y-2">
 				<Label htmlFor="form-type">Form Type</Label>
-				<Select
-					value={metadata.type}
-					onValueChange={handleTypeChange}
-					disabled={disabled}
-				>
-					<SelectTrigger
-						id="form-type"
-						data-testid="form-type-select"
-						className="w-full"
-					>
+				<Select value={metadata.type} onValueChange={handleTypeChange} disabled={disabled}>
+					<SelectTrigger id="form-type" data-testid="form-type-select" className="w-full">
 						<SelectValue placeholder="Select form type" />
 					</SelectTrigger>
 					<SelectContent>

@@ -1,12 +1,10 @@
 import { mutationOptions, queryOptions } from "@tanstack/react-query";
 import { createServerFn } from "@tanstack/react-start";
 import { Effect, Schema } from "effect";
+
+import { listTopics, createTopic, CreateTopicInput } from "@/features/analyzer/lib/topic-service";
 import { authMiddleware } from "@/middlewares/auth";
-import {
-	listTopics,
-	createTopic,
-	CreateTopicInput,
-} from "@/features/analyzer/lib/topic-service";
+
 import { AppLayer } from "../app-layer";
 import { errorResponse, logRpcError } from "../rpc-helper";
 

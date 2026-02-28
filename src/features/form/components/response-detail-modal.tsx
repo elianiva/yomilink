@@ -1,15 +1,8 @@
 "use client";
 
-import type {
-	FormResponse,
-	ResponseQuestion,
-} from "./individual-responses-table";
-import {
-	Dialog,
-	DialogContent,
-	DialogHeader,
-	DialogTitle,
-} from "@/components/ui/dialog";
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+
+import type { FormResponse, ResponseQuestion } from "./individual-responses-table";
 
 type ResponseDetailModalProps = {
 	response: FormResponse;
@@ -24,9 +17,7 @@ export function ResponseDetailModal({
 	open,
 	onOpenChange,
 }: ResponseDetailModalProps) {
-	const sortedQuestions = [...questions].sort(
-		(a, b) => a.orderIndex - b.orderIndex,
-	);
+	const sortedQuestions = [...questions].sort((a, b) => a.orderIndex - b.orderIndex);
 
 	const formatDate = (date: Date | string | null) => {
 		if (!date) return "-";
@@ -92,9 +83,7 @@ export function ResponseDetailModal({
 						<div className="grid grid-cols-2 gap-4">
 							<div>
 								<div className="text-sm text-muted-foreground">Student</div>
-								<div className="font-medium">
-									{response.user.name ?? "Unknown"}
-								</div>
+								<div className="font-medium">{response.user.name ?? "Unknown"}</div>
 							</div>
 							<div>
 								<div className="text-sm text-muted-foreground">Email</div>

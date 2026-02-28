@@ -1,15 +1,13 @@
 "use client";
 
 import { AlertCircle } from "lucide-react";
+
 import type { QuestionType } from "../question-list";
 import { type LikertQuestionData, LikertRenderer } from "./likert-renderer";
 import { type McqQuestionData, McqRenderer } from "./mcq-renderer";
 import { type TextQuestionData, TextRenderer } from "./text-renderer";
 
-export type QuestionData =
-	| McqQuestionData
-	| LikertQuestionData
-	| TextQuestionData;
+export type QuestionData = McqQuestionData | LikertQuestionData | TextQuestionData;
 
 interface QuestionRendererProps {
 	question: {

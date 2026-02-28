@@ -1,5 +1,6 @@
 import { ArrowLeft, ArrowRight, Pencil, Trash2 } from "lucide-react";
 import { memo, useCallback, useEffect, useRef } from "react";
+
 import { Button } from "@/components/ui/button";
 import {
 	createTooltipHandle,
@@ -34,12 +35,7 @@ type ActionButtonProps = {
 	variant?: "default" | "destructive";
 };
 
-function ActionButton({
-	icon,
-	label,
-	onClick,
-	variant = "default",
-}: ActionButtonProps) {
+function ActionButton({ icon, label, onClick, variant = "default" }: ActionButtonProps) {
 	return (
 		<TooltipTrigger
 			handle={tooltipHandle}
@@ -89,9 +85,7 @@ function NodeContextMenuImpl({
 	const handleKeyDown = useCallback(
 		(e: React.KeyboardEvent) => {
 			const menuItems =
-				menuRef.current?.querySelectorAll<HTMLButtonElement>(
-					'[role="menuitem"]',
-				);
+				menuRef.current?.querySelectorAll<HTMLButtonElement>('[role="menuitem"]');
 			if (!menuItems?.length) return;
 
 			const currentIndex = Array.from(menuItems).indexOf(
@@ -109,8 +103,7 @@ function NodeContextMenuImpl({
 				case "ArrowLeft":
 				case "ArrowUp": {
 					e.preventDefault();
-					const prevIndex =
-						currentIndex <= 0 ? menuItems.length - 1 : currentIndex - 1;
+					const prevIndex = currentIndex <= 0 ? menuItems.length - 1 : currentIndex - 1;
 					menuItems[prevIndex]?.focus();
 					break;
 				}
@@ -194,9 +187,7 @@ function NodeContextMenuImpl({
 							<TooltipPositioner>
 								<TooltipPopup>
 									<TooltipArrow />
-									<TooltipViewport>
-										{payload as React.ReactNode}
-									</TooltipViewport>
+									<TooltipViewport>{payload as React.ReactNode}</TooltipViewport>
 								</TooltipPopup>
 							</TooltipPositioner>
 						</TooltipPortal>

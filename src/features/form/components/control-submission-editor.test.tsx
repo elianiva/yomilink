@@ -1,5 +1,6 @@
 import { render, screen, fireEvent } from "@testing-library/react";
 import { describe, it, expect, vi } from "vitest";
+
 import {
 	ControlSubmissionEditor,
 	createDefaultControlSubmissionData,
@@ -26,21 +27,14 @@ describe("ControlSubmissionEditor", () => {
 
 	it("displays word count correctly", () => {
 		render(
-			<ControlSubmissionEditor
-				initialContent="This is a test sentence"
-				minWordCount={0}
-			/>,
+			<ControlSubmissionEditor initialContent="This is a test sentence" minWordCount={0} />,
 		);
 
-		expect(screen.getByTestId("word-count-message")).toHaveTextContent(
-			"5 words",
-		);
+		expect(screen.getByTestId("word-count-message")).toHaveTextContent("5 words");
 	});
 
 	it("shows warning when below minimum word count", () => {
-		render(
-			<ControlSubmissionEditor initialContent="Short text" minWordCount={10} />,
-		);
+		render(<ControlSubmissionEditor initialContent="Short text" minWordCount={10} />);
 
 		const wordCount = screen.getByTestId("word-count-message");
 		expect(wordCount).toHaveTextContent("2 / 10 words minimum");
@@ -91,33 +85,24 @@ describe("ControlSubmissionEditor", () => {
 	it("applies custom className", () => {
 		render(<ControlSubmissionEditor className="custom-class" />);
 
-		expect(screen.getByTestId("control-submission-editor")).toHaveClass(
-			"custom-class",
-		);
+		expect(screen.getByTestId("control-submission-editor")).toHaveClass("custom-class");
 	});
 
 	it("counts zero words for empty content", () => {
 		render(<ControlSubmissionEditor initialContent="" />);
 
-		expect(screen.getByTestId("word-count-message")).toHaveTextContent(
-			"0 words",
-		);
+		expect(screen.getByTestId("word-count-message")).toHaveTextContent("0 words");
 	});
 
 	it("counts zero words for whitespace only", () => {
 		render(<ControlSubmissionEditor initialContent="   " />);
 
-		expect(screen.getByTestId("word-count-message")).toHaveTextContent(
-			"0 words",
-		);
+		expect(screen.getByTestId("word-count-message")).toHaveTextContent("0 words");
 	});
 
 	it("handles maximum word count validation", () => {
 		render(
-			<ControlSubmissionEditor
-				initialContent="one two three four five"
-				maxWordCount={3}
-			/>,
+			<ControlSubmissionEditor initialContent="one two three four five" maxWordCount={3} />,
 		);
 
 		const wordCount = screen.getByTestId("word-count-message");

@@ -1,5 +1,6 @@
 import { Loader2 } from "lucide-react";
 import { memo, useEffect, useId, useState } from "react";
+
 import { Button } from "@/components/ui/button";
 import {
 	Dialog,
@@ -126,10 +127,7 @@ function SaveDialogImpl({
 					<Button variant="outline" onClick={onCancel} disabled={saving}>
 						Cancel
 					</Button>
-					<Button
-						onClick={handleSubmit}
-						disabled={saving || !topicId || !name.trim()}
-					>
+					<Button onClick={handleSubmit} disabled={saving || !topicId || !name.trim()}>
 						{saving ? <Loader2 className="mr-1 size-4 animate-spin" /> : null}
 						Save
 					</Button>

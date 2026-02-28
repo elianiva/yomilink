@@ -2,6 +2,7 @@
 
 import { Check, GripVertical, Plus, Shuffle, Trash2 } from "lucide-react";
 import type * as React from "react";
+
 import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Input } from "@/components/ui/input";
@@ -29,14 +30,8 @@ function generateOptionId(): string {
 	return `opt_${Math.random().toString(36).substr(2, 9)}`;
 }
 
-export function McqQuestionEditor({
-	data,
-	onChange,
-	disabled = false,
-}: McqQuestionEditorProps) {
-	const handleQuestionTextChange = (
-		e: React.ChangeEvent<HTMLTextAreaElement>,
-	) => {
+export function McqQuestionEditor({ data, onChange, disabled = false }: McqQuestionEditorProps) {
+	const handleQuestionTextChange = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
 		onChange({ ...data, questionText: e.target.value });
 	};
 
@@ -59,9 +54,7 @@ export function McqQuestionEditor({
 	const handleOptionTextChange = (optionId: string, text: string) => {
 		onChange({
 			...data,
-			options: data.options.map((opt) =>
-				opt.id === optionId ? { ...opt, text } : opt,
-			),
+			options: data.options.map((opt) => (opt.id === optionId ? { ...opt, text } : opt)),
 		});
 	};
 

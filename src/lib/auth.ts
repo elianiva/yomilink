@@ -3,12 +3,13 @@ import { drizzleAdapter } from "better-auth/adapters/drizzle";
 import { admin } from "better-auth/plugins";
 import { tanstackStartCookies } from "better-auth/tanstack-start";
 import { Effect, Layer, Schema } from "effect";
+
 import { ServerConfig } from "@/config";
 import { ac, roles } from "@/lib/auth-permissions";
+import { AppLayer } from "@/server/app-layer";
 import { Database, DatabaseLive } from "@/server/db/client";
 import * as appSchema from "@/server/db/schema/app-schema";
 import * as authSchema from "@/server/db/schema/auth-schema";
-import { AppLayer } from "@/server/app-layer";
 
 export class Auth extends Effect.Service<Auth>()("Auth", {
 	effect: Effect.gen(function* () {
@@ -99,9 +100,7 @@ export const AuthUser = Schema.Struct({
 export function getServerUser(headers: Headers) {
 	return Effect.gen(function* () {
 		const auth = yield* Auth;
-		const session = yield* Effect.tryPromise(() =>
-			auth.api.getSession({ headers }),
-		).pipe(
+		const session = yield* Effect.tryPromise(() => auth.api.getSession({ headers })).pipe(
 			Effect.catchTag("UnknownException", (e) => {
 				const errorDetails =
 					e instanceof Error
@@ -112,10 +111,9 @@ export function getServerUser(headers: Headers) {
 						: {
 								message: String(e),
 							};
-				return Effect.logError(
-					"Failed to get user session from auth",
-					errorDetails,
-				).pipe(Effect.andThen(Effect.succeed(null)));
+				return Effect.logError("Failed to get user session from auth", errorDetails).pipe(
+					Effect.andThen(Effect.succeed(null)),
+				);
 			}),
 		);
 		if (!session) return null;

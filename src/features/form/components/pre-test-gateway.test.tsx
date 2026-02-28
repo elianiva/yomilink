@@ -1,7 +1,9 @@
 import { render, screen, waitFor } from "@testing-library/react";
 import { beforeEach, describe, expect, it, vi } from "vitest";
-import { PreTestGateway } from "./pre-test-gateway";
+
 import * as useFormUnlock from "@/hooks/use-form-unlock";
+
+import { PreTestGateway } from "./pre-test-gateway";
 
 vi.mock("@/hooks/use-form-unlock", () => ({
 	useFormUnlock: vi.fn(),
@@ -165,9 +167,7 @@ describe("PreTestGateway", () => {
 		);
 
 		await waitFor(() => {
-			expect(
-				screen.getByText("Failed to check pre-test status"),
-			).toBeInTheDocument();
+			expect(screen.getByText("Failed to check pre-test status")).toBeInTheDocument();
 		});
 	});
 

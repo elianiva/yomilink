@@ -8,29 +8,27 @@ import {
 	XIcon,
 } from "lucide-react";
 import type * as React from "react";
+
 import { cn } from "@/lib/utils";
+
 import { Button } from "./button";
 
 /**
  * ErrorCard component variants using class-variance-authority.
  */
-const errorCardVariants = cva(
-	"flex flex-col gap-3 rounded-lg border p-4 text-sm",
-	{
-		variants: {
-			variant: {
-				error:
-					"border-destructive/50 bg-destructive/10 text-destructive dark:border-destructive/40 dark:bg-destructive/15",
-				warning:
-					"border-amber-500/50 bg-amber-500/10 text-amber-700 dark:border-amber-500/40 dark:bg-amber-500/15 dark:text-amber-400",
-				info: "border-blue-500/50 bg-blue-500/10 text-blue-700 dark:border-blue-500/40 dark:bg-blue-500/15 dark:text-blue-400",
-			},
-		},
-		defaultVariants: {
-			variant: "error",
+const errorCardVariants = cva("flex flex-col gap-3 rounded-lg border p-4 text-sm", {
+	variants: {
+		variant: {
+			error: "border-destructive/50 bg-destructive/10 text-destructive dark:border-destructive/40 dark:bg-destructive/15",
+			warning:
+				"border-amber-500/50 bg-amber-500/10 text-amber-700 dark:border-amber-500/40 dark:bg-amber-500/15 dark:text-amber-400",
+			info: "border-blue-500/50 bg-blue-500/10 text-blue-700 dark:border-blue-500/40 dark:bg-blue-500/15 dark:text-blue-400",
 		},
 	},
-);
+	defaultVariants: {
+		variant: "error",
+	},
+});
 
 /**
  * Icon mapping for each variant.
@@ -134,11 +132,7 @@ export function ErrorCard({
 					<p className="font-medium leading-tight">{title}</p>
 					{description && (
 						<div className="mt-1 text-sm opacity-90">
-							{typeof description === "string" ? (
-								<p>{description}</p>
-							) : (
-								description
-							)}
+							{typeof description === "string" ? <p>{description}</p> : description}
 						</div>
 					)}
 					{children && <div className="mt-2">{children}</div>}
@@ -188,20 +182,11 @@ export function ErrorCard({
  * Convenience component for inline error messages without card styling.
  * Useful for form field errors or simple inline feedback.
  */
-export function InlineError({
-	message,
-	className,
-}: {
-	message: string;
-	className?: string;
-}) {
+export function InlineError({ message, className }: { message: string; className?: string }) {
 	return (
 		<p
 			role="alert"
-			className={cn(
-				"text-sm text-destructive flex items-center gap-1.5",
-				className,
-			)}
+			className={cn("text-sm text-destructive flex items-center gap-1.5", className)}
 		>
 			<AlertCircleIcon className="size-3.5 shrink-0" aria-hidden="true" />
 			{message}

@@ -2,10 +2,8 @@
 
 import { useMemo } from "react";
 import { Bar, BarChart, ResponsiveContainer, XAxis, YAxis } from "recharts";
-import type {
-	ResponseQuestion,
-	FormResponse,
-} from "./individual-responses-table";
+
+import type { ResponseQuestion, FormResponse } from "./individual-responses-table";
 
 type AggregatedResponsesProps = {
 	responses: FormResponse[];
@@ -33,10 +31,7 @@ type LikertStats = {
 	distribution: Array<{ value: number; count: number }>;
 };
 
-export function AggregatedResponses({
-	responses,
-	questions,
-}: AggregatedResponsesProps) {
+export function AggregatedResponses({ responses, questions }: AggregatedResponsesProps) {
 	const sortedQuestions = useMemo(
 		() => [...questions].sort((a, b) => a.orderIndex - b.orderIndex),
 		[questions],
@@ -73,9 +68,7 @@ export function AggregatedResponses({
 					text: opt.text,
 					count: counts[opt.id] ?? 0,
 					percentage:
-						responses.length > 0
-							? ((counts[opt.id] ?? 0) / responses.length) * 100
-							: 0,
+						responses.length > 0 ? ((counts[opt.id] ?? 0) / responses.length) * 100 : 0,
 				})),
 			});
 		}
@@ -105,10 +98,7 @@ export function AggregatedResponses({
 			}
 
 			values.sort((a, b) => a - b);
-			const mean =
-				values.length > 0
-					? values.reduce((a, b) => a + b, 0) / values.length
-					: 0;
+			const mean = values.length > 0 ? values.reduce((a, b) => a + b, 0) / values.length : 0;
 			const median =
 				values.length > 0
 					? values.length % 2 === 0
@@ -210,7 +200,9 @@ export function AggregatedResponses({
 										<XAxis
 											dataKey="value"
 											tick={{ fontSize: 12 }}
-											tickFormatter={(v) => stat.labels[String(v)] ?? String(v)}
+											tickFormatter={(v) =>
+												stat.labels[String(v)] ?? String(v)
+											}
 										/>
 										<YAxis />
 										<Bar dataKey="count" fill="#8b5cf6" radius={4} />

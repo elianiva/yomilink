@@ -1,0 +1,36 @@
+{
+	"$schema": "./node_modules/oxlint/configuration_schema.json",
+	"plugins": [
+		"vitest",
+		"typescript",
+		"react",
+		"react-perf",
+		"import",
+		"jsx-a11y",
+		"promise",
+		"unicorn"
+	],
+	"categories": {},
+	"rules": {},
+	"settings": {
+		"jsx-a11y": {
+			"polymorphicPropName": null,
+			"components": {},
+			"attributes": {}
+		},
+		"react": {
+			"formComponents": ["Form"],
+			"linkComponents": [{ "name": "Link", "attributes": ["to"] }],
+			"version": null,
+			"componentWrapperFunctions": []
+		},
+		"vitest": {
+			"typecheck": false
+		}
+	},
+	"env": {
+		"builtin": true
+	},
+	"globals": {},
+	"ignorePatterns": []
+}

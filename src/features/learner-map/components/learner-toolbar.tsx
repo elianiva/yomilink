@@ -1,13 +1,6 @@
-import {
-	BookOpenIcon,
-	LayoutGridIcon,
-	SearchIcon,
-	SendIcon,
-} from "lucide-react";
-import {
-	NavigationButtons,
-	ZoomButtons,
-} from "@/components/toolbar/toolbar-groups";
+import { BookOpenIcon, LayoutGridIcon, SearchIcon, SendIcon } from "lucide-react";
+
+import { NavigationButtons, ZoomButtons } from "@/components/toolbar/toolbar-groups";
 import { Button } from "@/components/ui/button";
 import { Separator } from "@/components/ui/separator";
 import {
@@ -78,12 +71,7 @@ export function LearnerToolbar({
 				<TooltipTrigger
 					handle={tooltipHandle}
 					render={
-						<Button
-							variant="ghost"
-							size="icon"
-							className="size-8"
-							onClick={onSearch}
-						/>
+						<Button variant="ghost" size="icon" className="size-8" onClick={onSearch} />
 					}
 					payload="Search Nodes"
 				>
@@ -133,17 +121,11 @@ export function LearnerToolbar({
 							disabled={isSubmitting || isSubmitted}
 						>
 							<SendIcon className="size-4" />
-							{isSubmitting
-								? "Submitting..."
-								: isSubmitted
-									? "Submitted"
-									: "Submit"}
+							{isSubmitting ? "Submitting..." : isSubmitted ? "Submitted" : "Submit"}
 						</Button>
 					}
 					payload={
-						isSubmitted
-							? "Already submitted"
-							: "Submit your concept map for grading"
+						isSubmitted ? "Already submitted" : "Submit your concept map for grading"
 					}
 				/>
 				<TooltipContent handle={tooltipHandle} />

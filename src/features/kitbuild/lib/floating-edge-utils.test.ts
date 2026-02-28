@@ -1,9 +1,7 @@
 import type { Node } from "@xyflow/react";
 import { describe, expect, it } from "vitest";
-import {
-	getEdgeParams,
-	getEdgeParamsFromSourceToPoint,
-} from "./floating-edge-utils";
+
+import { getEdgeParams, getEdgeParamsFromSourceToPoint } from "./floating-edge-utils";
 
 describe("getNodeCenter", () => {
 	it("should calculate center point correctly", () => {

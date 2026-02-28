@@ -1,7 +1,9 @@
+import { useReactFlow } from "@xyflow/react";
 import { useAtom, useSetAtom } from "jotai";
 import { useCallback } from "react";
-import { useReactFlow } from "@xyflow/react";
+
 import type { TailwindColor } from "@/features/kitbuild/components/color-picker";
+
 import { edgesAtom, nodesAtom } from "../lib/atoms";
 
 export function useNodeOperations() {
@@ -38,10 +40,7 @@ export function useNodeOperations() {
 		]);
 	};
 
-	const addConnectorNode = (
-		label: string,
-		viewport?: { x: number; y: number; zoom: number },
-	) => {
+	const addConnectorNode = (label: string, viewport?: { x: number; y: number; zoom: number }) => {
 		if (!label.trim()) return;
 		const id = crypto.randomUUID();
 		const centerX = viewport ? -viewport.x / viewport.zoom + 400 : 300;

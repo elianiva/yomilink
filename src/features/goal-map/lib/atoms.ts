@@ -1,9 +1,7 @@
 import { atom } from "jotai";
+
 import type { Edge, Node } from "@/features/learner-map/lib/comparator";
-import type {
-	ConnectionModeState,
-	ContextMenuState,
-} from "@/lib/react-flow-types";
+import type { ConnectionModeState, ContextMenuState } from "@/lib/react-flow-types";
 
 // Core state atoms
 export const nodesAtom = atom<Node[]>([]);

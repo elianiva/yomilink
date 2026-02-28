@@ -1,6 +1,7 @@
+import { useReactFlow } from "@xyflow/react";
 import { useAtom, useAtomValue, useSetAtom } from "jotai";
 import { useCallback, useEffect } from "react";
-import { useReactFlow } from "@xyflow/react";
+
 import {
 	edgesAtom,
 	historyAtom,

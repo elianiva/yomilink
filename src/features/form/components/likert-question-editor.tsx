@@ -2,6 +2,7 @@
 
 import { Check } from "lucide-react";
 import type * as React from "react";
+
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -51,9 +52,7 @@ export function LikertQuestionEditor({
 	onChange,
 	disabled = false,
 }: LikertQuestionEditorProps) {
-	const handleQuestionTextChange = (
-		e: React.ChangeEvent<HTMLTextAreaElement>,
-	) => {
+	const handleQuestionTextChange = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
 		onChange({ ...data, questionText: e.target.value });
 	};
 
@@ -183,13 +182,9 @@ export function LikertQuestionEditor({
 				</div>
 
 				<div className="mt-2 rounded-lg border p-3">
-					<p
-						className="text-xs text-muted-foreground"
-						data-testid="preview-label"
-					>
-						Preview: <span className="font-medium">1</span> = "
-						{data.labels["1"] || "1"}" →{" "}
-						<span className="font-medium">{data.scaleSize}</span> = "
+					<p className="text-xs text-muted-foreground" data-testid="preview-label">
+						Preview: <span className="font-medium">1</span> = "{data.labels["1"] || "1"}
+						" → <span className="font-medium">{data.scaleSize}</span> = "
 						{data.labels[String(data.scaleSize)] || String(data.scaleSize)}"
 					</p>
 				</div>

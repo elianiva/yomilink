@@ -1,13 +1,12 @@
 import { SelectItem } from "@/components/ui/select";
+
 import { EmptyState } from "./empty-state";
 
 export function AssignmentSelectContent({
 	assignments,
 	isLoading,
 }: {
-	assignments:
-		| Array<{ id: string; title: string; totalSubmissions: number }>
-		| undefined;
+	assignments: Array<{ id: string; title: string; totalSubmissions: number }> | undefined;
 	isLoading: boolean;
 }) {
 	if (isLoading) {

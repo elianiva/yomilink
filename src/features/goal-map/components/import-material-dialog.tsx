@@ -1,6 +1,7 @@
 import { useAtom } from "jotai";
 import { FileText, Image as ImageIcon, Trash2, Upload, X } from "lucide-react";
 import { memo, useId, useRef, useState } from "react";
+
 import { Button } from "@/components/ui/button";
 import {
 	Dialog,
@@ -12,14 +13,11 @@ import {
 } from "@/components/ui/dialog";
 import { Label } from "@/components/ui/label";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import {
-	importDialogOpenAtom,
-	materialTextAtom,
-	imagesAtom,
-} from "../lib/atoms";
-import { MaterialImageRpc } from "@/server/rpc/material-image";
 import { useRpcMutation } from "@/hooks/use-rpc-query";
 import { toast } from "@/lib/error-toast";
+import { MaterialImageRpc } from "@/server/rpc/material-image";
+
+import { importDialogOpenAtom, materialTextAtom, imagesAtom } from "../lib/atoms";
 
 interface ImportMaterialDialogProps {
 	goalMapId: string;
@@ -134,8 +132,8 @@ function ImportMaterialDialogImpl({ goalMapId }: ImportMaterialDialogProps) {
 				<DialogHeader>
 					<DialogTitle>Import Learning Material</DialogTitle>
 					<DialogDescription>
-						Upload text files or images. This material will be saved with the
-						goalmap for students to read.
+						Upload text files or images. This material will be saved with the goalmap
+						for students to read.
 					</DialogDescription>
 				</DialogHeader>
 
@@ -194,10 +192,7 @@ function ImportMaterialDialogImpl({ goalMapId }: ImportMaterialDialogProps) {
 						</div>
 					</TabsContent>
 
-					<TabsContent
-						value="images"
-						className="space-y-4 flex-1 flex flex-col min-h-0"
-					>
+					<TabsContent value="images" className="space-y-4 flex-1 flex flex-col min-h-0">
 						<button
 							type="button"
 							className="flex-1 flex flex-col items-center justify-center border-2 border-dashed rounded-lg relative cursor-pointer hover:bg-muted/50 transition-colors"

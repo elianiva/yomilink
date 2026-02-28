@@ -1,5 +1,6 @@
 import { UserIcon, UsersIcon } from "lucide-react";
 import { useReducer } from "react";
+
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Progress } from "@/components/ui/progress";
@@ -7,10 +8,11 @@ import { SearchableSelect } from "@/components/ui/searchable-select";
 import { Textarea } from "@/components/ui/textarea";
 import { useRpcMutation, useRpcQuery } from "@/hooks/use-rpc-query";
 import { parseDateInput } from "@/lib/date-utils";
-import type { Form } from "@/server/db/schema";
 import { AssignmentRpc } from "@/server/rpc/assignment";
 import { FormRpc } from "@/server/rpc/form";
 import { KitRpc } from "@/server/rpc/kit";
+
+import { Button } from "../ui/button";
 
 type FormState = {
 	currentStep: number;
@@ -74,9 +76,7 @@ function formReducer(state: FormState, action: FormAction): FormState {
 			};
 		case "TOGGLE_COHORT": {
 			const cohorts = state.assignment.selectedCohorts.includes(action.cohortId)
-				? state.assignment.selectedCohorts.filter(
-						(id) => id !== action.cohortId,
-					)
+				? state.assignment.selectedCohorts.filter((id) => id !== action.cohortId)
 				: [...state.assignment.selectedCohorts, action.cohortId];
 			return {
 				...state,
@@ -107,8 +107,7 @@ interface CreateAssignmentFormProps {
 const steps = [
 	{
 		title: "Basic Information",
-		description:
-			"Enter assignment title, description, and optional reading material",
+		description: "Enter assignment title, description, and optional reading material",
 	},
 	{
 		title: "Configuration",
@@ -124,10 +123,7 @@ const steps = [
 	},
 ];
 
-export function CreateAssignmentForm({
-	onSuccess,
-	onCancel,
-}: CreateAssignmentFormProps) {
+export function CreateAssignmentForm({ onSuccess, onCancel }: CreateAssignmentFormProps) {
 	const [state, dispatch] = useReducer(formReducer, initialState);
 
 	const { data: goalMaps } = useRpcQuery(AssignmentRpc.getTeacherGoalMaps());
@@ -185,8 +181,7 @@ export function CreateAssignmentForm({
 							postTestFormId: state.procedure.postTestFormId || undefined,
 							delayedPostTestFormId:
 								state.procedure.delayedPostTestFormId || undefined,
-							delayedPostTestDelayDays:
-								state.procedure.delayedPostTestDelayDays,
+							delayedPostTestDelayDays: state.procedure.delayedPostTestDelayDays,
 							tamFormId: state.procedure.tamFormId || undefined,
 						},
 						{ onSuccess },
@@ -196,8 +191,7 @@ export function CreateAssignmentForm({
 		);
 	};
 
-	const isSubmitting =
-		createMutation.isPending || generateKitMutation.isPending;
+	const isSubmitting = createMutation.isPending || generateKitMutation.isPending;
 	const currentStepData = steps[state.currentStep];
 
 	const formOptions = {
@@ -297,9 +291,7 @@ export function CreateAssignmentForm({
 									})
 								}
 							/>
-							<p className="text-xs text-muted-foreground">
-								No end date if not set
-							</p>
+							<p className="text-xs text-muted-foreground">No end date if not set</p>
 						</div>
 					</div>
 				</div>
@@ -352,9 +344,7 @@ export function CreateAssignmentForm({
 						placeholder="Select a delayed post-test form"
 					/>
 					<div className="space-y-2">
-						<Label htmlFor="delayedPostTestDelayDays">
-							Delayed Test Delay (days)
-						</Label>
+						<Label htmlFor="delayedPostTestDelayDays">Delayed Test Delay (days)</Label>
 						<Input
 							id="delayedPostTestDelayDays"
 							type="number"
@@ -442,7 +432,10 @@ export function CreateAssignmentForm({
 													user.id,
 												)}
 												onChange={() =>
-													dispatch({ type: "TOGGLE_USER", userId: user.id })
+													dispatch({
+														type: "TOGGLE_USER",
+														userId: user.id,
+													})
 												}
 												className="rounded"
 											/>
@@ -486,8 +479,7 @@ export function CreateAssignmentForm({
 					onClick={
 						state.currentStep === 0
 							? onCancel
-							: () =>
-									dispatch({ type: "SET_STEP", step: state.currentStep - 1 })
+							: () => dispatch({ type: "SET_STEP", step: state.currentStep - 1 })
 					}
 				>
 					{state.currentStep === 0 ? "Cancel" : "Previous"}
@@ -495,9 +487,7 @@ export function CreateAssignmentForm({
 				{state.currentStep < steps.length - 1 ? (
 					<Button
 						type="button"
-						onClick={() =>
-							dispatch({ type: "SET_STEP", step: state.currentStep + 1 })
-						}
+						onClick={() => dispatch({ type: "SET_STEP", step: state.currentStep + 1 })}
 						disabled={!canProceedNext()}
 					>
 						Next

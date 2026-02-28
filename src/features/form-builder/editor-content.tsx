@@ -1,10 +1,9 @@
 import { Plus } from "lucide-react";
+
 import { Button } from "@/components/ui/button";
 import { FormMetadataEditor } from "@/features/form/components/form-metadata-editor";
-import {
-	QuestionList,
-	type Question,
-} from "@/features/form/components/question-list";
+import { QuestionList, type Question } from "@/features/form/components/question-list";
+
 import type { EditorContentProps, QuestionWithOptions } from "./types";
 
 export function EditorContent({
@@ -64,9 +63,7 @@ export function EditorContent({
 							questions={questions as Question[]}
 							onEdit={(q) => onEditQuestion(q as QuestionWithOptions)}
 							onDelete={onDeleteQuestion}
-							onReorder={(qs) =>
-								onReorderQuestions(qs as QuestionWithOptions[])
-							}
+							onReorder={(qs) => onReorderQuestions(qs as QuestionWithOptions[])}
 						/>
 					) : (
 						<div className="flex flex-col items-center justify-center rounded-lg border border-dashed p-8 text-center">

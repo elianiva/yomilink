@@ -1,5 +1,6 @@
-import { describe, expect, it } from "vitest";
 import { Effect, Exit, Schema } from "effect";
+import { describe, expect, it } from "vitest";
+
 import { cn, parseJson, safeParseJson, randomString } from "./utils";
 
 describe("cn", () => {
@@ -106,9 +107,7 @@ describe("parseJson", () => {
 			name: Schema.String,
 			age: Schema.Number,
 		});
-		const result = Effect.runSync(
-			parseJson('{"name":"John","age":30}', schema),
-		);
+		const result = Effect.runSync(parseJson('{"name":"John","age":30}', schema));
 		expect(result).toEqual({ name: "John", age: 30 });
 	});
 
@@ -117,9 +116,7 @@ describe("parseJson", () => {
 			name: Schema.String,
 			age: Schema.Number,
 		});
-		const result = Effect.runSyncExit(
-			parseJson('{"name":"John","age":"thirty"}', schema),
-		);
+		const result = Effect.runSyncExit(parseJson('{"name":"John","age":"thirty"}', schema));
 		expect(Exit.isFailure(result)).toBe(true);
 	});
 
@@ -162,9 +159,7 @@ describe("safeParseJson", () => {
 	});
 
 	it("should return defaultValue on invalid JSON", () => {
-		const result = Effect.runSync(
-			safeParseJson("invalid json", { default: true }),
-		);
+		const result = Effect.runSync(safeParseJson("invalid json", { default: true }));
 		expect(result).toEqual({ default: true });
 	});
 
@@ -185,11 +180,7 @@ describe("safeParseJson", () => {
 			age: Schema.Number,
 		});
 		const result = Effect.runSync(
-			safeParseJson(
-				'{"name":"John","age":"thirty"}',
-				{ name: "", age: 0 },
-				schema,
-			),
+			safeParseJson('{"name":"John","age":"thirty"}', { name: "", age: 0 }, schema),
 		);
 		expect(result).toEqual({ name: "", age: 0 });
 	});

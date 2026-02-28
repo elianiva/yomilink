@@ -1,11 +1,6 @@
 import { relations, sql } from "drizzle-orm";
-import {
-	index,
-	integer,
-	real,
-	sqliteTable,
-	text,
-} from "drizzle-orm/sqlite-core";
+import { index, integer, real, sqliteTable, text } from "drizzle-orm/sqlite-core";
+
 import { cohorts, user } from "./auth-schema";
 
 const timestamps = {
@@ -127,13 +122,9 @@ export const assignments = sqliteTable(
 		dueAt: integer("due_at", { mode: "timestamp_ms" }),
 		preTestFormId: text("pre_test_form_id").references(() => forms.id),
 		postTestFormId: text("post_test_form_id").references(() => forms.id),
-		delayedPostTestFormId: text("delayed_post_test_form_id").references(
-			() => forms.id,
-		),
+		delayedPostTestFormId: text("delayed_post_test_form_id").references(() => forms.id),
 		tamFormId: text("tam_form_id").references(() => forms.id),
-		delayedPostTestDelayDays: integer("delayed_post_test_delay_days").default(
-			7,
-		),
+		delayedPostTestDelayDays: integer("delayed_post_test_delay_days").default(7),
 		createdBy: text("created_by").notNull(),
 		...timestamps,
 	},
@@ -320,23 +311,20 @@ export const assignmentsRelations = relations(assignments, ({ one, many }) => ({
 	learnerMaps: many(learnerMaps),
 }));
 
-export const assignmentTargetsRelations = relations(
-	assignmentTargets,
-	({ one }) => ({
-		assignment: one(assignments, {
-			fields: [assignmentTargets.assignmentId],
-			references: [assignments.id],
-		}),
-		cohort: one(cohorts, {
-			fields: [assignmentTargets.cohortId],
-			references: [cohorts.id],
-		}),
-		user: one(user, {
-			fields: [assignmentTargets.userId],
-			references: [user.id],
-		}),
+export const assignmentTargetsRelations = relations(assignmentTargets, ({ one }) => ({
+	assignment: one(assignments, {
+		fields: [assignmentTargets.assignmentId],
+		references: [assignments.id],
 	}),
-);
+	cohort: one(cohorts, {
+		fields: [assignmentTargets.cohortId],
+		references: [cohorts.id],
+	}),
+	user: one(user, {
+		fields: [assignmentTargets.userId],
+		references: [user.id],
+	}),
+}));
 
 export const learnerMapsRelations = relations(learnerMaps, ({ one, many }) => ({
 	assignment: one(assignments, {
@@ -388,14 +376,7 @@ export const forms = sqliteTable(
 		title: text("title").notNull(),
 		description: text("description"),
 		type: text("type", {
-			enum: [
-				"pre_test",
-				"post_test",
-				"delayed_test",
-				"registration",
-				"tam",
-				"control",
-			],
+			enum: ["pre_test", "post_test", "delayed_test", "registration", "tam", "control"],
 		})
 			.notNull()
 			.default("registration"),
@@ -492,19 +473,16 @@ export const experimentGroups = sqliteTable(
 	],
 );
 
-export const experimentGroupsRelations = relations(
-	experimentGroups,
-	({ one }) => ({
-		assignment: one(assignments, {
-			fields: [experimentGroups.assignmentId],
-			references: [assignments.id],
-		}),
-		user: one(user, {
-			fields: [experimentGroups.userId],
-			references: [user.id],
-		}),
+export const experimentGroupsRelations = relations(experimentGroups, ({ one }) => ({
+	assignment: one(assignments, {
+		fields: [experimentGroups.assignmentId],
+		references: [assignments.id],
 	}),
-);
+	user: one(user, {
+		fields: [experimentGroups.userId],
+		references: [user.id],
+	}),
+}));
 export const formsRelations = relations(forms, ({ one, many }) => ({
 	creator: one(user, {
 		fields: [forms.createdBy],

@@ -1,21 +1,10 @@
 "use client";
 
-import {
-	FileText,
-	MoreVertical,
-	Pencil,
-	Trash2,
-	BarChart3,
-} from "lucide-react";
+import { FileText, MoreVertical, Pencil, Trash2, BarChart3 } from "lucide-react";
+
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import {
-	Card,
-	CardContent,
-	CardDescription,
-	CardHeader,
-	CardTitle,
-} from "@/components/ui/card";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import {
 	DropdownMenu,
 	DropdownMenuContent,
@@ -125,9 +114,7 @@ export function FormList({
 								<Badge variant="outline" className="bg-transparent">
 									{formTypeLabels[form.type]}
 								</Badge>
-								<Badge
-									className={cn("text-white", formStatusColors[form.status])}
-								>
+								<Badge className={cn("text-white", formStatusColors[form.status])}>
 									{form.status}
 								</Badge>
 								{form.formStatus && (
@@ -152,7 +139,9 @@ export function FormList({
 										</DropdownMenuTrigger>
 										<DropdownMenuContent align="end">
 											{onViewResults && (
-												<DropdownMenuItem onClick={() => onViewResults(form)}>
+												<DropdownMenuItem
+													onClick={() => onViewResults(form)}
+												>
 													<BarChart3 className="mr-2 h-4 w-4" />
 													View Results
 												</DropdownMenuItem>

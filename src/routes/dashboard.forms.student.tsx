@@ -1,19 +1,9 @@
 import { useQuery } from "@tanstack/react-query";
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
-import {
-	BookOpenIcon,
-	CheckCircle2Icon,
-	FileTextIcon,
-	Loader2,
-} from "lucide-react";
+import { BookOpenIcon, CheckCircle2Icon, FileTextIcon, Loader2 } from "lucide-react";
+
 import { Button } from "@/components/ui/button";
-import {
-	Card,
-	CardContent,
-	CardDescription,
-	CardHeader,
-	CardTitle,
-} from "@/components/ui/card";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { FormRpc } from "@/server/rpc/form";
 
 export const Route = createFileRoute("/dashboard/forms/student")({
@@ -24,13 +14,7 @@ type StudentForm = {
 	id: string;
 	title: string;
 	description: string | null;
-	type:
-		| "pre_test"
-		| "post_test"
-		| "delayed_test"
-		| "registration"
-		| "tam"
-		| "control";
+	type: "pre_test" | "post_test" | "delayed_test" | "registration" | "tam" | "control";
 	unlockStatus: "locked" | "available" | "completed";
 	isUnlocked: boolean;
 	progress: {
@@ -141,7 +125,9 @@ function StudentFormsPage() {
 									>
 										<CardHeader className="pb-3">
 											<div className="flex items-start justify-between">
-												<CardTitle className="text-lg">{form.title}</CardTitle>
+												<CardTitle className="text-lg">
+													{form.title}
+												</CardTitle>
 												<span
 													className={`text-xs px-2 py-1 rounded-full ${getTypeColor(
 														form.type,
@@ -151,7 +137,9 @@ function StudentFormsPage() {
 												</span>
 											</div>
 											{form.description && (
-												<CardDescription>{form.description}</CardDescription>
+												<CardDescription>
+													{form.description}
+												</CardDescription>
 											)}
 										</CardHeader>
 										<CardContent>
@@ -177,7 +165,9 @@ function StudentFormsPage() {
 									<Card key={form.id}>
 										<CardHeader className="pb-3">
 											<div className="flex items-start justify-between">
-												<CardTitle className="text-lg">{form.title}</CardTitle>
+												<CardTitle className="text-lg">
+													{form.title}
+												</CardTitle>
 												<span
 													className={`text-xs px-2 py-1 rounded-full ${getTypeColor(
 														form.type,
@@ -187,7 +177,9 @@ function StudentFormsPage() {
 												</span>
 											</div>
 											{form.description && (
-												<CardDescription>{form.description}</CardDescription>
+												<CardDescription>
+													{form.description}
+												</CardDescription>
 											)}
 										</CardHeader>
 										<CardContent>
@@ -213,7 +205,9 @@ function StudentFormsPage() {
 									<Card key={form.id} className="opacity-75">
 										<CardHeader className="pb-3">
 											<div className="flex items-start justify-between">
-												<CardTitle className="text-lg">{form.title}</CardTitle>
+												<CardTitle className="text-lg">
+													{form.title}
+												</CardTitle>
 												<span
 													className={`text-xs px-2 py-1 rounded-full ${getTypeColor(
 														form.type,
@@ -223,7 +217,9 @@ function StudentFormsPage() {
 												</span>
 											</div>
 											{form.description && (
-												<CardDescription>{form.description}</CardDescription>
+												<CardDescription>
+													{form.description}
+												</CardDescription>
 											)}
 										</CardHeader>
 										<CardContent>

@@ -1,6 +1,7 @@
 import { assert, describe, it, beforeEach } from "@effect/vitest";
-import { vi } from "vitest";
 import { Effect, Either } from "effect";
+import { vi } from "vitest";
+
 import { uploadMaterialImage } from "./material-image-service";
 
 // Use vi.hoisted to create mock before vi.mock hoisting
@@ -150,39 +151,37 @@ describe("material-image-service", () => {
 				}),
 			);
 
-			it.effect(
-				"should reject invalid file type with InvalidFileTypeError",
-				() =>
-					Effect.gen(function* () {
-						const file = createMockFile({
-							name: "document.pdf",
-							type: "application/pdf",
-						});
-						const result = yield* Effect.either(
-							uploadMaterialImage({
-								goalMapId: "goal-map-123",
-								file,
-							}),
-						);
+			it.effect("should reject invalid file type with InvalidFileTypeError", () =>
+				Effect.gen(function* () {
+					const file = createMockFile({
+						name: "document.pdf",
+						type: "application/pdf",
+					});
+					const result = yield* Effect.either(
+						uploadMaterialImage({
+							goalMapId: "goal-map-123",
+							file,
+						}),
+					);
 
-						Either.match(result, {
-							onLeft: (error) => {
-								assert.strictEqual(error._tag, "InvalidFileTypeError");
-								if (error._tag === "InvalidFileTypeError") {
-									assert.strictEqual(error.type, "application/pdf");
-									assert.deepStrictEqual(error.allowed, [
-										"image/png",
-										"image/jpeg",
-										"image/jpg",
-										"image/gif",
-										"image/webp",
-										"image/svg+xml",
-									]);
-								}
-							},
-							onRight: () => assert.fail("Expected Left but got Right"),
-						});
-					}),
+					Either.match(result, {
+						onLeft: (error) => {
+							assert.strictEqual(error._tag, "InvalidFileTypeError");
+							if (error._tag === "InvalidFileTypeError") {
+								assert.strictEqual(error.type, "application/pdf");
+								assert.deepStrictEqual(error.allowed, [
+									"image/png",
+									"image/jpeg",
+									"image/jpg",
+									"image/gif",
+									"image/webp",
+									"image/svg+xml",
+								]);
+							}
+						},
+						onRight: () => assert.fail("Expected Left but got Right"),
+					});
+				}),
 			);
 
 			it.effect("should reject text/plain file type", () =>

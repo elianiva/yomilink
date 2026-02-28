@@ -34,19 +34,14 @@ export const ValidationResultSchema = Schema.Struct({
 
 export type ValidationResult = typeof ValidationResultSchema.Type;
 
-const composePropositions = Effect.fn(function* (
-	nodes: Readonly<Node[]>,
-	edges: Readonly<Edge[]>,
-) {
+const composePropositions = Effect.fn(function* (nodes: Readonly<Node[]>, edges: Readonly<Edge[]>) {
 	const concepts = new Map(
 		nodes
 			.filter((n): n is ConceptNode => n.type === "text" || n.type === "image")
 			.map((c) => [c.id, c]),
 	);
 	const connectors = new Map(
-		nodes
-			.filter((n): n is ConnectorNode => n.type === "connector")
-			.map((c) => [c.id, c]),
+		nodes.filter((n): n is ConnectorNode => n.type === "connector").map((c) => [c.id, c]),
 	);
 
 	const propositions: Proposition[] = [];
@@ -85,9 +80,7 @@ export const validateNodes = Effect.fn(function* (
 	const conceptNodes = nodes.filter(
 		(n): n is ConceptNode => n.type === "text" || n.type === "image",
 	);
-	const connectorNodes = nodes.filter(
-		(n): n is ConnectorNode => n.type === "connector",
-	);
+	const connectorNodes = nodes.filter((n): n is ConnectorNode => n.type === "connector");
 
 	if (conceptNodes.length < 2) {
 		errors.push("At least 2 concept nodes (text/image) required");
@@ -122,17 +115,14 @@ export const validateNodes = Effect.fn(function* (
 
 	const inCount: Record<string, number> = {};
 	const outCount: Record<string, number> = {};
-	const connections: Record<string, { sources: string[]; targets: string[] }> =
-		{};
+	const connections: Record<string, { sources: string[]; targets: string[] }> = {};
 
 	edges.forEach((e) => {
 		outCount[e.source] = (outCount[e.source] ?? 0) + 1;
 		inCount[e.target] = (inCount[e.target] ?? 0) + 1;
 
-		if (!connections[e.source])
-			connections[e.source] = { sources: [], targets: [] };
-		if (!connections[e.target])
-			connections[e.target] = { sources: [], targets: [] };
+		if (!connections[e.source]) connections[e.source] = { sources: [], targets: [] };
+		if (!connections[e.target]) connections[e.target] = { sources: [], targets: [] };
 		connections[e.source].targets.push(e.target);
 		connections[e.target].sources.push(e.source);
 	});
@@ -142,24 +132,16 @@ export const validateNodes = Effect.fn(function* (
 		const outbound = outCount[connector.id] ?? 0;
 
 		if (inbound === 0) {
-			errors.push(
-				`Connector "${connector.data.label}" has no inbound connections`,
-			);
+			errors.push(`Connector "${connector.data.label}" has no inbound connections`);
 		}
 		if (outbound === 0) {
-			errors.push(
-				`Connector "${connector.data.label}" has no outbound connections`,
-			);
+			errors.push(`Connector "${connector.data.label}" has no outbound connections`);
 		}
 
 		const conn = connections[connector.id];
 		if (conn) {
-			const sourceTypes = conn.sources.map(
-				(s) => nodes.find((n) => n.id === s)?.type,
-			);
-			const targetTypes = conn.targets.map(
-				(t) => nodes.find((n) => n.id === t)?.type,
-			);
+			const sourceTypes = conn.sources.map((s) => nodes.find((n) => n.id === s)?.type);
+			const targetTypes = conn.targets.map((t) => nodes.find((n) => n.id === t)?.type);
 
 			const invalidSources = sourceTypes.filter((t) => t === "connector");
 			const invalidTargets = targetTypes.filter((t) => t === "connector");
@@ -178,14 +160,10 @@ export const validateNodes = Effect.fn(function* (
 	});
 
 	conceptNodes.forEach((concept) => {
-		const totalConnections =
-			(inCount[concept.id] ?? 0) + (outCount[concept.id] ?? 0);
+		const totalConnections = (inCount[concept.id] ?? 0) + (outCount[concept.id] ?? 0);
 		if (totalConnections === 0) {
-			const label =
-				"label" in concept.data ? concept.data.label : concept.data.caption;
-			warnings.push(
-				`Concept node "${label}" is not connected to any other nodes`,
-			);
+			const label = "label" in concept.data ? concept.data.label : concept.data.caption;
+			warnings.push(`Concept node "${label}" is not connected to any other nodes`);
 		}
 	});
 
@@ -262,10 +240,7 @@ export function findConnectedComponents(
 	return components;
 }
 
-export function detectCycles(
-	nodes: Readonly<Node[]>,
-	edges: Readonly<Edge[]>,
-): boolean {
+export function detectCycles(nodes: Readonly<Node[]>, edges: Readonly<Edge[]>): boolean {
 	// Build adjacency list
 	const adjacency = new Map<string, string[]>();
 	for (const edge of edges) {

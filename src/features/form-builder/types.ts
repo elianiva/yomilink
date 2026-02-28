@@ -46,11 +46,7 @@ export interface QuestionEditorDialogProps {
 	questionType: QuestionType | null;
 	editingQuestion: QuestionWithOptions | null;
 	onClose: () => void;
-	onSave: (data: {
-		questionText: string;
-		options: unknown;
-		required: boolean;
-	}) => void;
+	onSave: (data: { questionText: string; options: unknown; required: boolean }) => void;
 	isPending: boolean;
 }
 
@@ -60,11 +56,7 @@ export interface EditorWrapperProps {
 		options: unknown;
 		required: boolean;
 	} | null;
-	onSave: (data: {
-		questionText: string;
-		options: unknown;
-		required: boolean;
-	}) => void;
+	onSave: (data: { questionText: string; options: unknown; required: boolean }) => void;
 	onCancel: () => void;
 	isPending: boolean;
 }

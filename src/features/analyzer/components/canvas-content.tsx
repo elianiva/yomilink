@@ -1,9 +1,10 @@
+import { lazy, Suspense, useMemo } from "react";
+
+import { Skeleton } from "@/components/ui/skeleton";
 import type {
 	AssignmentAnalytics,
 	LearnerMapResult,
 } from "@/features/analyzer/lib/analytics-service";
-import { lazy, Suspense, useMemo } from "react";
-import { Skeleton } from "@/components/ui/skeleton";
 
 // Lazy load AnalyticsCanvas (heavy React Flow component)
 const AnalyticsCanvas = lazy(() =>
@@ -49,8 +50,7 @@ export function CanvasContent({
 	);
 
 	const allEdgeClassificationsMemo = useMemo(
-		() =>
-			multipleLearnerMapDetails?.flatMap((m) => m.edgeClassifications) ?? [],
+		() => multipleLearnerMapDetails?.flatMap((m) => m.edgeClassifications) ?? [],
 		[multipleLearnerMapDetails],
 	);
 
@@ -64,11 +64,7 @@ export function CanvasContent({
 		);
 	}
 
-	if (
-		selectedLearnerMapIds.size === 0 ||
-		!analyticsData ||
-		!("goalMap" in analyticsData)
-	) {
+	if (selectedLearnerMapIds.size === 0 || !analyticsData || !("goalMap" in analyticsData)) {
 		return (
 			<div className="w-full h-full flex items-center justify-center">
 				<div className="text-sm text-muted-foreground px-4 text-center">

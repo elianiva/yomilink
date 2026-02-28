@@ -1,12 +1,9 @@
 "use client";
 
 import { useQuery } from "@tanstack/react-query";
-import {
-	createFileRoute,
-	useNavigate,
-	useSearch,
-} from "@tanstack/react-router";
+import { createFileRoute, useNavigate, useSearch } from "@tanstack/react-router";
 import { ArrowLeftIcon, Loader2 } from "lucide-react";
+
 import { Button } from "@/components/ui/button";
 import {
 	FormTaker,
@@ -160,11 +157,7 @@ function FormTakerPage() {
 				Back to Forms
 			</Button>
 
-			<FormTaker
-				form={formData}
-				questions={questionData}
-				onSubmit={handleSubmit}
-			/>
+			<FormTaker form={formData} questions={questionData} onSubmit={handleSubmit} />
 		</div>
 	);
 }

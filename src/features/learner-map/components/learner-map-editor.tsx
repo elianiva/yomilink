@@ -9,14 +9,11 @@ import {
 	ReactFlowProvider,
 	useReactFlow,
 } from "@xyflow/react";
+
 import "@xyflow/react/dist/style.css";
 import { useAtom, useAtomValue, useSetAtom } from "jotai";
 import { useCallback, useEffect, useMemo, useState } from "react";
-import { ConnectionModeIndicator } from "@/components/ui/connection-mode-indicator";
-import { ContextMenuOverlay } from "@/components/ui/context-menu-overlay";
-import { formatDuration } from "@/lib/date-utils";
-import { useRpcMutation, useRpcQuery } from "@/hooks/use-rpc-query";
-import { toast } from "@/lib/error-toast";
+
 import {
 	AlertDialog,
 	AlertDialogAction,
@@ -27,6 +24,8 @@ import {
 	AlertDialogHeader,
 	AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
+import { ConnectionModeIndicator } from "@/components/ui/connection-mode-indicator";
+import { ContextMenuOverlay } from "@/components/ui/context-menu-overlay";
 import { ConnectorNode } from "@/features/kitbuild/components/connector-node";
 import { FloatingConnectionLine } from "@/features/kitbuild/components/floating-connection-line";
 import { FloatingEdge } from "@/features/kitbuild/components/floating-edge";
@@ -52,15 +51,19 @@ import {
 import { arrangeNodesByType } from "@/features/learner-map/lib/grid-layout";
 import { useGraphChangeHandlers } from "@/hooks/use-graph-change-handlers";
 import { useHistory } from "@/hooks/use-history";
+import { useRpcMutation, useRpcQuery } from "@/hooks/use-rpc-query";
+import { formatDuration } from "@/lib/date-utils";
+import { toast } from "@/lib/error-toast";
 import { isValidConnection } from "@/lib/react-flow-types";
 import { cn } from "@/lib/utils";
-import { LearnerMapRpc } from "@/server/rpc/learner-map";
 import { AssignmentRpc } from "@/server/rpc/assignment";
+import { LearnerMapRpc } from "@/server/rpc/learner-map";
 
 const routeApi = getRouteApi("/dashboard/learner-map/$assignmentId");
 
-import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { AlertCircle } from "lucide-react";
+
+import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 
 export function LearnerMapEditor() {
 	const { assignmentId } = routeApi.useParams();
@@ -90,9 +93,7 @@ export function LearnerMapEditor() {
 	const [materialOpen, setMaterialOpen] = useAtom(materialDialogOpenAtom);
 	const [connectionMode, setConnectionMode] = useAtom(connectionModeAtom);
 	const [contextMenu, setContextMenu] = useAtom(contextMenuAtom);
-	const [lastSavedSnapshot, setLastSavedSnapshot] = useAtom(
-		lastSavedSnapshotAtom,
-	);
+	const [lastSavedSnapshot, setLastSavedSnapshot] = useAtom(lastSavedSnapshotAtom);
 	const materialText = useAtomValue(materialTextAtom);
 	const setMaterialText = useSetAtom(materialTextAtom);
 	const setAssignment = useSetAtom(assignmentAtom);
@@ -108,11 +109,9 @@ export function LearnerMapEditor() {
 	const isSubmitted = status === "submitted";
 
 	// Use shared hooks for graph changes and history
-	const { onNodesChange, onEdgesChange } = useGraphChangeHandlers(
-		setNodes,
-		setEdges,
-		{ disabled: isSubmitted },
-	);
+	const { onNodesChange, onEdgesChange } = useGraphChangeHandlers(setNodes, setEdges, {
+		disabled: isSubmitted,
+	});
 
 	const { undo, redo, canUndo, canRedo } = useHistory(nodes, edges, {
 		maxSnapshots: 50,
@@ -139,13 +138,10 @@ export function LearnerMapEditor() {
 		operation: "submit learner map",
 	});
 
-	const submitControlTextMutation = useRpcMutation(
-		LearnerMapRpc.submitControlText(),
-		{
-			operation: "submit summary",
-			showSuccess: true,
-		},
-	);
+	const submitControlTextMutation = useRpcMutation(LearnerMapRpc.submitControlText(), {
+		operation: "submit summary",
+		showSuccess: true,
+	});
 
 	// Initialize from query data
 	useEffect(() => {
@@ -154,10 +150,7 @@ export function LearnerMapEditor() {
 			setMaterialText(assignmentData.materialText || "");
 
 			// Initialize timer if time limit exists
-			if (
-				assignmentData.assignment.timeLimitMinutes &&
-				status === "not_started"
-			) {
+			if (assignmentData.assignment.timeLimitMinutes && status === "not_started") {
 				setTimeRemaining(assignmentData.assignment.timeLimitMinutes * 60);
 			}
 
@@ -293,14 +286,8 @@ export function LearnerMapEditor() {
 				// Create the edge based on direction
 				const newEdge = {
 					id: `e-${connectionMode.linkNodeId}-${node.id}`,
-					source:
-						connectionMode.direction === "to"
-							? connectionMode.linkNodeId
-							: node.id,
-					target:
-						connectionMode.direction === "to"
-							? node.id
-							: connectionMode.linkNodeId,
+					source: connectionMode.direction === "to" ? connectionMode.linkNodeId : node.id,
+					target: connectionMode.direction === "to" ? node.id : connectionMode.linkNodeId,
 					type: "floating",
 					style: { stroke: "#16a34a", strokeWidth: 3 },
 					markerEnd: { type: "arrowclosed" as MarkerType, color: "#16a34a" },
@@ -314,9 +301,7 @@ export function LearnerMapEditor() {
 			// Show context menu for connector nodes
 			if (node.type === "connector") {
 				const target = _event.target as HTMLElement;
-				const nodeElement = target.closest(
-					".react-flow__node",
-				) as HTMLElement | null;
+				const nodeElement = target.closest(".react-flow__node") as HTMLElement | null;
 
 				if (nodeElement) {
 					const rect = nodeElement.getBoundingClientRect();
@@ -485,9 +470,7 @@ export function LearnerMapEditor() {
 					</p>
 				)}
 				{attempt > 0 && (
-					<p className="text-xs text-muted-foreground mt-1">
-						Attempt {attempt}
-					</p>
+					<p className="text-xs text-muted-foreground mt-1">Attempt {attempt}</p>
 				)}
 			</div>
 			{/* Timer */}
@@ -530,8 +513,8 @@ export function LearnerMapEditor() {
 					<AlertDialogHeader>
 						<AlertDialogTitle>Submit your concept map?</AlertDialogTitle>
 						<AlertDialogDescription>
-							Your concept map will be compared against the teacher's goal map.
-							You'll see your results immediately after submission.
+							Your concept map will be compared against the teacher's goal map. You'll
+							see your results immediately after submission.
 							{attempt > 0 && " You can try again after viewing your results."}
 						</AlertDialogDescription>
 					</AlertDialogHeader>
@@ -666,19 +649,14 @@ function SummarizingEditor({
 	setLastSavedSnapshot: (s: string) => void;
 }) {
 	const queryClient = useQueryClient();
-	const [controlText, setControlText] = useState(
-		assignmentData.learnerMap?.controlText || "",
-	);
+	const [controlText, setControlText] = useState(assignmentData.learnerMap?.controlText || "");
 	const saveMutation = useRpcMutation(LearnerMapRpc.saveLearnerMap(), {
 		operation: "save summary draft",
 	});
-	const submitControlTextMutation = useRpcMutation(
-		LearnerMapRpc.submitControlText(),
-		{
-			operation: "submit summary",
-			showSuccess: true,
-		},
-	);
+	const submitControlTextMutation = useRpcMutation(LearnerMapRpc.submitControlText(), {
+		operation: "submit summary",
+		showSuccess: true,
+	});
 
 	// Auto-save summary with debounce
 	useEffect(() => {
@@ -733,12 +711,8 @@ function SummarizingEditor({
 	return (
 		<div className="h-full flex flex-col p-6 space-y-6 max-w-4xl mx-auto overflow-y-auto">
 			<div className="space-y-2">
-				<h1 className="text-2xl font-bold">
-					{assignmentData.assignment.title}
-				</h1>
-				<p className="text-muted-foreground">
-					{assignmentData.assignment.description}
-				</p>
+				<h1 className="text-2xl font-bold">{assignmentData.assignment.title}</h1>
+				<p className="text-muted-foreground">{assignmentData.assignment.description}</p>
 			</div>
 			<div className="flex-1 flex flex-col space-y-4">
 				<div className="flex items-center justify-between">
@@ -751,8 +725,8 @@ function SummarizingEditor({
 					<AlertCircle className="h-4 w-4" />
 					<AlertTitle>Summary Task</AlertTitle>
 					<AlertDescription>
-						Please read the provided material and write a comprehensive summary
-						covering the key concepts and their relationships.
+						Please read the provided material and write a comprehensive summary covering
+						the key concepts and their relationships.
 					</AlertDescription>
 				</Alert>
 				<textarea

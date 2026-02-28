@@ -1,16 +1,9 @@
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { useNavigate, useSearch } from "@tanstack/react-router";
-import {
-	FilePlusIcon,
-	Loader2,
-	Save,
-	Eye,
-	EyeOff,
-	ArrowLeft,
-} from "lucide-react";
+import { FilePlusIcon, Loader2, Save, Eye, EyeOff, ArrowLeft } from "lucide-react";
 import { useState, useCallback } from "react";
 import { toast } from "sonner";
-import { Button } from "@/components/ui/button";
+
 import {
 	AlertDialog,
 	AlertDialogAction,
@@ -21,16 +14,15 @@ import {
 	AlertDialogHeader,
 	AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
+import { Button } from "@/components/ui/button";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import type { FormMetadata } from "@/features/form/components/form-metadata-editor";
 import type { QuestionWithOptions as FormPreviewQuestion } from "@/features/form/components/form-renderer/form-preview";
 import { FormPreview } from "@/features/form/components/form-renderer/form-preview";
+import type { CreateQuestionInput, UpdateQuestionInput } from "@/features/form/lib/form-service";
 import { useRpcMutation } from "@/hooks/use-rpc-query";
 import { FormRpc } from "@/server/rpc/form";
-import type {
-	CreateQuestionInput,
-	UpdateQuestionInput,
-} from "@/features/form/lib/form-service";
+
 import { EditorContent } from "./editor-content";
 import { QuestionEditorDialog } from "./question-editor-dialog";
 import {
@@ -215,10 +207,7 @@ export function FormBuilderPage() {
 		}
 	};
 
-	const handleOpenQuestionDialog = (
-		type: QuestionType,
-		question?: QuestionWithOptions,
-	) => {
+	const handleOpenQuestionDialog = (type: QuestionType, question?: QuestionWithOptions) => {
 		setQuestionDialog({
 			isOpen: true,
 			questionType: type,
@@ -274,9 +263,7 @@ export function FormBuilderPage() {
 		await deleteQuestionMutation.mutateAsync({ id: questionId });
 	};
 
-	const handleReorderQuestions = async (
-		reorderedQuestions: QuestionWithOptions[],
-	) => {
+	const handleReorderQuestions = async (reorderedQuestions: QuestionWithOptions[]) => {
 		setQuestions(reorderedQuestions);
 		if (formId) {
 			await reorderQuestionsMutation.mutateAsync({
@@ -329,9 +316,7 @@ export function FormBuilderPage() {
 				<div className="flex items-center gap-2">
 					{isEditing && metadata.status === "draft" && (
 						<Button
-							onClick={() =>
-								formId && publishFormMutation.mutate({ id: formId })
-							}
+							onClick={() => formId && publishFormMutation.mutate({ id: formId })}
 							disabled={isPending || questions.length === 0}
 							variant="outline"
 						>
@@ -345,9 +330,7 @@ export function FormBuilderPage() {
 					)}
 					{isEditing && metadata.status === "published" && (
 						<Button
-							onClick={() =>
-								formId && unpublishFormMutation.mutate({ id: formId })
-							}
+							onClick={() => formId && unpublishFormMutation.mutate({ id: formId })}
 							disabled={isPending}
 							variant="outline"
 						>
@@ -359,10 +342,7 @@ export function FormBuilderPage() {
 							Unpublish
 						</Button>
 					)}
-					<Button
-						onClick={handleSaveForm}
-						disabled={isPending || !metadata.title.trim()}
-					>
+					<Button onClick={handleSaveForm} disabled={isPending || !metadata.title.trim()}>
 						{isPending ? (
 							<Loader2 className="mr-2 size-4 animate-spin" />
 						) : (
@@ -446,9 +426,7 @@ export function FormBuilderPage() {
 				editingQuestion={questionDialog.editingQuestion}
 				onClose={handleCloseQuestionDialog}
 				onSave={handleSaveQuestion}
-				isPending={
-					createQuestionMutation.isPending || updateQuestionMutation.isPending
-				}
+				isPending={createQuestionMutation.isPending || updateQuestionMutation.isPending}
 			/>
 
 			{/* Unsaved Changes Dialog */}

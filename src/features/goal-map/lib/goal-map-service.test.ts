@@ -1,14 +1,16 @@
 import { assert, beforeEach, describe, it } from "@effect/vitest";
 import { Effect, Either } from "effect";
+
+import { simpleGoalMap } from "@/__tests__/fixtures/goal-maps";
 import {
 	createTestGoalMap,
 	createTestKit,
 	createTestTopic,
 	createTestUser,
 } from "@/__tests__/fixtures/service-fixtures";
-import { simpleGoalMap } from "@/__tests__/fixtures/goal-maps";
 import { resetDatabase } from "@/__tests__/utils/test-helpers";
 import { DatabaseTest } from "@/server/db/client";
+
 import {
 	deleteGoalMap,
 	getGoalMap,
@@ -18,9 +20,7 @@ import {
 } from "./goal-map-service";
 
 describe("goal-map-service", () => {
-	beforeEach(() =>
-		Effect.runPromise(resetDatabase.pipe(Effect.provide(DatabaseTest))),
-	);
+	beforeEach(() => Effect.runPromise(resetDatabase.pipe(Effect.provide(DatabaseTest))));
 
 	describe("getGoalMap", () => {
 		it.effect("should return null when goal map does not exist", () =>
@@ -52,22 +52,20 @@ describe("goal-map-service", () => {
 			}).pipe(Effect.provide(DatabaseTest)),
 		);
 
-		it.effect(
-			"should return empty arrays when nodes/edges are not arrays",
-			() =>
-				Effect.gen(function* () {
-					const teacher = yield* createTestUser();
+		it.effect("should return empty arrays when nodes/edges are not arrays", () =>
+			Effect.gen(function* () {
+				const teacher = yield* createTestUser();
 
-					const goalMap = yield* createTestGoalMap(teacher.id, {
-						nodes: "invalid",
-						edges: "invalid",
-					});
+				const goalMap = yield* createTestGoalMap(teacher.id, {
+					nodes: "invalid",
+					edges: "invalid",
+				});
 
-					const result = yield* getGoalMap({ goalMapId: goalMap.id });
-					assert.isNotNull(result);
-					assert.deepStrictEqual(result?.nodes, []);
-					assert.deepStrictEqual(result?.edges, []);
-				}).pipe(Effect.provide(DatabaseTest)),
+				const result = yield* getGoalMap({ goalMapId: goalMap.id });
+				assert.isNotNull(result);
+				assert.deepStrictEqual(result?.nodes, []);
+				assert.deepStrictEqual(result?.edges, []);
+			}).pipe(Effect.provide(DatabaseTest)),
 		);
 
 		it.effect("should return kitExists as true when kit exists", () =>
@@ -346,26 +344,24 @@ describe("goal-map-service", () => {
 	});
 
 	describe("listGoalMapsByTopic", () => {
-		it.effect(
-			"should return goal maps with null topic when topicId is null",
-			() =>
-				Effect.gen(function* () {
-					const teacher = yield* createTestUser();
-					const topic = yield* createTestTopic();
+		it.effect("should return goal maps with null topic when topicId is null", () =>
+			Effect.gen(function* () {
+				const teacher = yield* createTestUser();
+				const topic = yield* createTestTopic();
 
-					yield* createTestGoalMap(teacher.id, {
-						title: "Map without topic",
-						topicId: null,
-					});
-					yield* createTestGoalMap(teacher.id, {
-						title: "Map with topic",
-						topicId: topic.id,
-					});
+				yield* createTestGoalMap(teacher.id, {
+					title: "Map without topic",
+					topicId: null,
+				});
+				yield* createTestGoalMap(teacher.id, {
+					title: "Map with topic",
+					topicId: topic.id,
+				});
 
-					const result = yield* listGoalMapsByTopic({ topicId: undefined });
-					assert.strictEqual(result.length, 1);
-					assert.strictEqual(result[0].title, "Map without topic");
-				}).pipe(Effect.provide(DatabaseTest)),
+				const result = yield* listGoalMapsByTopic({ topicId: undefined });
+				assert.strictEqual(result.length, 1);
+				assert.strictEqual(result[0].title, "Map without topic");
+			}).pipe(Effect.provide(DatabaseTest)),
 		);
 
 		it.effect("should return goal maps with specific topic", () =>

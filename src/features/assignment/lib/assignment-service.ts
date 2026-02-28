@@ -1,15 +1,11 @@
-import { Data, Effect, Schema } from "effect";
 import { desc, eq, sql } from "drizzle-orm";
+import { Data, Effect, Schema } from "effect";
+
 import { randomString } from "@/lib/utils";
-import {
-	assignments,
-	assignmentTargets,
-	goalMaps,
-	kits,
-} from "@/server/db/schema/app-schema";
-import { cohortMembers, cohorts, user } from "@/server/db/schema/auth-schema";
-import { experimentGroups } from "@/server/db/schema/app-schema";
 import { Database } from "@/server/db/client";
+import { assignments, assignmentTargets, goalMaps, kits } from "@/server/db/schema/app-schema";
+import { experimentGroups } from "@/server/db/schema/app-schema";
+import { cohortMembers, cohorts, user } from "@/server/db/schema/auth-schema";
 
 export const CreateAssignmentInput = Schema.Struct({
 	title: Schema.NonEmptyString,
@@ -36,10 +32,7 @@ export const SaveExperimentGroupsInput = Schema.Struct({
 		Schema.Struct({
 			userId: Schema.NonEmptyString,
 			groupName: Schema.optionalWith(Schema.String, { nullable: true }),
-			condition: Schema.Union(
-				Schema.Literal("summarizing"),
-				Schema.Literal("concept_map"),
-			),
+			condition: Schema.Union(Schema.Literal("summarizing"), Schema.Literal("concept_map")),
 		}),
 	),
 });
@@ -58,9 +51,7 @@ class KitNotFoundError extends Data.TaggedError("KitNotFoundError")<{
 	readonly goalMapId: string;
 }> {}
 
-class AssignmentNotFoundError extends Data.TaggedError(
-	"AssignmentNotFoundError",
-)<{
+class AssignmentNotFoundError extends Data.TaggedError("AssignmentNotFoundError")<{
 	readonly assignmentId: string;
 }> {}
 
@@ -131,42 +122,41 @@ export const createAssignment = Effect.fn("createAssignment")(
 		}),
 );
 
-export const listTeacherAssignments = Effect.fn("listTeacherAssignments")(
-	(userId: string) =>
-		Effect.gen(function* () {
-			const db = yield* Database;
-			const rows = yield* db
-				.select({
-					id: assignments.id,
-					title: assignments.title,
-					description: assignments.description,
-					goalMapId: assignments.goalMapId,
-					kitId: assignments.kitId,
-					startDate: assignments.startDate,
-					dueAt: assignments.dueAt,
-					preTestFormId: assignments.preTestFormId,
-					postTestFormId: assignments.postTestFormId,
-					delayedPostTestFormId: assignments.delayedPostTestFormId,
-					delayedPostTestDelayDays: assignments.delayedPostTestDelayDays,
-					tamFormId: assignments.tamFormId,
-					createdAt: assignments.createdAt,
-					updatedAt: assignments.updatedAt,
-					goalMapTitle: goalMaps.title,
-					goalMapDescription: goalMaps.description,
-				})
-				.from(assignments)
-				.leftJoin(goalMaps, eq(assignments.goalMapId, goalMaps.id))
-				.where(eq(assignments.createdBy, userId))
-				.orderBy(desc(assignments.createdAt));
+export const listTeacherAssignments = Effect.fn("listTeacherAssignments")((userId: string) =>
+	Effect.gen(function* () {
+		const db = yield* Database;
+		const rows = yield* db
+			.select({
+				id: assignments.id,
+				title: assignments.title,
+				description: assignments.description,
+				goalMapId: assignments.goalMapId,
+				kitId: assignments.kitId,
+				startDate: assignments.startDate,
+				dueAt: assignments.dueAt,
+				preTestFormId: assignments.preTestFormId,
+				postTestFormId: assignments.postTestFormId,
+				delayedPostTestFormId: assignments.delayedPostTestFormId,
+				delayedPostTestDelayDays: assignments.delayedPostTestDelayDays,
+				tamFormId: assignments.tamFormId,
+				createdAt: assignments.createdAt,
+				updatedAt: assignments.updatedAt,
+				goalMapTitle: goalMaps.title,
+				goalMapDescription: goalMaps.description,
+			})
+			.from(assignments)
+			.leftJoin(goalMaps, eq(assignments.goalMapId, goalMaps.id))
+			.where(eq(assignments.createdBy, userId))
+			.orderBy(desc(assignments.createdAt));
 
-			return rows.map((row) => ({
-				...row,
-				startDate: row.startDate?.getTime(),
-				dueAt: row.dueAt?.getTime(),
-				createdAt: row.createdAt?.getTime(),
-				updatedAt: row.updatedAt?.getTime(),
-			}));
-		}),
+		return rows.map((row) => ({
+			...row,
+			startDate: row.startDate?.getTime(),
+			dueAt: row.dueAt?.getTime(),
+			createdAt: row.createdAt?.getTime(),
+			updatedAt: row.updatedAt?.getTime(),
+		}));
+	}),
 );
 
 export const deleteAssignment = Effect.fn("deleteAssignment")(
@@ -280,35 +270,33 @@ export const saveExperimentGroups = Effect.fn("saveExperimentGroups")(
 		}),
 );
 
-export const getExperimentGroupsByAssignmentId = Effect.fn(
-	"getExperimentGroupsByAssignmentId",
-)((assignmentId: string) =>
-	Effect.gen(function* () {
-		const db = yield* Database;
+export const getExperimentGroupsByAssignmentId = Effect.fn("getExperimentGroupsByAssignmentId")(
+	(assignmentId: string) =>
+		Effect.gen(function* () {
+			const db = yield* Database;
 
-		const rows = yield* db
-			.select()
-			.from(experimentGroups)
-			.where(eq(experimentGroups.assignmentId, assignmentId));
+			const rows = yield* db
+				.select()
+				.from(experimentGroups)
+				.where(eq(experimentGroups.assignmentId, assignmentId));
 
-		return rows;
-	}),
+			return rows;
+		}),
 );
 
-export const getAssignmentByPreTestFormId = Effect.fn(
-	"getAssignmentByPreTestFormId",
-)((formId: string) =>
-	Effect.gen(function* () {
-		const db = yield* Database;
+export const getAssignmentByPreTestFormId = Effect.fn("getAssignmentByPreTestFormId")(
+	(formId: string) =>
+		Effect.gen(function* () {
+			const db = yield* Database;
 
-		const rows = yield* db
-			.select()
-			.from(assignments)
-			.where(eq(assignments.preTestFormId, formId))
-			.limit(1);
+			const rows = yield* db
+				.select()
+				.from(assignments)
+				.where(eq(assignments.preTestFormId, formId))
+				.limit(1);
 
-		return rows[0] ?? null;
-	}),
+			return rows[0] ?? null;
+		}),
 );
 
 export const getExperimentCondition = Effect.fn("getExperimentCondition")(

@@ -8,6 +8,7 @@ import {
 	ScanSearchIcon,
 } from "lucide-react";
 import { useMemo } from "react";
+
 import { NavMain } from "@/components/nav-main";
 import { NavUser } from "@/components/nav-user";
 import {
@@ -97,9 +98,7 @@ export function AppSidebar(props: AppSidebarProps) {
 						KB
 					</div>
 					<div className="transition-all ml-2 duration-200 ease-linear group-data-[collapsible=icon]:ml-0 group-data-[collapsible=icon]:opacity-0 group-data-[collapsible=icon]:w-0 overflow-hidden">
-						<h1 className="text-base font-medium whitespace-nowrap">
-							KitBuild
-						</h1>
+						<h1 className="text-base font-medium whitespace-nowrap">KitBuild</h1>
 						<p className="text-xs text-muted-foreground whitespace-nowrap">
 							Kit-Build Concept Map
 						</p>

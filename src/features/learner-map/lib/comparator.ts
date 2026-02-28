@@ -20,9 +20,7 @@ export const EdgeSchema = Schema.Struct({
 	sourceHandle: Schema.optional(Schema.NullOr(Schema.String)),
 	targetHandle: Schema.optional(Schema.NullOr(Schema.String)),
 	type: Schema.optional(Schema.String),
-	data: Schema.optional(
-		Schema.Record({ key: Schema.String, value: Schema.Any }),
-	),
+	data: Schema.optional(Schema.Record({ key: Schema.String, value: Schema.Any })),
 	animated: Schema.optional(Schema.Boolean),
 	style: Schema.optional(
 		Schema.Struct({
@@ -62,12 +60,8 @@ export function compareMaps(
 	goalMapEdges: Readonly<Edge[]>,
 	learnerEdges: Readonly<Edge[]>,
 ): DiagnosisResult {
-	const goalMapSet = new Set(
-		goalMapEdges.map((e) => `${e.source}-${e.target}`),
-	);
-	const learnerMapSet = new Set(
-		learnerEdges.map((e) => `${e.source}-${e.target}`),
-	);
+	const goalMapSet = new Set(goalMapEdges.map((e) => `${e.source}-${e.target}`));
+	const learnerMapSet = new Set(learnerEdges.map((e) => `${e.source}-${e.target}`));
 
 	const correct = goalMapEdges.filter((edge) =>
 		learnerMapSet.has(`${edge.source}-${edge.target}`),
@@ -123,36 +117,28 @@ export function classifyEdges(
 ): EdgeClassification[] {
 	const diagnosis = compareMaps(goalMapEdges, learnerEdges);
 
-	const correctMap = new Set(
-		diagnosis.correct.map((e) => `${e.source}-${e.target}`),
-	);
-	const excessiveMap = new Set(
-		diagnosis.excessive.map((e) => `${e.source}-${e.target}`),
-	);
+	const correctMap = new Set(diagnosis.correct.map((e) => `${e.source}-${e.target}`));
+	const excessiveMap = new Set(diagnosis.excessive.map((e) => `${e.source}-${e.target}`));
 
-	const learnerClassifications: EdgeClassification[] = learnerEdges.map(
-		(edge) => ({
-			edge,
-			type: excessiveMap.has(`${edge.source}-${edge.target}`)
-				? "excessive"
-				: correctMap.has(`${edge.source}-${edge.target}`)
-					? "correct"
-					: "neutral",
-		}),
-	);
+	const learnerClassifications: EdgeClassification[] = learnerEdges.map((edge) => ({
+		edge,
+		type: excessiveMap.has(`${edge.source}-${edge.target}`)
+			? "excessive"
+			: correctMap.has(`${edge.source}-${edge.target}`)
+				? "correct"
+				: "neutral",
+	}));
 
-	const missingClassifications: EdgeClassification[] = diagnosis.missing.map(
-		(missing) => ({
-			edge: {
-				id: `missing-${missing.source}-${missing.target}`,
-				source: missing.source,
-				target: missing.target,
-				animated: true,
-				style: { strokeDasharray: "5,5", opacity: 0.5 },
-			},
-			type: "missing" as const,
-		}),
-	);
+	const missingClassifications: EdgeClassification[] = diagnosis.missing.map((missing) => ({
+		edge: {
+			id: `missing-${missing.source}-${missing.target}`,
+			source: missing.source,
+			target: missing.target,
+			animated: true,
+			style: { strokeDasharray: "5,5", opacity: 0.5 },
+		},
+		type: "missing" as const,
+	}));
 
 	return [...learnerClassifications, ...missingClassifications];
 }

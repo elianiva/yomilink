@@ -1,10 +1,12 @@
 "use client";
 
 import { Eye, EyeOff } from "lucide-react";
+
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Separator } from "@/components/ui/separator";
 import { cn } from "@/lib/utils";
+
 import type { QuestionType } from "../question-list";
 import { QuestionRenderer } from "./question-renderer";
 
@@ -12,13 +14,7 @@ export interface FormData {
 	id: string;
 	title: string;
 	description?: string;
-	type:
-		| "pre_test"
-		| "post_test"
-		| "delayed_test"
-		| "registration"
-		| "tam"
-		| "control";
+	type: "pre_test" | "post_test" | "delayed_test" | "registration" | "tam" | "control";
 	status: "draft" | "published";
 }
 
@@ -59,19 +55,14 @@ export function FormPreview({
 	onAnswerChange,
 	className,
 }: FormPreviewProps) {
-	const sortedQuestions = [...questions].sort(
-		(a, b) => a.orderIndex - b.orderIndex,
-	);
+	const sortedQuestions = [...questions].sort((a, b) => a.orderIndex - b.orderIndex);
 
 	const handleAnswerChange = (questionId: string, value: string | number) => {
 		onAnswerChange?.(questionId, value);
 	};
 
 	return (
-		<Card
-			className={cn("overflow-hidden", className)}
-			data-testid="form-preview"
-		>
+		<Card className={cn("overflow-hidden", className)} data-testid="form-preview">
 			<CardHeader className="space-y-4 bg-muted/30">
 				<div className="flex items-center gap-2">
 					<Eye className="h-5 w-5 text-primary" />
@@ -157,11 +148,7 @@ interface FormPreviewToggleProps {
 	className?: string;
 }
 
-export function FormPreviewToggle({
-	previewMode,
-	onToggle,
-	className,
-}: FormPreviewToggleProps) {
+export function FormPreviewToggle({ previewMode, onToggle, className }: FormPreviewToggleProps) {
 	return (
 		<Button
 			type="button"

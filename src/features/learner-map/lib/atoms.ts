@@ -1,10 +1,12 @@
 import { atom } from "jotai";
-import type { Edge, Node } from "./comparator";
+
 import type {
 	ConnectionModeState,
 	ContextMenuState,
 	HistorySnapshot,
 } from "@/lib/react-flow-types";
+
+import type { Edge, Node } from "./comparator";
 
 // Assignment data
 export const assignmentAtom = atom<{
@@ -26,9 +28,9 @@ export const materialTextAtom = atom<string>("");
 export const learnerNodesAtom = atom<Node[]>([]);
 export const learnerEdgesAtom = atom<Edge[]>([]);
 export const learnerMapIdAtom = atom<string | null>(null);
-export const submissionStatusAtom = atom<
-	"draft" | "submitted" | "not_started" | "graded"
->("not_started");
+export const submissionStatusAtom = atom<"draft" | "submitted" | "not_started" | "graded">(
+	"not_started",
+);
 export const attemptAtom = atom<number>(0);
 
 // UI state

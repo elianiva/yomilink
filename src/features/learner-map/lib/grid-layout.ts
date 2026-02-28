@@ -91,9 +91,7 @@ export function arrangeNodesByType(
 	} = options ?? {};
 
 	// Separate nodes by type
-	const concepts = shuffleArray(
-		nodes.filter((n) => n.type === "text" || n.type === "image"),
-	);
+	const concepts = shuffleArray(nodes.filter((n) => n.type === "text" || n.type === "image"));
 	const connectors = shuffleArray(nodes.filter((n) => n.type === "connector"));
 
 	// Arrange concepts in upper section

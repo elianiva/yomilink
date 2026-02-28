@@ -1,4 +1,5 @@
 import { BookOpenIcon } from "lucide-react";
+
 import {
 	Dialog,
 	DialogContent,
@@ -21,12 +22,7 @@ interface MaterialDialogProps {
 	images?: MaterialImage[];
 }
 
-export function MaterialDialog({
-	open,
-	onOpenChange,
-	content,
-	images = [],
-}: MaterialDialogProps) {
+export function MaterialDialog({ open, onOpenChange, content, images = [] }: MaterialDialogProps) {
 	return (
 		<Dialog open={open} onOpenChange={onOpenChange}>
 			<DialogContent className="max-w-4xl max-h-[85vh] overflow-hidden flex flex-col">

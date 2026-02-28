@@ -14,8 +14,10 @@ import {
 	type UseQueryResult,
 } from "@tanstack/react-query";
 import { useMemo } from "react";
-import { getErrorDetails, isRetryableError } from "@/lib/error-types";
+
 import { toast, type ErrorToastOptions } from "@/lib/error-toast";
+import { getErrorDetails, isRetryableError } from "@/lib/error-types";
+
 import { isErrorResponse, type RpcErrorResponse } from "./use-rpc-error";
 
 /**
@@ -89,16 +91,8 @@ const DEFAULT_RETRY_DELAYS = [1000, 2000, 4000];
  * );
  * ```
  */
-export function useRpcQuery<
-	TData,
-	TQueryKey extends readonly unknown[] = readonly unknown[],
->(
-	options: UseQueryOptions<
-		TData | RpcErrorResponse,
-		Error,
-		TData | RpcErrorResponse,
-		TQueryKey
-	>,
+export function useRpcQuery<TData, TQueryKey extends readonly unknown[] = readonly unknown[]>(
+	options: UseQueryOptions<TData | RpcErrorResponse, Error, TData | RpcErrorResponse, TQueryKey>,
 	config: UseRpcQueryConfig = {},
 ): UseRpcQueryResult<TData> {
 	const {
@@ -120,9 +114,7 @@ export function useRpcQuery<
 
 	// Custom retry delay
 	const retryDelay = (attemptIndex: number) => {
-		return (
-			retryDelays[attemptIndex] ?? retryDelays[retryDelays.length - 1] ?? 4000
-		);
+		return retryDelays[attemptIndex] ?? retryDelays[retryDelays.length - 1] ?? 4000;
 	};
 
 	const queryResult = useQuery<

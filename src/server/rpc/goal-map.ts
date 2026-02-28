@@ -1,6 +1,7 @@
 import { mutationOptions, queryOptions } from "@tanstack/react-query";
 import { createServerFn } from "@tanstack/react-start";
 import { Effect, Schema } from "effect";
+
 import {
 	DeleteGoalMapInput,
 	deleteGoalMap,
@@ -14,6 +15,7 @@ import {
 } from "@/features/goal-map/lib/goal-map-service";
 import { requireGoalMapOwner } from "@/lib/auth-authorization";
 import { authMiddleware } from "@/middlewares/auth";
+
 import { AppLayer } from "../app-layer";
 import { errorResponse, logRpcError } from "../rpc-helper";
 
@@ -43,8 +45,7 @@ export const saveGoalMapRpc = createServerFn()
 			Effect.withSpan("saveGoalMap"),
 			Effect.tapError(logRpcError("saveGoalMap")),
 			Effect.catchTags({
-				GoalMapNotFoundError: (e) =>
-					errorResponse(`Goal map ${e.goalMapId} not found`),
+				GoalMapNotFoundError: (e) => errorResponse(`Goal map ${e.goalMapId} not found`),
 				ForbiddenError: (e) => errorResponse(e.message),
 			}),
 			Effect.catchAll(() => errorResponse("Internal server error")),
@@ -65,9 +66,7 @@ export const listGoalMapsRpc = createServerFn()
 
 export const listGoalMapsByTopicRpc = createServerFn()
 	.middleware([authMiddleware])
-	.inputValidator((raw) =>
-		Schema.decodeUnknownSync(ListGoalMapsByTopicInput)(raw),
-	)
+	.inputValidator((raw) => Schema.decodeUnknownSync(ListGoalMapsByTopicInput)(raw))
 	.handler(({ data }) =>
 		listGoalMapsByTopic(data).pipe(
 			Effect.withSpan("listGoalMapsByTopic"),
@@ -86,8 +85,7 @@ export const deleteGoalMapRpc = createServerFn()
 			Effect.withSpan("deleteGoalMap"),
 			Effect.tapError(logRpcError("deleteGoalMap")),
 			Effect.catchTags({
-				GoalMapNotFoundError: (e) =>
-					errorResponse(`Goal map ${e.goalMapId} not found`),
+				GoalMapNotFoundError: (e) => errorResponse(`Goal map ${e.goalMapId} not found`),
 				ForbiddenError: (e) => errorResponse(e.message),
 			}),
 			Effect.catchAll(() => errorResponse("Internal server error")),

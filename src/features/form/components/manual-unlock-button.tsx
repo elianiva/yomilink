@@ -1,7 +1,8 @@
 "use client";
 
-import { useState } from "react";
 import { LockOpen, Loader2 } from "lucide-react";
+import { useState } from "react";
+
 import { Button } from "@/components/ui/button";
 import {
 	Dialog,
@@ -61,8 +62,7 @@ export function ManualUnlockButton({
 						<DialogTitle>Unlock Form</DialogTitle>
 						<DialogDescription>
 							Are you sure you want to manually unlock this form for{" "}
-							<strong>{userName}</strong>? This will bypass all unlock
-							conditions.
+							<strong>{userName}</strong>? This will bypass all unlock conditions.
 						</DialogDescription>
 					</DialogHeader>
 					<DialogFooter>

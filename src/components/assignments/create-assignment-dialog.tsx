@@ -1,4 +1,5 @@
 import { PlusIcon } from "lucide-react";
+
 import { Button } from "@/components/ui/button";
 import {
 	Dialog,
@@ -8,15 +9,14 @@ import {
 	DialogTitle,
 	DialogTrigger,
 } from "@/components/ui/dialog";
+
 import { CreateAssignmentForm } from "./create-assignment-form";
 
 interface CreateAssignmentDialogProps {
 	onSuccess: () => void;
 }
 
-export function CreateAssignmentDialog({
-	onSuccess,
-}: CreateAssignmentDialogProps) {
+export function CreateAssignmentDialog({ onSuccess }: CreateAssignmentDialogProps) {
 	return (
 		<Dialog>
 			<DialogTrigger asChild>

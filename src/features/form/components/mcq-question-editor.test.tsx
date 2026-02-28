@@ -1,11 +1,10 @@
 import { render, screen } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { describe, expect, it, vi } from "vitest";
+
 import { type McqQuestionData, McqQuestionEditor } from "./mcq-question-editor";
 
-function createDefaultData(
-	overrides: Partial<McqQuestionData> = {},
-): McqQuestionData {
+function createDefaultData(overrides: Partial<McqQuestionData> = {}): McqQuestionData {
 	return {
 		questionText: "",
 		options: [
@@ -22,43 +21,33 @@ function createDefaultData(
 describe("McqQuestionEditor", () => {
 	describe("rendering", () => {
 		it("renders question text textarea", () => {
-			render(
-				<McqQuestionEditor data={createDefaultData()} onChange={vi.fn()} />,
-			);
+			render(<McqQuestionEditor data={createDefaultData()} onChange={vi.fn()} />);
 
 			expect(screen.getByTestId("question-text-input")).toBeInTheDocument();
 			expect(screen.getByLabelText(/question text/i)).toBeInTheDocument();
 		});
 
 		it("renders option rows for each option", () => {
-			render(
-				<McqQuestionEditor data={createDefaultData()} onChange={vi.fn()} />,
-			);
+			render(<McqQuestionEditor data={createDefaultData()} onChange={vi.fn()} />);
 
 			expect(screen.getByTestId("option-row-0")).toBeInTheDocument();
 			expect(screen.getByTestId("option-row-1")).toBeInTheDocument();
 		});
 
 		it("renders add option button", () => {
-			render(
-				<McqQuestionEditor data={createDefaultData()} onChange={vi.fn()} />,
-			);
+			render(<McqQuestionEditor data={createDefaultData()} onChange={vi.fn()} />);
 
 			expect(screen.getByTestId("add-option-button")).toBeInTheDocument();
 		});
 
 		it("renders shuffle toggle", () => {
-			render(
-				<McqQuestionEditor data={createDefaultData()} onChange={vi.fn()} />,
-			);
+			render(<McqQuestionEditor data={createDefaultData()} onChange={vi.fn()} />);
 
 			expect(screen.getByTestId("shuffle-toggle")).toBeInTheDocument();
 		});
 
 		it("renders required toggle", () => {
-			render(
-				<McqQuestionEditor data={createDefaultData()} onChange={vi.fn()} />,
-			);
+			render(<McqQuestionEditor data={createDefaultData()} onChange={vi.fn()} />);
 
 			expect(screen.getByTestId("required-toggle")).toBeInTheDocument();
 		});
@@ -118,10 +107,7 @@ describe("McqQuestionEditor", () => {
 				/>,
 			);
 
-			expect(screen.getByTestId("shuffle-toggle")).toHaveAttribute(
-				"data-state",
-				"checked",
-			);
+			expect(screen.getByTestId("shuffle-toggle")).toHaveAttribute("data-state", "checked");
 		});
 
 		it("shows required state", () => {
@@ -144,20 +130,14 @@ describe("McqQuestionEditor", () => {
 			const user = userEvent.setup();
 			const handleChange = vi.fn();
 
-			render(
-				<McqQuestionEditor
-					data={createDefaultData()}
-					onChange={handleChange}
-				/>,
-			);
+			render(<McqQuestionEditor data={createDefaultData()} onChange={handleChange} />);
 
 			const input = screen.getByTestId("question-text-input");
 			await user.clear(input);
 			await user.paste("What?");
 
 			expect(handleChange).toHaveBeenCalled();
-			const lastCall =
-				handleChange.mock.calls[handleChange.mock.calls.length - 1];
+			const lastCall = handleChange.mock.calls[handleChange.mock.calls.length - 1];
 			expect(lastCall[0].questionText).toBe("What?");
 		});
 
@@ -182,8 +162,7 @@ describe("McqQuestionEditor", () => {
 			await user.paste("Option A");
 
 			expect(handleChange).toHaveBeenCalled();
-			const lastCall =
-				handleChange.mock.calls[handleChange.mock.calls.length - 1];
+			const lastCall = handleChange.mock.calls[handleChange.mock.calls.length - 1];
 			expect(lastCall[0].options[0].text).toBe("Option A");
 		});
 
@@ -223,9 +202,7 @@ describe("McqQuestionEditor", () => {
 
 			await user.click(screen.getByTestId("shuffle-toggle"));
 
-			expect(handleChange).toHaveBeenCalledWith(
-				expect.objectContaining({ shuffle: true }),
-			);
+			expect(handleChange).toHaveBeenCalledWith(expect.objectContaining({ shuffle: true }));
 		});
 
 		it("calls onChange when required is toggled", async () => {
@@ -241,29 +218,20 @@ describe("McqQuestionEditor", () => {
 
 			await user.click(screen.getByTestId("required-toggle"));
 
-			expect(handleChange).toHaveBeenCalledWith(
-				expect.objectContaining({ required: false }),
-			);
+			expect(handleChange).toHaveBeenCalledWith(expect.objectContaining({ required: false }));
 		});
 
 		it("adds new option when add button clicked", async () => {
 			const user = userEvent.setup();
 			const handleChange = vi.fn();
 
-			render(
-				<McqQuestionEditor
-					data={createDefaultData()}
-					onChange={handleChange}
-				/>,
-			);
+			render(<McqQuestionEditor data={createDefaultData()} onChange={handleChange} />);
 
 			await user.click(screen.getByTestId("add-option-button"));
 
 			expect(handleChange).toHaveBeenCalledWith(
 				expect.objectContaining({
-					options: expect.arrayContaining([
-						expect.objectContaining({ text: "" }),
-					]),
+					options: expect.arrayContaining([expect.objectContaining({ text: "" })]),
 				}),
 			);
 			expect(handleChange.mock.calls[0][0].options).toHaveLength(3);
@@ -385,11 +353,7 @@ describe("McqQuestionEditor", () => {
 	describe("disabled state", () => {
 		it("disables all inputs when disabled prop is true", () => {
 			render(
-				<McqQuestionEditor
-					data={createDefaultData()}
-					onChange={vi.fn()}
-					disabled={true}
-				/>,
+				<McqQuestionEditor data={createDefaultData()} onChange={vi.fn()} disabled={true} />,
 			);
 
 			expect(screen.getByTestId("question-text-input")).toBeDisabled();
@@ -398,9 +362,7 @@ describe("McqQuestionEditor", () => {
 		});
 
 		it("disables remove button when only 2 options remain", () => {
-			render(
-				<McqQuestionEditor data={createDefaultData()} onChange={vi.fn()} />,
-			);
+			render(<McqQuestionEditor data={createDefaultData()} onChange={vi.fn()} />);
 
 			expect(screen.getByTestId("remove-option-0")).toBeDisabled();
 			expect(screen.getByTestId("remove-option-1")).toBeDisabled();

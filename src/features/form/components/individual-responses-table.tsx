@@ -3,6 +3,7 @@
 import { useQuery } from "@tanstack/react-query";
 import { EyeIcon } from "lucide-react";
 import { useState } from "react";
+
 import { Button } from "@/components/ui/button";
 import {
 	Table,
@@ -13,6 +14,7 @@ import {
 	TableRow,
 } from "@/components/ui/table";
 import { FormRpc } from "@/server/rpc/form";
+
 import { ResponseDetailModal } from "./response-detail-modal";
 
 export type ResponseQuestion = {
@@ -65,9 +67,7 @@ export function IndividualResponsesTable({
 	pagination,
 	formId,
 }: IndividualResponsesTableProps) {
-	const [selectedResponse, setSelectedResponse] = useState<FormResponse | null>(
-		null,
-	);
+	const [selectedResponse, setSelectedResponse] = useState<FormResponse | null>(null);
 
 	// For pagination, we'd fetch more data. For now, show what we have.
 	const { data: moreResponses } = useQuery({
@@ -135,9 +135,7 @@ export function IndividualResponsesTable({
 								</div>
 							</TableCell>
 							<TableCell>{formatDate(response.submittedAt)}</TableCell>
-							<TableCell>
-								{formatTimeSpent(response.timeSpentSeconds)}
-							</TableCell>
+							<TableCell>{formatTimeSpent(response.timeSpentSeconds)}</TableCell>
 							<TableCell className="text-right">
 								<Button
 									variant="ghost"
@@ -157,8 +155,8 @@ export function IndividualResponsesTable({
 			{pagination.totalPages > 1 && (
 				<div className="flex items-center justify-between mt-4">
 					<div className="text-sm text-muted-foreground">
-						Page {pagination.page} of {pagination.totalPages} (
-						{pagination.total} responses)
+						Page {pagination.page} of {pagination.totalPages} ({pagination.total}{" "}
+						responses)
 					</div>
 					<div className="flex gap-2">
 						<Button

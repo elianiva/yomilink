@@ -32,9 +32,7 @@ export function ConnectionModeIndicator({
 				className,
 			)}
 		>
-			<span>
-				Click a concept to connect {direction === "to" ? "to" : "from"}
-			</span>
+			<span>Click a concept to connect {direction === "to" ? "to" : "from"}</span>
 			<button
 				type="button"
 				onClick={onCancel}

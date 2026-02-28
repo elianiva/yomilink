@@ -1,5 +1,6 @@
-import { useCallback, useEffect, useRef, useState } from "react";
 import { useReactFlow } from "@xyflow/react";
+import { useCallback, useEffect, useRef, useState } from "react";
+
 import type { Edge, Node } from "@/features/learner-map/lib/comparator";
 import type { HistorySnapshot } from "@/lib/react-flow-types";
 
@@ -42,9 +43,7 @@ export function useHistory(
 	const { maxSnapshots = 100, disabled = false } = options;
 	const { setNodes, setEdges } = useReactFlow();
 
-	const [history, setHistory] = useState<HistorySnapshot[]>([
-		{ nodes: [], edges: [] },
-	]);
+	const [history, setHistory] = useState<HistorySnapshot[]>([{ nodes: [], edges: [] }]);
 	const [pointer, setPointer] = useState(0);
 	const [isApplying, setIsApplying] = useState(false);
 
@@ -85,8 +84,7 @@ export function useHistory(
 		const edgesStr = JSON.stringify(edges);
 
 		// Check if anything changed
-		if (nodesStr === prevNodesRef.current && edgesStr === prevEdgesRef.current)
-			return;
+		if (nodesStr === prevNodesRef.current && edgesStr === prevEdgesRef.current) return;
 
 		prevNodesRef.current = nodesStr;
 		prevEdgesRef.current = edgesStr;

@@ -4,15 +4,16 @@ import { useQuery } from "@tanstack/react-query";
 import { createFileRoute } from "@tanstack/react-router";
 import { BarChart3, List, Loader2, Users } from "lucide-react";
 import { useState } from "react";
+
 import { Guard } from "@/components/auth/Guard";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Button } from "@/components/ui/button";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { AggregatedResponses } from "@/features/form/components/aggregated-responses";
-import { StratifiedGrouping } from "@/features/form/components/stratified-grouping";
 import {
 	IndividualResponsesTable,
 	type FormResponse,
 } from "@/features/form/components/individual-responses-table";
+import { StratifiedGrouping } from "@/features/form/components/stratified-grouping";
 import { FormRpc } from "@/server/rpc/form";
 
 export const Route = createFileRoute("/dashboard/forms/$formId/results")({
@@ -25,9 +26,9 @@ export const Route = createFileRoute("/dashboard/forms/$formId/results")({
 
 function FormResultsPage() {
 	const { formId } = Route.useParams();
-	const [activeTab, setActiveTab] = useState<
-		"individual" | "aggregated" | "grouping"
-	>("individual");
+	const [activeTab, setActiveTab] = useState<"individual" | "aggregated" | "grouping">(
+		"individual",
+	);
 
 	const { data: formData, isLoading: formLoading } = useQuery({
 		...FormRpc.getFormById({ id: formId }),
@@ -64,9 +65,7 @@ function FormResultsPage() {
 	}
 
 	const { form, questions } = formData;
-	const responses = (
-		isSuccess(responsesData) ? responsesData.responses : []
-	) as FormResponse[];
+	const responses = (isSuccess(responsesData) ? responsesData.responses : []) as FormResponse[];
 	const pagination = isSuccess(responsesData)
 		? responsesData.pagination
 		: {
@@ -106,10 +105,7 @@ function FormResultsPage() {
 				</Button>
 			</div>
 
-			<Tabs
-				value={activeTab}
-				onValueChange={(v) => setActiveTab(v as typeof activeTab)}
-			>
+			<Tabs value={activeTab} onValueChange={(v) => setActiveTab(v as typeof activeTab)}>
 				<TabsList>
 					<TabsTrigger value="individual" className="gap-2">
 						<List className="h-4 w-4" />
@@ -137,10 +133,7 @@ function FormResultsPage() {
 				</TabsContent>
 
 				<TabsContent value="aggregated" className="mt-6">
-					<AggregatedResponses
-						responses={responses}
-						questions={typedQuestions}
-					/>
+					<AggregatedResponses responses={responses} questions={typedQuestions} />
 				</TabsContent>
 
 				{form.type === "pre_test" && (

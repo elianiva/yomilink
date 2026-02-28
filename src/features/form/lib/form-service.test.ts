@@ -1,18 +1,12 @@
 import { assert, beforeEach, describe, it } from "@effect/vitest";
 import { eq } from "drizzle-orm";
 import { Effect, Either } from "effect";
-import {
-	createTestForm,
-	createTestUser,
-} from "@/__tests__/fixtures/service-fixtures";
+
+import { createTestForm, createTestUser } from "@/__tests__/fixtures/service-fixtures";
 import { resetDatabase } from "@/__tests__/utils/test-helpers";
 import { Database, DatabaseTest } from "@/server/db/client";
-import {
-	formProgress,
-	formResponses,
-	forms,
-	questions,
-} from "@/server/db/schema/app-schema";
+import { formProgress, formResponses, forms, questions } from "@/server/db/schema/app-schema";
+
 import {
 	cloneForm,
 	createForm,
@@ -29,9 +23,7 @@ import {
 } from "./form-service";
 
 describe("form-service", () => {
-	beforeEach(() =>
-		Effect.runPromise(resetDatabase.pipe(Effect.provide(DatabaseTest))),
-	);
+	beforeEach(() => Effect.runPromise(resetDatabase.pipe(Effect.provide(DatabaseTest))));
 
 	describe("createForm", () => {
 		it.effect("should create a form with valid data", () =>
@@ -109,8 +101,7 @@ describe("form-service", () => {
 				const result = yield* Effect.either(getFormById("non-existent-id"));
 
 				Either.match(result, {
-					onLeft: (error) =>
-						assert.strictEqual(error._tag, "FormNotFoundError"),
+					onLeft: (error) => assert.strictEqual(error._tag, "FormNotFoundError"),
 					onRight: () => assert.fail("Expected Left but got Right"),
 				});
 			}).pipe(Effect.provide(DatabaseTest)),
@@ -171,8 +162,7 @@ describe("form-service", () => {
 				);
 
 				Either.match(result, {
-					onLeft: (error) =>
-						assert.strictEqual(error._tag, "FormNotFoundError"),
+					onLeft: (error) => assert.strictEqual(error._tag, "FormNotFoundError"),
 					onRight: () => assert.fail("Expected Left but got Right"),
 				});
 			}).pipe(Effect.provide(DatabaseTest)),
@@ -206,9 +196,7 @@ describe("form-service", () => {
 							assert.equal(error.formId, form.id);
 							assert.equal(error.responseCount, 1);
 						} else {
-							assert.fail(
-								`Expected FormHasResponsesError but got ${error._tag}`,
-							);
+							assert.fail(`Expected FormHasResponsesError but got ${error._tag}`);
 						}
 					},
 					onRight: () => assert.fail("Expected Left but got Right"),
@@ -257,8 +245,7 @@ describe("form-service", () => {
 				const result = yield* Effect.either(deleteForm("non-existent-id"));
 
 				Either.match(result, {
-					onLeft: (error) =>
-						assert.strictEqual(error._tag, "FormNotFoundError"),
+					onLeft: (error) => assert.strictEqual(error._tag, "FormNotFoundError"),
 					onRight: () => assert.fail("Expected Left but got Right"),
 				});
 			}).pipe(Effect.provide(DatabaseTest)),
@@ -362,13 +349,10 @@ describe("form-service", () => {
 		it.effect("should return FormNotFoundError when form does not exist", () =>
 			Effect.gen(function* () {
 				const user = yield* createTestUser();
-				const result = yield* Effect.either(
-					cloneForm("non-existent-id", user.id),
-				);
+				const result = yield* Effect.either(cloneForm("non-existent-id", user.id));
 
 				Either.match(result, {
-					onLeft: (error) =>
-						assert.strictEqual(error._tag, "FormNotFoundError"),
+					onLeft: (error) => assert.strictEqual(error._tag, "FormNotFoundError"),
 					onRight: () => assert.fail("Expected Left but got Right"),
 				});
 			}).pipe(Effect.provide(DatabaseTest)),
@@ -422,8 +406,7 @@ describe("form-service", () => {
 				);
 
 				Either.match(result, {
-					onLeft: (error) =>
-						assert.strictEqual(error._tag, "FormNotFoundError"),
+					onLeft: (error) => assert.strictEqual(error._tag, "FormNotFoundError"),
 					onRight: () => assert.fail("Expected Left but got Right"),
 				});
 			}).pipe(Effect.provide(DatabaseTest)),
@@ -443,43 +426,39 @@ describe("form-service", () => {
 				);
 
 				Either.match(result, {
-					onLeft: (error) =>
-						assert.strictEqual(error._tag, "FormNotPublishedError"),
+					onLeft: (error) => assert.strictEqual(error._tag, "FormNotPublishedError"),
 					onRight: () => assert.fail("Expected Left but got Right"),
 				});
 			}).pipe(Effect.provide(DatabaseTest)),
 		);
 
-		it.effect(
-			"should return FormAlreadySubmittedError when user already submitted",
-			() =>
-				Effect.gen(function* () {
-					const user = yield* createTestUser();
-					const form = yield* createTestForm(user.id);
-					yield* publishForm(form.id);
+		it.effect("should return FormAlreadySubmittedError when user already submitted", () =>
+			Effect.gen(function* () {
+				const user = yield* createTestUser();
+				const form = yield* createTestForm(user.id);
+				yield* publishForm(form.id);
 
-					// First submission
-					yield* submitFormResponse({
+				// First submission
+				yield* submitFormResponse({
+					formId: form.id,
+					userId: user.id,
+					answers: { q1: "first answer" },
+				});
+
+				// Second submission should fail
+				const result = yield* Effect.either(
+					submitFormResponse({
 						formId: form.id,
 						userId: user.id,
-						answers: { q1: "first answer" },
-					});
+						answers: { q1: "second answer" },
+					}),
+				);
 
-					// Second submission should fail
-					const result = yield* Effect.either(
-						submitFormResponse({
-							formId: form.id,
-							userId: user.id,
-							answers: { q1: "second answer" },
-						}),
-					);
-
-					Either.match(result, {
-						onLeft: (error) =>
-							assert.strictEqual(error._tag, "FormAlreadySubmittedError"),
-						onRight: () => assert.fail("Expected Left but got Right"),
-					});
-				}).pipe(Effect.provide(DatabaseTest)),
+				Either.match(result, {
+					onLeft: (error) => assert.strictEqual(error._tag, "FormAlreadySubmittedError"),
+					onRight: () => assert.fail("Expected Left but got Right"),
+				});
+			}).pipe(Effect.provide(DatabaseTest)),
 		);
 
 		it.effect("should update form progress to completed on submission", () =>
@@ -591,8 +570,7 @@ describe("form-service", () => {
 				);
 
 				Either.match(result, {
-					onLeft: (error) =>
-						assert.strictEqual(error._tag, "FormNotFoundError"),
+					onLeft: (error) => assert.strictEqual(error._tag, "FormNotFoundError"),
 					onRight: () => assert.fail("Expected Left but got Right"),
 				});
 			}).pipe(Effect.provide(DatabaseTest)),
@@ -657,21 +635,19 @@ describe("form-service", () => {
 			}).pipe(Effect.provide(DatabaseTest)),
 		);
 
-		it.effect(
-			"should return empty responses array when no responses exist",
-			() =>
-				Effect.gen(function* () {
-					const user = yield* createTestUser();
-					const form = yield* createTestForm(user.id);
+		it.effect("should return empty responses array when no responses exist", () =>
+			Effect.gen(function* () {
+				const user = yield* createTestUser();
+				const form = yield* createTestForm(user.id);
 
-					const result = yield* getFormResponses({ formId: form.id });
+				const result = yield* getFormResponses({ formId: form.id });
 
-					assert.equal(result.responses.length, 0);
-					assert.equal(result.pagination.total, 0);
-					assert.equal(result.pagination.totalPages, 0);
-					assert.equal(result.pagination.hasNextPage, false);
-					assert.equal(result.pagination.hasPrevPage, false);
-				}).pipe(Effect.provide(DatabaseTest)),
+				assert.equal(result.responses.length, 0);
+				assert.equal(result.pagination.total, 0);
+				assert.equal(result.pagination.totalPages, 0);
+				assert.equal(result.pagination.hasNextPage, false);
+				assert.equal(result.pagination.hasPrevPage, false);
+			}).pipe(Effect.provide(DatabaseTest)),
 		);
 	});
 
@@ -755,18 +731,16 @@ describe("form-service", () => {
 	});
 
 	describe("getRegistrationFormStatus", () => {
-		it.effect(
-			"should return hasRegistrationForm=false when no registration form exists",
-			() =>
-				Effect.gen(function* () {
-					const student = yield* createTestUser();
+		it.effect("should return hasRegistrationForm=false when no registration form exists", () =>
+			Effect.gen(function* () {
+				const student = yield* createTestUser();
 
-					const result = yield* getRegistrationFormStatus(student.id);
+				const result = yield* getRegistrationFormStatus(student.id);
 
-					assert.equal(result.hasRegistrationForm, false);
-					assert.equal(result.isCompleted, true);
-					assert.equal(result.formId, null);
-				}).pipe(Effect.provide(DatabaseTest)),
+				assert.equal(result.hasRegistrationForm, false);
+				assert.equal(result.isCompleted, true);
+				assert.equal(result.formId, null);
+			}).pipe(Effect.provide(DatabaseTest)),
 		);
 
 		it.effect(
@@ -821,25 +795,23 @@ describe("form-service", () => {
 				}).pipe(Effect.provide(DatabaseTest)),
 		);
 
-		it.effect(
-			"should only check published registration forms (not drafts)",
-			() =>
-				Effect.gen(function* () {
-					const teacher = yield* createTestUser();
-					const student = yield* createTestUser();
+		it.effect("should only check published registration forms (not drafts)", () =>
+			Effect.gen(function* () {
+				const teacher = yield* createTestUser();
+				const student = yield* createTestUser();
 
-					// Create a draft registration form (not published)
-					yield* createTestForm(teacher.id, {
-						title: "Draft Registration Form",
-						type: "registration",
-					});
+				// Create a draft registration form (not published)
+				yield* createTestForm(teacher.id, {
+					title: "Draft Registration Form",
+					type: "registration",
+				});
 
-					const result = yield* getRegistrationFormStatus(student.id);
+				const result = yield* getRegistrationFormStatus(student.id);
 
-					// Should return false because the form is not published
-					assert.equal(result.hasRegistrationForm, false);
-					assert.equal(result.isCompleted, true);
-				}).pipe(Effect.provide(DatabaseTest)),
+				// Should return false because the form is not published
+				assert.equal(result.hasRegistrationForm, false);
+				assert.equal(result.isCompleted, true);
+			}).pipe(Effect.provide(DatabaseTest)),
 		);
 	});
 });

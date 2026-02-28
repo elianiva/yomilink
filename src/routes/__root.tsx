@@ -1,16 +1,15 @@
 import { ProgressProvider } from "@bprogress/react";
-import fredokaFont from "@fontsource-variable/fredoka/index.css?url";
 import type { QueryClient } from "@tanstack/react-query";
-import {
-	createRootRouteWithContext,
-	HeadContent,
-	Scripts,
-} from "@tanstack/react-router";
+import { createRootRouteWithContext, HeadContent, Scripts } from "@tanstack/react-router";
 import { lazy, Suspense } from "react";
+
 import { Toaster } from "@/components/ui/sonner";
+
 import { NotFound } from "../components/not-found";
 import RouteProgress from "../components/progress/route-progress";
+
 import appCss from "../styles.css?url";
+import fredokaFont from "@fontsource-variable/fredoka/index.css?url";
 
 interface MyRouterContext {
 	queryClient: QueryClient;

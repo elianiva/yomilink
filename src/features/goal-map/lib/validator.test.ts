@@ -1,10 +1,7 @@
 import { describe, expect, it } from "@effect/vitest";
 import { Effect } from "effect";
-import {
-	detectCycles,
-	findConnectedComponents,
-	validateNodes,
-} from "./validator";
+
+import { detectCycles, findConnectedComponents, validateNodes } from "./validator";
 
 describe("GoalMapValidator", () => {
 	it.effect("should validate a correct KBFIRA structure", () =>
@@ -65,9 +62,7 @@ describe("GoalMapValidator", () => {
 			const edges = [{ id: "edge1", source: "root", target: "link" }];
 			const result = yield* validateNodes(nodes, edges);
 			expect(result.isValid).toBe(false);
-			expect(result.errors).toContain(
-				"At least 2 concept nodes (text/image) required",
-			);
+			expect(result.errors).toContain("At least 2 concept nodes (text/image) required");
 		}),
 	);
 
@@ -177,9 +172,7 @@ describe("GoalMapValidator", () => {
 			];
 			const result = yield* validateNodes(nodes, edges);
 			expect(result.isValid).toBe(false);
-			expect(
-				result.errors.some((e: string) => e.includes("does not exist")),
-			).toBe(true);
+			expect(result.errors.some((e: string) => e.includes("does not exist"))).toBe(true);
 		}),
 	);
 

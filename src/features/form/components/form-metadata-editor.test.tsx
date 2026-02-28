@@ -1,5 +1,6 @@
 import { fireEvent, render, screen } from "@testing-library/react";
 import { describe, expect, it, vi } from "vitest";
+
 import { type FormMetadata, FormMetadataEditor } from "./form-metadata-editor";
 
 describe("FormMetadataEditor", () => {
@@ -11,9 +12,7 @@ describe("FormMetadataEditor", () => {
 	};
 
 	it("renders with all form fields", () => {
-		render(
-			<FormMetadataEditor metadata={defaultMetadata} onChange={vi.fn()} />,
-		);
+		render(<FormMetadataEditor metadata={defaultMetadata} onChange={vi.fn()} />);
 
 		expect(screen.getByTestId("form-metadata-editor")).toBeInTheDocument();
 		expect(screen.getByTestId("form-title-input")).toBeInTheDocument();
@@ -33,17 +32,13 @@ describe("FormMetadataEditor", () => {
 		render(<FormMetadataEditor metadata={metadata} onChange={vi.fn()} />);
 
 		expect(screen.getByTestId("form-title-input")).toHaveValue("Test Form");
-		expect(screen.getByTestId("form-description-input")).toHaveValue(
-			"Test Description",
-		);
+		expect(screen.getByTestId("form-description-input")).toHaveValue("Test Description");
 	});
 
 	it("calls onChange when title is updated", () => {
 		const onChange = vi.fn();
 
-		render(
-			<FormMetadataEditor metadata={defaultMetadata} onChange={onChange} />,
-		);
+		render(<FormMetadataEditor metadata={defaultMetadata} onChange={onChange} />);
 
 		const titleInput = screen.getByTestId("form-title-input");
 		fireEvent.change(titleInput, { target: { value: "New Form Title" } });
@@ -57,9 +52,7 @@ describe("FormMetadataEditor", () => {
 	it("calls onChange when description is updated", () => {
 		const onChange = vi.fn();
 
-		render(
-			<FormMetadataEditor metadata={defaultMetadata} onChange={onChange} />,
-		);
+		render(<FormMetadataEditor metadata={defaultMetadata} onChange={onChange} />);
 
 		const descriptionInput = screen.getByTestId("form-description-input");
 		fireEvent.change(descriptionInput, {
@@ -79,12 +72,7 @@ describe("FormMetadataEditor", () => {
 			description: "Existing Description",
 		};
 
-		render(
-			<FormMetadataEditor
-				metadata={metadataWithDescription}
-				onChange={onChange}
-			/>,
-		);
+		render(<FormMetadataEditor metadata={metadataWithDescription} onChange={onChange} />);
 
 		const descriptionInput = screen.getByTestId("form-description-input");
 		fireEvent.change(descriptionInput, { target: { value: "" } });
@@ -97,11 +85,7 @@ describe("FormMetadataEditor", () => {
 
 	it("disables all inputs when disabled prop is true", () => {
 		render(
-			<FormMetadataEditor
-				metadata={defaultMetadata}
-				onChange={vi.fn()}
-				disabled={true}
-			/>,
+			<FormMetadataEditor metadata={defaultMetadata} onChange={vi.fn()} disabled={true} />,
 		);
 
 		expect(screen.getByTestId("form-title-input")).toBeDisabled();

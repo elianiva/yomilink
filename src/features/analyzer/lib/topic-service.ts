@@ -1,7 +1,8 @@
 import { Effect, Schema } from "effect";
+
 import { randomString } from "@/lib/utils";
-import { topics } from "@/server/db/schema/app-schema";
 import { Database } from "@/server/db/client";
+import { topics } from "@/server/db/schema/app-schema";
 
 export const TopicSchema = Schema.Struct({
 	id: Schema.NonEmptyString,

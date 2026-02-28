@@ -1,5 +1,6 @@
 import { Tooltip as BaseTooltip } from "@base-ui/react/tooltip";
 import * as React from "react";
+
 import { cn } from "@/lib/utils";
 
 export function ArrowSvg(props: React.ComponentProps<"svg">) {
@@ -49,9 +50,7 @@ const TooltipTrigger = React.forwardRef<
 ));
 TooltipTrigger.displayName = "TooltipTrigger";
 
-type TooltipTriggerProps = React.ComponentPropsWithoutRef<
-	typeof BaseTooltip.Trigger
->;
+type TooltipTriggerProps = React.ComponentPropsWithoutRef<typeof BaseTooltip.Trigger>;
 
 const TooltipPortal = BaseTooltip.Portal;
 

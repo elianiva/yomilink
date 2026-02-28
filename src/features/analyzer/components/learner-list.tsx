@@ -1,6 +1,6 @@
 import { Checkbox } from "@/components/ui/checkbox";
-import { cn } from "@/lib/utils";
 import type { LearnerAnalytics } from "@/features/analyzer/lib/analytics-service";
+import { cn } from "@/lib/utils";
 
 export function LearnerList({
 	learners,
@@ -15,9 +15,7 @@ export function LearnerList({
 }) {
 	if (isLoading) {
 		return (
-			<div className="px-3 py-6 text-center text-xs text-muted-foreground">
-				Loading...
-			</div>
+			<div className="px-3 py-6 text-center text-xs text-muted-foreground">Loading...</div>
 		);
 	}
 

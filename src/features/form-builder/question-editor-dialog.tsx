@@ -1,15 +1,12 @@
-import { useState } from "react";
 import { Loader2 } from "lucide-react";
+import { useState } from "react";
+
 import { Button } from "@/components/ui/button";
-import {
-	Dialog,
-	DialogContent,
-	DialogHeader,
-	DialogTitle,
-} from "@/components/ui/dialog";
-import { McqQuestionEditor } from "@/features/form/components/mcq-question-editor";
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { LikertQuestionEditor } from "@/features/form/components/likert-question-editor";
+import { McqQuestionEditor } from "@/features/form/components/mcq-question-editor";
 import { TextQuestionEditor } from "@/features/form/components/text-question-editor";
+
 import type { QuestionEditorDialogProps, EditorWrapperProps } from "./types";
 
 export function QuestionEditorDialog({
@@ -199,9 +196,7 @@ function McqQuestionEditorWrapper({
 				<Button
 					onClick={handleSave}
 					disabled={
-						isPending ||
-						!data.questionText.trim() ||
-						data.options.options.length < 2
+						isPending || !data.questionText.trim() || data.options.options.length < 2
 					}
 				>
 					{isPending && <Loader2 className="mr-2 size-4 animate-spin" />}
@@ -273,10 +268,7 @@ function LikertQuestionEditorWrapper({
 				<Button variant="outline" onClick={onCancel} disabled={isPending}>
 					Cancel
 				</Button>
-				<Button
-					onClick={handleSave}
-					disabled={isPending || !data.questionText.trim()}
-				>
+				<Button onClick={handleSave} disabled={isPending || !data.questionText.trim()}>
 					{isPending && <Loader2 className="mr-2 size-4 animate-spin" />}
 					Save Question
 				</Button>
@@ -348,10 +340,7 @@ function TextQuestionEditorWrapper({
 				<Button variant="outline" onClick={onCancel} disabled={isPending}>
 					Cancel
 				</Button>
-				<Button
-					onClick={handleSave}
-					disabled={isPending || !data.questionText.trim()}
-				>
+				<Button onClick={handleSave} disabled={isPending || !data.questionText.trim()}>
 					{isPending && <Loader2 className="mr-2 size-4 animate-spin" />}
 					Save Question
 				</Button>

@@ -19,9 +19,7 @@ interface TimeRemaining {
 	total: number;
 }
 
-function calculateTimeRemaining(
-	targetDate: Date | string | number,
-): TimeRemaining {
+function calculateTimeRemaining(targetDate: Date | string | number): TimeRemaining {
 	const target = new Date(targetDate).getTime();
 	const now = Date.now();
 	const difference = target - now;
@@ -31,9 +29,7 @@ function calculateTimeRemaining(
 	}
 
 	const days = Math.floor(difference / (1000 * 60 * 60 * 24));
-	const hours = Math.floor(
-		(difference % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60),
-	);
+	const hours = Math.floor((difference % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
 	const minutes = Math.floor((difference % (1000 * 60 * 60)) / (1000 * 60));
 	const seconds = Math.floor((difference % (1000 * 60)) / 1000);
 
@@ -118,11 +114,8 @@ export function CountdownTimer({
 			<span className="text-muted-foreground text-sm">Unlocks in:</span>
 			<div className="flex items-center gap-1">
 				{parts.map((part, index) => (
-					// biome-ignore lint/suspicious/noArrayIndexKey: separators are stable between renders
 					<span key={`part-${index}`} className="flex items-center gap-1">
-						{index > 0 && (
-							<span className="text-muted-foreground mx-0.5">:</span>
-						)}
+						{index > 0 && <span className="text-muted-foreground mx-0.5">:</span>}
 						{part}
 					</span>
 				))}

@@ -1,6 +1,7 @@
 import { useQueryClient } from "@tanstack/react-query";
 import { createFileRoute } from "@tanstack/react-router";
 import { MapIcon } from "lucide-react";
+
 import { AssignmentCard } from "@/components/assignments/assignment-card";
 import { CreateAssignmentDialog } from "@/components/assignments/create-assignment-dialog";
 import { Guard } from "@/components/auth/Guard";
@@ -19,9 +20,7 @@ export const Route = createFileRoute("/dashboard/assignments/manage")({
 function ManageAssignmentsPage() {
 	const queryClient = useQueryClient();
 
-	const { data: assignments, isLoading } = useRpcQuery(
-		AssignmentRpc.listTeacherAssignments(),
-	);
+	const { data: assignments, isLoading } = useRpcQuery(AssignmentRpc.listTeacherAssignments());
 
 	const deleteMutation = useRpcMutation(AssignmentRpc.deleteAssignment(), {
 		operation: "delete assignment",

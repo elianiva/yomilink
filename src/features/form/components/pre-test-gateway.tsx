@@ -1,10 +1,12 @@
-import { Clock, Lock } from "lucide-react";
 import { useNavigate } from "@tanstack/react-router";
-import { CountdownTimer } from "./countdown-timer";
+import { Clock, Lock } from "lucide-react";
+
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { useFormUnlock } from "@/hooks/use-form-unlock";
 import { cn } from "@/lib/utils";
+
+import { CountdownTimer } from "./countdown-timer";
 
 export interface PreTestGatewayProps {
 	/** The pre-test form ID that must be completed */
@@ -61,9 +63,7 @@ export function PreTestGateway({
 
 	// Error state - check if data is undefined or has success: false
 	const hasError =
-		error ||
-		!unlockStatus ||
-		("success" in unlockStatus && unlockStatus.success === false);
+		error || !unlockStatus || ("success" in unlockStatus && unlockStatus.success === false);
 
 	if (hasError) {
 		return (
@@ -71,9 +71,7 @@ export function PreTestGateway({
 				<Card className="w-full max-w-md">
 					<CardContent className="pt-6 text-center">
 						<p className="text-destructive">Failed to check pre-test status</p>
-						<p className="text-sm text-muted-foreground mt-2">
-							Please try again later
-						</p>
+						<p className="text-sm text-muted-foreground mt-2">Please try again later</p>
 					</CardContent>
 				</Card>
 			</div>
@@ -87,9 +85,7 @@ export function PreTestGateway({
 				<Card className="w-full max-w-md">
 					<CardContent className="pt-6 text-center">
 						<p className="text-destructive">Failed to check pre-test status</p>
-						<p className="text-sm text-muted-foreground mt-2">
-							Please try again later
-						</p>
+						<p className="text-sm text-muted-foreground mt-2">Please try again later</p>
 					</CardContent>
 				</Card>
 			</div>

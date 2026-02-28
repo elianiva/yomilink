@@ -1,10 +1,8 @@
 import type { LucideIcon } from "lucide-react";
 import type * as React from "react";
+
 import { Button } from "@/components/ui/button";
-import {
-	TooltipTrigger,
-	type TooltipTriggerProps,
-} from "@/components/ui/tooltip";
+import { TooltipTrigger, type TooltipTriggerProps } from "@/components/ui/tooltip";
 
 export interface ToolbarButtonProps {
 	icon?: LucideIcon;

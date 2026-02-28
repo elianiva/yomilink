@@ -1,5 +1,6 @@
 import { assert, beforeEach, describe, it } from "@effect/vitest";
 import { Effect, Either } from "effect";
+
 import {
 	createTestGoalMap,
 	createTestKit,
@@ -7,17 +8,11 @@ import {
 } from "@/__tests__/fixtures/service-fixtures";
 import { resetDatabase } from "@/__tests__/utils/test-helpers";
 import { DatabaseTest } from "@/server/db/client";
-import {
-	generateKit,
-	getKit,
-	getKitStatus,
-	listStudentKits,
-} from "./kit-service";
+
+import { generateKit, getKit, getKitStatus, listStudentKits } from "./kit-service";
 
 describe("kit-service", () => {
-	beforeEach(() =>
-		Effect.runPromise(resetDatabase.pipe(Effect.provide(DatabaseTest))),
-	);
+	beforeEach(() => Effect.runPromise(resetDatabase.pipe(Effect.provide(DatabaseTest))));
 	describe("listStudentKits", () => {
 		it.effect("should return empty array when no kits exist", () =>
 			Effect.gen(function* () {
@@ -97,23 +92,21 @@ describe("kit-service", () => {
 			}).pipe(Effect.provide(DatabaseTest)),
 		);
 
-		it.effect(
-			"should return empty arrays when nodes/edges are not arrays",
-			() =>
-				Effect.gen(function* () {
-					const teacher = yield* createTestUser();
-					const goalMap = yield* createTestGoalMap(teacher.id);
+		it.effect("should return empty arrays when nodes/edges are not arrays", () =>
+			Effect.gen(function* () {
+				const teacher = yield* createTestUser();
+				const goalMap = yield* createTestGoalMap(teacher.id);
 
-					yield* createTestKit(goalMap.id, teacher.id, {
-						nodes: "invalid",
-						edges: "invalid",
-					});
+				yield* createTestKit(goalMap.id, teacher.id, {
+					nodes: "invalid",
+					edges: "invalid",
+				});
 
-					const result = yield* getKit({ kitId: goalMap.id });
-					assert.isNotNull(result);
-					assert.deepStrictEqual(result?.nodes, []);
-					assert.deepStrictEqual(result?.edges, []);
-				}).pipe(Effect.provide(DatabaseTest)),
+				const result = yield* getKit({ kitId: goalMap.id });
+				assert.isNotNull(result);
+				assert.deepStrictEqual(result?.nodes, []);
+				assert.deepStrictEqual(result?.edges, []);
+			}).pipe(Effect.provide(DatabaseTest)),
 		);
 	});
 
@@ -187,44 +180,40 @@ describe("kit-service", () => {
 	});
 
 	describe("generateKit", () => {
-		it.effect(
-			"should return GoalMapNotFoundError when goalMap does not exist",
-			() =>
-				Effect.gen(function* () {
-					const teacher = yield* createTestUser();
-					const result = yield* Effect.either(
-						generateKit(teacher.id, {
-							goalMapId: "non-existent-id",
-						}),
-					);
+		it.effect("should return GoalMapNotFoundError when goalMap does not exist", () =>
+			Effect.gen(function* () {
+				const teacher = yield* createTestUser();
+				const result = yield* Effect.either(
+					generateKit(teacher.id, {
+						goalMapId: "non-existent-id",
+					}),
+				);
 
-					assert.isTrue(Either.isLeft(result));
-				}).pipe(Effect.provide(DatabaseTest)),
+				assert.isTrue(Either.isLeft(result));
+			}).pipe(Effect.provide(DatabaseTest)),
 		);
 
-		it.effect(
-			"should create kit from goal map with text and connector nodes",
-			() =>
-				Effect.gen(function* () {
-					const teacher = yield* createTestUser();
-					const testNodes = [
-						{ id: "1", type: "text", content: "Text Node" },
-						{ id: "2", type: "connector", label: "Connector" },
-						{ id: "3", type: "image", url: "image.jpg" },
-					];
+		it.effect("should create kit from goal map with text and connector nodes", () =>
+			Effect.gen(function* () {
+				const teacher = yield* createTestUser();
+				const testNodes = [
+					{ id: "1", type: "text", content: "Text Node" },
+					{ id: "2", type: "connector", label: "Connector" },
+					{ id: "3", type: "image", url: "image.jpg" },
+				];
 
-					const goalMap = yield* createTestGoalMap(teacher.id, {
-						title: "Test Goal Map",
-						nodes: JSON.stringify(testNodes),
-					});
+				const goalMap = yield* createTestGoalMap(teacher.id, {
+					title: "Test Goal Map",
+					nodes: JSON.stringify(testNodes),
+				});
 
-					const result = yield* generateKit(teacher.id, {
-						goalMapId: goalMap.id,
-					});
+				const result = yield* generateKit(teacher.id, {
+					goalMapId: goalMap.id,
+				});
 
-					assert.isTrue(result.ok);
-					assert.strictEqual(result.kitId, goalMap.id);
-				}).pipe(Effect.provide(DatabaseTest)),
+				assert.isTrue(result.ok);
+				assert.strictEqual(result.kitId, goalMap.id);
+			}).pipe(Effect.provide(DatabaseTest)),
 		);
 
 		it.effect("should update existing kit", () =>

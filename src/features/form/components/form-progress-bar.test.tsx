@@ -1,5 +1,6 @@
 import { render, screen } from "@testing-library/react";
 import { describe, expect, it } from "vitest";
+
 import { FormProgressBar } from "./form-progress-bar";
 
 describe("FormProgressBar", () => {
@@ -49,20 +50,14 @@ describe("FormProgressBar", () => {
 
 	it("applies custom className", () => {
 		const { container } = render(
-			<FormProgressBar
-				currentQuestion={1}
-				totalQuestions={10}
-				className="custom-class"
-			/>,
+			<FormProgressBar currentQuestion={1} totalQuestions={10} className="custom-class" />,
 		);
 
 		expect(container.firstChild).toHaveClass("custom-class");
 	});
 
 	it("calculates percentage correctly for various values", () => {
-		const { rerender } = render(
-			<FormProgressBar currentQuestion={2} totalQuestions={4} />,
-		);
+		const { rerender } = render(<FormProgressBar currentQuestion={2} totalQuestions={4} />);
 		expect(screen.getByText("50% complete")).toBeInTheDocument();
 
 		rerender(<FormProgressBar currentQuestion={3} totalQuestions={4} />);

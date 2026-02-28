@@ -2,6 +2,7 @@ import type { Connection, MarkerType, NodeMouseHandler } from "@xyflow/react";
 import { addEdge } from "@xyflow/react";
 import { useAtom, useAtomValue, useSetAtom } from "jotai";
 import { useCallback } from "react";
+
 import {
 	connectionModeAtom,
 	contextMenuAtom,
@@ -47,10 +48,7 @@ export function useContextMenu() {
 
 		setNodes((nds) => nds.filter((n) => n.id !== contextMenu.nodeId));
 		setEdges((eds) =>
-			eds.filter(
-				(e) =>
-					e.source !== contextMenu.nodeId && e.target !== contextMenu.nodeId,
-			),
+			eds.filter((e) => e.source !== contextMenu.nodeId && e.target !== contextMenu.nodeId),
 		);
 		setContextMenu(null);
 	}, [contextMenu, setNodes, setEdges, setContextMenu]);
@@ -120,14 +118,8 @@ export function useContextMenu() {
 
 				const newEdge = {
 					id: `e-${connectionMode.linkNodeId}-${node.id}`,
-					source:
-						connectionMode.direction === "to"
-							? connectionMode.linkNodeId
-							: node.id,
-					target:
-						connectionMode.direction === "to"
-							? node.id
-							: connectionMode.linkNodeId,
+					source: connectionMode.direction === "to" ? connectionMode.linkNodeId : node.id,
+					target: connectionMode.direction === "to" ? node.id : connectionMode.linkNodeId,
 					type: "floating",
 					style: { stroke: "#16a34a", strokeWidth: 3 },
 					markerEnd: directionEnabled
@@ -142,9 +134,7 @@ export function useContextMenu() {
 
 			const nodeType = node.type as "text" | "connector";
 			const target = _event.target as HTMLElement;
-			const nodeElement = target.closest(
-				".react-flow__node",
-			) as HTMLElement | null;
+			const nodeElement = target.closest(".react-flow__node") as HTMLElement | null;
 
 			if (nodeElement) {
 				const rect = nodeElement.getBoundingClientRect();
@@ -158,13 +148,7 @@ export function useContextMenu() {
 				});
 			}
 		},
-		[
-			connectionMode,
-			directionEnabled,
-			setEdges,
-			setConnectionMode,
-			setContextMenu,
-		],
+		[connectionMode, directionEnabled, setEdges, setConnectionMode, setContextMenu],
 	);
 
 	const onPaneClick = useCallback(() => {
@@ -173,10 +157,7 @@ export function useContextMenu() {
 	}, [setContextMenu, setConnectionMode]);
 
 	const onConnect = useCallback(
-		(
-			params: Connection,
-			getNodeType: (id: string | null) => string | undefined,
-		) => {
+		(params: Connection, getNodeType: (id: string | null) => string | undefined) => {
 			const sType = getNodeType(params.source ?? null);
 			const tType = getNodeType(params.target ?? null);
 			const ok =

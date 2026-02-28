@@ -1,6 +1,7 @@
 import { Handle, type Node, type NodeProps, Position } from "@xyflow/react";
 import { useAtomValue } from "jotai";
 import { memo } from "react";
+
 import { contextMenuAtom } from "@/features/goal-map/lib/atoms";
 import { cn } from "@/lib/utils";
 
@@ -8,10 +9,7 @@ import { cn } from "@/lib/utils";
 const ANCHOR_HANDLE_STYLE =
 	"!absolute !opacity-0 !w-1 !h-1 !min-w-0 !min-h-0 !border-none !pointer-events-none";
 
-function ConnectorNodeComponent({
-	id,
-	data,
-}: NodeProps<Node<{ label: string }>>) {
+function ConnectorNodeComponent({ id, data }: NodeProps<Node<{ label: string }>>) {
 	const contextMenu = useAtomValue(contextMenuAtom);
 	const isActive = contextMenu?.nodeId === id;
 
@@ -22,9 +20,7 @@ function ConnectorNodeComponent({
 				isActive && "ring-4 scale-105 z-50 shadow-lg",
 			)}
 		>
-			<div className="text-sm font-medium leading-tight">
-				{data?.label ?? "rel"}
-			</div>
+			<div className="text-sm font-medium leading-tight">{data?.label ?? "rel"}</div>
 
 			{/* Small invisible handles at center - only for edge anchoring, not for initiating connections */}
 			<Handle

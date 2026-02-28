@@ -1,11 +1,10 @@
 import { mutationOptions, queryOptions } from "@tanstack/react-query";
 import { createServerFn } from "@tanstack/react-start";
 import { Effect, Schema } from "effect";
-import {
-	UpdateProfileInput,
-	updateProfile,
-} from "@/features/profile/lib/profile-service";
+
+import { UpdateProfileInput, updateProfile } from "@/features/profile/lib/profile-service";
 import { authMiddleware, authMiddlewareOptional } from "@/middlewares/auth";
+
 import { AppLayer } from "../app-layer";
 import { errorResponse, logRpcError } from "../rpc-helper";
 

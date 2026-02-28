@@ -1,32 +1,28 @@
 import { mutationOptions } from "@tanstack/react-query";
 import { createServerFn } from "@tanstack/react-start";
 import { Effect, Schema } from "effect";
-import { authMiddleware } from "@/middlewares/auth";
+
 import {
 	uploadMaterialImage,
 	UploadMaterialImageInput,
 } from "@/features/analyzer/lib/material-image-service";
+import { authMiddleware } from "@/middlewares/auth";
+
 import { AppLayer } from "../app-layer";
 import { errorResponse, logRpcError } from "../rpc-helper";
 
 export const uploadMaterialImageRpc = createServerFn()
 	.middleware([authMiddleware])
-	.inputValidator((raw) =>
-		Schema.decodeUnknownSync(UploadMaterialImageInput)(raw),
-	)
+	.inputValidator((raw) => Schema.decodeUnknownSync(UploadMaterialImageInput)(raw))
 	.handler(({ data }) =>
 		uploadMaterialImage(data).pipe(
 			Effect.withSpan("uploadMaterialImage"),
 			Effect.tapError(logRpcError("uploadMaterialImage")),
 			Effect.catchTags({
 				InvalidFileTypeError: (e) =>
-					errorResponse(
-						`Invalid file type: ${e.type}. Allowed: ${e.allowed.join(", ")}`,
-					),
+					errorResponse(`Invalid file type: ${e.type}. Allowed: ${e.allowed.join(", ")}`),
 				FileTooLargeError: (e) =>
-					errorResponse(
-						`File too large: ${e.size} bytes. Max: ${e.maxSize} bytes`,
-					),
+					errorResponse(`File too large: ${e.size} bytes. Max: ${e.maxSize} bytes`),
 				UnknownException: () => errorResponse("Failed to upload image"),
 			}),
 			Effect.provide(AppLayer),
@@ -38,7 +34,6 @@ export const MaterialImageRpc = {
 	upload: () =>
 		mutationOptions({
 			mutationKey: ["material-image", "upload"],
-			mutationFn: (data: UploadMaterialImageInput) =>
-				uploadMaterialImageRpc({ data }),
+			mutationFn: (data: UploadMaterialImageInput) => uploadMaterialImageRpc({ data }),
 		}),
 };

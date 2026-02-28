@@ -104,7 +104,7 @@ Teacher                        Student                    System
 ### Development
 - **Language**: TypeScript (strict mode)
 - **Package Manager**: Bun
-- **Linting/Formatting**: Biome
+- **Linting/Formatting**: oxlint/oxfmt
 - **Testing**: Vitest + Testing Library + jsdom
 - **Build**: Vite
 

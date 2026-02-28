@@ -1,4 +1,5 @@
 import { memo, useState } from "react";
+
 import { Button } from "@/components/ui/button";
 import {
 	DropdownMenu,
@@ -130,9 +131,7 @@ export const TAILWIND_COLORS: TailwindColor[] = [
 	},
 ];
 
-export const DEFAULT_COLOR: TailwindColor = TAILWIND_COLORS.find(
-	(c) => c.name === "amber",
-) ?? {
+export const DEFAULT_COLOR: TailwindColor = TAILWIND_COLORS.find((c) => c.name === "amber") ?? {
 	name: "amber",
 	value: "amber-500",
 	bg: "bg-amber-500",
@@ -177,8 +176,7 @@ function ColorPickerImpl({ value, onChange }: ColorPickerProps) {
 							className={cn(
 								"size-7 rounded-md transition-all hover:scale-110",
 								color.bg,
-								value.value === color.value &&
-									"ring-2 ring-offset-2 ring-gray-900",
+								value.value === color.value && "ring-2 ring-offset-2 ring-gray-900",
 							)}
 							title={color.name}
 						/>

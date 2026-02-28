@@ -2,6 +2,7 @@
 
 import { Check } from "lucide-react";
 import { useMemo } from "react";
+
 import type { McqOptions } from "@/features/form/lib/form-service";
 import { cn } from "@/lib/utils";
 
@@ -30,12 +31,7 @@ function shuffleArray<T>(array: readonly T[]): T[] {
 	return shuffled;
 }
 
-export function McqRenderer({
-	question,
-	value,
-	onChange,
-	disabled = false,
-}: McqRendererProps) {
+export function McqRenderer({ question, value, onChange, disabled = false }: McqRendererProps) {
 	const displayOptions = useMemo(() => {
 		if (question.shuffle) {
 			return shuffleArray(question.options);

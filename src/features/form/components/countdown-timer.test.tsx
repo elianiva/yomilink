@@ -1,5 +1,6 @@
 import { render, screen } from "@testing-library/react";
 import { describe, it, expect } from "vitest";
+
 import { CountdownTimer, createDefaultCountdownData } from "./countdown-timer";
 
 describe("CountdownTimer", () => {
@@ -76,9 +77,7 @@ describe("CountdownTimer", () => {
 	});
 
 	it("accepts string date input", () => {
-		const futureDate = new Date(
-			Date.now() + 2 * 24 * 60 * 60 * 1000,
-		).toISOString();
+		const futureDate = new Date(Date.now() + 2 * 24 * 60 * 60 * 1000).toISOString();
 
 		const { container } = render(<CountdownTimer targetDate={futureDate} />);
 
@@ -88,9 +87,7 @@ describe("CountdownTimer", () => {
 	it("accepts number timestamp input", () => {
 		const futureTimestamp = Date.now() + 2 * 24 * 60 * 60 * 1000;
 
-		const { container } = render(
-			<CountdownTimer targetDate={futureTimestamp} />,
-		);
+		const { container } = render(<CountdownTimer targetDate={futureTimestamp} />);
 
 		expect(container).toBeInTheDocument();
 	});

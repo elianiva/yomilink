@@ -1,4 +1,5 @@
 import { CalendarIcon, MapIcon, Trash2Icon } from "lucide-react";
+
 import { Button } from "@/components/ui/button";
 import { formatDate } from "@/lib/date-utils";
 import type { AssignmentWithDetails } from "@/server/rpc/assignment";

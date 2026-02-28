@@ -1,6 +1,7 @@
 import { fireEvent, render, screen } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { describe, expect, it, vi } from "vitest";
+
 import { FormTaker } from "./form-taker";
 
 const mockForm = {
@@ -108,11 +109,7 @@ describe("FormTaker", () => {
 	it("calls onAnswerChange when answer changes", () => {
 		const onAnswerChange = vi.fn();
 		render(
-			<FormTaker
-				form={mockForm}
-				questions={mockQuestions}
-				onAnswerChange={onAnswerChange}
-			/>,
+			<FormTaker form={mockForm} questions={mockQuestions} onAnswerChange={onAnswerChange} />,
 		);
 
 		const textarea = screen.getByRole("textbox");
@@ -137,9 +134,7 @@ describe("FormTaker", () => {
 		const user = userEvent.setup();
 		const answers = { q1: "John", q2: 4 };
 
-		render(
-			<FormTaker form={mockForm} questions={mockQuestions} answers={answers} />,
-		);
+		render(<FormTaker form={mockForm} questions={mockQuestions} answers={answers} />);
 
 		const nextButton = screen.getByTestId("next-button");
 		await user.click(nextButton);
@@ -177,9 +172,7 @@ describe("FormTaker", () => {
 		const user = userEvent.setup();
 		const answers = { q1: "John", q2: 4 };
 
-		render(
-			<FormTaker form={mockForm} questions={mockQuestions} answers={answers} />,
-		);
+		render(<FormTaker form={mockForm} questions={mockQuestions} answers={answers} />);
 
 		const nextButton = screen.getByTestId("next-button");
 		await user.click(nextButton);

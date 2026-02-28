@@ -1,22 +1,19 @@
 import { createFileRoute } from "@tanstack/react-router";
-import { Effect } from "effect";
 import { env } from "cloudflare:workers";
-import { DatabaseLive } from "@/server/db/client";
+import { Effect } from "effect";
+
 import { getServerUser } from "@/lib/auth";
 import { requireGoalMapAccess } from "@/lib/auth-authorization";
+import { DatabaseLive } from "@/server/db/client";
 
-export const Route = createFileRoute(
-	"/api/materials/images/$goalMapId/$imageId",
-)({
+export const Route = createFileRoute("/api/materials/images/$goalMapId/$imageId")({
 	server: {
 		handlers: {
 			GET: async ({ params, request }) => {
 				const { goalMapId, imageId } = params;
 
 				const result = await Effect.gen(function* () {
-					const user = yield* Effect.tryPromise(() =>
-						getServerUser(request.headers),
-					);
+					const user = yield* Effect.tryPromise(() => getServerUser(request.headers));
 
 					if (!user) {
 						return new Response("Unauthorized", { status: 401 });
@@ -27,17 +24,13 @@ export const Route = createFileRoute(
 							Effect.succeed(new Response("Forbidden", { status: 403 })),
 						),
 						Effect.catchTag("GoalMapNotFoundError", () =>
-							Effect.succeed(
-								new Response("Goal map not found", { status: 404 }),
-							),
+							Effect.succeed(new Response("Goal map not found", { status: 404 })),
 						),
 					);
 
 					const key = `materials/${goalMapId}/${imageId}`;
 
-					const object = yield* Effect.tryPromise(() =>
-						env.MATERIAL_IMAGES.get(key),
-					);
+					const object = yield* Effect.tryPromise(() => env.MATERIAL_IMAGES.get(key));
 
 					if (!object) {
 						return new Response("Not Found", { status: 404 });

@@ -1,6 +1,7 @@
 import { mutationOptions, queryOptions } from "@tanstack/react-query";
 import { createServerFn } from "@tanstack/react-start";
 import { Effect, Schema } from "effect";
+
 import {
 	GenerateKitInput,
 	GetKitInput,
@@ -11,6 +12,7 @@ import {
 	listStudentKits,
 } from "@/features/kit/lib/kit-service";
 import { requireRoleMiddleware } from "@/middlewares/auth";
+
 import { AppLayer } from "../app-layer";
 import { errorResponse, logRpcError } from "../rpc-helper";
 
@@ -60,8 +62,7 @@ export const generateKitRpc = createServerFn()
 			Effect.withSpan("generateKit"),
 			Effect.tapError(logRpcError("generateKit")),
 			Effect.catchTags({
-				GoalMapNotFoundError: (e) =>
-					errorResponse(`Goal map ${e.goalMapId} not found`),
+				GoalMapNotFoundError: (e) => errorResponse(`Goal map ${e.goalMapId} not found`),
 			}),
 			Effect.catchAll(() => errorResponse("Internal server error")),
 			Effect.provide(AppLayer),

@@ -1,29 +1,18 @@
 import { getRouteApi, useNavigate } from "@tanstack/react-router";
 import type { Connection, MarkerType } from "@xyflow/react";
-import {
-	Background,
-	MiniMap,
-	ReactFlow,
-	ReactFlowProvider,
-	useReactFlow,
-} from "@xyflow/react";
+import { Background, MiniMap, ReactFlow, ReactFlowProvider, useReactFlow } from "@xyflow/react";
 import { useAtom, useAtomValue, useSetAtom } from "jotai";
-import { isErrorResponse } from "@/hooks/use-rpc-error";
-import { useRpcMutation, useRpcQuery } from "@/hooks/use-rpc-query";
-import { toast } from "@/lib/error-toast";
-import { pageTitleAtom } from "@/lib/page-title";
-import "@xyflow/react/dist/style.css";
 import { useCallback, useEffect, useMemo, useState } from "react";
+
 import { ConnectionModeIndicator } from "@/components/ui/connection-mode-indicator";
 import { ContextMenuOverlay } from "@/components/ui/context-menu-overlay";
 import { AddConceptDialog } from "@/features/goal-map/components/add-concept-dialog";
+
+import "@xyflow/react/dist/style.css";
 import { AddLinkDialog } from "@/features/goal-map/components/add-link-dialog";
 import { EditorToolbar } from "@/features/goal-map/components/editor-toolbar";
 import { ImportMaterialDialog } from "@/features/goal-map/components/import-material-dialog";
-import {
-	SaveDialog,
-	WarningsPanel,
-} from "@/features/goal-map/components/save-dialog";
+import { SaveDialog, WarningsPanel } from "@/features/goal-map/components/save-dialog";
 import { useContextMenu } from "@/features/goal-map/hooks/use-context-menu";
 import { useGraphHandlers } from "@/features/goal-map/hooks/use-graph-handlers";
 import { useHistory } from "@/features/goal-map/hooks/use-history";
@@ -54,6 +43,10 @@ import { FloatingEdge } from "@/features/kitbuild/components/floating-edge";
 import { NodeContextMenu } from "@/features/kitbuild/components/node-context-menu";
 import { SearchNodesPanel } from "@/features/kitbuild/components/search-nodes-panel";
 import { TextNode } from "@/features/kitbuild/components/text-node";
+import { isErrorResponse } from "@/hooks/use-rpc-error";
+import { useRpcMutation, useRpcQuery } from "@/hooks/use-rpc-query";
+import { toast } from "@/lib/error-toast";
+import { pageTitleAtom } from "@/lib/page-title";
 import { cn, randomString } from "@/lib/utils";
 import { GoalMapRpc } from "@/server/rpc/goal-map";
 import { KitRpc } from "@/server/rpc/kit";
@@ -79,9 +72,7 @@ export function GoalMapEditor() {
 
 	const { getViewport } = useReactFlow();
 	const setPageTitle = useSetAtom(pageTitleAtom);
-	const [conceptDialogOpen, setConceptDialogOpen] = useAtom(
-		conceptDialogOpenAtom,
-	);
+	const [conceptDialogOpen, setConceptDialogOpen] = useAtom(conceptDialogOpenAtom);
 	const [linkDialogOpen, setLinkDialogOpen] = useAtom(linkDialogOpenAtom);
 	const [searchOpen, setSearchOpen] = useAtom(searchOpenAtom);
 	const [isHydrated, setIsHydrated] = useAtom(isHydratedAtom);
@@ -102,9 +93,7 @@ export function GoalMapEditor() {
 		enabled: goalMapId !== "new",
 	});
 
-	const { data: topics, isLoading: topicsLoading } = useRpcQuery(
-		TopicRpc.listTopics(),
-	);
+	const { data: topics, isLoading: topicsLoading } = useRpcQuery(TopicRpc.listTopics());
 
 	const { data: kitStatus } = useRpcQuery(KitRpc.getKitStatus(goalMapId));
 
@@ -129,13 +118,8 @@ export function GoalMapEditor() {
 	}, [isNewMap, existing?.title, setPageTitle]);
 
 	const { undo, redo } = useHistory();
-	const {
-		getNodeType,
-		addTextNode,
-		addConnectorNode,
-		deleteSelected,
-		selectNode,
-	} = useNodeOperations();
+	const { getNodeType, addTextNode, addConnectorNode, deleteSelected, selectNode } =
+		useNodeOperations();
 
 	const {
 		nodes: graphNodes,
@@ -157,15 +141,8 @@ export function GoalMapEditor() {
 		handleEditNodeConfirm,
 	} = useContextMenu();
 
-	const {
-		zoomIn,
-		zoomOut,
-		fit,
-		centerMap,
-		toggleDirection,
-		autoLayout,
-		updateEdgeMarkers,
-	} = useViewportControls();
+	const { zoomIn, zoomOut, fit, centerMap, toggleDirection, autoLayout, updateEdgeMarkers } =
+		useViewportControls();
 
 	const {
 		saveMeta,
@@ -191,21 +168,16 @@ export function GoalMapEditor() {
 	const saving = saveGoalMapMutation.isPending && !isSavingForKit;
 
 	const doSave = useCallback(
-		(
-			meta: { topicId: string; name: string; description?: string },
-			newGoalMapId?: string,
-		) => {
+		(meta: { topicId: string; name: string; description?: string }, newGoalMapId?: string) => {
 			setSaveError(null);
 			const targetGoalMapId =
 				newGoalMapId ?? (goalMapId === "new" ? randomString() : goalMapId);
-			const isCreatingNewMap =
-				goalMapId === "new" || newGoalMapId !== undefined;
+			const isCreatingNewMap = goalMapId === "new" || newGoalMapId !== undefined;
 
 			const saveParams = {
 				goalMapId: targetGoalMapId,
 				title: meta.name,
-				description:
-					meta.description || (newGoalMapId ? saveMeta.description : undefined),
+				description: meta.description || (newGoalMapId ? saveMeta.description : undefined),
 				topicId: meta.topicId || undefined,
 				nodes: graphNodes,
 				edges: graphEdges,
@@ -215,9 +187,7 @@ export function GoalMapEditor() {
 
 			saveGoalMapMutation.mutate(saveParams, {
 				onSuccess: () => {
-					setLastSavedSnapshot(
-						JSON.stringify({ nodes: graphNodes, edges: graphEdges }),
-					);
+					setLastSavedSnapshot(JSON.stringify({ nodes: graphNodes, edges: graphEdges }));
 					if (isCreatingNewMap) {
 						navigate({
 							to: "/dashboard/goal-map/$goalMapId",
@@ -227,8 +197,7 @@ export function GoalMapEditor() {
 					}
 				},
 				onError: (error) => {
-					const message =
-						error instanceof Error ? error.message : "Save failed";
+					const message = error instanceof Error ? error.message : "Save failed";
 					if (/unauthorized|forbidden/i.test(message)) {
 						addWarning(
 							"Saved locally (not signed in). Changes are only on this device.",
@@ -264,15 +233,8 @@ export function GoalMapEditor() {
 		],
 	);
 
-	useKeyboardShortcuts(
-		saving,
-		doSave,
-		saveMeta.name,
-		saveMeta.topicId,
-		isNewMap,
-	);
+	useKeyboardShortcuts(saving, doSave, saveMeta.name, saveMeta.topicId, isNewMap);
 
-	// biome-ignore lint/correctness/useExhaustiveDependencies: isHydrated is intentionally excluded to prevent re-running after hydration
 	useEffect(() => {
 		if (existing && !isHydrated) {
 			const loadedNodes = Array.isArray(existing.nodes) ? existing.nodes : [];
@@ -282,21 +244,16 @@ export function GoalMapEditor() {
 			updateMeta({
 				topicId: typeof existing.topicId === "string" ? existing.topicId : "",
 				name: typeof existing.title === "string" ? existing.title : "",
-				description:
-					typeof existing.description === "string" ? existing.description : "",
+				description: typeof existing.description === "string" ? existing.description : "",
 			});
-			setMaterialText(
-				typeof existing.materialText === "string" ? existing.materialText : "",
-			);
+			setMaterialText(typeof existing.materialText === "string" ? existing.materialText : "");
 			setMaterialImages(
 				typeof existing.materialImages === "object" &&
 					Array.isArray(existing.materialImages)
 					? existing.materialImages
 					: [],
 			);
-			setLastSavedSnapshot(
-				JSON.stringify({ nodes: loadedNodes, edges: loadedEdges }),
-			);
+			setLastSavedSnapshot(JSON.stringify({ nodes: loadedNodes, edges: loadedEdges }));
 			setIsHydrated(true);
 		}
 	}, [
@@ -330,9 +287,7 @@ export function GoalMapEditor() {
 				(sType === "text" && tType === "connector") ||
 				(sType === "connector" && tType === "text");
 			if (!ok) {
-				toast.error(
-					`Invalid connection: ${sType ?? "unknown"} -> ${tType ?? "unknown"}`,
-				);
+				toast.error(`Invalid connection: ${sType ?? "unknown"} -> ${tType ?? "unknown"}`);
 				return;
 			}
 			onConnect(params, getNodeType);
@@ -340,11 +295,7 @@ export function GoalMapEditor() {
 		[getNodeType, onConnect],
 	);
 
-	const handleSaveAs = (meta: {
-		topicId: string;
-		name: string;
-		description?: string;
-	}) => {
+	const handleSaveAs = (meta: { topicId: string; name: string; description?: string }) => {
 		const newId = generateNewId();
 		doSave(meta, newId);
 		setSaveAsOpen(false);
@@ -398,9 +349,7 @@ export function GoalMapEditor() {
 
 	useEffect(() => {
 		if (lastSavedSnapshot === null) {
-			setLastSavedSnapshot(
-				JSON.stringify({ nodes: graphNodes, edges: graphEdges }),
-			);
+			setLastSavedSnapshot(JSON.stringify({ nodes: graphNodes, edges: graphEdges }));
 		}
 	}, [lastSavedSnapshot, graphNodes, graphEdges, setLastSavedSnapshot]);
 
@@ -415,7 +364,6 @@ export function GoalMapEditor() {
 		[directionEnabled],
 	);
 
-	// biome-ignore lint/correctness/useExhaustiveDependencies: intentional
 	useEffect(() => {
 		updateEdgeMarkers();
 	}, [directionEnabled]);
@@ -533,9 +481,7 @@ export function GoalMapEditor() {
 					onToggleDirection={toggleDirection}
 					onAutoLayout={autoLayout}
 					onDelete={deleteSelected}
-					onSave={() =>
-						doSave({ topicId: saveMeta.topicId, name: saveMeta.name })
-					}
+					onSave={() => doSave({ topicId: saveMeta.topicId, name: saveMeta.name })}
 					onCreateKit={handleCreateKit}
 					saving={saving}
 					isNewMap={isNewMap}
@@ -556,9 +502,7 @@ export function GoalMapEditor() {
 							contextMenu.nodeType === "connector" ? handleConnectTo : undefined
 						}
 						onConnectFrom={
-							contextMenu.nodeType === "connector"
-								? handleConnectFrom
-								: undefined
+							contextMenu.nodeType === "connector" ? handleConnectFrom : undefined
 						}
 						onClose={() => setContextMenu(null)}
 					/>

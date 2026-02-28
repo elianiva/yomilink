@@ -1,9 +1,10 @@
-import { beforeEach, describe, it, expect, vi } from "vitest";
+import * as ReactQuery from "@tanstack/react-query";
 import { render, screen, waitFor } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import "@testing-library/jest-dom";
+import { beforeEach, describe, it, expect, vi } from "vitest";
+
 import { ManualUnlockButton } from "./manual-unlock-button";
-import * as ReactQuery from "@tanstack/react-query";
 
 vi.mock("@tanstack/react-query", () => ({
 	...vi.importActual("@tanstack/react-query"),
@@ -56,20 +57,12 @@ describe("ManualUnlockButton", () => {
 		} as never);
 
 		const user = userEvent.setup();
-		render(
-			<ManualUnlockButton
-				formId="form-1"
-				userId="user-1"
-				userName="John Doe"
-			/>,
-		);
+		render(<ManualUnlockButton formId="form-1" userId="user-1" userName="John Doe" />);
 
 		await user.click(screen.getByRole("button", { name: /unlock/i }));
 
 		expect(screen.getByRole("dialog")).toBeInTheDocument();
-		expect(
-			screen.getByText(/are you sure you want to manually unlock/i),
-		).toBeInTheDocument();
+		expect(screen.getByText(/are you sure you want to manually unlock/i)).toBeInTheDocument();
 		expect(screen.getByText("John Doe")).toBeInTheDocument();
 	});
 
@@ -86,13 +79,7 @@ describe("ManualUnlockButton", () => {
 		} as never);
 
 		const user = userEvent.setup();
-		render(
-			<ManualUnlockButton
-				formId="form-1"
-				userId="user-1"
-				userName="Jane Smith"
-			/>,
-		);
+		render(<ManualUnlockButton formId="form-1" userId="user-1" userName="Jane Smith" />);
 
 		await user.click(screen.getByRole("button", { name: /unlock/i }));
 
@@ -204,16 +191,8 @@ describe("ManualUnlockButton", () => {
 			reset: vi.fn(),
 		} as never);
 
-		render(
-			<ManualUnlockButton
-				formId="form-1"
-				userId="user-1"
-				className="custom-class"
-			/>,
-		);
+		render(<ManualUnlockButton formId="form-1" userId="user-1" className="custom-class" />);
 
-		expect(screen.getByRole("button", { name: /unlock/i })).toHaveClass(
-			"custom-class",
-		);
+		expect(screen.getByRole("button", { name: /unlock/i })).toHaveClass("custom-class");
 	});
 });

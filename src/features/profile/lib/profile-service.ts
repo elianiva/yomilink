@@ -1,7 +1,8 @@
-import { Data, Effect, Schema } from "effect";
 import { eq } from "drizzle-orm";
-import { user } from "@/server/db/schema/auth-schema";
+import { Data, Effect, Schema } from "effect";
+
 import { Database } from "@/server/db/client";
+import { user } from "@/server/db/schema/auth-schema";
 
 export const UpdateProfileInput = Schema.Struct({
 	name: Schema.optionalWith(Schema.NonEmptyString, { nullable: true }),
@@ -29,11 +30,7 @@ export const updateProfile = Effect.fn("updateProfile")(
 		Effect.gen(function* () {
 			const db = yield* Database;
 
-			const existingRows = yield* db
-				.select()
-				.from(user)
-				.where(eq(user.id, userId))
-				.limit(1);
+			const existingRows = yield* db.select().from(user).where(eq(user.id, userId)).limit(1);
 
 			if (existingRows.length === 0) {
 				return yield* new UserNotFoundError({ userId });

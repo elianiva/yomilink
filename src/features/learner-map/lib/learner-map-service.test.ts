@@ -1,6 +1,7 @@
 import { assert, beforeEach, describe, it } from "@effect/vitest";
 import { eq } from "drizzle-orm";
 import { Effect } from "effect";
+
 import {
 	createTestAssignment,
 	createTestGoalMap,
@@ -9,12 +10,9 @@ import {
 } from "@/__tests__/fixtures/service-fixtures";
 import { resetDatabase } from "@/__tests__/utils/test-helpers";
 import { Database, DatabaseTest } from "@/server/db/client";
-import {
-	assignmentTargets,
-	diagnoses,
-	learnerMaps,
-} from "@/server/db/schema/app-schema";
+import { assignmentTargets, diagnoses, learnerMaps } from "@/server/db/schema/app-schema";
 import { cohortMembers, cohorts } from "@/server/db/schema/auth-schema";
+
 import {
 	getAssignmentForStudent,
 	getDiagnosis,
@@ -27,9 +25,7 @@ import {
 } from "./learner-map-service";
 
 describe("learner-map-service", () => {
-	beforeEach(() =>
-		Effect.runPromise(resetDatabase.pipe(Effect.provide(DatabaseTest))),
-	);
+	beforeEach(() => Effect.runPromise(resetDatabase.pipe(Effect.provide(DatabaseTest))));
 
 	describe("listStudentAssignments", () => {
 		it.effect("should return empty array when no assignments exist", () =>
@@ -53,12 +49,9 @@ describe("learner-map-service", () => {
 
 				const goalMap = yield* createTestGoalMap(teacher.id);
 				const kit = yield* createTestKit(goalMap.id, teacher.id);
-				const assignment = yield* createTestAssignment(
-					teacher.id,
-					goalMap.id,
-					kit.id,
-					{ title: "Test Assignment" },
-				);
+				const assignment = yield* createTestAssignment(teacher.id, goalMap.id, kit.id, {
+					title: "Test Assignment",
+				});
 
 				// Target assignment to student directly
 				yield* db.insert(assignmentTargets).values({
@@ -95,12 +88,9 @@ describe("learner-map-service", () => {
 
 				const goalMap = yield* createTestGoalMap(teacher.id);
 				const kit = yield* createTestKit(goalMap.id, teacher.id);
-				const assignment = yield* createTestAssignment(
-					teacher.id,
-					goalMap.id,
-					kit.id,
-					{ title: "Cohort Assignment" },
-				);
+				const assignment = yield* createTestAssignment(teacher.id, goalMap.id, kit.id, {
+					title: "Cohort Assignment",
+				});
 
 				// Target assignment to cohort
 				yield* db.insert(assignmentTargets).values({
@@ -127,11 +117,7 @@ describe("learner-map-service", () => {
 
 				const goalMap = yield* createTestGoalMap(teacher.id);
 				const kit = yield* createTestKit(goalMap.id, teacher.id);
-				const assignment = yield* createTestAssignment(
-					teacher.id,
-					goalMap.id,
-					kit.id,
-				);
+				const assignment = yield* createTestAssignment(teacher.id, goalMap.id, kit.id);
 
 				yield* db.insert(assignmentTargets).values({
 					id: crypto.randomUUID(),
@@ -174,12 +160,9 @@ describe("learner-map-service", () => {
 
 				// Create assignment with past due date
 				const pastDue = new Date(Date.now() - 86400000); // 1 day ago
-				const assignment = yield* createTestAssignment(
-					teacher.id,
-					goalMap.id,
-					kit.id,
-					{ dueAt: pastDue },
-				);
+				const assignment = yield* createTestAssignment(teacher.id, goalMap.id, kit.id, {
+					dueAt: pastDue,
+				});
 
 				yield* db.insert(assignmentTargets).values({
 					id: crypto.randomUUID(),
@@ -208,12 +191,9 @@ describe("learner-map-service", () => {
 
 				// Create assignment with past due date
 				const pastDue = new Date(Date.now() - 86400000);
-				const assignment = yield* createTestAssignment(
-					teacher.id,
-					goalMap.id,
-					kit.id,
-					{ dueAt: pastDue },
-				);
+				const assignment = yield* createTestAssignment(teacher.id, goalMap.id, kit.id, {
+					dueAt: pastDue,
+				});
 
 				yield* db.insert(assignmentTargets).values({
 					id: crypto.randomUUID(),
@@ -317,12 +297,10 @@ describe("learner-map-service", () => {
 					nodes: [{ id: "node1", data: {}, position: { x: 0, y: 0 } }],
 					edges: [],
 				});
-				const assignment = yield* createTestAssignment(
-					teacher.id,
-					goalMap.id,
-					kit.id,
-					{ title: "Test Assignment", description: "Test Description" },
-				);
+				const assignment = yield* createTestAssignment(teacher.id, goalMap.id, kit.id, {
+					title: "Test Assignment",
+					description: "Test Description",
+				});
 
 				const result = yield* getAssignmentForStudent(student.id, {
 					assignmentId: assignment.id,
@@ -348,11 +326,7 @@ describe("learner-map-service", () => {
 
 				const goalMap = yield* createTestGoalMap(teacher.id);
 				const kit = yield* createTestKit(goalMap.id, teacher.id);
-				const assignment = yield* createTestAssignment(
-					teacher.id,
-					goalMap.id,
-					kit.id,
-				);
+				const assignment = yield* createTestAssignment(teacher.id, goalMap.id, kit.id);
 
 				const learnerMapId = crypto.randomUUID();
 				yield* db.insert(learnerMaps).values({
@@ -389,12 +363,9 @@ describe("learner-map-service", () => {
 
 				const goalMap = yield* createTestGoalMap(teacher.id);
 				const kit = yield* createTestKit(goalMap.id, teacher.id);
-				const assignment = yield* createTestAssignment(
-					teacher.id,
-					goalMap.id,
-					kit.id,
-					{ readingMaterial: "Custom reading material" },
-				);
+				const assignment = yield* createTestAssignment(teacher.id, goalMap.id, kit.id, {
+					readingMaterial: "Custom reading material",
+				});
 
 				const result = yield* getAssignmentForStudent(student.id, {
 					assignmentId: assignment.id,
@@ -432,18 +403,10 @@ describe("learner-map-service", () => {
 
 				const goalMap = yield* createTestGoalMap(teacher.id);
 				const kit = yield* createTestKit(goalMap.id, teacher.id);
-				const assignment = yield* createTestAssignment(
-					teacher.id,
-					goalMap.id,
-					kit.id,
-				);
+				const assignment = yield* createTestAssignment(teacher.id, goalMap.id, kit.id);
 
-				const nodes = JSON.stringify([
-					{ id: "n1", data: {}, position: { x: 0, y: 0 } },
-				]);
-				const edges = JSON.stringify([
-					{ id: "e1", source: "n1", target: "n2" },
-				]);
+				const nodes = JSON.stringify([{ id: "n1", data: {}, position: { x: 0, y: 0 } }]);
+				const edges = JSON.stringify([{ id: "e1", source: "n1", target: "n2" }]);
 
 				const result = yield* saveLearnerMap(student.id, {
 					assignmentId: assignment.id,
@@ -479,11 +442,7 @@ describe("learner-map-service", () => {
 
 				const goalMap = yield* createTestGoalMap(teacher.id);
 				const kit = yield* createTestKit(goalMap.id, teacher.id);
-				const assignment = yield* createTestAssignment(
-					teacher.id,
-					goalMap.id,
-					kit.id,
-				);
+				const assignment = yield* createTestAssignment(teacher.id, goalMap.id, kit.id);
 
 				// Create initial learner map
 				const learnerMapId = crypto.randomUUID();
@@ -502,9 +461,7 @@ describe("learner-map-service", () => {
 				const newNodes = JSON.stringify([
 					{ id: "updated", data: {}, position: { x: 0, y: 0 } },
 				]);
-				const newEdges = JSON.stringify([
-					{ id: "e1", source: "a", target: "b" },
-				]);
+				const newEdges = JSON.stringify([{ id: "e1", source: "a", target: "b" }]);
 
 				const result = yield* saveLearnerMap(student.id, {
 					assignmentId: assignment.id,
@@ -538,11 +495,7 @@ describe("learner-map-service", () => {
 
 				const goalMap = yield* createTestGoalMap(teacher.id);
 				const kit = yield* createTestKit(goalMap.id, teacher.id);
-				const assignment = yield* createTestAssignment(
-					teacher.id,
-					goalMap.id,
-					kit.id,
-				);
+				const assignment = yield* createTestAssignment(teacher.id, goalMap.id, kit.id);
 
 				// Create submitted learner map
 				yield* db.insert(learnerMaps).values({
@@ -594,11 +547,7 @@ describe("learner-map-service", () => {
 
 				const goalMap = yield* createTestGoalMap(teacher.id);
 				const kit = yield* createTestKit(goalMap.id, teacher.id);
-				const assignment = yield* createTestAssignment(
-					teacher.id,
-					goalMap.id,
-					kit.id,
-				);
+				const assignment = yield* createTestAssignment(teacher.id, goalMap.id, kit.id);
 
 				yield* db.insert(learnerMaps).values({
 					id: crypto.randomUUID(),
@@ -638,11 +587,7 @@ describe("learner-map-service", () => {
 					],
 				});
 				const kit = yield* createTestKit(goalMap.id, teacher.id);
-				const assignment = yield* createTestAssignment(
-					teacher.id,
-					goalMap.id,
-					kit.id,
-				);
+				const assignment = yield* createTestAssignment(teacher.id, goalMap.id, kit.id);
 
 				// Create learner map with some matching edges
 				const learnerMapId = crypto.randomUUID();
@@ -712,11 +657,7 @@ describe("learner-map-service", () => {
 					],
 				});
 				const kit = yield* createTestKit(goalMap.id, teacher.id);
-				const assignment = yield* createTestAssignment(
-					teacher.id,
-					goalMap.id,
-					kit.id,
-				);
+				const assignment = yield* createTestAssignment(teacher.id, goalMap.id, kit.id);
 
 				// Perfect match
 				yield* db.insert(learnerMaps).values({
@@ -760,45 +701,39 @@ describe("learner-map-service", () => {
 			}).pipe(Effect.provide(DatabaseTest)),
 		);
 
-		it.effect(
-			"should return learner map without diagnosis if not submitted",
-			() =>
-				Effect.gen(function* () {
-					const db = yield* Database;
-					const teacher = yield* createTestUser({ email: "teacher@test.com" });
-					const student = yield* createTestUser({
-						email: "student@test.com",
-						role: "student",
-					});
+		it.effect("should return learner map without diagnosis if not submitted", () =>
+			Effect.gen(function* () {
+				const db = yield* Database;
+				const teacher = yield* createTestUser({ email: "teacher@test.com" });
+				const student = yield* createTestUser({
+					email: "student@test.com",
+					role: "student",
+				});
 
-					const goalMap = yield* createTestGoalMap(teacher.id);
-					const kit = yield* createTestKit(goalMap.id, teacher.id);
-					const assignment = yield* createTestAssignment(
-						teacher.id,
-						goalMap.id,
-						kit.id,
-					);
+				const goalMap = yield* createTestGoalMap(teacher.id);
+				const kit = yield* createTestKit(goalMap.id, teacher.id);
+				const assignment = yield* createTestAssignment(teacher.id, goalMap.id, kit.id);
 
-					yield* db.insert(learnerMaps).values({
-						id: crypto.randomUUID(),
-						assignmentId: assignment.id,
-						goalMapId: goalMap.id,
-						kitId: kit.id,
-						userId: student.id,
-						nodes: "[]",
-						edges: "[]",
-						status: "draft",
-						attempt: 1,
-					});
+				yield* db.insert(learnerMaps).values({
+					id: crypto.randomUUID(),
+					assignmentId: assignment.id,
+					goalMapId: goalMap.id,
+					kitId: kit.id,
+					userId: student.id,
+					nodes: "[]",
+					edges: "[]",
+					status: "draft",
+					attempt: 1,
+				});
 
-					const result = yield* getDiagnosis(student.id, {
-						assignmentId: assignment.id,
-					});
+				const result = yield* getDiagnosis(student.id, {
+					assignmentId: assignment.id,
+				});
 
-					assert.isNotNull(result);
-					assert.strictEqual(result?.learnerMap.status, "draft");
-					assert.isNull(result?.diagnosis);
-				}).pipe(Effect.provide(DatabaseTest)),
+				assert.isNotNull(result);
+				assert.strictEqual(result?.learnerMap.status, "draft");
+				assert.isNull(result?.diagnosis);
+			}).pipe(Effect.provide(DatabaseTest)),
 		);
 
 		it.effect("should return full diagnosis data after submission", () =>
@@ -814,27 +749,19 @@ describe("learner-map-service", () => {
 					{ id: "a", data: { label: "A" }, position: { x: 0, y: 0 } },
 					{ id: "b", data: { label: "B" }, position: { x: 100, y: 0 } },
 				]);
-				const goalMapEdges = JSON.stringify([
-					{ id: "e1", source: "a", target: "b" },
-				]);
+				const goalMapEdges = JSON.stringify([{ id: "e1", source: "a", target: "b" }]);
 				const goalMap = yield* createTestGoalMap(teacher.id, {
 					nodes: goalMapNodes,
 					edges: goalMapEdges,
 				});
 				const kit = yield* createTestKit(goalMap.id, teacher.id);
-				const assignment = yield* createTestAssignment(
-					teacher.id,
-					goalMap.id,
-					kit.id,
-				);
+				const assignment = yield* createTestAssignment(teacher.id, goalMap.id, kit.id);
 
 				const learnerMapId = crypto.randomUUID();
 				const learnerNodes = JSON.stringify([
 					{ id: "a", data: { label: "A" }, position: { x: 0, y: 0 } },
 				]);
-				const learnerEdges = JSON.stringify([
-					{ id: "le1", source: "a", target: "b" },
-				]);
+				const learnerEdges = JSON.stringify([{ id: "le1", source: "a", target: "b" }]);
 				yield* db.insert(learnerMaps).values({
 					id: learnerMapId,
 					assignmentId: assignment.id,
@@ -905,11 +832,7 @@ describe("learner-map-service", () => {
 
 				const goalMap = yield* createTestGoalMap(teacher.id);
 				const kit = yield* createTestKit(goalMap.id, teacher.id);
-				const assignment = yield* createTestAssignment(
-					teacher.id,
-					goalMap.id,
-					kit.id,
-				);
+				const assignment = yield* createTestAssignment(teacher.id, goalMap.id, kit.id);
 
 				yield* db.insert(learnerMaps).values({
 					id: crypto.randomUUID(),
@@ -943,11 +866,7 @@ describe("learner-map-service", () => {
 
 				const goalMap = yield* createTestGoalMap(teacher.id);
 				const kit = yield* createTestKit(goalMap.id, teacher.id);
-				const assignment = yield* createTestAssignment(
-					teacher.id,
-					goalMap.id,
-					kit.id,
-				);
+				const assignment = yield* createTestAssignment(teacher.id, goalMap.id, kit.id);
 
 				const learnerMapId = crypto.randomUUID();
 				yield* db.insert(learnerMaps).values({
@@ -994,11 +913,7 @@ describe("learner-map-service", () => {
 
 				const goalMap = yield* createTestGoalMap(teacher.id);
 				const kit = yield* createTestKit(goalMap.id, teacher.id);
-				const assignment = yield* createTestAssignment(
-					teacher.id,
-					goalMap.id,
-					kit.id,
-				);
+				const assignment = yield* createTestAssignment(teacher.id, goalMap.id, kit.id);
 
 				yield* db.insert(learnerMaps).values({
 					id: crypto.randomUUID(),
@@ -1064,17 +979,10 @@ describe("learner-map-service", () => {
 
 				const goalMap = yield* createTestGoalMap(teacher.id);
 				const kit = yield* createTestKit(goalMap.id, teacher.id);
-				const assignment = yield* createTestAssignment(
-					teacher.id,
-					goalMap.id,
-					kit.id,
-				);
+				const assignment = yield* createTestAssignment(teacher.id, goalMap.id, kit.id);
 
 				// Create submitted learner maps with diagnoses
-				const createSubmittedMapWithDiagnosis = (
-					userId: string,
-					score: number,
-				) =>
+				const createSubmittedMapWithDiagnosis = (userId: string, score: number) =>
 					Effect.gen(function* () {
 						const learnerMapId = crypto.randomUUID();
 						yield* db.insert(learnerMaps).values({
@@ -1130,11 +1038,7 @@ describe("learner-map-service", () => {
 
 				const goalMap = yield* createTestGoalMap(teacher.id);
 				const kit = yield* createTestKit(goalMap.id, teacher.id);
-				const assignment = yield* createTestAssignment(
-					teacher.id,
-					goalMap.id,
-					kit.id,
-				);
+				const assignment = yield* createTestAssignment(teacher.id, goalMap.id, kit.id);
 
 				// Only student has submitted (no peers)
 				const learnerMapId = crypto.randomUUID();
@@ -1182,11 +1086,7 @@ describe("learner-map-service", () => {
 
 				const goalMap = yield* createTestGoalMap(teacher.id);
 				const kit = yield* createTestKit(goalMap.id, teacher.id);
-				const assignment = yield* createTestAssignment(
-					teacher.id,
-					goalMap.id,
-					kit.id,
-				);
+				const assignment = yield* createTestAssignment(teacher.id, goalMap.id, kit.id);
 
 				// Peer scores low
 				const peerMapId = crypto.randomUUID();
@@ -1266,11 +1166,7 @@ describe("learner-map-service", () => {
 
 				const goalMap = yield* createTestGoalMap(teacher.id);
 				const kit = yield* createTestKit(goalMap.id, teacher.id);
-				const assignment = yield* createTestAssignment(
-					teacher.id,
-					goalMap.id,
-					kit.id,
-				);
+				const assignment = yield* createTestAssignment(teacher.id, goalMap.id, kit.id);
 
 				const controlText =
 					"This is my control group text submission explaining the concept.";
@@ -1311,11 +1207,7 @@ describe("learner-map-service", () => {
 
 				const goalMap = yield* createTestGoalMap(teacher.id);
 				const kit = yield* createTestKit(goalMap.id, teacher.id);
-				const assignment = yield* createTestAssignment(
-					teacher.id,
-					goalMap.id,
-					kit.id,
-				);
+				const assignment = yield* createTestAssignment(teacher.id, goalMap.id, kit.id);
 
 				// Create existing draft learner map
 				const learnerMapId = crypto.randomUUID();
@@ -1365,11 +1257,7 @@ describe("learner-map-service", () => {
 
 				const goalMap = yield* createTestGoalMap(teacher.id);
 				const kit = yield* createTestKit(goalMap.id, teacher.id);
-				const assignment = yield* createTestAssignment(
-					teacher.id,
-					goalMap.id,
-					kit.id,
-				);
+				const assignment = yield* createTestAssignment(teacher.id, goalMap.id, kit.id);
 
 				// Create already submitted learner map
 				yield* db.insert(learnerMaps).values({

@@ -1,5 +1,6 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { lazy, Suspense } from "react";
+
 import { Guard } from "@/components/auth/Guard";
 import { Skeleton } from "@/components/ui/skeleton";
 

@@ -1,6 +1,7 @@
 import { useAtom } from "jotai";
-import { useCallback } from "react";
 import { atom } from "jotai";
+import { useCallback } from "react";
+
 import { randomString } from "@/lib/utils";
 
 export type SaveMeta = {
@@ -27,9 +28,7 @@ export function useSaveDialog() {
 	const [saveAsOpen, setSaveAsOpen] = useAtom(saveAsOpenAtom);
 	const [saveError, setSaveError] = useAtom(saveErrorAtom);
 	const [saveWarnings, setSaveWarnings] = useAtom(saveWarningsAtom);
-	const [lastSavedSnapshot, setLastSavedSnapshot] = useAtom(
-		lastSavedSnapshotAtom,
-	);
+	const [lastSavedSnapshot, setLastSavedSnapshot] = useAtom(lastSavedSnapshotAtom);
 
 	const updateMeta = useCallback(
 		(updates: Partial<SaveMeta>) => {

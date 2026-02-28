@@ -1,6 +1,7 @@
 import { mutationOptions, queryOptions } from "@tanstack/react-query";
 import { createServerFn } from "@tanstack/react-start";
 import { Effect, Schema } from "effect";
+
 import {
 	CloneFormInput,
 	CreateFormInput,
@@ -33,6 +34,7 @@ import {
 	unlockForm,
 } from "@/features/form/lib/unlock-service";
 import { requireRoleMiddleware } from "@/middlewares/auth";
+
 import { AppLayer } from "../app-layer";
 import { errorResponse, logRpcError } from "../rpc-helper";
 
@@ -223,9 +225,7 @@ export const getFormResponsesRpc = createServerFn()
 
 export const submitFormResponseRpc = createServerFn()
 	.middleware([requireRoleMiddleware("student", "teacher", "admin")])
-	.inputValidator((raw) =>
-		Schema.decodeUnknownSync(SubmitFormResponseInput)(raw),
-	)
+	.inputValidator((raw) => Schema.decodeUnknownSync(SubmitFormResponseInput)(raw))
 	.handler(({ data }) =>
 		submitFormResponse(data).pipe(
 			Effect.withSpan("submitFormResponse"),
@@ -255,9 +255,7 @@ export const reorderQuestionsRpc = createServerFn()
 				FormHasResponsesError: () =>
 					errorResponse("Cannot reorder questions: form has responses"),
 				InvalidQuestionOrderError: () =>
-					errorResponse(
-						"Invalid question order: question count mismatch or invalid IDs",
-					),
+					errorResponse("Invalid question order: question count mismatch or invalid IDs"),
 			}),
 			Effect.catchAll(() => errorResponse("Internal server error")),
 			Effect.runPromise,
@@ -419,25 +417,18 @@ export const FormRpc = {
 		}),
 	getFormResponses: (input: GetFormResponsesInput) =>
 		queryOptions({
-			queryKey: [
-				...FormRpc.forms(),
-				"responses",
-				input.formId,
-				input.page ?? 1,
-			],
+			queryKey: [...FormRpc.forms(), "responses", input.formId, input.page ?? 1],
 			queryFn: () => getFormResponsesRpc({ data: input }),
 		}),
 	submitFormResponse: () =>
 		mutationOptions({
 			mutationKey: [...FormRpc.forms(), "submit"],
-			mutationFn: (data: SubmitFormResponseInput) =>
-				submitFormResponseRpc({ data }),
+			mutationFn: (data: SubmitFormResponseInput) => submitFormResponseRpc({ data }),
 		}),
 	reorderQuestions: () =>
 		mutationOptions({
 			mutationKey: [...FormRpc.forms(), "reorder"],
-			mutationFn: (data: ReorderQuestionsInput) =>
-				reorderQuestionsRpc({ data }),
+			mutationFn: (data: ReorderQuestionsInput) => reorderQuestionsRpc({ data }),
 		}),
 	createQuestion: () =>
 		mutationOptions({

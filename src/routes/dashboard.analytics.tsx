@@ -1,15 +1,12 @@
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { Activity, Download, RefreshCw, Search } from "lucide-react";
 import { useCallback, useMemo, useState } from "react";
+
 import { Guard } from "@/components/auth/Guard";
-import { Checkbox } from "@/components/ui/checkbox";
-import { ErrorCard } from "@/components/ui/error-card";
-import { isErrorResponse } from "@/hooks/use-rpc-error";
-import { useRpcMutation } from "@/hooks/use-rpc-query";
-import { useRpcQuery } from "@/hooks/use-rpc-query";
-import { toast } from "@/lib/error-toast";
 import { ToolbarButton } from "@/components/toolbar/toolbar-button";
 import { Button } from "@/components/ui/button";
+import { Checkbox } from "@/components/ui/checkbox";
+import { ErrorCard } from "@/components/ui/error-card";
 import { Input } from "@/components/ui/input";
 import {
 	Select,
@@ -20,11 +17,7 @@ import {
 } from "@/components/ui/select";
 import { Separator } from "@/components/ui/separator";
 import { Switch } from "@/components/ui/switch";
-import {
-	createTooltipHandle,
-	TooltipContent,
-	TooltipProvider,
-} from "@/components/ui/tooltip";
+import { createTooltipHandle, TooltipContent, TooltipProvider } from "@/components/ui/tooltip";
 import { AssignmentSelectContent } from "@/features/analyzer/components/assignment-select-content";
 import { CanvasContent } from "@/features/analyzer/components/canvas-content";
 import { LearnerList } from "@/features/analyzer/components/learner-list";
@@ -32,6 +25,10 @@ import type {
 	AssignmentAnalytics,
 	LearnerAnalytics,
 } from "@/features/analyzer/lib/analytics-service";
+import { isErrorResponse } from "@/hooks/use-rpc-error";
+import { useRpcMutation } from "@/hooks/use-rpc-query";
+import { useRpcQuery } from "@/hooks/use-rpc-query";
+import { toast } from "@/lib/error-toast";
 import { AnalyticsRpc } from "@/server/rpc/analytics";
 
 export const Route = createFileRoute("/dashboard/analytics")({
@@ -43,12 +40,7 @@ export const Route = createFileRoute("/dashboard/analytics")({
 });
 
 function LegendDot({ color }: { color: string }) {
-	return (
-		<span
-			className="inline-block size-3 rounded-full"
-			style={{ backgroundColor: color }}
-		/>
-	);
+	return <span className="inline-block size-3 rounded-full" style={{ backgroundColor: color }} />;
 }
 
 function SectionTitle({ children }: { children: React.ReactNode }) {
@@ -60,16 +52,10 @@ function SectionTitle({ children }: { children: React.ReactNode }) {
 }
 
 function AnalyticsPage() {
-	const [selectedAssignmentId, setSelectedAssignmentId] = useState<
-		string | null
-	>(null);
-	const [selectedLearnerMapIds, setSelectedLearnerMapIds] = useState<
-		Set<string>
-	>(new Set());
+	const [selectedAssignmentId, setSelectedAssignmentId] = useState<string | null>(null);
+	const [selectedLearnerMapIds, setSelectedLearnerMapIds] = useState<Set<string>>(new Set());
 	const [searchQuery, setSearchQuery] = useState("");
-	const [statusFilter, setStatusFilter] = useState<
-		"All" | "submitted" | "draft"
-	>("All");
+	const [statusFilter, setStatusFilter] = useState<"All" | "submitted" | "draft">("All");
 
 	const tooltipHandle = createTooltipHandle();
 
@@ -138,11 +124,9 @@ function AnalyticsPage() {
 
 		return analyticsData.learners.filter((learner: LearnerAnalytics) => {
 			const matchesSearch =
-				!searchQuery ||
-				learner.userName.toLowerCase().includes(searchQuery.toLowerCase());
+				!searchQuery || learner.userName.toLowerCase().includes(searchQuery.toLowerCase());
 
-			const matchesStatus =
-				statusFilter === "All" || learner.status === statusFilter;
+			const matchesStatus = statusFilter === "All" || learner.status === statusFilter;
 
 			return matchesSearch && matchesStatus;
 		});
@@ -180,19 +164,15 @@ function AnalyticsPage() {
 		(checked: boolean) => {
 			if (!analyticsData) return;
 			setSelectedLearnerMapIds(
-				checked
-					? new Set(filteredLearners.map((l) => l.learnerMapId))
-					: new Set(),
+				checked ? new Set(filteredLearners.map((l) => l.learnerMapId)) : new Set(),
 			);
 		},
 		[analyticsData, filteredLearners],
 	);
 
 	const selectAllState = useMemo(() => {
-		if (filteredLearners.length === 0)
-			return { checked: false, indeterminate: false };
-		if (selectedLearnerMapIds.size === 0)
-			return { checked: false, indeterminate: false };
+		if (filteredLearners.length === 0) return { checked: false, indeterminate: false };
+		if (selectedLearnerMapIds.size === 0) return { checked: false, indeterminate: false };
 		if (selectedLearnerMapIds.size === filteredLearners.length)
 			return { checked: true, indeterminate: false };
 		return { checked: false, indeterminate: true };
@@ -240,9 +220,7 @@ function AnalyticsPage() {
 				<aside className="rounded-lg border bg-card">
 					<div className="border-b p-3 flex items-center justify-between">
 						<h2 className="text-sm font-semibold">Analytics</h2>
-						<div className="text-[10px] text-muted-foreground">
-							Teacher View
-						</div>
+						<div className="text-[10px] text-muted-foreground">Teacher View</div>
 					</div>
 
 					<div className="p-3 space-y-4">
@@ -341,8 +319,8 @@ function AnalyticsPage() {
 											onCheckedChange={handleToggleAll}
 										/>
 										<div className="text-xs">
-											{selectedLearnerMapIds.size} of {filteredLearners.length}{" "}
-											selected
+											{selectedLearnerMapIds.size} of{" "}
+											{filteredLearners.length} selected
 										</div>
 									</div>
 									<div>Score</div>
@@ -424,10 +402,7 @@ function AnalyticsPage() {
 						</div>
 						<div className="flex items-center gap-4">
 							<div className="flex items-center gap-2 text-xs">
-								<Switch
-									checked={showGoalMap}
-									onCheckedChange={setShowGoalMap}
-								/>
+								<Switch checked={showGoalMap} onCheckedChange={setShowGoalMap} />
 								<span>Goal Map</span>
 							</div>
 							<div className="flex items-center gap-2 text-xs">

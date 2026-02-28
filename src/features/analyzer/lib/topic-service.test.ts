@@ -1,14 +1,14 @@
 import { assert, beforeEach, describe, it } from "@effect/vitest";
 import { Effect } from "effect";
+
 import { createTestTopic } from "@/__tests__/fixtures/service-fixtures";
 import { resetDatabase } from "@/__tests__/utils/test-helpers";
 import { DatabaseTest } from "@/server/db/client";
+
 import { createTopic, listTopics } from "./topic-service";
 
 describe("topic-service", () => {
-	beforeEach(() =>
-		Effect.runPromise(resetDatabase.pipe(Effect.provide(DatabaseTest))),
-	);
+	beforeEach(() => Effect.runPromise(resetDatabase.pipe(Effect.provide(DatabaseTest))));
 	describe("listTopics", () => {
 		it.effect("should return empty array when no topics exist", () =>
 			Effect.gen(function* () {

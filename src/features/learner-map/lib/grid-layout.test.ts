@@ -1,5 +1,6 @@
 import type { Node } from "@xyflow/react";
 import { describe, expect, it } from "vitest";
+
 import {
 	arrangeNodesInGrid,
 	arrangeNodesInShuffledGrid,

@@ -45,5 +45,4 @@ export const WebTelemetry = SentryWebTelemetry;
  * Auto-detects environment and provides appropriate telemetry layer.
  * Prefer using ServerTelemetry or WebTelemetry explicitly in production.
  */
-export const Telemetry =
-	typeof window !== "undefined" ? WebTelemetry : ServerTelemetry;
+export const Telemetry = typeof window !== "undefined" ? WebTelemetry : ServerTelemetry;

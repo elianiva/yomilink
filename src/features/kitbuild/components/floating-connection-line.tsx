@@ -1,16 +1,13 @@
 import type { ConnectionLineComponentProps } from "@xyflow/react";
 import { useInternalNode } from "@xyflow/react";
+
 import { getEdgeParamsFromSourceToPoint } from "../lib/floating-edge-utils";
 
 /**
  * Custom connection line that starts from the node boundary
  * rather than a fixed handle position.
  */
-export function FloatingConnectionLine({
-	toX,
-	toY,
-	fromNode,
-}: ConnectionLineComponentProps) {
+export function FloatingConnectionLine({ toX, toY, fromNode }: ConnectionLineComponentProps) {
 	const sourceNode = useInternalNode(fromNode?.id ?? "");
 
 	if (!sourceNode) {
@@ -30,14 +27,7 @@ export function FloatingConnectionLine({
 				strokeWidth={3}
 				d={`M ${sx},${sy} L ${toX},${toY}`}
 			/>
-			<circle
-				cx={toX}
-				cy={toY}
-				r={4}
-				fill="#16a34a"
-				stroke="#16a34a"
-				strokeWidth={1.5}
-			/>
+			<circle cx={toX} cy={toY} r={4} fill="#16a34a" stroke="#16a34a" strokeWidth={1.5} />
 		</g>
 	);
 }

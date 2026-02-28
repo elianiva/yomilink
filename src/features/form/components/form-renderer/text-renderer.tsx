@@ -27,8 +27,7 @@ export function TextRenderer({
 }: TextRendererProps) {
 	const minLength = question.options.minLength ?? 0;
 	const maxLength = question.options.maxLength ?? Infinity;
-	const placeholder =
-		question.options.placeholder ?? "Enter your answer here...";
+	const placeholder = question.options.placeholder ?? "Enter your answer here...";
 
 	const charCount = value.length;
 	const isBelowMin = minLength > 0 && charCount < minLength;
@@ -91,10 +90,7 @@ export function TextRenderer({
 			)}
 
 			{isBelowMin && value.length > 0 && (
-				<p
-					className="text-sm text-destructive"
-					data-testid="validation-message"
-				>
+				<p className="text-sm text-destructive" data-testid="validation-message">
 					{minLength - charCount} more characters needed
 				</p>
 			)}

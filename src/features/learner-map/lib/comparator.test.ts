@@ -1,13 +1,12 @@
 import { describe, expect, it } from "vitest";
+
 import { simpleGoalMap } from "@/__tests__/fixtures/goal-maps";
+
 import { classifyEdges, compareMaps, getEdgeStyleByType } from "./comparator";
 
 describe("compareMaps", () => {
 	it("should return perfect match", () => {
-		const result = compareMaps(
-			[...simpleGoalMap.edges],
-			[...simpleGoalMap.edges],
-		);
+		const result = compareMaps([...simpleGoalMap.edges], [...simpleGoalMap.edges]);
 		expect(result.score).toBe(1);
 		expect(result.correct).toHaveLength(2);
 		expect(result.missing).toHaveLength(0);
@@ -15,10 +14,7 @@ describe("compareMaps", () => {
 	});
 
 	it("should detect missing edges", () => {
-		const result = compareMaps(
-			[...simpleGoalMap.edges],
-			[simpleGoalMap.edges[0]],
-		);
+		const result = compareMaps([...simpleGoalMap.edges], [simpleGoalMap.edges[0]]);
 		expect(result.score).toBe(0.5);
 		expect(result.correct).toHaveLength(1);
 		expect(result.missing).toHaveLength(1);
@@ -27,10 +23,7 @@ describe("compareMaps", () => {
 	});
 
 	it("should detect excessive edges", () => {
-		const learnerEdges = [
-			...simpleGoalMap.edges,
-			{ id: "e3", source: "c2", target: "c1" },
-		];
+		const learnerEdges = [...simpleGoalMap.edges, { id: "e3", source: "c2", target: "c1" }];
 		const result = compareMaps([...simpleGoalMap.edges], learnerEdges);
 		expect(result.score).toBe(1);
 		expect(result.excessive).toHaveLength(1);

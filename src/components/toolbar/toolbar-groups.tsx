@@ -7,7 +7,9 @@ import {
 	ShuffleIcon,
 	Undo2Icon,
 } from "lucide-react";
+
 import type { TooltipTriggerProps } from "@/components/ui/tooltip";
+
 import { ToolbarButton } from "./toolbar-button";
 
 interface NavigationButtonsProps {
@@ -54,26 +56,11 @@ interface ZoomButtonsProps {
 	handle: TooltipTriggerProps["handle"];
 }
 
-export function ZoomButtons({
-	onZoomIn,
-	onZoomOut,
-	onFit,
-	handle,
-}: ZoomButtonsProps) {
+export function ZoomButtons({ onZoomIn, onZoomOut, onFit, handle }: ZoomButtonsProps) {
 	return (
 		<>
-			<ToolbarButton
-				icon={PlusIcon}
-				label="Zoom In"
-				onClick={onZoomIn}
-				handle={handle}
-			/>
-			<ToolbarButton
-				icon={MinusIcon}
-				label="Zoom Out"
-				onClick={onZoomOut}
-				handle={handle}
-			/>
+			<ToolbarButton icon={PlusIcon} label="Zoom In" onClick={onZoomIn} handle={handle} />
+			<ToolbarButton icon={MinusIcon} label="Zoom Out" onClick={onZoomOut} handle={handle} />
 			<ToolbarButton
 				icon={Maximize2Icon}
 				label="Fit to View"

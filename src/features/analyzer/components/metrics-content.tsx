@@ -13,14 +13,9 @@ import {
 	XAxis,
 	YAxis,
 } from "recharts";
+
 import { Button } from "@/components/ui/button";
-import {
-	Card,
-	CardContent,
-	CardDescription,
-	CardHeader,
-	CardTitle,
-} from "@/components/ui/card";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import {
 	type ChartConfig,
 	ChartContainer,
@@ -128,14 +123,10 @@ export function MetricsContent({ assignmentId }: MetricsContentProps) {
 			},
 		];
 
-		const attemptDistribution = learners.reduce<Record<string, number>>(
-			(acc, learner) => {
-				acc[`Attempt ${learner.attempt}`] =
-					(acc[`Attempt ${learner.attempt}`] || 0) + 1;
-				return acc;
-			},
-			{},
-		);
+		const attemptDistribution = learners.reduce<Record<string, number>>((acc, learner) => {
+			acc[`Attempt ${learner.attempt}`] = (acc[`Attempt ${learner.attempt}`] || 0) + 1;
+			return acc;
+		}, {});
 
 		const topLearners = [...learners]
 			.sort((a, b) => (b.score ?? 0) - (a.score ?? 0))
@@ -171,9 +162,7 @@ export function MetricsContent({ assignmentId }: MetricsContentProps) {
 	if (!metrics) {
 		return (
 			<div className="flex items-center justify-center h-full">
-				<div className="text-sm text-muted-foreground">
-					No metrics data available
-				</div>
+				<div className="text-sm text-muted-foreground">No metrics data available</div>
 			</div>
 		);
 	}
@@ -187,17 +176,12 @@ export function MetricsContent({ assignmentId }: MetricsContentProps) {
 				</Button>
 				<div>
 					<h1 className="text-2xl font-bold">Assignment Metrics</h1>
-					<p className="text-sm text-muted-foreground">
-						{metrics.data.assignment.title}
-					</p>
+					<p className="text-sm text-muted-foreground">{metrics.data.assignment.title}</p>
 				</div>
 			</div>
 
 			<div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-				<StatCard
-					title="Total Learners"
-					value={metrics.data.summary.totalLearners}
-				/>
+				<StatCard title="Total Learners" value={metrics.data.summary.totalLearners} />
 				<StatCard
 					title="Submitted"
 					value={metrics.data.summary.submittedCount}
@@ -225,9 +209,7 @@ export function MetricsContent({ assignmentId }: MetricsContentProps) {
 				<Card>
 					<CardHeader>
 						<CardTitle>Score Distribution</CardTitle>
-						<CardDescription>
-							Number of learners per score range
-						</CardDescription>
+						<CardDescription>Number of learners per score range</CardDescription>
 					</CardHeader>
 					<CardContent>
 						<ChartContainer config={chartConfig} className="h-75">
@@ -310,9 +292,7 @@ export function MetricsContent({ assignmentId }: MetricsContentProps) {
 				<Card>
 					<CardHeader>
 						<CardTitle>Attempt Distribution</CardTitle>
-						<CardDescription>
-							Number of learners by attempt count
-						</CardDescription>
+						<CardDescription>Number of learners by attempt count</CardDescription>
 					</CardHeader>
 					<CardContent>
 						<ChartContainer config={chartConfig} className="h-75">
