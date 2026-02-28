@@ -82,7 +82,6 @@ function AddConceptDialogImpl({
 							value={label}
 							onChange={(e) => setLabel(e.target.value)}
 							placeholder="Enter concept label..."
-							autoFocus
 							onKeyDown={(e) => {
 								if (e.key === "Enter") {
 									e.preventDefault();

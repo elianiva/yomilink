@@ -258,6 +258,7 @@ export function GoalMapEditor() {
 		}
 	}, [
 		existing,
+		isHydrated,
 		setNodes,
 		setEdges,
 		updateMeta,
@@ -366,7 +367,7 @@ export function GoalMapEditor() {
 
 	useEffect(() => {
 		updateEdgeMarkers();
-	}, [directionEnabled]);
+	}, [directionEnabled, updateEdgeMarkers]);
 
 	return (
 		<div className="h-full relative">

@@ -46,8 +46,7 @@ function SearchNodesPanelImpl({ open, nodes, onClose, onSelectNode }: SearchNode
 					value={query}
 					onChange={(e) => setQuery(e.target.value)}
 					placeholder="Search nodes..."
-					className="h-8 border-0 shadow-none focus-visible:ring-0"
-					autoFocus
+				className="h-8 border-0 shadow-none focus-visible:ring-0"
 				/>
 				<Button
 					variant="ghost"

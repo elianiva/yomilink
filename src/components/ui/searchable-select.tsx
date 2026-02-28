@@ -49,13 +49,15 @@ export function SearchableSelect({
 				<Button
 					variant="outline"
 					role="combobox"
+					aria-expanded={open}
+					aria-controls={open ? "searchable-select-listbox" : undefined}
 					className={cn("w-full justify-between", !value && "text-muted-foreground")}
 				>
 					{selectedOption?.label ?? placeholder}
 					<SearchIcon className="ml-2 size-4 opacity-50" />
 				</Button>
 			</PopoverTrigger>
-			<PopoverContent className="w-[400px] p-0" align="start">
+			<PopoverContent id="searchable-select-listbox" className="w-[400px] p-0" align="start">
 				<Command>
 					<CommandInput
 						className="w-full"

@@ -34,7 +34,7 @@ export const ValidationResultSchema = Schema.Struct({
 
 export type ValidationResult = typeof ValidationResultSchema.Type;
 
-const composePropositions = Effect.fn(function* (nodes: Readonly<Node[]>, edges: Readonly<Edge[]>) {
+const composePropositions = (nodes: Readonly<Node[]>, edges: Readonly<Edge[]>): Proposition[] => {
 	const concepts = new Map(
 		nodes
 			.filter((n): n is ConceptNode => n.type === "text" || n.type === "image")
@@ -68,7 +68,7 @@ const composePropositions = Effect.fn(function* (nodes: Readonly<Node[]>, edges:
 	});
 
 	return propositions;
-});
+};
 
 export const validateNodes = Effect.fn(function* (
 	nodes: Readonly<Node[]>,

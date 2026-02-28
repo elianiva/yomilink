@@ -87,7 +87,7 @@ export function AppSidebar(props: AppSidebarProps) {
 			if (!item.roles) return true;
 			// Check if user's role is in the allowed roles
 			return item.roles.includes(userRole);
-		}).map(({ roles, ...item }) => item); // Remove roles from the item before passing to NavMain
+		}).map((item) => item); // Remove roles from the item before passing to NavMain
 	}, [userRole]);
 
 	return (

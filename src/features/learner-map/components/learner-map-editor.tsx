@@ -48,6 +48,7 @@ import {
 	searchOpenAtom,
 	submissionStatusAtom,
 } from "@/features/learner-map/lib/atoms";
+import { Button } from "@/components/ui/button";
 import { arrangeNodesByType } from "@/features/learner-map/lib/grid-layout";
 import { useGraphChangeHandlers } from "@/hooks/use-graph-change-handlers";
 import { useHistory } from "@/hooks/use-history";
@@ -122,7 +123,7 @@ export function LearnerMapEditor() {
 		LearnerMapRpc.getAssignmentForStudent({ assignmentId }),
 	);
 
-	const { data: experimentGroup, isLoading: groupLoading } = useRpcQuery(
+	const { data: experimentGroup } = useRpcQuery(
 		AssignmentRpc.getExperimentCondition(assignmentId),
 	);
 	const condition =
@@ -138,10 +139,6 @@ export function LearnerMapEditor() {
 		operation: "submit learner map",
 	});
 
-	const submitControlTextMutation = useRpcMutation(LearnerMapRpc.submitControlText(), {
-		operation: "submit summary",
-		showSuccess: true,
-	});
 
 	// Initialize from query data
 	useEffect(() => {
@@ -187,6 +184,7 @@ export function LearnerMapEditor() {
 		}
 	}, [
 		assignmentData,
+		condition,
 		isHydrated,
 		setAssignment,
 		setMaterialText,
@@ -671,17 +669,6 @@ function SummarizingEditor({
 			}, 3000);
 			return () => clearTimeout(timer);
 		}
-		useEffect(() => {
-			if (!isHydrated || isSubmitted) return;
-			if (controlText !== lastSavedSnapshot) {
-				saveMutation.mutate({
-					assignmentId,
-					controlText: controlText,
-				});
-				setLastSavedSnapshot(controlText);
-			}
-		}, 3000);
-		return () => clearTimeout(timer);
 	}, [
 		controlText,
 		isHydrated,
@@ -731,10 +718,6 @@ function SummarizingEditor({
 				</Alert>
 				<textarea
 					className="flex-1 w-full min-h-[300px] p-4 rounded-lg border bg-background resize-none focus:ring-2 focus:ring-primary outline-none disabled:opacity-50"
-					placeholder="Write your summary here..."
-					value={controlText}
-					onChange={(e) => setControlText(e.target.value)}
-					disabled={isSubmitted || submitControlTextMutation.isPending}
 					placeholder="Write your summary here..."
 					value={controlText}
 					onChange={(e) => setControlText(e.target.value)}
