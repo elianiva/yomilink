@@ -184,10 +184,6 @@ export const getAssignmentForStudent = Effect.fn("getAssignmentForStudent")(
 						delayedPostTestFormId: assignments.delayedPostTestFormId,
 						delayedPostTestDelayDays: assignments.delayedPostTestDelayDays,
 						tamFormId: assignments.tamFormId,
-						preTestFormId: assignments.preTestFormId,
-						postTestFormId: assignments.postTestFormId,
-						delayedPostTestFormId: assignments.delayedPostTestFormId,
-						tamFormId: assignments.tamFormId,
 					},
 					kit: {
 						id: kits.id,
@@ -280,6 +276,38 @@ export const saveLearnerMap = Effect.fn("saveLearnerMap")(
 				return { success: false, error: "Assignment not found" } as const;
 			}
 
+			// Verify user has access via cohort or direct targeting
+			const userCohorts = yield* db
+				.select({ cohortId: cohortMembers.cohortId })
+				.from(cohortMembers)
+				.where(eq(cohortMembers.userId, userId));
+
+			const cohortIds = userCohorts.map((c) => c.cohortId);
+
+			const hasAccess = yield* db
+				.select({ id: assignments.id })
+				.from(assignments)
+				.leftJoin(
+					assignmentTargets,
+					eq(assignmentTargets.assignmentId, assignments.id),
+				)
+				.where(
+					and(
+						eq(assignments.id, data.assignmentId),
+						or(
+							eq(assignmentTargets.userId, userId),
+							cohortIds.length > 0
+								? inArray(assignmentTargets.cohortId, cohortIds)
+								: eq(assignmentTargets.userId, ""),
+						),
+					),
+				)
+				.limit(1);
+
+			if (hasAccess.length === 0) {
+				return { success: false, error: "Access denied" } as const;
+			}
+
 			const existingRows = yield* db
 				.select({ id: learnerMaps.id, status: learnerMaps.status })
 				.from(learnerMaps)
@@ -305,7 +333,9 @@ export const saveLearnerMap = Effect.fn("saveLearnerMap")(
 					.set({
 						...(data.nodes !== undefined && { nodes: data.nodes }),
 						...(data.edges !== undefined && { edges: data.edges }),
-						...(data.controlText !== undefined && { controlText: data.controlText }),
+						...(data.controlText !== undefined && {
+							controlText: data.controlText,
+						}),
 					})
 					.where(eq(learnerMaps.id, existing.id));
 

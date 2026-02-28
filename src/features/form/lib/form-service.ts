@@ -41,7 +41,9 @@ class FormHasResponsesError extends Data.TaggedError("FormHasResponsesError")<{
 	readonly responseCount: number;
 }> {}
 
-class InvalidQuestionOrderError extends Data.TaggedError("InvalidQuestionOrderError")<{
+class InvalidQuestionOrderError extends Data.TaggedError(
+	"InvalidQuestionOrderError",
+)<{
 	readonly formId: string;
 	readonly reason: string;
 }> {}
@@ -216,10 +218,13 @@ export const updateForm = Effect.fn("updateForm")(
 				.where(eq(forms.id, formId));
 
 			return {
-        id: formId,
-        unlockConditions: data.unlockConditions as any,
-        ...data
-      };
+				id: formId,
+				title: data.title,
+				description: data.description,
+				type: data.type,
+				status: data.status,
+				unlockConditions: data.unlockConditions,
+			};
 		}),
 );
 

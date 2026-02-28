@@ -1,8 +1,8 @@
 import { desc, eq, isNull } from "drizzle-orm";
 import { Effect, Schema } from "effect";
-import { safeParseJson } from "@/lib/utils";
 import { validateNodes } from "@/features/goal-map/lib/validator";
 import { requireGoalMapOwner } from "@/lib/auth-authorization";
+import { safeParseJson } from "@/lib/utils";
 import { Database } from "@/server/db/client";
 import { goalMaps, kits, texts } from "@/server/db/schema/app-schema";
 
@@ -70,7 +70,11 @@ export const getGoalMap = Effect.fn("getGoalMap")((input: GetGoalMapInput) =>
 		const nodes = Array.isArray(row.nodes) ? row.nodes : [];
 		const edges = Array.isArray(row.edges) ? row.edges : [];
 		const materialImages = row.materialImages
-			? JSON.parse(row.materialImages as string)
+			? yield* safeParseJson(
+					row.materialImages as string,
+					[],
+					Schema.Array(Schema.Unknown),
+				)
 			: [];
 
 		return {

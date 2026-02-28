@@ -151,7 +151,9 @@ const UpdateFormInput = Schema.Struct({
 		Schema.Union(
 			Schema.Literal("pre_test"),
 			Schema.Literal("post_test"),
+			Schema.Literal("delayed_test"),
 			Schema.Literal("registration"),
+			Schema.Literal("tam"),
 			Schema.Literal("control"),
 		),
 		{ nullable: true },
