@@ -6,15 +6,18 @@ import { listTopics, createTopic, CreateTopicInput } from "@/features/analyzer/l
 import { authMiddleware } from "@/middlewares/auth";
 
 import { AppLayer } from "../app-layer";
-import { errorResponse, logRpcError } from "../rpc-helper";
+import { Rpc, logRpcError } from "../rpc-helper";
 
 export const listTopicsRpc = createServerFn()
 	.middleware([authMiddleware])
 	.handler(() =>
-		listTopics().pipe(
+		Effect.gen(function* () {
+			const rows = yield* listTopics();
+			return yield* Rpc.ok(rows);
+		}).pipe(
 			Effect.withSpan("listTopics"),
 			Effect.tapError(logRpcError("listTopics")),
-			Effect.catchAll(() => errorResponse("Internal server error")),
+			Effect.catchAll(() => Rpc.err("Internal server error")),
 			Effect.provide(AppLayer),
 			Effect.runPromise,
 		),
@@ -24,10 +27,13 @@ export const createTopicRpc = createServerFn()
 	.middleware([authMiddleware])
 	.inputValidator((raw) => Schema.decodeUnknownSync(CreateTopicInput)(raw))
 	.handler(({ data }) =>
-		createTopic(data).pipe(
+		Effect.gen(function* () {
+			const result = yield* createTopic(data);
+			return yield* Rpc.ok(result);
+		}).pipe(
 			Effect.withSpan("createTopic"),
 			Effect.tapError(logRpcError("createTopic")),
-			Effect.catchAll(() => errorResponse("Internal server error")),
+			Effect.catchAll(() => Rpc.err("Internal server error")),
 			Effect.provide(AppLayer),
 			Effect.runPromise,
 		),

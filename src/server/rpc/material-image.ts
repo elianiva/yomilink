@@ -9,21 +9,24 @@ import {
 import { authMiddleware } from "@/middlewares/auth";
 
 import { AppLayer } from "../app-layer";
-import { errorResponse, logRpcError } from "../rpc-helper";
+import { Rpc, logRpcError } from "../rpc-helper";
 
 export const uploadMaterialImageRpc = createServerFn()
 	.middleware([authMiddleware])
 	.inputValidator((raw) => Schema.decodeUnknownSync(UploadMaterialImageInput)(raw))
 	.handler(({ data }) =>
-		uploadMaterialImage(data).pipe(
+		Effect.gen(function* () {
+			const result = yield* uploadMaterialImage(data);
+			return yield* Rpc.ok(result);
+		}).pipe(
 			Effect.withSpan("uploadMaterialImage"),
 			Effect.tapError(logRpcError("uploadMaterialImage")),
 			Effect.catchTags({
 				InvalidFileTypeError: (e) =>
-					errorResponse(`Invalid file type: ${e.type}. Allowed: ${e.allowed.join(", ")}`),
+					Rpc.err(`Invalid file type: ${e.type}. Allowed: ${e.allowed.join(", ")}`),
 				FileTooLargeError: (e) =>
-					errorResponse(`File too large: ${e.size} bytes. Max: ${e.maxSize} bytes`),
-				UnknownException: () => errorResponse("Failed to upload image"),
+					Rpc.err(`File too large: ${e.size} bytes. Max: ${e.maxSize} bytes`),
+				UnknownException: () => Rpc.err("Failed to upload image"),
 			}),
 			Effect.provide(AppLayer),
 			Effect.runPromise,

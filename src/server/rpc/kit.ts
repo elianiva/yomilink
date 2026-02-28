@@ -14,15 +14,18 @@ import {
 import { requireRoleMiddleware } from "@/middlewares/auth";
 
 import { AppLayer } from "../app-layer";
-import { errorResponse, logRpcError } from "../rpc-helper";
+import { Rpc, logRpcError } from "../rpc-helper";
 
 export const listStudentKitsRpc = createServerFn()
 	.middleware([requireRoleMiddleware("teacher", "admin")])
 	.handler(() =>
-		listStudentKits().pipe(
+		Effect.gen(function* () {
+			const rows = yield* listStudentKits();
+			return yield* Rpc.ok(rows);
+		}).pipe(
 			Effect.withSpan("listStudentKits"),
-			Effect.tapError(logRpcError("generateKit")),
-			Effect.catchAll(() => errorResponse("Internal server error")),
+			Effect.tapError(logRpcError("listStudentKits")),
+			Effect.catchAll(() => Rpc.err("Internal server error")),
 			Effect.provide(AppLayer),
 			Effect.runPromise,
 		),
@@ -32,10 +35,13 @@ export const getKitRpc = createServerFn()
 	.middleware([requireRoleMiddleware("teacher", "admin")])
 	.inputValidator((raw) => Schema.decodeUnknownSync(GetKitInput)(raw))
 	.handler(({ data }) =>
-		getKit(data).pipe(
+		Effect.gen(function* () {
+			const result = yield* getKit(data);
+			return yield* Rpc.ok(result);
+		}).pipe(
 			Effect.withSpan("getKit"),
-			Effect.tapError(logRpcError("generateKit")),
-			Effect.catchAll(() => errorResponse("Internal server error")),
+			Effect.tapError(logRpcError("getKit")),
+			Effect.catchAll(() => Rpc.err("Internal server error")),
 			Effect.provide(AppLayer),
 			Effect.runPromise,
 		),
@@ -45,10 +51,13 @@ export const getKitStatusRpc = createServerFn()
 	.middleware([requireRoleMiddleware("teacher", "admin")])
 	.inputValidator((raw) => Schema.decodeUnknownSync(GetKitStatusInput)(raw))
 	.handler(({ data }) =>
-		getKitStatus(data).pipe(
+		Effect.gen(function* () {
+			const result = yield* getKitStatus(data);
+			return yield* Rpc.ok(result);
+		}).pipe(
 			Effect.withSpan("getKitStatus"),
-			Effect.tapError(logRpcError("generateKit")),
-			Effect.catchAll(() => errorResponse("Internal server error")),
+			Effect.tapError(logRpcError("getKitStatus")),
+			Effect.catchAll(() => Rpc.err("Internal server error")),
 			Effect.provide(AppLayer),
 			Effect.runPromise,
 		),
@@ -58,13 +67,16 @@ export const generateKitRpc = createServerFn()
 	.middleware([requireRoleMiddleware("teacher", "admin")])
 	.inputValidator((raw) => Schema.decodeUnknownSync(GenerateKitInput)(raw))
 	.handler(({ data, context }) =>
-		generateKit(context.user.id, data).pipe(
+		Effect.gen(function* () {
+			const result = yield* generateKit(context.user.id, data);
+			return yield* Rpc.ok(result);
+		}).pipe(
 			Effect.withSpan("generateKit"),
 			Effect.tapError(logRpcError("generateKit")),
 			Effect.catchTags({
-				GoalMapNotFoundError: (e) => errorResponse(`Goal map ${e.goalMapId} not found`),
+				GoalMapNotFoundError: () => Rpc.notFound("Goal map"),
 			}),
-			Effect.catchAll(() => errorResponse("Internal server error")),
+			Effect.catchAll(() => Rpc.err("Internal server error")),
 			Effect.provide(AppLayer),
 			Effect.runPromise,
 		),

@@ -6,23 +6,36 @@ import { UpdateProfileInput, updateProfile } from "@/features/profile/lib/profil
 import { authMiddleware, authMiddlewareOptional } from "@/middlewares/auth";
 
 import { AppLayer } from "../app-layer";
-import { errorResponse, logRpcError } from "../rpc-helper";
+import { Rpc, logRpcError } from "../rpc-helper";
 
 export const getMe = createServerFn()
 	.middleware([authMiddlewareOptional])
-	.handler(({ context }) => context.user);
+	.handler(({ context }) =>
+		Effect.gen(function* () {
+			if (!context.user) {
+				return yield* Rpc.err("Not authenticated");
+			}
+			return yield* Rpc.ok(context.user);
+		}).pipe(
+			Effect.provide(AppLayer),
+			Effect.runPromise,
+		),
+	);
 
 export const updateProfileRpc = createServerFn()
 	.middleware([authMiddleware])
 	.inputValidator((raw) => Schema.decodeUnknownSync(UpdateProfileInput)(raw))
 	.handler(({ data, context }) =>
-		updateProfile(context.user.id, data).pipe(
+		Effect.gen(function* () {
+			const result = yield* updateProfile(context.user.id, data);
+			return yield* Rpc.ok(result);
+		}).pipe(
 			Effect.withSpan("updateProfile"),
 			Effect.tapError(logRpcError("updateProfile")),
 			Effect.catchTags({
-				UserNotFoundError: (e) => errorResponse(`User ${e.userId} not found`),
+				UserNotFoundError: () => Rpc.notFound("User"),
 			}),
-			Effect.catchAll(() => errorResponse("Internal server error")),
+			Effect.catchAll(() => Rpc.err("Internal server error")),
 			Effect.provide(AppLayer),
 			Effect.runPromise,
 		),

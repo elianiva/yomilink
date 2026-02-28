@@ -22,15 +22,18 @@ import {
 import { authMiddleware } from "@/middlewares/auth";
 
 import { AppLayer } from "../app-layer";
-import { errorResponse, logRpcError } from "../rpc-helper";
+import { Rpc, logRpcError } from "../rpc-helper";
 
 export const listStudentAssignmentsRpc = createServerFn()
 	.middleware([authMiddleware])
 	.handler(({ context }) =>
-		listStudentAssignments(context.user.id).pipe(
+		Effect.gen(function* () {
+			const rows = yield* listStudentAssignments(context.user.id);
+			return yield* Rpc.ok(rows);
+		}).pipe(
 			Effect.withSpan("listStudentAssignments"),
 			Effect.tapError(logRpcError("listStudentAssignments")),
-			Effect.catchAll(() => errorResponse("Internal server error")),
+			Effect.catchAll(() => Rpc.err("Internal server error")),
 			Effect.provide(AppLayer),
 			Effect.runPromise,
 		),
@@ -40,10 +43,13 @@ export const getAssignmentForStudentRpc = createServerFn()
 	.middleware([authMiddleware])
 	.inputValidator((raw) => Schema.decodeUnknownSync(GetAssignmentForStudentInput)(raw))
 	.handler(({ data, context }) =>
-		getAssignmentForStudent(context.user.id, data).pipe(
+		Effect.gen(function* () {
+			const result = yield* getAssignmentForStudent(context.user.id, data);
+			return yield* Rpc.ok(result);
+		}).pipe(
 			Effect.withSpan("getAssignmentForStudent"),
 			Effect.tapError(logRpcError("getAssignmentForStudent")),
-			Effect.catchAll(() => errorResponse("Internal server error")),
+			Effect.catchAll(() => Rpc.err("Internal server error")),
 			Effect.provide(AppLayer),
 			Effect.runPromise,
 		),
@@ -53,7 +59,10 @@ export const saveLearnerMapRpc = createServerFn()
 	.middleware([authMiddleware])
 	.inputValidator((raw) => Schema.decodeUnknownSync(SaveLearnerMapInput)(raw))
 	.handler(({ data, context }) =>
-		saveLearnerMap(context.user.id, data).pipe(
+		Effect.gen(function* () {
+			yield* saveLearnerMap(context.user.id, data);
+			return yield* Rpc.ok(true);
+		}).pipe(
 			Effect.withSpan("saveLearnerMap"),
 			Effect.provide(AppLayer),
 			Effect.runPromise,
@@ -64,10 +73,13 @@ export const submitLearnerMapRpc = createServerFn()
 	.middleware([authMiddleware])
 	.inputValidator((raw) => Schema.decodeUnknownSync(SubmitLearnerMapInput)(raw))
 	.handler(({ data, context }) =>
-		submitLearnerMap(context.user.id, data).pipe(
+		Effect.gen(function* () {
+			const result = yield* submitLearnerMap(context.user.id, data);
+			return yield* Rpc.ok(result);
+		}).pipe(
 			Effect.withSpan("submitLearnerMap"),
 			Effect.tapError(logRpcError("submitLearnerMap")),
-			Effect.catchAll(() => errorResponse("Internal server error")),
+			Effect.catchAll(() => Rpc.err("Internal server error")),
 			Effect.provide(AppLayer),
 			Effect.runPromise,
 		),
@@ -77,10 +89,13 @@ export const getDiagnosisRpc = createServerFn()
 	.middleware([authMiddleware])
 	.inputValidator((raw) => Schema.decodeUnknownSync(GetDiagnosisInput)(raw))
 	.handler(({ data, context }) =>
-		getDiagnosis(context.user.id, data).pipe(
+		Effect.gen(function* () {
+			const result = yield* getDiagnosis(context.user.id, data);
+			return yield* Rpc.ok(result);
+		}).pipe(
 			Effect.withSpan("getDiagnosis"),
 			Effect.tapError(logRpcError("getDiagnosis")),
-			Effect.catchAll(() => errorResponse("Internal server error")),
+			Effect.catchAll(() => Rpc.err("Internal server error")),
 			Effect.provide(AppLayer),
 			Effect.runPromise,
 		),
@@ -90,10 +105,13 @@ export const startNewAttemptRpc = createServerFn()
 	.middleware([authMiddleware])
 	.inputValidator((raw) => Schema.decodeUnknownSync(StartNewAttemptInput)(raw))
 	.handler(({ data, context }) =>
-		startNewAttempt(context.user.id, data).pipe(
+		Effect.gen(function* () {
+			const result = yield* startNewAttempt(context.user.id, data);
+			return yield* Rpc.ok(result);
+		}).pipe(
 			Effect.withSpan("startNewAttempt"),
 			Effect.tapError(logRpcError("startNewAttempt")),
-			Effect.catchAll(() => errorResponse("Internal server error")),
+			Effect.catchAll(() => Rpc.err("Internal server error")),
 			Effect.provide(AppLayer),
 			Effect.runPromise,
 		),
@@ -103,10 +121,13 @@ export const getPeerStatsRpc = createServerFn()
 	.middleware([authMiddleware])
 	.inputValidator((raw) => Schema.decodeUnknownSync(GetPeerStatsInput)(raw))
 	.handler(({ data, context }) =>
-		getPeerStats(context.user.id, data).pipe(
+		Effect.gen(function* () {
+			const result = yield* getPeerStats(context.user.id, data);
+			return yield* Rpc.ok(result);
+		}).pipe(
 			Effect.withSpan("getPeerStats"),
 			Effect.tapError(logRpcError("getPeerStats")),
-			Effect.catchAll(() => errorResponse("Internal server error")),
+			Effect.catchAll(() => Rpc.err("Internal server error")),
 			Effect.provide(AppLayer),
 			Effect.runPromise,
 		),
@@ -116,10 +137,13 @@ export const submitControlTextRpc = createServerFn()
 	.middleware([authMiddleware])
 	.inputValidator((raw) => Schema.decodeUnknownSync(SubmitControlTextInput)(raw))
 	.handler(({ data, context }) =>
-		submitControlText(context.user.id, data).pipe(
+		Effect.gen(function* () {
+			yield* submitControlText(context.user.id, data);
+			return yield* Rpc.ok(true);
+		}).pipe(
 			Effect.withSpan("submitControlText"),
 			Effect.tapError(logRpcError("submitControlText")),
-			Effect.catchAll(() => errorResponse("Internal server error")),
+			Effect.catchAll(() => Rpc.err("Internal server error")),
 			Effect.provide(AppLayer),
 			Effect.runPromise,
 		),

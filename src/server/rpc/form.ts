@@ -36,7 +36,7 @@ import {
 import { requireRoleMiddleware } from "@/middlewares/auth";
 
 import { AppLayer } from "../app-layer";
-import { errorResponse, logRpcError } from "../rpc-helper";
+import { Rpc, logRpcError } from "../rpc-helper";
 
 const GetFormByIdInput = Schema.Struct({
 	id: Schema.NonEmptyString,
@@ -48,11 +48,14 @@ export const createFormRpc = createServerFn()
 	.middleware([requireRoleMiddleware("teacher", "admin")])
 	.inputValidator((raw) => Schema.decodeUnknownSync(CreateFormInput)(raw))
 	.handler(({ data, context }) =>
-		createForm(context.user.id, data).pipe(
+		Effect.gen(function* () {
+			const result = yield* createForm(context.user.id, data);
+			return yield* Rpc.ok(result);
+		}).pipe(
 			Effect.withSpan("createForm"),
 			Effect.tapError(logRpcError("createForm")),
 			Effect.provide(AppLayer),
-			Effect.catchAll(() => errorResponse("Internal server error")),
+			Effect.catchAll(() => Rpc.err("Internal server error")),
 			Effect.runPromise,
 		),
 	);
@@ -61,14 +64,17 @@ export const getFormByIdRpc = createServerFn()
 	.middleware([requireRoleMiddleware("teacher", "admin")])
 	.inputValidator((raw) => Schema.decodeUnknownSync(GetFormByIdInput)(raw))
 	.handler(({ data }) =>
-		getFormById(data.id).pipe(
+		Effect.gen(function* () {
+			const result = yield* getFormById(data.id);
+			return yield* Rpc.ok(result);
+		}).pipe(
 			Effect.withSpan("getFormById"),
 			Effect.tapError(logRpcError("getFormById")),
 			Effect.provide(AppLayer),
 			Effect.catchTags({
-				FormNotFoundError: () => errorResponse("Form not found"),
+				FormNotFoundError: () => Rpc.notFound("Form"),
 			}),
-			Effect.catchAll(() => errorResponse("Internal server error")),
+			Effect.catchAll(() => Rpc.err("Internal server error")),
 			Effect.runPromise,
 		),
 	);
@@ -76,11 +82,14 @@ export const getFormByIdRpc = createServerFn()
 export const listFormsRpc = createServerFn()
 	.middleware([requireRoleMiddleware("teacher", "admin")])
 	.handler(({ context }) =>
-		listForms(context.user.id).pipe(
+		Effect.gen(function* () {
+			const rows = yield* listForms(context.user.id);
+			return yield* Rpc.ok(rows);
+		}).pipe(
 			Effect.withSpan("listForms"),
 			Effect.tapError(logRpcError("listForms")),
 			Effect.provide(AppLayer),
-			Effect.catchAll(() => errorResponse("Internal server error")),
+			Effect.catchAll(() => Rpc.err("Internal server error")),
 			Effect.runPromise,
 		),
 	);
@@ -88,11 +97,14 @@ export const listFormsRpc = createServerFn()
 export const getStudentFormsRpc = createServerFn()
 	.middleware([requireRoleMiddleware("student", "teacher", "admin")])
 	.handler(({ context }) =>
-		getStudentForms(context.user.id).pipe(
+		Effect.gen(function* () {
+			const rows = yield* getStudentForms(context.user.id);
+			return yield* Rpc.ok(rows);
+		}).pipe(
 			Effect.withSpan("getStudentForms"),
 			Effect.tapError(logRpcError("getStudentForms")),
 			Effect.provide(AppLayer),
-			Effect.catchAll(() => errorResponse("Internal server error")),
+			Effect.catchAll(() => Rpc.err("Internal server error")),
 			Effect.runPromise,
 		),
 	);
@@ -101,14 +113,17 @@ export const deleteFormRpc = createServerFn()
 	.middleware([requireRoleMiddleware("teacher", "admin")])
 	.inputValidator((raw) => Schema.decodeUnknownSync(GetFormByIdInput)(raw))
 	.handler(({ data }) =>
-		deleteForm(data.id).pipe(
+		Effect.gen(function* () {
+			yield* deleteForm(data.id);
+			return yield* Rpc.ok(true);
+		}).pipe(
 			Effect.withSpan("deleteForm"),
 			Effect.tapError(logRpcError("deleteForm")),
 			Effect.provide(AppLayer),
 			Effect.catchTags({
-				FormNotFoundError: () => errorResponse("Form not found"),
+				FormNotFoundError: () => Rpc.notFound("Form"),
 			}),
-			Effect.catchAll(() => errorResponse("Internal server error")),
+			Effect.catchAll(() => Rpc.err("Internal server error")),
 			Effect.runPromise,
 		),
 	);
@@ -117,14 +132,17 @@ export const publishFormRpc = createServerFn()
 	.middleware([requireRoleMiddleware("teacher", "admin")])
 	.inputValidator((raw) => Schema.decodeUnknownSync(GetFormByIdInput)(raw))
 	.handler(({ data }) =>
-		publishForm(data.id).pipe(
+		Effect.gen(function* () {
+			yield* publishForm(data.id);
+			return yield* Rpc.ok(true);
+		}).pipe(
 			Effect.withSpan("publishForm"),
 			Effect.tapError(logRpcError("publishForm")),
 			Effect.provide(AppLayer),
 			Effect.catchTags({
-				FormNotFoundError: () => errorResponse("Form not found"),
+				FormNotFoundError: () => Rpc.notFound("Form"),
 			}),
-			Effect.catchAll(() => errorResponse("Internal server error")),
+			Effect.catchAll(() => Rpc.err("Internal server error")),
 			Effect.runPromise,
 		),
 	);
@@ -133,14 +151,17 @@ export const unpublishFormRpc = createServerFn()
 	.middleware([requireRoleMiddleware("teacher", "admin")])
 	.inputValidator((raw) => Schema.decodeUnknownSync(GetFormByIdInput)(raw))
 	.handler(({ data }) =>
-		unpublishForm(data.id).pipe(
+		Effect.gen(function* () {
+			yield* unpublishForm(data.id);
+			return yield* Rpc.ok(true);
+		}).pipe(
 			Effect.withSpan("unpublishForm"),
 			Effect.tapError(logRpcError("unpublishForm")),
 			Effect.provide(AppLayer),
 			Effect.catchTags({
-				FormNotFoundError: () => errorResponse("Form not found"),
+				FormNotFoundError: () => Rpc.notFound("Form"),
 			}),
-			Effect.catchAll(() => errorResponse("Internal server error")),
+			Effect.catchAll(() => Rpc.err("Internal server error")),
 			Effect.runPromise,
 		),
 	);
@@ -172,21 +193,23 @@ export const updateFormRpc = createServerFn()
 	.middleware([requireRoleMiddleware("teacher", "admin")])
 	.inputValidator((raw) => Schema.decodeUnknownSync(UpdateFormInput)(raw))
 	.handler(({ data }) =>
-		updateForm(data.formId, {
-			title: data.title,
-			description: data.description,
-			type: data.type,
-			status: data.status,
+		Effect.gen(function* () {
+			const result = yield* updateForm(data.formId, {
+				title: data.title,
+				description: data.description,
+				type: data.type,
+				status: data.status,
+			});
+			return yield* Rpc.ok(result);
 		}).pipe(
 			Effect.withSpan("updateForm"),
 			Effect.tapError(logRpcError("updateForm")),
 			Effect.provide(AppLayer),
 			Effect.catchTags({
-				FormNotFoundError: () => errorResponse("Form not found"),
-				FormHasResponsesError: () =>
-					errorResponse("Cannot update form: form has responses"),
+				FormNotFoundError: () => Rpc.notFound("Form"),
+				FormHasResponsesError: () => Rpc.err("Cannot update form: form has responses"),
 			}),
-			Effect.catchAll(() => errorResponse("Internal server error")),
+			Effect.catchAll(() => Rpc.err("Internal server error")),
 			Effect.runPromise,
 		),
 	);
@@ -195,14 +218,17 @@ export const cloneFormRpc = createServerFn()
 	.middleware([requireRoleMiddleware("teacher", "admin")])
 	.inputValidator((raw) => Schema.decodeUnknownSync(CloneFormInput)(raw))
 	.handler(({ data, context }) =>
-		cloneForm(data.formId, context.user.id).pipe(
+		Effect.gen(function* () {
+			const result = yield* cloneForm(data.formId, context.user.id);
+			return yield* Rpc.ok(result);
+		}).pipe(
 			Effect.withSpan("cloneForm"),
 			Effect.tapError(logRpcError("cloneForm")),
 			Effect.provide(AppLayer),
 			Effect.catchTags({
-				FormNotFoundError: () => errorResponse("Form not found"),
+				FormNotFoundError: () => Rpc.notFound("Form"),
 			}),
-			Effect.catchAll(() => errorResponse("Internal server error")),
+			Effect.catchAll(() => Rpc.err("Internal server error")),
 			Effect.runPromise,
 		),
 	);
@@ -211,14 +237,17 @@ export const getFormResponsesRpc = createServerFn()
 	.middleware([requireRoleMiddleware("teacher", "admin")])
 	.inputValidator((raw) => Schema.decodeUnknownSync(GetFormResponsesInput)(raw))
 	.handler(({ data }) =>
-		getFormResponses(data).pipe(
+		Effect.gen(function* () {
+			const result = yield* getFormResponses(data);
+			return yield* Rpc.ok(result);
+		}).pipe(
 			Effect.withSpan("getFormResponses"),
 			Effect.tapError(logRpcError("getFormResponses")),
 			Effect.provide(AppLayer),
 			Effect.catchTags({
-				FormNotFoundError: () => errorResponse("Form not found"),
+				FormNotFoundError: () => Rpc.notFound("Form"),
 			}),
-			Effect.catchAll(() => errorResponse("Internal server error")),
+			Effect.catchAll(() => Rpc.err("Internal server error")),
 			Effect.runPromise,
 		),
 	);
@@ -227,17 +256,19 @@ export const submitFormResponseRpc = createServerFn()
 	.middleware([requireRoleMiddleware("student", "teacher", "admin")])
 	.inputValidator((raw) => Schema.decodeUnknownSync(SubmitFormResponseInput)(raw))
 	.handler(({ data }) =>
-		submitFormResponse(data).pipe(
+		Effect.gen(function* () {
+			yield* submitFormResponse(data);
+			return yield* Rpc.ok(true);
+		}).pipe(
 			Effect.withSpan("submitFormResponse"),
 			Effect.tapError(logRpcError("submitFormResponse")),
 			Effect.provide(AppLayer),
 			Effect.catchTags({
-				FormNotFoundError: () => errorResponse("Form not found"),
-				FormNotPublishedError: () => errorResponse("Form is not published"),
-				FormAlreadySubmittedError: () =>
-					errorResponse("You have already submitted this form"),
+				FormNotFoundError: () => Rpc.notFound("Form"),
+				FormNotPublishedError: () => Rpc.err("Form is not published"),
+				FormAlreadySubmittedError: () => Rpc.err("You have already submitted this form"),
 			}),
-			Effect.catchAll(() => errorResponse("Internal server error")),
+			Effect.catchAll(() => Rpc.err("Internal server error")),
 			Effect.runPromise,
 		),
 	);
@@ -246,18 +277,19 @@ export const reorderQuestionsRpc = createServerFn()
 	.middleware([requireRoleMiddleware("teacher", "admin")])
 	.inputValidator((raw) => Schema.decodeUnknownSync(ReorderQuestionsInput)(raw))
 	.handler(({ data }) =>
-		reorderQuestions(data).pipe(
+		Effect.gen(function* () {
+			yield* reorderQuestions(data);
+			return yield* Rpc.ok(true);
+		}).pipe(
 			Effect.withSpan("reorderQuestions"),
 			Effect.tapError(logRpcError("reorderQuestions")),
 			Effect.provide(AppLayer),
 			Effect.catchTags({
-				FormNotFoundError: () => errorResponse("Form not found"),
-				FormHasResponsesError: () =>
-					errorResponse("Cannot reorder questions: form has responses"),
-				InvalidQuestionOrderError: () =>
-					errorResponse("Invalid question order: question count mismatch or invalid IDs"),
+				FormNotFoundError: () => Rpc.notFound("Form"),
+				FormHasResponsesError: () => Rpc.err("Cannot reorder questions: form has responses"),
+				InvalidQuestionOrderError: () => Rpc.err("Invalid question order: question count mismatch or invalid IDs"),
 			}),
-			Effect.catchAll(() => errorResponse("Internal server error")),
+			Effect.catchAll(() => Rpc.err("Internal server error")),
 			Effect.runPromise,
 		),
 	);
@@ -266,16 +298,18 @@ export const createQuestionRpc = createServerFn()
 	.middleware([requireRoleMiddleware("teacher", "admin")])
 	.inputValidator((raw) => Schema.decodeUnknownSync(CreateQuestionInput)(raw))
 	.handler(({ data }) =>
-		createQuestion(data).pipe(
+		Effect.gen(function* () {
+			const result = yield* createQuestion(data);
+			return yield* Rpc.ok(result);
+		}).pipe(
 			Effect.withSpan("createQuestion"),
 			Effect.tapError(logRpcError("createQuestion")),
 			Effect.provide(AppLayer),
 			Effect.catchTags({
-				FormNotFoundError: () => errorResponse("Form not found"),
-				FormHasResponsesError: () =>
-					errorResponse("Cannot add questions: form has responses"),
+				FormNotFoundError: () => Rpc.notFound("Form"),
+				FormHasResponsesError: () => Rpc.err("Cannot add questions: form has responses"),
 			}),
-			Effect.catchAll(() => errorResponse("Internal server error")),
+			Effect.catchAll(() => Rpc.err("Internal server error")),
 			Effect.runPromise,
 		),
 	);
@@ -290,16 +324,18 @@ export const updateQuestionRpc = createServerFn()
 	.middleware([requireRoleMiddleware("teacher", "admin")])
 	.inputValidator((raw) => Schema.decodeUnknownSync(UpdateQuestionInput)(raw))
 	.handler(({ data }) =>
-		updateQuestion(data).pipe(
+		Effect.gen(function* () {
+			const result = yield* updateQuestion(data);
+			return yield* Rpc.ok(result);
+		}).pipe(
 			Effect.withSpan("updateQuestion"),
 			Effect.tapError(logRpcError("updateQuestion")),
 			Effect.provide(AppLayer),
 			Effect.catchTags({
-				QuestionNotFoundError: () => errorResponse("Question not found"),
-				FormHasResponsesError: () =>
-					errorResponse("Cannot edit question: form has responses"),
+				QuestionNotFoundError: () => Rpc.notFound("Question"),
+				FormHasResponsesError: () => Rpc.err("Cannot edit question: form has responses"),
 			}),
-			Effect.catchAll(() => errorResponse("Internal server error")),
+			Effect.catchAll(() => Rpc.err("Internal server error")),
 			Effect.runPromise,
 		),
 	);
@@ -308,16 +344,18 @@ export const deleteQuestionRpc = createServerFn()
 	.middleware([requireRoleMiddleware("teacher", "admin")])
 	.inputValidator((raw) => Schema.decodeUnknownSync(GetQuestionByIdInput)(raw))
 	.handler(({ data }) =>
-		deleteQuestion(data.id).pipe(
+		Effect.gen(function* () {
+			yield* deleteQuestion(data.id);
+			return yield* Rpc.ok(true);
+		}).pipe(
 			Effect.withSpan("deleteQuestion"),
 			Effect.tapError(logRpcError("deleteQuestion")),
 			Effect.provide(AppLayer),
 			Effect.catchTags({
-				QuestionNotFoundError: () => errorResponse("Question not found"),
-				FormHasResponsesError: () =>
-					errorResponse("Cannot delete question: form has responses"),
+				QuestionNotFoundError: () => Rpc.notFound("Question"),
+				FormHasResponsesError: () => Rpc.err("Cannot delete question: form has responses"),
 			}),
-			Effect.catchAll(() => errorResponse("Internal server error")),
+			Effect.catchAll(() => Rpc.err("Internal server error")),
 			Effect.runPromise,
 		),
 	);
@@ -326,14 +364,17 @@ export const checkFormUnlockRpc = createServerFn()
 	.middleware([requireRoleMiddleware("student", "teacher", "admin")])
 	.inputValidator((raw) => Schema.decodeUnknownSync(CheckFormUnlockInput)(raw))
 	.handler(({ data, context }) =>
-		checkFormUnlock({ formId: data.formId, userId: context.user.id }).pipe(
+		Effect.gen(function* () {
+			const result = yield* checkFormUnlock({ formId: data.formId, userId: context.user.id });
+			return yield* Rpc.ok(result);
+		}).pipe(
 			Effect.withSpan("checkFormUnlock"),
 			Effect.tapError(logRpcError("checkFormUnlock")),
 			Effect.provide(AppLayer),
 			Effect.catchTags({
-				FormNotFoundError: () => errorResponse("Form not found"),
+				FormNotFoundError: () => Rpc.notFound("Form"),
 			}),
-			Effect.catchAll(() => errorResponse("Internal server error")),
+			Effect.catchAll(() => Rpc.err("Internal server error")),
 			Effect.runPromise,
 		),
 	);
@@ -342,11 +383,14 @@ export const unlockFormRpc = createServerFn()
 	.middleware([requireRoleMiddleware("teacher", "admin")])
 	.inputValidator((raw) => Schema.decodeUnknownSync(UnlockFormInput)(raw))
 	.handler(({ data }) =>
-		unlockForm({ formId: data.formId, userId: data.userId }).pipe(
+		Effect.gen(function* () {
+			yield* unlockForm({ formId: data.formId, userId: data.userId });
+			return yield* Rpc.ok(true);
+		}).pipe(
 			Effect.withSpan("unlockForm"),
 			Effect.tapError(logRpcError("unlockForm")),
 			Effect.provide(AppLayer),
-			Effect.catchAll(() => errorResponse("Internal server error")),
+			Effect.catchAll(() => Rpc.err("Internal server error")),
 			Effect.runPromise,
 		),
 	);
@@ -354,11 +398,14 @@ export const unlockFormRpc = createServerFn()
 export const getRegistrationFormStatusRpc = createServerFn()
 	.middleware([requireRoleMiddleware("student", "teacher", "admin")])
 	.handler(({ context }) =>
-		getRegistrationFormStatus(context.user.id).pipe(
+		Effect.gen(function* () {
+			const result = yield* getRegistrationFormStatus(context.user.id);
+			return yield* Rpc.ok(result);
+		}).pipe(
 			Effect.withSpan("getRegistrationFormStatus"),
 			Effect.tapError(logRpcError("getRegistrationFormStatus")),
 			Effect.provide(AppLayer),
-			Effect.catchAll(() => errorResponse("Internal server error")),
+			Effect.catchAll(() => Rpc.err("Internal server error")),
 			Effect.runPromise,
 		),
 	);

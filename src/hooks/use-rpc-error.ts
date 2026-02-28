@@ -2,30 +2,31 @@
  * RPC Error Type Utilities
  *
  * Type-safe utilities for handling the standardized RPC error response format
- * ({ success: false, error: string }). Provides the foundation for consistent
- * error handling across all components.
+ * ({ success: false, error: string }) and success format ({ success: true, data: T }).
+ * Provides the foundation for consistent error handling across all components.
  */
 
 /**
  * Standardized RPC error response format.
  */
-export type RpcErrorResponse = {
+export type RpcError = {
 	readonly success: false;
 	readonly error: string;
+	readonly code?: string;
 };
 
 /**
  * Standardized RPC success response format.
- * The data can be any shape, typically an object with additional fields.
  */
-export type RpcSuccessResponse<T = unknown> = {
+export type RpcSuccess<T> = {
 	readonly success: true;
-} & T;
+	readonly data: T;
+};
 
 /**
- * Union type representing any RPC response.
+ * Standardized RPC response type (success or error).
  */
-export type RpcResponse<T = unknown> = RpcErrorResponse | RpcSuccessResponse<T>;
+export type RpcResult<T> = RpcSuccess<T> | RpcError;
 
 /**
  * Type guard to check if a response is an error response.
@@ -34,14 +35,14 @@ export type RpcResponse<T = unknown> = RpcErrorResponse | RpcSuccessResponse<T>;
  * @example
  * ```ts
  * const response = await fetchData();
- * if (isErrorResponse(response)) {
+ * if (isError(response)) {
  *   console.error(response.error);
  *   return;
  * }
  * // response is now narrowed to success type
  * ```
  */
-export function isErrorResponse(response: unknown): response is RpcErrorResponse {
+export function isError(response: unknown): response is RpcError {
 	if (response === null || response === undefined) {
 		return false;
 	}
@@ -60,11 +61,11 @@ export function isErrorResponse(response: unknown): response is RpcErrorResponse
  * ```ts
  * const response = await fetchData();
  * if (isSuccess(response)) {
- *   console.log("Got data:", response);
+ *   console.log("Got data:", response.data);
  * }
  * ```
  */
-export function isSuccess<T>(response: unknown): response is RpcSuccessResponse<T> {
+export function isSuccess<T>(response: unknown): response is RpcSuccess<T> {
 	if (response === null || response === undefined) {
 		return false;
 	}
@@ -72,17 +73,16 @@ export function isSuccess<T>(response: unknown): response is RpcSuccessResponse<
 		return false;
 	}
 	const obj = response as Record<string, unknown>;
-	return obj.success === true;
+	return obj.success === true && "data" in obj;
 }
 
 /**
  * Extracts data from an RPC response, returning null for errors.
- * Useful for simple cases where you just want the data or nothing.
  *
  * @example
  * ```ts
  * const response = await fetchGoalMaps();
- * const goalMaps = extractData(response);
+ * const goalMaps = unwrap(response);
  * if (!goalMaps) {
  *   // Handle error case
  *   return;
@@ -90,39 +90,38 @@ export function isSuccess<T>(response: unknown): response is RpcSuccessResponse<
  * // Use goalMaps safely
  * ```
  */
-export function extractData<T>(response: RpcResponse<T> | T | null | undefined): T | null {
+export function unwrap<T>(response: RpcResult<T> | null | undefined): T | null {
 	if (response === null || response === undefined) {
 		return null;
 	}
 
-	// Check if it's an error response
-	if (isErrorResponse(response)) {
+	if (isError(response)) {
 		return null;
 	}
 
-	// Check if it's a success response with explicit success: true
 	if (isSuccess<T>(response)) {
-		// Return the response without the success field
-		const { success: _, ...data } = response as any;
-		return data as T;
+		return response.data;
 	}
 
-	// If response doesn't have success field at all (raw data like arrays)
-	return response as T;
+	return null;
 }
 
 /**
- * Result type for useRpcErrorState hook.
+ * Result type for getRpcState function.
  */
-export type RpcErrorState<T> = {
-	/** Extracted data, null if error or undefined */
-	data: T | null;
-	/** Error message if response is an error, null otherwise */
-	error: string | null;
+export type RpcState<T> = {
+	/** Extracted data, undefined if error or loading */
+	data: T | undefined;
+	/** Error message if response is an error, undefined otherwise */
+	error: string | undefined;
+	/** Error code if available */
+	code: string | undefined;
 	/** Whether the response is an error */
 	isError: boolean;
 	/** Whether the response is successful */
 	isSuccess: boolean;
+	/** Whether loading (response is null/undefined) */
+	isLoading: boolean;
 };
 
 /**
@@ -132,7 +131,7 @@ export type RpcErrorState<T> = {
  * @example
  * ```ts
  * const response = await fetchAssignments();
- * const { data, error, isError } = getRpcErrorState(response);
+ * const { data, error, isError } = getRpcState(response);
  *
  * if (isError) {
  *   showErrorMessage(error);
@@ -143,33 +142,39 @@ export type RpcErrorState<T> = {
  * renderAssignments(data);
  * ```
  */
-export function getRpcErrorState<T>(
-	response: RpcResponse<T> | T | null | undefined,
-): RpcErrorState<T> {
+export function getRpcState<T>(
+	response: RpcResult<T> | null | undefined,
+): RpcState<T> {
 	if (response === null || response === undefined) {
 		return {
-			data: null,
-			error: null,
+			data: undefined,
+			error: undefined,
+			code: undefined,
 			isError: false,
 			isSuccess: false,
+			isLoading: true,
 		};
 	}
 
-	if (isErrorResponse(response)) {
+	if (isError(response)) {
 		return {
-			data: null,
+			data: undefined,
 			error: response.error,
+			code: response.code,
 			isError: true,
 			isSuccess: false,
+			isLoading: false,
 		};
 	}
 
-	const data = extractData<T>(response);
+	const data = unwrap(response);
 	return {
-		data,
-		error: null,
+		data: data ?? undefined,
+		error: undefined,
+		code: undefined,
 		isError: false,
 		isSuccess: true,
+		isLoading: false,
 	};
 }
 
@@ -189,21 +194,24 @@ export function filterArrayResponse<T>(response: unknown): T[] {
 		return [];
 	}
 
-	if (isErrorResponse(response)) {
+	if (isError(response)) {
 		return [];
 	}
 
-	if (Array.isArray(response)) {
-		return response;
+	if (isSuccess<{ items: T[] }>(response) && Array.isArray(response.data.items)) {
+		return response.data.items;
 	}
 
-	// Handle success response wrapper with items field
-	if (typeof response === "object" && response !== null) {
-		const obj = response as Record<string, unknown>;
-		if (obj.success === true && Array.isArray(obj.items)) {
-			return obj.items as T[];
-		}
+	if (isSuccess<T[]>(response) && Array.isArray(response.data)) {
+		return response.data;
+	}
+
+	if (Array.isArray(response)) {
+		return response as T[];
 	}
 
 	return [];
 }
+
+// Re-export for backward compatibility with old naming
+export type { RpcError as RpcErrorResponse, RpcSuccess as RpcSuccessResponse, RpcResult as RpcResponse };

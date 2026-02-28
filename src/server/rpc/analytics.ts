@@ -16,15 +16,18 @@ import {
 import { authMiddleware } from "@/middlewares/auth";
 
 import { AppLayer } from "../app-layer";
-import { errorResponse, logRpcError } from "../rpc-helper";
+import { Rpc, logRpcError } from "../rpc-helper";
 
 export const getTeacherAssignmentsRpc = createServerFn()
 	.middleware([authMiddleware])
 	.handler(({ context }) =>
-		getTeacherAssignments(context.user.id).pipe(
+		Effect.gen(function* () {
+			const rows = yield* getTeacherAssignments(context.user.id);
+			return yield* Rpc.ok(rows);
+		}).pipe(
 			Effect.withSpan("getTeacherAssignments"),
 			Effect.tapError(logRpcError("getTeacherAssignments")),
-			Effect.catchAll(() => errorResponse("Internal server error")),
+			Effect.catchAll(() => Rpc.err("Internal server error")),
 			Effect.provide(AppLayer),
 			Effect.runPromise,
 		),
@@ -34,15 +37,17 @@ export const getAnalyticsForAssignmentRpc = createServerFn()
 	.middleware([authMiddleware])
 	.inputValidator((raw) => Schema.decodeUnknownSync(GetAnalyticsForAssignmentInput)(raw))
 	.handler(({ data, context }) =>
-		getAnalyticsForAssignment(context.user.id, data).pipe(
+		Effect.gen(function* () {
+			const result = yield* getAnalyticsForAssignment(context.user.id, data);
+			return yield* Rpc.ok(result);
+		}).pipe(
 			Effect.withSpan("getAnalyticsForAssignment"),
 			Effect.tapError(logRpcError("getAnalyticsForAssignment")),
 			Effect.catchTags({
-				AssignmentNotFoundError: (e) =>
-					errorResponse(`Assignment not found: ${e.assignmentId}`),
-				GoalMapNotFoundError: (e) => errorResponse(`Goal map not found: ${e.goalMapId}`),
+				AssignmentNotFoundError: () => Rpc.notFound("Assignment"),
+				GoalMapNotFoundError: () => Rpc.notFound("Goal map"),
 			}),
-			Effect.catchAll(() => errorResponse("Internal server error")),
+			Effect.catchAll(() => Rpc.err("Internal server error")),
 			Effect.provide(AppLayer),
 			Effect.runPromise,
 		),
@@ -52,16 +57,19 @@ export const getLearnerMapForAnalyticsRpc = createServerFn()
 	.middleware([authMiddleware])
 	.inputValidator((raw) => Schema.decodeUnknownSync(GetLearnerMapForAnalyticsInput)(raw))
 	.handler(({ data }) =>
-		getLearnerMapForAnalytics(data).pipe(
+		Effect.gen(function* () {
+			const result = yield* getLearnerMapForAnalytics(data);
+			return yield* Rpc.ok(result);
+		}).pipe(
 			Effect.withSpan("getLearnerMapForAnalytics"),
 			Effect.tapError(logRpcError("getLearnerMapForAnalytics")),
 			Effect.provide(AppLayer),
 			Effect.catchTags({
-				LearnerMapNotFoundError: (e) =>
-					errorResponse(`Learner map not found: ${e.learnerMapId}`),
-				GoalMapNotFoundError: (e) => errorResponse(`Goal map not found: ${e.goalMapId}`),
+				LearnerMapNotFoundError: () => Rpc.notFound("Learner map"),
+				GoalMapNotFoundError: () => Rpc.notFound("Goal map"),
 			}),
-			Effect.catchAll(() => errorResponse("Internal server error")),
+			Effect.catchAll(() => Rpc.err("Internal server error")),
+			Effect.provide(AppLayer),
 			Effect.runPromise,
 		),
 	);
@@ -70,11 +78,15 @@ export const getMultipleLearnerMapsRpc = createServerFn()
 	.middleware([authMiddleware])
 	.inputValidator((raw) => Schema.decodeUnknownSync(GetMultipleLearnerMapsInput)(raw))
 	.handler(({ data }) =>
-		getMultipleLearnerMaps(data).pipe(
+		Effect.gen(function* () {
+			const result = yield* getMultipleLearnerMaps(data);
+			return yield* Rpc.ok(result);
+		}).pipe(
 			Effect.withSpan("getMultipleLearnerMaps"),
 			Effect.tapError(logRpcError("getMultipleLearnerMaps")),
 			Effect.provide(AppLayer),
-			Effect.catchAll(() => errorResponse("Internal server error")),
+			Effect.catchAll(() => Rpc.err("Internal server error")),
+			Effect.provide(AppLayer),
 			Effect.runPromise,
 		),
 	);
@@ -83,10 +95,13 @@ export const exportAnalyticsDataRpc = createServerFn()
 	.middleware([authMiddleware])
 	.inputValidator((raw) => Schema.decodeUnknownSync(ExportAnalyticsDataInput)(raw))
 	.handler(({ data }) =>
-		exportAnalyticsData(data).pipe(
+		Effect.gen(function* () {
+			const result = yield* exportAnalyticsData(data);
+			return yield* Rpc.ok(result);
+		}).pipe(
 			Effect.withSpan("exportAnalyticsData"),
 			Effect.tapError(logRpcError("exportAnalyticsData")),
-			Effect.catchAll(() => errorResponse("Internal server error")),
+			Effect.catchAll(() => Rpc.err("Internal server error")),
 			Effect.provide(AppLayer),
 			Effect.runPromise,
 		),

@@ -20,21 +20,23 @@ import {
 import { requireRoleMiddleware } from "@/middlewares/auth";
 
 import { AppLayer } from "../app-layer";
-import { errorResponse, logRpcError } from "../rpc-helper";
+import { Rpc, logRpcError } from "../rpc-helper";
 
 export const createAssignmentRpc = createServerFn()
 	.middleware([requireRoleMiddleware("teacher", "admin")])
 	.inputValidator((raw) => Schema.decodeUnknownSync(CreateAssignmentInput)(raw))
 	.handler(({ data, context }) =>
-		createAssignment(context.user.id, data).pipe(
+		Effect.gen(function* () {
+			const result = yield* createAssignment(context.user.id, data);
+			return yield* Rpc.ok(result);
+		}).pipe(
 			Effect.withSpan("createAssignment"),
 			Effect.tapError(logRpcError("createAssignment")),
 			Effect.provide(AppLayer),
 			Effect.catchTags({
-				KitNotFoundError: (e) =>
-					errorResponse(`Kit not found for goal map: ${e.goalMapId}`),
+				KitNotFoundError: () => Rpc.notFound("Kit"),
 			}),
-			Effect.catchAll(() => errorResponse("Internal server error")),
+			Effect.catchAll(() => Rpc.err("Internal server error")),
 			Effect.runPromise,
 		),
 	);
@@ -42,10 +44,13 @@ export const createAssignmentRpc = createServerFn()
 export const listTeacherAssignmentsRpc = createServerFn()
 	.middleware([requireRoleMiddleware("teacher", "admin")])
 	.handler(({ context }) =>
-		listTeacherAssignments(context.user.id).pipe(
+		Effect.gen(function* () {
+			const rows = yield* listTeacherAssignments(context.user.id);
+			return yield* Rpc.ok(rows);
+		}).pipe(
 			Effect.withSpan("listTeacherAssignments"),
 			Effect.tapError(logRpcError("listTeacherAssignments")),
-			Effect.catchAll(() => errorResponse("Internal server error")),
+			Effect.catchAll(() => Rpc.err("Internal server error")),
 			Effect.provide(AppLayer),
 			Effect.runPromise,
 		),
@@ -55,14 +60,16 @@ export const deleteAssignmentRpc = createServerFn()
 	.middleware([requireRoleMiddleware("teacher", "admin")])
 	.inputValidator((raw) => Schema.decodeUnknownSync(DeleteAssignmentInput)(raw))
 	.handler(({ data, context }) =>
-		deleteAssignment(context.user.id, data).pipe(
+		Effect.gen(function* () {
+			yield* deleteAssignment(context.user.id, data);
+			return yield* Rpc.ok(true);
+		}).pipe(
 			Effect.withSpan("deleteAssignment"),
 			Effect.tapError(logRpcError("deleteAssignment")),
 			Effect.catchTags({
-				AssignmentNotFoundError: (e) =>
-					errorResponse(`Assignment not found: ${e.assignmentId}`),
+				AssignmentNotFoundError: () => Rpc.notFound("Assignment"),
 			}),
-			Effect.catchAll(() => errorResponse("Internal server error")),
+			Effect.catchAll(() => Rpc.err("Internal server error")),
 			Effect.provide(AppLayer),
 			Effect.runPromise,
 		),
@@ -71,10 +78,13 @@ export const deleteAssignmentRpc = createServerFn()
 export const getAvailableCohortsRpc = createServerFn()
 	.middleware([requireRoleMiddleware("teacher", "admin")])
 	.handler(() =>
-		getAvailableCohorts().pipe(
+		Effect.gen(function* () {
+			const rows = yield* getAvailableCohorts();
+			return yield* Rpc.ok(rows);
+		}).pipe(
 			Effect.withSpan("getAvailableCohorts"),
 			Effect.tapError(logRpcError("getAvailableCohorts")),
-			Effect.catchAll(() => errorResponse("Internal server error")),
+			Effect.catchAll(() => Rpc.err("Internal server error")),
 			Effect.provide(AppLayer),
 			Effect.runPromise,
 		),
@@ -83,10 +93,13 @@ export const getAvailableCohortsRpc = createServerFn()
 export const getAvailableUsersRpc = createServerFn()
 	.middleware([requireRoleMiddleware("teacher", "admin")])
 	.handler(() =>
-		getAvailableUsers().pipe(
+		Effect.gen(function* () {
+			const rows = yield* getAvailableUsers();
+			return yield* Rpc.ok(rows);
+		}).pipe(
 			Effect.withSpan("getAvailableUsers"),
 			Effect.tapError(logRpcError("getAvailableUsers")),
-			Effect.catchAll(() => errorResponse("Internal server error")),
+			Effect.catchAll(() => Rpc.err("Internal server error")),
 			Effect.provide(AppLayer),
 			Effect.runPromise,
 		),
@@ -95,10 +108,13 @@ export const getAvailableUsersRpc = createServerFn()
 export const getTeacherGoalMapsRpc = createServerFn()
 	.middleware([requireRoleMiddleware("teacher", "admin")])
 	.handler(() =>
-		getTeacherGoalMaps().pipe(
+		Effect.gen(function* () {
+			const rows = yield* getTeacherGoalMaps();
+			return yield* Rpc.ok(rows);
+		}).pipe(
 			Effect.withSpan("getTeacherGoalMaps"),
 			Effect.tapError(logRpcError("getTeacherGoalMaps")),
-			Effect.catchAll(() => errorResponse("Internal server error")),
+			Effect.catchAll(() => Rpc.err("Internal server error")),
 			Effect.provide(AppLayer),
 			Effect.runPromise,
 		),
@@ -108,11 +124,14 @@ export const saveExperimentGroupsRpc = createServerFn()
 	.middleware([requireRoleMiddleware("teacher", "admin")])
 	.inputValidator((raw) => Schema.decodeUnknownSync(SaveExperimentGroupsInput)(raw))
 	.handler(({ data }) =>
-		saveExperimentGroups(data).pipe(
+		Effect.gen(function* () {
+			yield* saveExperimentGroups(data);
+			return yield* Rpc.ok(true);
+		}).pipe(
 			Effect.withSpan("saveExperimentGroups"),
 			Effect.tapError(logRpcError("saveExperimentGroups")),
 			Effect.provide(AppLayer),
-			Effect.catchAll(() => errorResponse("Internal server error")),
+			Effect.catchAll(() => Rpc.err("Internal server error")),
 			Effect.runPromise,
 		),
 	);
@@ -123,11 +142,14 @@ export const getExperimentGroupsByAssignmentIdRpc = createServerFn()
 		Schema.decodeUnknownSync(Schema.Struct({ assignmentId: Schema.String }))(raw),
 	)
 	.handler(({ data }) =>
-		getExperimentGroupsByAssignmentId(data.assignmentId).pipe(
+		Effect.gen(function* () {
+			const result = yield* getExperimentGroupsByAssignmentId(data.assignmentId);
+			return yield* Rpc.ok(result);
+		}).pipe(
 			Effect.withSpan("getExperimentGroupsByAssignmentId"),
 			Effect.tapError(logRpcError("getExperimentGroupsByAssignmentId")),
 			Effect.provide(AppLayer),
-			Effect.catchAll(() => errorResponse("Internal server error")),
+			Effect.catchAll(() => Rpc.err("Internal server error")),
 			Effect.runPromise,
 		),
 	);
@@ -138,11 +160,14 @@ export const getAssignmentByPreTestFormIdRpc = createServerFn()
 		Schema.decodeUnknownSync(Schema.Struct({ formId: Schema.String }))(raw),
 	)
 	.handler(({ data }) =>
-		getAssignmentByPreTestFormId(data.formId).pipe(
+		Effect.gen(function* () {
+			const result = yield* getAssignmentByPreTestFormId(data.formId);
+			return yield* Rpc.ok(result);
+		}).pipe(
 			Effect.withSpan("getAssignmentByPreTestFormId"),
 			Effect.tapError(logRpcError("getAssignmentByPreTestFormId")),
 			Effect.provide(AppLayer),
-			Effect.catchAll(() => errorResponse("Internal server error")),
+			Effect.catchAll(() => Rpc.err("Internal server error")),
 			Effect.runPromise,
 		),
 	);
@@ -153,11 +178,14 @@ export const getExperimentConditionRpc = createServerFn()
 		Schema.decodeUnknownSync(Schema.Struct({ assignmentId: Schema.String }))(raw),
 	)
 	.handler(({ data, context }) =>
-		getExperimentCondition(data.assignmentId, context.user.id).pipe(
+		Effect.gen(function* () {
+			const result = yield* getExperimentCondition(data.assignmentId, context.user.id);
+			return yield* Rpc.ok(result);
+		}).pipe(
 			Effect.withSpan("getExperimentCondition"),
 			Effect.tapError(logRpcError("getExperimentCondition")),
 			Effect.provide(AppLayer),
-			Effect.catchAll(() => errorResponse("Internal server error")),
+			Effect.catchAll(() => Rpc.err("Internal server error")),
 			Effect.runPromise,
 		),
 	);

@@ -17,16 +17,19 @@ import { requireGoalMapOwner } from "@/lib/auth-authorization";
 import { authMiddleware } from "@/middlewares/auth";
 
 import { AppLayer } from "../app-layer";
-import { errorResponse, logRpcError } from "../rpc-helper";
+import { Rpc, logRpcError } from "../rpc-helper";
 
 export const getGoalMapRpc = createServerFn()
 	.middleware([authMiddleware])
 	.inputValidator((raw) => Schema.decodeUnknownSync(GetGoalMapInput)(raw))
 	.handler(({ data }) =>
-		getGoalMap(data).pipe(
+		Effect.gen(function* () {
+			const result = yield* getGoalMap(data);
+			return yield* Rpc.ok(result);
+		}).pipe(
 			Effect.withSpan("getGoalMap"),
 			Effect.tapError(logRpcError("getGoalMap")),
-			Effect.catchAll(() => errorResponse("Internal server error")),
+			Effect.catchAll(() => Rpc.err("Internal server error")),
 			Effect.provide(AppLayer),
 			Effect.runPromise,
 		),
@@ -35,20 +38,21 @@ export const getGoalMapRpc = createServerFn()
 export const saveGoalMapRpc = createServerFn()
 	.middleware([authMiddleware])
 	.inputValidator((raw) => Schema.decodeUnknownSync(SaveGoalMapInput)(raw))
-	.handler(async ({ data, context }) =>
+	.handler(({ data, context }) =>
 		Effect.gen(function* () {
 			if (data.goalMapId !== "new") {
 				yield* requireGoalMapOwner(context.user.id, data.goalMapId);
 			}
-			return yield* saveGoalMap(context.user.id, data);
+			const result = yield* saveGoalMap(context.user.id, data);
+			return yield* Rpc.ok(result);
 		}).pipe(
 			Effect.withSpan("saveGoalMap"),
 			Effect.tapError(logRpcError("saveGoalMap")),
 			Effect.catchTags({
-				GoalMapNotFoundError: (e) => errorResponse(`Goal map ${e.goalMapId} not found`),
-				ForbiddenError: (e) => errorResponse(e.message),
+				GoalMapNotFoundError: () => Rpc.notFound("Goal map"),
+				ForbiddenError: (e) => Rpc.forbidden(e.message),
 			}),
-			Effect.catchAll(() => errorResponse("Internal server error")),
+			Effect.catchAll(() => Rpc.err("Internal server error")),
 			Effect.provide(AppLayer),
 			Effect.runPromise,
 		),
@@ -57,7 +61,10 @@ export const saveGoalMapRpc = createServerFn()
 export const listGoalMapsRpc = createServerFn()
 	.middleware([authMiddleware])
 	.handler(({ context }) =>
-		listGoalMaps(context.user.id).pipe(
+		Effect.gen(function* () {
+			const rows = yield* listGoalMaps(context.user.id);
+			return yield* Rpc.ok(rows);
+		}).pipe(
 			Effect.withSpan("listGoalMaps"),
 			Effect.provide(AppLayer),
 			Effect.runPromise,
@@ -68,10 +75,13 @@ export const listGoalMapsByTopicRpc = createServerFn()
 	.middleware([authMiddleware])
 	.inputValidator((raw) => Schema.decodeUnknownSync(ListGoalMapsByTopicInput)(raw))
 	.handler(({ data }) =>
-		listGoalMapsByTopic(data).pipe(
+		Effect.gen(function* () {
+			const rows = yield* listGoalMapsByTopic(data);
+			return yield* Rpc.ok(rows);
+		}).pipe(
 			Effect.withSpan("listGoalMapsByTopic"),
 			Effect.tapError(logRpcError("listGoalMapsByTopic")),
-			Effect.catchAll(() => errorResponse("Internal server error")),
+			Effect.catchAll(() => Rpc.err("Internal server error")),
 			Effect.provide(AppLayer),
 			Effect.runPromise,
 		),
@@ -81,14 +91,17 @@ export const deleteGoalMapRpc = createServerFn()
 	.middleware([authMiddleware])
 	.inputValidator((raw) => Schema.decodeUnknownSync(DeleteGoalMapInput)(raw))
 	.handler(({ data, context }) =>
-		deleteGoalMap(context.user.id, data).pipe(
+		Effect.gen(function* () {
+			yield* deleteGoalMap(context.user.id, data);
+			return yield* Rpc.ok(true);
+		}).pipe(
 			Effect.withSpan("deleteGoalMap"),
 			Effect.tapError(logRpcError("deleteGoalMap")),
 			Effect.catchTags({
-				GoalMapNotFoundError: (e) => errorResponse(`Goal map ${e.goalMapId} not found`),
-				ForbiddenError: (e) => errorResponse(e.message),
+				GoalMapNotFoundError: () => Rpc.notFound("Goal map"),
+				ForbiddenError: (e) => Rpc.forbidden(e.message),
 			}),
-			Effect.catchAll(() => errorResponse("Internal server error")),
+			Effect.catchAll(() => Rpc.err("Internal server error")),
 			Effect.provide(AppLayer),
 			Effect.runPromise,
 		),
