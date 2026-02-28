@@ -106,12 +106,12 @@ export function getServerUser(headers: Headers) {
 				const errorDetails =
 					e instanceof Error
 						? {
-							message: e.message,
-							stack: e.stack,
-						}
+								message: e.message,
+								stack: e.stack,
+							}
 						: {
-							message: String(e),
-						};
+								message: String(e),
+							};
 				return Effect.logError(
 					"Failed to get user session from auth",
 					errorDetails,

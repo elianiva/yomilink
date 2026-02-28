@@ -8,9 +8,9 @@ import { Separator } from "@/components/ui/separator";
 export function ErrorPage({ error, reset }: ErrorComponentProps) {
 	const [detailsOpen, setDetailsOpen] = useState(false);
 
-  useEffect(() => {
-    Sentry.captureException(error);
-  }, [error]);
+	useEffect(() => {
+		Sentry.captureException(error);
+	}, [error]);
 
 	return (
 		<div className="flex min-h-screen w-full items-center justify-center bg-neutral-50 text-neutral-900">

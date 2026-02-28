@@ -49,7 +49,9 @@ export const getRouter = () => {
 				// Filter out specific errors if needed
 				return event;
 			},
-			beforeSendTransaction(event: { contexts?: { trace?: { data?: { url?: string } } } }) {
+			beforeSendTransaction(event: {
+				contexts?: { trace?: { data?: { url?: string } } };
+			}) {
 				// Filter out health check transactions
 				if (event.contexts?.trace?.data?.url?.includes("/health")) {
 					return null;

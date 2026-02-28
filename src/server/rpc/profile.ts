@@ -1,18 +1,17 @@
 import { mutationOptions, queryOptions } from "@tanstack/react-query";
 import { createServerFn } from "@tanstack/react-start";
-import { authMiddlewareOptional } from "@/middlewares/auth";
-import { Schema, Effect } from "effect";
+import { Effect, Schema } from "effect";
 import {
 	UpdateProfileInput,
 	updateProfile,
 } from "@/features/profile/lib/profile-service";
-import { authMiddleware } from "@/middlewares/auth";
+import { authMiddleware, authMiddlewareOptional } from "@/middlewares/auth";
 import { AppLayer } from "../app-layer";
 import { errorResponse, logRpcError } from "../rpc-helper";
 
 export const getMe = createServerFn()
 	.middleware([authMiddlewareOptional])
-	.handler(async ({ context }) => context.user);
+	.handler(({ context }) => context.user);
 
 export const updateProfileRpc = createServerFn()
 	.middleware([authMiddleware])
@@ -22,8 +21,7 @@ export const updateProfileRpc = createServerFn()
 			Effect.withSpan("updateProfile"),
 			Effect.tapError(logRpcError("updateProfile")),
 			Effect.catchTags({
-				UserNotFoundError: (e) =>
-					errorResponse(`User ${e.userId} not found`),
+				UserNotFoundError: (e) => errorResponse(`User ${e.userId} not found`),
 			}),
 			Effect.catchAll(() => errorResponse("Internal server error")),
 			Effect.provide(AppLayer),
@@ -33,6 +31,7 @@ export const updateProfileRpc = createServerFn()
 
 export const ProfileRpc = {
 	me: () => ["me"],
+	getMe: () =>
 		queryOptions({
 			queryKey: ProfileRpc.me(),
 			queryFn: () => getMe(),

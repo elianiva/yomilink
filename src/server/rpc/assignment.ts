@@ -102,7 +102,6 @@ export const getTeacherGoalMapsRpc = createServerFn()
 		),
 	);
 
-
 export const saveExperimentGroupsRpc = createServerFn()
 	.middleware([requireRoleMiddleware("teacher", "admin")])
 	.inputValidator((raw) =>
@@ -149,7 +148,6 @@ export const getAssignmentByPreTestFormIdRpc = createServerFn()
 			Effect.runPromise,
 		),
 	);
-
 
 export const getExperimentConditionRpc = createServerFn()
 	.middleware([requireRoleMiddleware("student", "teacher", "admin")])
@@ -201,7 +199,6 @@ export const AssignmentRpc = {
 		queryOptions({
 			queryKey: [...AssignmentRpc.assignments(), "goalmaps"],
 			queryFn: () => getTeacherGoalMapsRpc(),
-
 		}),
 	saveExperimentGroups: () =>
 		mutationOptions({

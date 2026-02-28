@@ -22,7 +22,11 @@ export function parseJson<A = unknown>(
 export function parseJson<S extends Schema.Schema<any, any, any>>(
 	input: string | unknown,
 	schema: S,
-): Effect.Effect<Schema.Schema.Type<S>, ParseJsonError, Schema.Schema.Context<S>>;
+): Effect.Effect<
+	Schema.Schema.Type<S>,
+	ParseJsonError,
+	Schema.Schema.Context<S>
+>;
 
 export function parseJson<S extends Schema.Schema<any, any, any>>(
 	input: string | unknown,

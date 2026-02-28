@@ -30,7 +30,6 @@ export const CreateAssignmentInput = Schema.Struct({
 	tamFormId: Schema.optionalWith(Schema.String, { nullable: true }),
 });
 
-
 export const SaveExperimentGroupsInput = Schema.Struct({
 	assignmentId: Schema.NonEmptyString,
 	groups: Schema.Array(
@@ -254,7 +253,6 @@ export const getTeacherGoalMaps = Effect.fn("getTeacherGoalMaps")(() =>
 	}),
 );
 
-
 export const saveExperimentGroups = Effect.fn("saveExperimentGroups")(
 	(input: SaveExperimentGroupsInput) =>
 		Effect.gen(function* () {
@@ -312,7 +310,6 @@ export const getAssignmentByPreTestFormId = Effect.fn(
 		return rows[0] ?? null;
 	}),
 );
-
 
 export const getExperimentCondition = Effect.fn("getExperimentCondition")(
 	(assignmentId: string, userId: string) =>

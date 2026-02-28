@@ -113,39 +113,79 @@ function AssignmentsPage() {
 										)}
 									</div>
 
-								{/* Related Forms for the Assignment */}
-								{(assignment.preTestFormId || assignment.postTestFormId || assignment.delayedPostTestFormId || assignment.tamFormId) && (
-									<div className="flex flex-wrap gap-2 pt-2">
-										{assignment.preTestFormId && (
-											<Button asChild variant="outline" size="sm" className="h-7 text-[10px]">
-												<Link to="/dashboard/forms/take" search={{ formId: assignment.preTestFormId }}>
-													Pre-Test
-												</Link>
-											</Button>
-										)}
-										{assignment.status === "submitted" && assignment.postTestFormId && (
-											<Button asChild variant="outline" size="sm" className="h-7 text-[10px]">
-												<Link to="/dashboard/forms/take" search={{ formId: assignment.postTestFormId }}>
-													Post-Test
-												</Link>
-											</Button>
-										)}
-										{assignment.status === "submitted" && assignment.tamFormId && (
-											<Button asChild variant="outline" size="sm" className="h-7 text-[10px]">
-												<Link to="/dashboard/forms/take" search={{ formId: assignment.tamFormId }}>
-													TAM Survey
-												</Link>
-											</Button>
-										)}
-										{assignment.status === "submitted" && assignment.delayedPostTestFormId && (
-											<Button asChild variant="outline" size="sm" className="h-7 text-[10px]">
-												<Link to="/dashboard/forms/take" search={{ formId: assignment.delayedPostTestFormId }}>
-													Delayed-Test
-												</Link>
-											</Button>
-										)}
-									</div>
-								)}
+									{/* Related Forms for the Assignment */}
+									{(assignment.preTestFormId ||
+										assignment.postTestFormId ||
+										assignment.delayedPostTestFormId ||
+										assignment.tamFormId) && (
+										<div className="flex flex-wrap gap-2 pt-2">
+											{assignment.preTestFormId && (
+												<Button
+													asChild
+													variant="outline"
+													size="sm"
+													className="h-7 text-[10px]"
+												>
+													<Link
+														to="/dashboard/forms/take"
+														search={{ formId: assignment.preTestFormId }}
+													>
+														Pre-Test
+													</Link>
+												</Button>
+											)}
+											{assignment.status === "submitted" &&
+												assignment.postTestFormId && (
+													<Button
+														asChild
+														variant="outline"
+														size="sm"
+														className="h-7 text-[10px]"
+													>
+														<Link
+															to="/dashboard/forms/take"
+															search={{ formId: assignment.postTestFormId }}
+														>
+															Post-Test
+														</Link>
+													</Button>
+												)}
+											{assignment.status === "submitted" &&
+												assignment.tamFormId && (
+													<Button
+														asChild
+														variant="outline"
+														size="sm"
+														className="h-7 text-[10px]"
+													>
+														<Link
+															to="/dashboard/forms/take"
+															search={{ formId: assignment.tamFormId }}
+														>
+															TAM Survey
+														</Link>
+													</Button>
+												)}
+											{assignment.status === "submitted" &&
+												assignment.delayedPostTestFormId && (
+													<Button
+														asChild
+														variant="outline"
+														size="sm"
+														className="h-7 text-[10px]"
+													>
+														<Link
+															to="/dashboard/forms/take"
+															search={{
+																formId: assignment.delayedPostTestFormId,
+															}}
+														>
+															Delayed-Test
+														</Link>
+													</Button>
+												)}
+										</div>
+									)}
 
 									<Button asChild size="sm" className="gap-1">
 										<a

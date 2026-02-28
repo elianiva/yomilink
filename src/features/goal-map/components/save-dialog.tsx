@@ -111,7 +111,7 @@ function SaveDialogImpl({
 						/>
 					</div>
 					<div className="space-y-1.5">
-					<Label htmlFor={descriptionId}>Description</Label>
+						<Label htmlFor={descriptionId}>Description</Label>
 						<Textarea
 							id={descriptionId}
 							value={description}

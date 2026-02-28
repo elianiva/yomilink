@@ -18,7 +18,9 @@ const NodeDataSchema = Schema.Struct({
 	label: Schema.optionalWith(Schema.String, { nullable: true }),
 	propositionType: Schema.optionalWith(Schema.String, { nullable: true }),
 	description: Schema.optionalWith(Schema.String, { nullable: true }),
-	examples: Schema.optionalWith(Schema.Array(Schema.String), { nullable: true }),
+	examples: Schema.optionalWith(Schema.Array(Schema.String), {
+		nullable: true,
+	}),
 });
 
 /** Edge data schema for goal map edges */

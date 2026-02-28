@@ -1,8 +1,12 @@
-"use client";
-
 import { useState } from "react";
 import { useQueryClient } from "@tanstack/react-query";
-import { AlertTriangle, Download, Users, Save, CheckCircle2 } from "lucide-react";
+import {
+	AlertTriangle,
+	Download,
+	Users,
+	Save,
+	CheckCircle2,
+} from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import {
@@ -15,7 +19,10 @@ import {
 } from "@/components/ui/table";
 import { useRpcMutation, useRpcQuery } from "@/hooks/use-rpc-query";
 import { AssignmentRpc } from "@/server/rpc/assignment";
-import type { FormResponse, ResponseQuestion } from "./individual-responses-table";
+import type {
+	FormResponse,
+	ResponseQuestion,
+} from "./individual-responses-table";
 
 type StratifiedGroupingProps = {
 	responses: FormResponse[];
@@ -29,7 +36,11 @@ type Group = {
 	condition: "summarizing" | "concept_map";
 };
 
-export function StratifiedGrouping({ responses, questions }: StratifiedGroupingProps) {
+export function StratifiedGrouping({
+	responses,
+	questions,
+	formId,
+}: StratifiedGroupingProps) {
 	const [groups, setGroups] = useState<Group[] | null>(null);
 	const [randomStudent, setRandomStudent] = useState<{
 		student: FormResponse;
@@ -40,23 +51,28 @@ export function StratifiedGrouping({ responses, questions }: StratifiedGroupingP
 	const { data: assignmentData } = useRpcQuery(
 		AssignmentRpc.getAssignmentByPreTestFormId(formId),
 	);
-	const assignment = assignmentData && "id" in assignmentData ? assignmentData : null;
+	const assignment =
+		assignmentData && "id" in assignmentData ? assignmentData : null;
 
 	const { data: existingGroups } = useRpcQuery(
 		AssignmentRpc.getExperimentGroupsByAssignmentId(assignment?.id ?? ""),
-		{ enabled: !!assignment?.id },
 	);
 
-	const saveGroupsMutation = useRpcMutation(AssignmentRpc.saveExperimentGroups(), {
-		operation: "save groups",
-		showSuccess: true,
-	});
+	const saveGroupsMutation = useRpcMutation(
+		AssignmentRpc.saveExperimentGroups(),
+		{
+			operation: "save groups",
+			showSuccess: true,
+		},
+	);
 
 	const calculateScore = (response: FormResponse) => {
 		let score = 0;
 		for (const question of questions) {
 			if (question.type === "mcq") {
-				const options = question.options as { correctOptionIds?: string[] } | null;
+				const options = question.options as {
+					correctOptionIds?: string[];
+				} | null;
 				const correctIds = options?.correctOptionIds || [];
 				const answer = response.answers[question.id];
 
@@ -76,31 +92,44 @@ export function StratifiedGrouping({ responses, questions }: StratifiedGroupingP
 
 	const assignGroups = () => {
 		if (responses.length === 0) return;
+
+		// Make a copy to avoid mutating original
+		const students = [...responses];
+		const halfway = Math.floor(students.length / 2);
+
 		let leftover: FormResponse | null = null;
+		if (students.length % 2 !== 0) {
 			const randomIndex = Math.floor(Math.random() * students.length);
 			leftover = students.splice(randomIndex, 1)[0];
 		}
+
 		// Calculate scores and sort
 		const scoredStudents = students
 			.map((s) => ({ student: s, score: calculateScore(s) }))
 			.sort((a, b) => a.score - b.score);
 		const lowHalf = scoredStudents.slice(0, halfway);
 		const highHalf = scoredStudents.slice(halfway);
+
+		const newGroups: Group[] = [];
 		for (let i = 0; i < halfway; i++) {
 			newGroups.push({
 				id: i + 1,
-				members: [lowHalf[i].student, highHalf[highHalf.length - 1 - i].student],
+				members: [
+					lowHalf[i].student,
+					highHalf[highHalf.length - 1 - i].student,
+				],
 				condition: i % 2 === 0 ? "concept_map" : "summarizing",
 			});
 		}
 
-		let randomStudentWithCondition = null;
+		let randomStudentWithCondition: {
+			student: FormResponse;
+			condition: "summarizing" | "concept_map";
+		} | null = null;
 		if (leftover) {
 			randomStudentWithCondition = {
 				student: leftover,
-				condition: (newGroups.length % 2 === 0 ? "concept_map" : "summarizing") as
-					| "concept_map"
-					| "summarizing",
+				condition: newGroups.length % 2 === 0 ? "concept_map" : "summarizing",
 			};
 		}
 		setGroups(newGroups);
@@ -167,7 +196,13 @@ export function StratifiedGrouping({ responses, questions }: StratifiedGroupingP
 				<Button
 					variant="outline"
 					onClick={() => {
-						const exportHeaders = ["Group", "Student Name", "Email", "Score", "Condition"];
+						const exportHeaders = [
+							"Group",
+							"Student Name",
+							"Email",
+							"Score",
+							"Condition",
+						];
 						const exportRows: string[][] = [];
 						groups.forEach((g) => {
 							g.members.forEach((m) => {
@@ -186,13 +221,18 @@ export function StratifiedGrouping({ responses, questions }: StratifiedGroupingP
 								randomStudent.student.user.name || "",
 								randomStudent.student.user.email,
 								calculateScore(randomStudent.student).toString(),
-								randomStudent.condition === "concept_map" ? "Concept Map" : "Summarizing",
+								randomStudent.condition === "concept_map"
+									? "Concept Map"
+									: "Summarizing",
 							]);
 						}
 						const csvContent = [
 							exportHeaders.join(","),
-							...exportRows.map((row) => row.map((cell) => `"${cell}"`).join(",")),
+							...exportRows.map((row) =>
+								row.map((cell) => `"${cell}"`).join(","),
+							),
 						].join("\n");
+						const blob = new Blob([csvContent], { type: "text/csv" });
 						const url = URL.createObjectURL(blob);
 						const link = document.createElement("a");
 						link.href = url;
@@ -206,21 +246,26 @@ export function StratifiedGrouping({ responses, questions }: StratifiedGroupingP
 				</Button>
 			)}
 
-
-			{existingGroups && Array.isArray(existingGroups) && existingGroups.length > 0 && !groups && (
-				<div className="flex items-center gap-2 text-sm text-green-600 mb-4">
-					<CheckCircle2 className="h-4 w-4" />
-					<span>This assignment already has saved groups. Re-assigning will overwrite them.</span>
-				</div>
-			)}
+			{existingGroups &&
+				Array.isArray(existingGroups) &&
+				existingGroups.length > 0 &&
+				!groups && (
+					<div className="flex items-center gap-2 text-sm text-green-600 mb-4">
+						<CheckCircle2 className="h-4 w-4" />
+						<span>
+							This assignment already has saved groups. Re-assigning will
+							overwrite them.
+						</span>
+					</div>
+				)}
 
 			{responses.length % 2 !== 0 && !groups && (
 				<Alert variant="warning">
 					<AlertTriangle className="h-4 w-4" />
 					<AlertTitle>Odd student count</AlertTitle>
 					<AlertDescription>
-						There are {responses.length} students. One student will be placed at random
-						if you proceed with grouping.
+						There are {responses.length} students. One student will be placed at
+						random if you proceed with grouping.
 					</AlertDescription>
 				</Alert>
 			)}
@@ -232,8 +277,10 @@ export function StratifiedGrouping({ responses, questions }: StratifiedGroupingP
 							<AlertTriangle className="h-4 w-4" />
 							<AlertTitle>Leftover student</AlertTitle>
 							<AlertDescription>
-								{randomStudent.user.name || randomStudent.user.email} was placed at
-								random (not paired) because the student count was odd.
+								{randomStudent.student.user.name ||
+									randomStudent.student.user.email}{" "}
+								was placed at random (not paired) because the student count was
+								odd.
 							</AlertDescription>
 						</Alert>
 					)}
@@ -267,32 +314,39 @@ export function StratifiedGrouping({ responses, questions }: StratifiedGroupingP
 										</TableCell>
 										<TableCell>{calculateScore(group.members[1])}</TableCell>
 										<TableCell>
-											<span className={`inline-flex items-center px-2 py-1 rounded-full text-xs font-medium ${
-												group.condition === "concept_map" 
-													? "bg-blue-100 text-blue-800 dark:bg-blue-900/30 dark:text-blue-300"
-													: "bg-orange-100 text-orange-800 dark:bg-orange-900/30 dark:text-orange-300"
-											}`}>
-												{group.condition === "concept_map" ? "Concept Map" : "Summarizing"}
+											<span
+												className={`inline-flex items-center px-2 py-1 rounded-full text-xs font-medium ${
+													group.condition === "concept_map"
+														? "bg-blue-100 text-blue-800 dark:bg-blue-900/30 dark:text-blue-300"
+														: "bg-orange-100 text-orange-800 dark:bg-orange-900/30 dark:text-orange-300"
+												}`}
+											>
+												{group.condition === "concept_map"
+													? "Concept Map"
+													: "Summarizing"}
 											</span>
 										</TableCell>
 									</TableRow>
 								))}
 								{randomStudent && (
 									<TableRow className="bg-muted/50">
-										<TableCell className="font-medium italic">
-											Random
-										</TableCell>
+										<TableCell className="font-medium italic">Random</TableCell>
 										<TableCell colSpan={3}>
-											{randomStudent.student.user.name || randomStudent.student.user.email} (Score:{" "}
-											{calculateScore(randomStudent.student)})
+											{randomStudent.student.user.name ||
+												randomStudent.student.user.email}{" "}
+											(Score: {calculateScore(randomStudent.student)})
 										</TableCell>
 										<TableCell>
-											<span className={`inline-flex items-center px-2 py-1 rounded-full text-xs font-medium ${
-												randomStudent.condition === "concept_map" 
-													? "bg-blue-100 text-blue-800 dark:bg-blue-900/30 dark:text-blue-300"
-													: "bg-orange-100 text-orange-800 dark:bg-orange-900/30 dark:text-orange-300"
-											}`}>
-												{randomStudent.condition === "concept_map" ? "Concept Map" : "Summarizing"}
+											<span
+												className={`inline-flex items-center px-2 py-1 rounded-full text-xs font-medium ${
+													randomStudent.condition === "concept_map"
+														? "bg-blue-100 text-blue-800 dark:bg-blue-900/30 dark:text-blue-300"
+														: "bg-orange-100 text-orange-800 dark:bg-orange-900/30 dark:text-orange-300"
+												}`}
+											>
+												{randomStudent.condition === "concept_map"
+													? "Concept Map"
+													: "Summarizing"}
 											</span>
 										</TableCell>
 									</TableRow>

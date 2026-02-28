@@ -1,5 +1,3 @@
-"use client";
-
 import { useQuery } from "@tanstack/react-query";
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import {
@@ -77,6 +75,7 @@ function StudentFormsPage() {
 				return "Control";
 			default:
 				return type;
+		}
 	};
 
 	const getTypeColor = (type: string) => {
@@ -95,6 +94,7 @@ function StudentFormsPage() {
 				return "bg-orange-100 text-orange-800 dark:bg-orange-900 dark:text-orange-200";
 			default:
 				return "bg-gray-100 text-gray-800";
+		}
 	};
 
 	if (isLoading) {

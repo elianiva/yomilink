@@ -262,11 +262,16 @@ export function LearnerMapResult() {
 						<div className="bg-primary/5 border border-primary/20 rounded-lg p-4 space-y-3">
 							<h3 className="font-medium text-primary">Next Steps</h3>
 							<p className="text-sm text-muted-foreground">
-								Please complete the following activities to finish the experiment.
+								Please complete the following activities to finish the
+								experiment.
 							</p>
 							<div className="space-y-2">
 								{assignment.postTestFormId && (
-									<Button asChild className="w-full justify-start" variant="outline">
+									<Button
+										asChild
+										className="w-full justify-start"
+										variant="outline"
+									>
 										<Link
 											to="/dashboard/forms/take"
 											search={{ formId: assignment.postTestFormId }}
@@ -276,7 +281,11 @@ export function LearnerMapResult() {
 									</Button>
 								)}
 								{assignment.tamFormId && (
-									<Button asChild className="w-full justify-start" variant="outline">
+									<Button
+										asChild
+										className="w-full justify-start"
+										variant="outline"
+									>
 										<Link
 											to="/dashboard/forms/take"
 											search={{ formId: assignment.tamFormId }}

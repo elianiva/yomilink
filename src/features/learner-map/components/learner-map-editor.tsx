@@ -123,7 +123,6 @@ export function LearnerMapEditor() {
 		LearnerMapRpc.getAssignmentForStudent({ assignmentId }),
 	);
 
-
 	const { data: experimentGroup, isLoading: groupLoading } = useRpcQuery(
 		AssignmentRpc.getExperimentCondition(assignmentId),
 	);
@@ -171,7 +170,7 @@ export function LearnerMapEditor() {
 				setAttempt(assignmentData.learnerMap.attempt);
 				setLastSavedSnapshot(
 					condition === "summarizing"
-						? (assignmentData.learnerMap.controlText || "")
+						? assignmentData.learnerMap.controlText || ""
 						: JSON.stringify({
 								nodes: assignmentData.learnerMap.nodes,
 								edges: assignmentData.learnerMap.edges,
@@ -680,8 +679,21 @@ function SummarizingEditor({
 			showSuccess: true,
 		},
 	);
-		// Auto-save summary
+
+	// Auto-save summary with debounce
 	useEffect(() => {
+		if (!isHydrated || isSubmitted) return;
+		if (controlText !== lastSavedSnapshot) {
+			const timer = setTimeout(() => {
+				saveMutation.mutate({
+					assignmentId,
+					controlText: controlText,
+				});
+				setLastSavedSnapshot(controlText);
+			}, 3000);
+			return () => clearTimeout(timer);
+		}
+		useEffect(() => {
 			if (!isHydrated || isSubmitted) return;
 			if (controlText !== lastSavedSnapshot) {
 				saveMutation.mutate({
@@ -701,12 +713,12 @@ function SummarizingEditor({
 		assignmentId,
 		setLastSavedSnapshot,
 	]);
-		const handleSummarySubmit = async () => {
+	const handleSummarySubmit = async () => {
 		if (!controlText.trim()) {
 			toast.error("Please enter a summary");
 			return;
 		}
-			const result = await submitControlTextMutation.mutateAsync({
+		const result = await submitControlTextMutation.mutateAsync({
 			assignmentId,
 			text: controlText,
 		});
@@ -721,33 +733,47 @@ function SummarizingEditor({
 	return (
 		<div className="h-full flex flex-col p-6 space-y-6 max-w-4xl mx-auto overflow-y-auto">
 			<div className="space-y-2">
-				<h1 className="text-2xl font-bold">{assignmentData.assignment.title}</h1>
-				<p className="text-muted-foreground">{assignmentData.assignment.description}</p>
+				<h1 className="text-2xl font-bold">
+					{assignmentData.assignment.title}
+				</h1>
+				<p className="text-muted-foreground">
+					{assignmentData.assignment.description}
+				</p>
 			</div>
-				<div className="flex-1 flex flex-col space-y-4">
+			<div className="flex-1 flex flex-col space-y-4">
 				<div className="flex items-center justify-between">
 					<h2 className="text-lg font-semibold">Summarizing Activity</h2>
 					<Button onClick={() => setMaterialOpen(true)} variant="outline">
 						View Reading Material
 					</Button>
 				</div>
-					<Alert variant="warning">
+				<Alert variant="warning">
 					<AlertCircle className="h-4 w-4" />
 					<AlertTitle>Summary Task</AlertTitle>
 					<AlertDescription>
-						Please read the provided material and write a comprehensive summary covering the key concepts and their relationships.
+						Please read the provided material and write a comprehensive summary
+						covering the key concepts and their relationships.
 					</AlertDescription>
-					</Alert>
+				</Alert>
+				<textarea
 					className="flex-1 w-full min-h-[300px] p-4 rounded-lg border bg-background resize-none focus:ring-2 focus:ring-primary outline-none disabled:opacity-50"
 					placeholder="Write your summary here..."
 					value={controlText}
 					onChange={(e) => setControlText(e.target.value)}
 					disabled={isSubmitted || submitControlTextMutation.isPending}
+					placeholder="Write your summary here..."
+					value={controlText}
+					onChange={(e) => setControlText(e.target.value)}
+					disabled={isSubmitted || submitControlTextMutation.isPending}
 				/>
-					<div className="flex justify-end gap-3">
+				<div className="flex justify-end gap-3">
 					<Button
 						onClick={handleSummarySubmit}
-						disabled={isSubmitted || submitControlTextMutation.isPending || !controlText.trim()}
+						disabled={
+							isSubmitted ||
+							submitControlTextMutation.isPending ||
+							!controlText.trim()
+						}
 						className="px-8"
 					>
 						{submitControlTextMutation.isPending
@@ -759,7 +785,11 @@ function SummarizingEditor({
 				</div>
 			</div>
 
-			<MaterialDialog open={materialOpen} onOpenChange={setMaterialOpen} content={materialText} />
+			<MaterialDialog
+				open={materialOpen}
+				onOpenChange={setMaterialOpen}
+				content={materialText}
+			/>
 		</div>
 	);
 }

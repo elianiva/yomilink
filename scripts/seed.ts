@@ -1033,8 +1033,6 @@ const program = Effect.gen(function* () {
 			"    - tanaka, suzuki, yamamoto, watanabe, takahashi\n" +
 			"    - ito, nakamura, kobayashi, kato, matsumoto\n",
 	);
-}).pipe(
-	Effect.provide(Layer.mergeAll(AppLayer, Auth.Default, Logger.pretty)),
-);
+}).pipe(Effect.provide(Layer.mergeAll(AppLayer, Auth.Default, Logger.pretty)));
 
 Effect.runPromise(program);

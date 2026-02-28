@@ -481,7 +481,9 @@ export const experimentGroups = sqliteTable(
 			.notNull()
 			.references(() => user.id, { onDelete: "cascade" }),
 		groupName: text("group_name"),
-		condition: text("condition", { enum: ["summarizing", "concept_map"] }).notNull(),
+		condition: text("condition", {
+			enum: ["summarizing", "concept_map"],
+		}).notNull(),
 		...timestamps,
 	},
 	(table) => [
@@ -490,17 +492,19 @@ export const experimentGroups = sqliteTable(
 	],
 );
 
-
-export const experimentGroupsRelations = relations(experimentGroups, ({ one }) => ({
-	assignment: one(assignments, {
-		fields: [experimentGroups.assignmentId],
-		references: [assignments.id],
+export const experimentGroupsRelations = relations(
+	experimentGroups,
+	({ one }) => ({
+		assignment: one(assignments, {
+			fields: [experimentGroups.assignmentId],
+			references: [assignments.id],
+		}),
+		user: one(user, {
+			fields: [experimentGroups.userId],
+			references: [user.id],
+		}),
 	}),
-	user: one(user, {
-		fields: [experimentGroups.userId],
-		references: [user.id],
-	}),
-}));
+);
 export const formsRelations = relations(forms, ({ one, many }) => ({
 	creator: one(user, {
 		fields: [forms.createdBy],

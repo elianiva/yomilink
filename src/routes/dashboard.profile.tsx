@@ -187,9 +187,7 @@ function ProfilePage() {
 						<form.Field name="japaneseLearningDuration">
 							{(field) => (
 								<div className="space-y-1.5">
-									<Label htmlFor="duration">
-										Learning Duration (months)
-									</Label>
+									<Label htmlFor="duration">Learning Duration (months)</Label>
 									<Input
 										id="duration"
 										type="number"
@@ -228,9 +226,7 @@ function ProfilePage() {
 						<form.Field name="mediaConsumption">
 							{(field) => (
 								<div className="space-y-1.5">
-									<Label htmlFor="media">
-										Media Consumption (hours/week)
-									</Label>
+									<Label htmlFor="media">Media Consumption (hours/week)</Label>
 									<Input
 										id="media"
 										type="number"
