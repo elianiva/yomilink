@@ -1,6 +1,6 @@
 import { readdirSync, readFileSync } from "node:fs";
 import { join } from "node:path";
-import { eq } from "drizzle-orm";
+import { asc, eq } from "drizzle-orm";
 import { Effect, Layer, Logger, Schema } from "effect";
 import { AppLayer } from "@/server/app-layer";
 
@@ -14,9 +14,12 @@ import {
 	assignments,
 	assignmentTargets,
 	diagnoses,
+	forms,
 	goalMaps,
 	kits,
 	learnerMaps,
+	questions,
+	formResponses,
 	texts,
 	topics,
 } from "@/server/db/schema/app-schema";
@@ -42,99 +45,291 @@ type SeedUser = Schema.Schema.Type<typeof SeedUserSchema>;
 
 const DEFAULT_USERS: readonly SeedUser[] = [
 	{
-		email: "admin@yomilink.local",
+		email: "admin@demo.local",
 		password: "admin123",
 		name: "Admin",
 		roles: ["admin"],
 	},
 	{
-		email: "teacher@yomilink.local",
+		email: "teacher@demo.local",
 		password: "teacher123",
 		name: "Teacher One",
 		roles: ["teacher"],
 	},
-	{
-		email: "student@yomilink.local",
-		password: "student123",
-		name: "Student One",
-		roles: ["student"],
-	},
-	// Demo students for the assignment demo
+];
+
+// Demo student with demographics based on proposal
+interface DemoStudent {
+	email: string;
+	name: string;
+	age: number;
+	jlptLevel: "N5" | "N4" | "N3" | "N2" | "N1" | "None";
+	japaneseLearningDuration: number; // months
+	previousJapaneseScore: number; // 0-100
+	mediaConsumption: number; // hours/week
+	motivation: string;
+}
+
+const DEMO_STUDENTS: DemoStudent[] = [
 	{
 		email: "tanaka@demo.local",
-		password: "demo12345",
 		name: "Tanaka Yuki",
-		roles: ["student"],
+		age: 20,
+		jlptLevel: "N5",
+		japaneseLearningDuration: 12,
+		previousJapaneseScore: 75,
+		mediaConsumption: 15,
+		motivation: "Anime and Japanese culture",
 	},
 	{
 		email: "suzuki@demo.local",
-		password: "demo12345",
 		name: "Suzuki Hana",
-		roles: ["student"],
+		age: 19,
+		jlptLevel: "N5",
+		japaneseLearningDuration: 8,
+		previousJapaneseScore: 68,
+		mediaConsumption: 20,
+		motivation: "Want to study in Japan",
 	},
 	{
 		email: "yamamoto@demo.local",
-		password: "demo12345",
 		name: "Yamamoto Kenji",
-		roles: ["student"],
+		age: 21,
+		jlptLevel: "N4",
+		japaneseLearningDuration: 18,
+		previousJapaneseScore: 82,
+		mediaConsumption: 10,
+		motivation: "Career opportunities",
 	},
 	{
 		email: "watanabe@demo.local",
-		password: "demo12345",
 		name: "Watanabe Mei",
-		roles: ["student"],
+		age: 20,
+		jlptLevel: "N5",
+		japaneseLearningDuration: 10,
+		previousJapaneseScore: 70,
+		mediaConsumption: 25,
+		motivation: "J-Pop and manga",
 	},
 	{
 		email: "takahashi@demo.local",
-		password: "demo12345",
 		name: "Takahashi Ryo",
-		roles: ["student"],
+		age: 19,
+		jlptLevel: "None",
+		japaneseLearningDuration: 6,
+		previousJapaneseScore: 65,
+		mediaConsumption: 8,
+		motivation: "Travel to Japan",
 	},
 	{
 		email: "ito@demo.local",
-		password: "demo12345",
 		name: "Ito Sakura",
-		roles: ["student"],
+		age: 20,
+		jlptLevel: "N5",
+		japaneseLearningDuration: 14,
+		previousJapaneseScore: 78,
+		mediaConsumption: 30,
+		motivation: "Anime and games",
 	},
 	{
 		email: "nakamura@demo.local",
-		password: "demo12345",
 		name: "Nakamura Sota",
-		roles: ["student"],
+		age: 22,
+		jlptLevel: "N4",
+		japaneseLearningDuration: 24,
+		previousJapaneseScore: 85,
+		mediaConsumption: 12,
+		motivation: "Business communication",
 	},
 	{
 		email: "kobayashi@demo.local",
-		password: "demo12345",
 		name: "Kobayashi Rin",
-		roles: ["student"],
+		age: 18,
+		jlptLevel: "None",
+		japaneseLearningDuration: 4,
+		previousJapaneseScore: 58,
+		mediaConsumption: 18,
+		motivation: "Cosplay and events",
 	},
 	{
 		email: "kato@demo.local",
-		password: "demo12345",
 		name: "Kato Haruto",
-		roles: ["student"],
+		age: 21,
+		jlptLevel: "N5",
+		japaneseLearningDuration: 16,
+		previousJapaneseScore: 72,
+		mediaConsumption: 6,
+		motivation: "Academic research",
 	},
 	{
 		email: "matsumoto@demo.local",
-		password: "demo12345",
 		name: "Matsumoto Yui",
-		roles: ["student"],
+		age: 20,
+		jlptLevel: "N5",
+		japaneseLearningDuration: 11,
+		previousJapaneseScore: 76,
+		mediaConsumption: 22,
+		motivation: "Japanese dramas",
 	},
 ];
 
 // Demo student emails for cohort creation
-const DEMO_STUDENT_EMAILS = [
-	"tanaka@demo.local",
-	"suzuki@demo.local",
-	"yamamoto@demo.local",
-	"watanabe@demo.local",
-	"takahashi@demo.local",
-	"ito@demo.local",
-	"nakamura@demo.local",
-	"kobayashi@demo.local",
-	"kato@demo.local",
-	"matsumoto@demo.local",
+const DEMO_STUDENT_EMAILS = DEMO_STUDENTS.map((s) => s.email);
+
+// Generate demo users for seeding from DEMO_STUDENTS
+const DEMO_USERS: SeedUser[] = DEMO_STUDENTS.map((s) => ({
+	email: s.email,
+	password: "demo12345",
+	name: s.name,
+	roles: ["student"],
+}));
+
+// Combine all users for seeding
+const ALL_USERS: readonly SeedUser[] = [...DEFAULT_USERS, ...DEMO_USERS];
+
+// TAM Questionnaire - Combined PU + PEoU (10 questions total, 5-point Likert scale)
+const TAM_QUESTIONS = [
+	// Perceived Usefulness (PU) - 5 questions
+	{
+		questionText: "Using Kit-Build improves my reading comprehension",
+		type: "likert" as const,
+		options: ["1", "2", "3", "4", "5"], // 1=Strongly Disagree, 5=Strongly Agree
+	},
+	{
+		questionText: "Kit-Build helps me understand the structure and relationships in the text",
+		type: "likert" as const,
+		options: ["1", "2", "3", "4", "5"],
+	},
+	{
+		questionText: "Kit-Build makes it easier for me to organize information from the reading",
+		type: "likert" as const,
+		options: ["1", "2", "3", "4", "5"],
+	},
+	{
+		questionText: "Using Kit-Build helps me learn Japanese reading better than traditional methods",
+		type: "likert" as const,
+		options: ["1", "2", "3", "4", "5"],
+	},
+	{
+		questionText: "I find Kit-Build useful for my Japanese language learning",
+		type: "likert" as const,
+		options: ["1", "2", "3", "4", "5"],
+	},
+	// Perceived Ease of Use (PEoU) - 5 questions
+	{
+		questionText: "I found Kit-Build easy to use",
+		type: "likert" as const,
+		options: ["1", "2", "3", "4", "5"],
+	},
+	{
+		questionText: "The interface of Kit-Build is clear and understandable",
+		type: "likert" as const,
+		options: ["1", "2", "3", "4", "5"],
+	},
+	{
+		questionText: "Learning to use Kit-Build was quick and easy",
+		type: "likert" as const,
+		options: ["1", "2", "3", "4", "5"],
+	},
+	{
+		questionText: "Connecting concepts in Kit-Build is intuitive",
+		type: "likert" as const,
+		options: ["1", "2", "3", "4", "5"],
+	},
+	{
+		questionText: "My interaction with Kit-Build does not require a lot of mental effort",
+		type: "likert" as const,
+		options: ["1", "2", "3", "4", "5"],
+	},
 ];
+
+// Feedback Questionnaire - 3 open-ended questions
+const FEEDBACK_QUESTIONS = [
+	{
+		questionText: "What did you like most about using Kit-Build?",
+		type: "text" as const,
+		options: [],
+	},
+	{
+		questionText: "What difficulties did you encounter while using Kit-Build?",
+		type: "text" as const,
+		options: [],
+	},
+	{
+		questionText: "What improvements would you suggest for the application?",
+		type: "text" as const,
+		options: [],
+	},
+];
+
+// Mock TAM responses for demo students (5-point Likert scale: 1-5)
+// Varying responses to show different perceptions
+const DEMO_TAM_RESPONSES: Record<string, number[]> = {
+	"tanaka@demo.local": [4, 5, 4, 4, 5, 4, 5, 4, 4, 4], // High PU, High PEoU
+	"suzuki@demo.local": [5, 4, 5, 5, 5, 3, 4, 3, 4, 3], // Very High PU, Moderate PEoU
+	"yamamoto@demo.local": [4, 4, 4, 3, 4, 5, 5, 5, 5, 4], // High PU, Very High PEoU
+	"watanabe@demo.local": [3, 4, 3, 3, 4, 4, 4, 4, 3, 4], // Moderate PU, Moderate PEoU
+	"takahashi@demo.local": [4, 3, 4, 4, 4, 3, 3, 4, 3, 3], // Moderate-High PU, Moderate PEoU
+	"ito@demo.local": [5, 5, 4, 5, 5, 4, 4, 5, 4, 4], // Very High PU, High PEoU
+	"nakamura@demo.local": [4, 4, 5, 4, 4, 5, 4, 5, 5, 5], // High PU, Very High PEoU
+	"kobayashi@demo.local": [3, 3, 3, 2, 3, 2, 3, 3, 3, 2], // Lower scores (struggling)
+	"kato@demo.local": [4, 4, 4, 4, 4, 4, 4, 4, 4, 4], // Consistent high scores
+	"matsumoto@demo.local": [3, 4, 4, 3, 4, 3, 4, 3, 4, 3], // Moderate scores
+};
+
+// Mock feedback responses for demo students
+const DEMO_FEEDBACK_RESPONSES: Record<string, string[]> = {
+	"tanaka@demo.local": [
+		"I liked how visual and interactive it was. Made understanding connections easier.",
+		"Sometimes the interface was a bit confusing when dragging nodes.",
+		"Add keyboard shortcuts for faster navigation.",
+	],
+	"suzuki@demo.local": [
+		"The color coding helped me organize my thoughts better.",
+		"The text was a bit small on mobile devices.",
+		"Make it more mobile-friendly with larger touch targets.",
+	],
+	"yamamoto@demo.local": [
+		"Immediate feedback feature is very helpful for self-assessment.",
+		"Nothing major, everything worked well for me.",
+		"Maybe add a progress bar during the learning session.",
+	],
+	"watanabe@demo.local": [
+		"Being able to see relationships between concepts visually was great.",
+		"Took some time to understand how to connect the nodes properly.",
+		"Add a tutorial or guided walkthrough for first-time users.",
+	],
+	"takahashi@demo.local": [
+		"The concept map structure matches how I think about texts.",
+		"Had trouble with the drag and drop at first.",
+		"Add undo/redo functionality for easier correction.",
+	],
+	"ito@demo.local": [
+		"Really enjoyed the interactive nature compared to just reading.",
+		"Sometimes the canvas felt a bit cramped with many nodes.",
+		"Allow zoom in/out on the concept map canvas.",
+	],
+	"nakamura@demo.local": [
+		"The comparison with goal map helped identify my mistakes.",
+		"Loading time was a bit slow on my connection.",
+		"Optimize for slower internet connections.",
+	],
+	"kobayashi@demo.local": [
+		"The visual representation is nice.",
+		"Found it difficult to understand the relationships initially.",
+		"Provide more examples before starting the actual task.",
+	],
+	"kato@demo.local": [
+		"Structured approach helped me understand the text better.",
+		"Took time to get used to the interface.",
+		"Add tooltips to explain what each button does.",
+	],
+	"matsumoto@demo.local": [
+		"Good balance between structure and flexibility.",
+		"Interface could be more intuitive for beginners.",
+		"Consider adding a beginner mode with more guidance.",
+	],
+};
 
 interface MaterialData {
 	title: string;
@@ -507,10 +702,10 @@ const program = Effect.gen(function* () {
 	let teacherId = "";
 
 	// Seed users first
-	yield* Effect.log(`Seeding ${DEFAULT_USERS.length} users...`);
+	yield* Effect.log(`Seeding ${ALL_USERS.length} users...`);
 
 	const userResults = yield* Effect.all(
-		DEFAULT_USERS.map((seedUser) =>
+		ALL_USERS.map((seedUser) =>
 			Effect.gen(function* () {
 				// Try to find existing user first
 				const existingUser = yield* db
@@ -525,16 +720,20 @@ const program = Effect.gen(function* () {
 					yield* Effect.log(`User ${seedUser.email} already exists`);
 				} else {
 					// Create new user
-					const result = yield* Effect.tryPromise(() =>
-						authService.api.signUpEmail({
-							body: {
-								email: seedUser.email,
-								password: seedUser.password,
-								name: seedUser.name as string,
-							},
-						}),
-					);
-
+					const result = yield* Effect.tryPromise({
+						try: () =>
+							authService.api.signUpEmail({
+								body: {
+									email: seedUser.email,
+									password: seedUser.password,
+									name: seedUser.name as string,
+								},
+							}),
+						catch: (e) => {
+							console.error(`Failed to create user ${seedUser.email}:`, e);
+							return { user: null };
+						},
+					});
 					if (result.user) {
 						userId = result.user.id;
 						yield* Effect.log(`Created user: ${seedUser.email}`);
@@ -552,6 +751,24 @@ const program = Effect.gen(function* () {
 					);
 				}
 
+				// Update demographic data for demo students
+				const demoStudent = DEMO_STUDENTS.find((s) => s.email === seedUser.email);
+				if (userId && demoStudent) {
+					yield* db
+						.update(user)
+						.set({
+							age: demoStudent.age,
+							jlptLevel: demoStudent.jlptLevel,
+							japaneseLearningDuration: demoStudent.japaneseLearningDuration,
+							previousJapaneseScore: demoStudent.previousJapaneseScore,
+							mediaConsumption: demoStudent.mediaConsumption,
+							motivation: demoStudent.motivation,
+						})
+						.where(eq(user.id, userId));
+					yield* Effect.log(
+						`Set demographic data for ${seedUser.email}`,
+					);
+				}
 				// Return result for tracking
 				return {
 					email: seedUser.email,
@@ -841,12 +1058,124 @@ const program = Effect.gen(function* () {
 		.from(assignments)
 		.where(eq(assignments.title, assignmentTitle))
 		.limit(1);
+	// ============================================
+	// SEED TAM AND FEEDBACK FORMS
+	// ============================================
+	yield* Effect.log("--- Seeding TAM and Feedback Forms ---");
+
+	// 1. Create TAM Questionnaire Form
+	const tamFormTitle = "TAM Questionnaire - Kit-Build Evaluation";
+	const existingTamForm = yield* db
+		.select()
+		.from(forms)
+		.where(eq(forms.title, tamFormTitle))
+		.limit(1);
+
+	let tamFormId: string;
+	if (existingTamForm[0]) {
+		tamFormId = existingTamForm[0].id;
+		yield* Effect.log(`  TAM form already exists: ${tamFormTitle}`);
+	} else {
+		tamFormId = randomString();
+		yield* db.insert(forms).values({
+			id: tamFormId,
+			title: tamFormTitle,
+			description: "Technology Acceptance Model questionnaire to evaluate Kit-Build's Perceived Usefulness (PU) and Perceived Ease of Use (PEoU). Scale: 1=Strongly Disagree to 5=Strongly Agree",
+			type: "tam",
+			status: "published",
+			createdBy: teacherId,
+		});
+		yield* Effect.log(`  Created TAM form: ${tamFormTitle}`);
+	}
+
+	// 2. Create TAM questions
+	const existingTamQuestions = yield* db
+		.select()
+		.from(questions)
+		.where(eq(questions.formId, tamFormId));
+
+	if (existingTamQuestions.length === 0) {
+		yield* Effect.log(`  Creating ${TAM_QUESTIONS.length} TAM questions...`);
+		yield* Effect.all(
+			TAM_QUESTIONS.map((q, index) =>
+				Effect.gen(function* () {
+					yield* db.insert(questions).values({
+						id: randomString(),
+						formId: tamFormId,
+						type: q.type,
+						questionText: q.questionText,
+						options: JSON.stringify(q.options),
+						orderIndex: index,
+						required: true,
+					});
+				}),
+			),
+			{ concurrency: 10 },
+		);
+		yield* Effect.log(`  Created ${TAM_QUESTIONS.length} TAM questions`);
+	} else {
+		yield* Effect.log(`  TAM questions already exist`);
+	}
+
+	// 3. Create Feedback Form
+	const feedbackFormTitle = "Feedback Questionnaire - Kit-Build Experience";
+	const existingFeedbackForm = yield* db
+		.select()
+		.from(forms)
+		.where(eq(forms.title, feedbackFormTitle))
+		.limit(1);
+
+	let feedbackFormId: string;
+	if (existingFeedbackForm[0]) {
+		feedbackFormId = existingFeedbackForm[0].id;
+		yield* Effect.log(`  Feedback form already exists: ${feedbackFormTitle}`);
+	} else {
+		feedbackFormId = randomString();
+		yield* db.insert(forms).values({
+			id: feedbackFormId,
+			title: feedbackFormTitle,
+			description: "Open-ended feedback questions about the Kit-Build learning experience",
+			type: "control",
+			status: "published",
+			createdBy: teacherId,
+		});
+		yield* Effect.log(`  Created feedback form: ${feedbackFormTitle}`);
+	}
+
+	// 4. Create feedback questions
+	const existingFeedbackQuestions = yield* db
+		.select()
+		.from(questions)
+		.where(eq(questions.formId, feedbackFormId));
+
+	if (existingFeedbackQuestions.length === 0) {
+		yield* Effect.log(`  Creating ${FEEDBACK_QUESTIONS.length} feedback questions...`);
+		yield* Effect.all(
+			FEEDBACK_QUESTIONS.map((q, index) =>
+				Effect.gen(function* () {
+					yield* db.insert(questions).values({
+						id: randomString(),
+						formId: feedbackFormId,
+						type: q.type,
+						questionText: q.questionText,
+						options: JSON.stringify(q.options),
+						orderIndex: index,
+						required: false,
+					});
+				}),
+			),
+			{ concurrency: 10 },
+		);
+		yield* Effect.log(`  Created ${FEEDBACK_QUESTIONS.length} feedback questions`);
+	} else {
+		yield* Effect.log(`  Feedback questions already exist`);
+	}
 
 	let demoAssignmentId: string;
+
 	// Dates: started 2 weeks ago, due 1 week ago (already completed)
 	const twoWeeksAgo = new Date(Date.now() - 14 * 24 * 60 * 60 * 1000);
 	const oneWeekAgo = new Date(Date.now() - 7 * 24 * 60 * 60 * 1000);
-
 	if (existingAssignment[0]) {
 		demoAssignmentId = existingAssignment[0].id;
 		yield* Effect.log(`  Assignment "${assignmentTitle}" already exists`);
@@ -888,7 +1217,124 @@ const program = Effect.gen(function* () {
 		yield* Effect.log("  Linked assignment to cohort");
 	}
 
-	// 6. Create Learner Maps and Diagnoses
+// 6. Seed Form Responses (TAM and Feedback)
+	yield* Effect.log("Seeding form responses...");
+
+	// Seed TAM responses
+	const existingTamResponses = yield* db
+		.select()
+		.from(formResponses)
+		.where(eq(formResponses.formId, tamFormId));
+
+	const existingTamUserIds = new Set(existingTamResponses.map((r) => r.userId));
+
+	yield* Effect.all(
+		DEMO_STUDENTS.map((student) =>
+			Effect.gen(function* () {
+				const studentId = userIdsByEmail[student.email];
+				if (!studentId) return;
+				if (existingTamUserIds.has(studentId)) {
+					yield* Effect.log(
+						`  TAM response for ${student.email} already exists`,
+					);
+					return;
+				}
+
+				const responses = DEMO_TAM_RESPONSES[student.email];
+				if (!responses) return;
+
+				// Get TAM questions to map responses
+				const tamQuestions = yield* db
+					.select()
+					.from(questions)
+					.where(eq(questions.formId, tamFormId))
+					.orderBy(asc(questions.orderIndex));
+
+				// Build answers object: { questionId: "1-5" }
+				const answers: Record<string, string> = {};
+				for (let i = 0; i < tamQuestions.length; i++) {
+					if (responses[i] !== undefined) {
+						answers[tamQuestions[i].id] = String(responses[i]);
+					}
+				}
+
+				const tamSubmissionDate = new Date(
+					oneWeekAgo.getTime() - 2 * 60 * 60 * 1000, // 2 hours before due
+				);
+
+				yield* db.insert(formResponses).values({
+					id: randomString(),
+					formId: tamFormId,
+					userId: studentId,
+					answers: JSON.stringify(answers),
+					submittedAt: tamSubmissionDate,
+					timeSpentSeconds: 180, // 3 minutes average
+				});
+				yield* Effect.log(`  Created TAM response for ${student.email}`);
+			}),
+		),
+		{ concurrency: 10 },
+	);
+
+	// Seed feedback responses
+	const existingFeedbackResponses = yield* db
+		.select()
+		.from(formResponses)
+		.where(eq(formResponses.formId, feedbackFormId));
+
+	const existingFeedbackUserIds = new Set(
+		existingFeedbackResponses.map((r) => r.userId),
+	);
+
+	yield* Effect.all(
+		DEMO_STUDENTS.map((student) =>
+			Effect.gen(function* () {
+				const studentId = userIdsByEmail[student.email];
+				if (!studentId) return;
+				if (existingFeedbackUserIds.has(studentId)) {
+					yield* Effect.log(
+						`  Feedback response for ${student.email} already exists`,
+					);
+					return;
+				}
+
+				const responses = DEMO_FEEDBACK_RESPONSES[student.email];
+				if (!responses) return;
+
+				// Get feedback questions
+				const feedbackQuestions = yield* db
+					.select()
+					.from(questions)
+					.where(eq(questions.formId, feedbackFormId))
+					.orderBy(asc(questions.orderIndex));
+
+				// Build answers object: { questionId: "response text" }
+				const answers: Record<string, string> = {};
+				for (let i = 0; i < feedbackQuestions.length; i++) {
+					if (responses[i]) {
+						answers[feedbackQuestions[i].id] = responses[i];
+					}
+				}
+
+				const feedbackSubmissionDate = new Date(
+					oneWeekAgo.getTime() - 1 * 60 * 60 * 1000, // 1 hour before due
+				);
+
+				yield* db.insert(formResponses).values({
+					id: randomString(),
+					formId: feedbackFormId,
+					userId: studentId,
+					answers: JSON.stringify(answers),
+					submittedAt: feedbackSubmissionDate,
+					timeSpentSeconds: 300, // 5 minutes average
+				});
+				yield* Effect.log(`  Created feedback response for ${student.email}`);
+			}),
+		),
+		{ concurrency: 10 },
+	);
+
+	// 7. Create Learner Maps and Diagnoses
 	yield* Effect.log("Creating learner maps and diagnoses...");
 
 	// Build edge lookup from goal map

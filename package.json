@@ -16,6 +16,7 @@
     "test:service:watch": "vitest run -c vitest.service.config.ts --watch",
 	"db:generate": "bunx drizzle-kit generate",
 	"db:migrate": "bunx drizzle-kit migrate",
+    "db:seed": "bun run --env-file=.env scripts/seed.ts",
     "coverage": "vitest run --coverage",
     "coverage:ui": "vitest run --coverage --coverage.ui",
     "format": "oxfmt --write ./src/**/*",
@@ -23,7 +24,6 @@
     "typecheck": "tsgo --noEmit",
     "cf-typegen": "wrangler types",
     "deploy": "wrangler deploy",
-    "seed": "bun run --env-file=.env scripts/seed.ts",
     "ui": "bunx shadcn@canary",
     "effect:prepare": "effect-language-service patch"
   },
