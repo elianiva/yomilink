@@ -8,7 +8,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Separator } from "@/components/ui/separator";
 import { cn } from "@/lib/utils";
 
-import { QuestionRenderer } from "./form-renderer";
+import { QuestionRenderer } from "./form-renderer/question-renderer";
 import type { QuestionType } from "./question-list";
 
 export interface FormData {

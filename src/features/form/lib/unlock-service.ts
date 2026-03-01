@@ -22,13 +22,13 @@ const ManualCondition = Schema.Struct({
 	type: Schema.Literal("manual"),
 });
 
-const UnlockConditionSchema = Schema.Union(
+export const UnlockConditionSchema = Schema.Union(
 	TimeBasedCondition,
 	PrerequisiteCondition,
 	ManualCondition,
 );
 
-const FormUnlockConditions = Schema.Struct({
+export const FormUnlockConditionsSchema = Schema.Struct({
 	conditions: Schema.Array(UnlockConditionSchema),
 	logic: Schema.optionalWith(Schema.Union(Schema.Literal("all"), Schema.Literal("any")), {
 		default: () => "all" as const,
@@ -36,13 +36,13 @@ const FormUnlockConditions = Schema.Struct({
 });
 
 type UnlockConditionType = Schema.Schema.Type<typeof UnlockConditionSchema>;
-type FormUnlockConditionsType = Schema.Schema.Type<typeof FormUnlockConditions>;
+type FormUnlockConditionsType = Schema.Schema.Type<typeof FormUnlockConditionsSchema>;
+
 export type { UnlockConditionType as UnlockCondition };
 export type { FormUnlockConditionsType as FormUnlockConditions };
-// Export schemas for validation (with Schema suffix to avoid name conflicts)
-export { UnlockConditionSchema, FormUnlockConditions as FormUnlockConditionsSchema };
+
 // Nullable schema for safe parsing from DB (which can have null values)
-export const FormUnlockConditionsNullable = Schema.NullOr(FormUnlockConditions);
+export const FormUnlockConditionsNullable = Schema.NullOr(FormUnlockConditionsSchema);
 
 export class FormNotFoundError extends Data.TaggedError("FormNotFoundError")<{
 	readonly formId: string;
