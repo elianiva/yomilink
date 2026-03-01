@@ -1,8 +1,15 @@
-import type * as React from "react";
+import { Eye, EyeOff } from "lucide-react";
+import * as React from "react";
 
 import { cn } from "@/lib/utils";
 
-function Input({ className, type, ...props }: React.ComponentProps<"input">) {
+interface InputProps extends React.ComponentProps<"input"> {}
+
+interface PasswordInputProps extends React.ComponentProps<"input"> {
+	showPasswordToggle?: boolean;
+}
+
+function Input({ className, type, ...props }: InputProps) {
 	return (
 		<input
 			type={type}
@@ -18,4 +25,28 @@ function Input({ className, type, ...props }: React.ComponentProps<"input">) {
 	);
 }
 
-export { Input };
+function PasswordInput({ className, showPasswordToggle = true, ...props }: PasswordInputProps) {
+	const [showPassword, setShowPassword] = React.useState(false);
+
+	return (
+		<div className="relative">
+			<Input
+				type={showPassword ? "text" : "password"}
+				className={cn("pr-10", className)}
+				{...props}
+			/>
+			{showPasswordToggle && (
+				<button
+					type="button"
+					onClick={() => setShowPassword(!showPassword)}
+					className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring/50 rounded-sm"
+					tabIndex={-1}
+				>
+					{showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+				</button>
+			)}
+		</div>
+	);
+}
+
+export { Input, PasswordInput };

@@ -1,5 +1,5 @@
 import { useForm } from "@tanstack/react-form";
-import { createFileRoute, redirect, useNavigate } from "@tanstack/react-router";
+import { createFileRoute, Link, redirect, useNavigate } from "@tanstack/react-router";
 import { Schema } from "effect";
 import { useState } from "react";
 
@@ -80,82 +80,88 @@ function LoginPage() {
 	});
 
 	return (
-		<div className="min-h-screen bg-white flex items-center justify-center p-6">
-			<div className="w-full max-w-md rounded-2xl border border-border/60 bg-white shadow-sm">
-				<div className="p-8 space-y-6">
-					<div className="flex items-center gap-3">
-						<div className="h-9 w-9 rounded-lg bg-primary/90 ring-4 ring-primary/10 flex items-center justify-center text-primary-foreground font-bold">
-							Y
-						</div>
-						<div>
-							<h1 className="text-2xl font-semibold">KitBuild</h1>
-							<p className="text-sm text-muted-foreground">Sign in to your account</p>
-						</div>
+		<div className="min-h-screen bg-white flex flex-col items-center justify-center p-6">
+			<div className="w-full max-w-md rounded-2xl border border-border/60 bg-white shadow-sm p-8 space-y-6">
+				<div className="flex items-center gap-3">
+					<div className="h-9 w-9 rounded-lg bg-primary/90 ring-4 ring-primary/10 flex items-center justify-center text-primary-foreground font-bold">
+						Y
 					</div>
-
-					{error ? (
-						<div className="rounded-md border border-destructive/40 bg-destructive/10 px-3 py-2 text-sm text-destructive">
-							{error}
-						</div>
-					) : null}
-
-					<form
-						onSubmit={(e) => {
-							e.preventDefault();
-							e.stopPropagation();
-							form.handleSubmit();
-						}}
-						className="space-y-5"
-					>
-						<form.Field name="email">
-							{(field) => (
-								<div className="space-y-1.5">
-									<Label htmlFor="email">Email</Label>
-									<Input
-										id="email"
-										placeholder="you@example.com"
-										value={field.state.value}
-										onChange={(e) => field.handleChange(e.target.value)}
-										onBlur={field.handleBlur}
-										inputMode="email"
-										autoComplete="email"
-									/>
-									<FieldInfo field={field} />
-								</div>
-							)}
-						</form.Field>
-
-						<form.Field name="password">
-							{(field) => (
-								<div className="space-y-1.5">
-									<Label htmlFor="password">Password</Label>
-									<Input
-										id="password"
-										type="password"
-										placeholder="********"
-										value={field.state.value}
-										onChange={(e) => field.handleChange(e.target.value)}
-										onBlur={field.handleBlur}
-										autoComplete="current-password"
-									/>
-									<FieldInfo field={field} />
-								</div>
-							)}
-						</form.Field>
-
-						<form.Subscribe selector={(s) => [s.canSubmit, s.isSubmitting] as const}>
-							{([canSubmit, isSubmitting]) => (
-								<Button
-									type="submit"
-									disabled={!canSubmit || isSubmitting}
-									className="w-full"
-								>
-									{isSubmitting ? "Signing in..." : "Sign in"}
-								</Button>
-							)}
-						</form.Subscribe>
-					</form>
+					<div>
+						<h1 className="text-2xl font-semibold">KitBuild</h1>
+						<p className="text-sm text-muted-foreground">Sign in to your account</p>
+					</div>
 				</div>
+
+				{error ? (
+					<div className="rounded-md border border-destructive/40 bg-destructive/10 px-3 py-2 text-sm text-destructive">
+						{error}
+					</div>
+				) : null}
+
+				<form
+					onSubmit={(e) => {
+						e.preventDefault();
+						e.stopPropagation();
+						form.handleSubmit();
+					}}
+					className="space-y-5"
+				>
+					<form.Field name="email">
+						{(field) => (
+							<div className="space-y-1.5">
+								<Label htmlFor="email">Email</Label>
+								<Input
+									id="email"
+									placeholder="you@example.com"
+									value={field.state.value}
+									onChange={(e) => field.handleChange(e.target.value)}
+									onBlur={field.handleBlur}
+									inputMode="email"
+									autoComplete="email"
+								/>
+								<FieldInfo field={field} />
+							</div>
+						)}
+					</form.Field>
+
+					<form.Field name="password">
+						{(field) => (
+							<div className="space-y-1.5">
+								<Label htmlFor="password">Password</Label>
+								<Input
+									id="password"
+									type="password"
+									placeholder="********"
+									value={field.state.value}
+									onChange={(e) => field.handleChange(e.target.value)}
+									onBlur={field.handleBlur}
+									autoComplete="current-password"
+								/>
+								<FieldInfo field={field} />
+							</div>
+						)}
+					</form.Field>
+
+					<form.Subscribe selector={(s) => [s.canSubmit, s.isSubmitting] as const}>
+						{([canSubmit, isSubmitting]) => (
+							<Button
+								type="submit"
+								disabled={!canSubmit || isSubmitting}
+								className="w-full"
+							>
+								{isSubmitting ? "Signing in..." : "Sign in"}
+							</Button>
+						)}
+					</form.Subscribe>
+				</form>
+			</div>
+			<div className="text-center pt-4">
+				<p className="text-sm text-muted-foreground">
+					Don&apos;t have an account?{" "}
+					<Link to="/signup" className="text-primary hover:underline font-medium">
+						Sign up
+					</Link>
+				</p>
 			</div>
 		</div>
 	);

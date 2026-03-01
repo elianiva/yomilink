@@ -59,7 +59,7 @@ function RootDocument({ children }: { children: React.ReactNode }) {
 				>
 					<RouteProgress />
 					{children}
-					<Toaster position="top-right" />
+					<Toaster position="top-right" richColors />
 					{isDev && (
 						<Suspense fallback={null}>
 							<DevTools />
