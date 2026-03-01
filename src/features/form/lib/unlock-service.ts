@@ -384,19 +384,19 @@ export const unlockPostTestAfterAssignment = Effect.fn("unlockPostTestAfterAssig
 
 	if (learnerMapRows.length === 0) {
 		return {
-				scheduled: false,
-				unlockedAt: null,
-				reason: "Assignment not completed",
-			};
+			scheduled: false,
+			unlockedAt: null,
+			reason: "Assignment not completed",
+		};
 	}
 
 	const completedAt = learnerMapRows[0].submittedAt;
 	if (!completedAt) {
 		return {
-				scheduled: false,
-				unlockedAt: null,
-				reason: "Assignment not completed",
-			};
+			scheduled: false,
+			unlockedAt: null,
+			reason: "Assignment not completed",
+		};
 	}
 	const now = new Date();
 

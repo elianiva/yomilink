@@ -36,7 +36,6 @@ export class GoalMapNotFoundError extends Data.TaggedError("GoalMapNotFoundError
 	readonly goalMapId: string;
 }> {}
 
-
 export class AccessDeniedError extends Data.TaggedError("AccessDeniedError")<{
 	readonly assignmentId: string;
 }> {}
@@ -200,8 +199,8 @@ export const getAssignmentForStudent = Effect.fn("getAssignmentForStudent")(func
 				nodes: learnerMaps.nodes,
 				edges: learnerMaps.edges,
 				status: learnerMaps.status,
-			attempt: learnerMaps.attempt,
-			controlText: learnerMaps.controlText,
+				attempt: learnerMaps.attempt,
+				controlText: learnerMaps.controlText,
 			},
 		})
 		.from(assignments)
@@ -624,7 +623,7 @@ export const submitControlText = Effect.fn("submitControlText")(function* (
 
 	const existing = existingRows[0];
 	if (existing?.status === "submitted") {
-			return yield* new LearnerMapAlreadySubmittedError({ learnerMapId: existing.id });
+		return yield* new LearnerMapAlreadySubmittedError({ learnerMapId: existing.id });
 	}
 
 	if (existing) {

@@ -3,8 +3,8 @@ import { BookOpenIcon, CheckCircle2Icon, FileTextIcon, Loader2 } from "lucide-re
 
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { FormRpc } from "@/server/rpc/form";
 import { useRpcQuery } from "@/hooks/use-rpc-query";
+import { FormRpc } from "@/server/rpc/form";
 
 export const Route = createFileRoute("/dashboard/forms/student")({
 	component: StudentFormsPage,

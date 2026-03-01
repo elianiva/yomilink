@@ -418,10 +418,7 @@ describe("learner-map-service", () => {
 				assert.strictEqual(result, true);
 
 				// Verify in database
-				const saved = yield* db
-					.select()
-					.from(learnerMaps)
-					.limit(1);
+				const saved = yield* db.select().from(learnerMaps).limit(1);
 
 				assert.strictEqual(saved.length, 1);
 				assert.strictEqual(saved[0]?.status, "draft");
@@ -516,7 +513,10 @@ describe("learner-map-service", () => {
 				);
 
 				Either.match(result, {
-					onLeft: (error) => assert.ok("_tag" in error && error._tag === "LearnerMapAlreadySubmittedError"),
+					onLeft: (error) =>
+						assert.ok(
+							"_tag" in error && error._tag === "LearnerMapAlreadySubmittedError",
+						),
 					onRight: () => assert.fail("Expected error but got success"),
 				});
 			}).pipe(Effect.provide(DatabaseTest)),
@@ -535,7 +535,8 @@ describe("learner-map-service", () => {
 				);
 
 				Either.match(result, {
-					onLeft: (error) => assert.ok("_tag" in error && error._tag === "LearnerMapNotFoundError"),
+					onLeft: (error) =>
+						assert.ok("_tag" in error && error._tag === "LearnerMapNotFoundError"),
 					onRight: () => assert.fail("Expected error but got success"),
 				});
 			}).pipe(Effect.provide(DatabaseTest)),
@@ -573,7 +574,10 @@ describe("learner-map-service", () => {
 				);
 
 				Either.match(result, {
-					onLeft: (error) => assert.ok("_tag" in error && error._tag === "LearnerMapAlreadySubmittedError"),
+					onLeft: (error) =>
+						assert.ok(
+							"_tag" in error && error._tag === "LearnerMapAlreadySubmittedError",
+						),
 					onRight: () => assert.fail("Expected error but got success"),
 				});
 			}).pipe(Effect.provide(DatabaseTest)),
@@ -826,7 +830,8 @@ describe("learner-map-service", () => {
 				);
 
 				Either.match(result, {
-					onLeft: (error) => assert.ok("_tag" in error && error._tag === "NoPreviousAttemptError"),
+					onLeft: (error) =>
+						assert.ok("_tag" in error && error._tag === "NoPreviousAttemptError"),
 					onRight: () => assert.fail("Expected error but got success"),
 				});
 			}).pipe(Effect.provide(DatabaseTest)),
@@ -864,7 +869,10 @@ describe("learner-map-service", () => {
 				);
 
 				Either.match(result, {
-					onLeft: (error) => assert.ok("_tag" in error && error._tag === "PreviousAttemptNotSubmittedError"),
+					onLeft: (error) =>
+						assert.ok(
+							"_tag" in error && error._tag === "PreviousAttemptNotSubmittedError",
+						),
 					onRight: () => assert.fail("Expected error but got success"),
 				});
 			}).pipe(Effect.provide(DatabaseTest)),
@@ -1166,7 +1174,8 @@ describe("learner-map-service", () => {
 				);
 
 				Either.match(result, {
-					onLeft: (error) => assert.ok("_tag" in error && error._tag === "AssignmentNotFoundError"),
+					onLeft: (error) =>
+						assert.ok("_tag" in error && error._tag === "AssignmentNotFoundError"),
 					onRight: () => assert.fail("Expected error but got success"),
 				});
 			}).pipe(Effect.provide(DatabaseTest)),
@@ -1196,10 +1205,7 @@ describe("learner-map-service", () => {
 				assert.strictEqual(result, true);
 
 				// Verify in database
-				const saved = yield* db
-					.select()
-					.from(learnerMaps)
-					.limit(1);
+				const saved = yield* db.select().from(learnerMaps).limit(1);
 
 				assert.strictEqual(saved.length, 1);
 				assert.strictEqual(saved[0]?.controlText, controlText);
@@ -1296,7 +1302,10 @@ describe("learner-map-service", () => {
 				);
 
 				Either.match(result, {
-					onLeft: (error) => assert.ok("_tag" in error && error._tag === "LearnerMapAlreadySubmittedError"),
+					onLeft: (error) =>
+						assert.ok(
+							"_tag" in error && error._tag === "LearnerMapAlreadySubmittedError",
+						),
 					onRight: () => assert.fail("Expected error but got success"),
 				});
 			}).pipe(Effect.provide(DatabaseTest)),

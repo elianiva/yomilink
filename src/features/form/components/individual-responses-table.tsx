@@ -10,10 +10,10 @@ import {
 	TableHeader,
 	TableRow,
 } from "@/components/ui/table";
+import { useRpcQuery } from "@/hooks/use-rpc-query";
 import { FormRpc } from "@/server/rpc/form";
 
 import { ResponseDetailModal } from "./response-detail-modal";
-import { useRpcQuery } from "@/hooks/use-rpc-query";
 
 export type ResponseQuestion = {
 	id: string;

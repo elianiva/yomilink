@@ -36,7 +36,7 @@ describe("form-service", () => {
 					type: "registration",
 				});
 
-			const db = yield* Database;
+				const db = yield* Database;
 				const formRows = yield* db
 					.select()
 					.from(forms)
@@ -59,7 +59,7 @@ describe("form-service", () => {
 					title: "Test Form",
 				});
 
-			const db = yield* Database;
+				const db = yield* Database;
 				const formRows = yield* db
 					.select()
 					.from(forms)
@@ -323,9 +323,9 @@ describe("form-service", () => {
 				]);
 
 				const newUser = yield* createTestUser();
-			yield* cloneForm(form.id, newUser.id);
+				yield* cloneForm(form.id, newUser.id);
 
-			const clonedForm = yield* db
+				const clonedForm = yield* db
 					.select()
 					.from(forms)
 					.where(like(forms.title, "% (Copy)"))

@@ -120,8 +120,8 @@ export function GoalMapCard({
 						<AlertDialogHeader>
 							<AlertDialogTitle>Delete Goal Map</AlertDialogTitle>
 							<AlertDialogDescription>
-								Are you sure you want to delete "{goalMap.title}"? This action cannot be
-								undone.
+								Are you sure you want to delete "{goalMap.title}"? This action
+								cannot be undone.
 							</AlertDialogDescription>
 						</AlertDialogHeader>
 						<AlertDialogFooter>
@@ -131,7 +131,11 @@ export function GoalMapCard({
 								</Button>
 							</AlertDialogCancel>
 							<AlertDialogAction asChild>
-								<Button variant="destructive" onClick={onConfirmDelete} disabled={isDeleting}>
+								<Button
+									variant="destructive"
+									onClick={onConfirmDelete}
+									disabled={isDeleting}
+								>
 									{isDeleting ? (
 										<>
 											<Loader2 className="mr-2 h-4 w-4 animate-spin" />

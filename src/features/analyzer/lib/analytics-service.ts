@@ -85,7 +85,7 @@ export const TeacherAssignmentSchema = Schema.Struct({
 	totalSubmissions: Schema.Number,
 	avgScore: Schema.optional(Schema.Number),
 	createdAt: Schema.Number,
-	dueAt: Schema.optional(Schema.Number),
+	dueAt: Schema.NullOr(Schema.Number),
 });
 
 export type TeacherAssignment = typeof TeacherAssignmentSchema.Type;
@@ -124,10 +124,10 @@ export const AssignmentSummarySchema = Schema.Struct({
 	totalLearners: Schema.Number,
 	submittedCount: Schema.Number,
 	draftCount: Schema.Number,
-	avgScore: Schema.optional(Schema.Number),
-	medianScore: Schema.optional(Schema.Number),
-	highestScore: Schema.optional(Schema.Number),
-	lowestScore: Schema.optional(Schema.Number),
+	avgScore: Schema.NullOr(Schema.Number),
+	medianScore: Schema.NullOr(Schema.Number),
+	highestScore: Schema.NullOr(Schema.Number),
+	lowestScore: Schema.NullOr(Schema.Number),
 });
 
 export const AssignmentAnalyticsSchema = Schema.Struct({

@@ -152,7 +152,6 @@ export const saveGoalMap = Effect.fn("saveGoalMap")(function* (
 		});
 	}
 
-
 	let textId: string | null = null;
 	const hasMaterial =
 		data.materialText?.trim() || (data.materialImages && data.materialImages.length > 0);
