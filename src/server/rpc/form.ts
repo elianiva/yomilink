@@ -30,6 +30,7 @@ import {
 import {
 	CheckFormUnlockInput,
 	checkFormUnlock,
+	FormUnlockConditionsSchema,
 	UnlockFormInput,
 	unlockForm,
 } from "@/features/form/lib/unlock-service";
@@ -171,6 +172,7 @@ const UpdateFormInput = Schema.Struct({
 		Schema.Union(Schema.Literal("draft"), Schema.Literal("published")),
 		{ nullable: true },
 	),
+	unlockConditions: Schema.optionalWith(FormUnlockConditionsSchema, { nullable: true }),
 });
 
 type UpdateFormInput = typeof UpdateFormInput.Type;
@@ -184,6 +186,7 @@ export const updateFormRpc = createServerFn()
 			description: data.description,
 			type: data.type,
 			status: data.status,
+			unlockConditions: data.unlockConditions,
 		}).pipe(
 			Effect.map(Rpc.ok),
 			Effect.withSpan("updateForm"),

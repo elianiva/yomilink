@@ -1,12 +1,10 @@
 import { and, count, desc, eq } from "drizzle-orm";
 import { Data, Effect, Schema } from "effect";
-
-import { randomString } from "@/lib/utils";
+import { randomString, safeParseJson } from "@/lib/utils";
 import { Database } from "@/server/db/client";
 import { formProgress, formResponses, forms, questions } from "@/server/db/schema/app-schema";
 import { user } from "@/server/db/schema/auth-schema";
-
-import type { FormUnlockConditions } from "./unlock-service";
+import { FormUnlockConditions, FormUnlockConditionsNullable } from "./unlock-service";
 
 /** Shared form type literals */
 export const FORM_TYPES = [
@@ -29,7 +27,7 @@ export const CreateFormInput = Schema.Struct({
 		nullable: true,
 	}),
 	type: Schema.optionalWith(FormTypeSchema, { nullable: true }),
-	unlockConditions: Schema.optionalWith(Schema.Unknown, { nullable: true }),
+	unlockConditions: Schema.optionalWith(FormUnlockConditionsNullable, { nullable: true }),
 });
 
 export type CreateFormInput = typeof CreateFormInput.Type;
@@ -99,14 +97,18 @@ export const getFormById = Effect.fn("getFormById")(function* (formId: string) {
 		.from(questions)
 		.where(eq(questions.formId, formId))
 		.orderBy(questions.orderIndex);
-
+	const unlockConditions = yield* safeParseJson(
+		formRow.unlockConditions,
+		null,
+		FormUnlockConditionsNullable,
+	);
 	const form = {
 		id: formRow.id,
 		title: formRow.title,
 		description: formRow.description,
 		type: formRow.type,
 		status: formRow.status,
-		unlockConditions: formRow.unlockConditions ?? null,
+		unlockConditions,
 		createdBy: formRow.createdBy,
 		createdAt: formRow.createdAt,
 		updatedAt: formRow.updatedAt,
@@ -129,24 +131,37 @@ export const getFormById = Effect.fn("getFormById")(function* (formId: string) {
 
 export const listForms = Effect.fn("listForms")(function* (userId: string) {
 	const db = yield* Database;
-
 	const formRows = yield* db
 		.select()
 		.from(forms)
 		.where(eq(forms.createdBy, userId))
 		.orderBy(forms.createdAt);
 
-	return formRows.map((formRow) => ({
-		id: formRow.id,
-		title: formRow.title,
-		description: formRow.description,
-		type: formRow.type,
-		status: formRow.status,
-		unlockConditions: formRow.unlockConditions ?? null,
-		createdBy: formRow.createdBy,
-		createdAt: formRow.createdAt,
-		updatedAt: formRow.updatedAt,
-	}));
+	const formsWithParsedConditions = yield* Effect.all(
+		formRows.map((formRow) =>
+			Effect.gen(function* () {
+				const unlockConditions = yield* safeParseJson(
+					formRow.unlockConditions,
+					null,
+					FormUnlockConditionsNullable,
+				);
+				return {
+					id: formRow.id,
+					title: formRow.title,
+					description: formRow.description,
+					type: formRow.type,
+					status: formRow.status,
+					unlockConditions,
+					createdBy: formRow.createdBy,
+					createdAt: formRow.createdAt,
+					updatedAt: formRow.updatedAt,
+				};
+			}),
+		),
+		{ concurrency: "unbounded" },
+	);
+
+	return formsWithParsedConditions;
 });
 
 export const updateForm = Effect.fn("updateForm")(function* (
@@ -156,7 +171,7 @@ export const updateForm = Effect.fn("updateForm")(function* (
 		description: string | null;
 		type: FormType;
 		status: "draft" | "published";
-		unlockConditions: unknown;
+		unlockConditions: FormUnlockConditions | null;
 	}>,
 ) {
 	const db = yield* Database;

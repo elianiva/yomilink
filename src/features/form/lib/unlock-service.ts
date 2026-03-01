@@ -37,9 +37,12 @@ const FormUnlockConditions = Schema.Struct({
 
 type UnlockConditionType = Schema.Schema.Type<typeof UnlockConditionSchema>;
 type FormUnlockConditionsType = Schema.Schema.Type<typeof FormUnlockConditions>;
-
 export type { UnlockConditionType as UnlockCondition };
 export type { FormUnlockConditionsType as FormUnlockConditions };
+// Export schemas for validation (with Schema suffix to avoid name conflicts)
+export { UnlockConditionSchema, FormUnlockConditions as FormUnlockConditionsSchema };
+// Nullable schema for safe parsing from DB (which can have null values)
+export const FormUnlockConditionsNullable = Schema.NullOr(FormUnlockConditions);
 
 export class FormNotFoundError extends Data.TaggedError("FormNotFoundError")<{
 	readonly formId: string;
