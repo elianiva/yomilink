@@ -53,22 +53,16 @@ import { TopicRpc } from "@/server/rpc/topic";
 
 const routeApi = getRouteApi("/dashboard/goal-map/$goalMapId");
 
+const NODE_TYPES = {
+	text: TextNode,
+	connector: ConnectorNode,
+};
+
+const EDGE_TYPES = {
+	floating: FloatingEdge,
+};
+
 export function GoalMapEditor() {
-	const nodeTypes = useMemo(
-		() => ({
-			text: TextNode,
-			connector: ConnectorNode,
-		}),
-		[],
-	);
-
-	const edgeTypes = useMemo(
-		() => ({
-			floating: FloatingEdge,
-		}),
-		[],
-	);
-
 	const { getViewport } = useReactFlow();
 	const setPageTitle = useSetAtom(pageTitleAtom);
 	const [conceptDialogOpen, setConceptDialogOpen] = useAtom(conceptDialogOpenAtom);
@@ -428,8 +422,8 @@ export function GoalMapEditor() {
 				<ReactFlow
 					nodes={graphNodes}
 					edges={graphEdges}
-					nodeTypes={nodeTypes}
-					edgeTypes={edgeTypes}
+					nodeTypes={NODE_TYPES}
+					edgeTypes={EDGE_TYPES}
 					onNodesChange={onNodesChange}
 					onEdgesChange={onEdgesChange}
 					onConnect={onConnectWrapper}

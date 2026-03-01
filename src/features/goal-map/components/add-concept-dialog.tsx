@@ -16,6 +16,7 @@ import {
 	TAILWIND_COLORS,
 	type TailwindColor,
 } from "@/features/kitbuild/components/color-picker";
+import { TextNode } from "@/features/kitbuild/components/text-node";
 import { cn } from "@/lib/utils";
 
 export type AddConceptDialogProps = {
@@ -113,17 +114,13 @@ function AddConceptDialogImpl({
 
 					<div className="space-y-2">
 						<Label>Preview</Label>
-						<div
-							className={cn(
-								"inline-block min-w-28 rounded-md px-3 py-2 shadow-sm ring-2 bg-background",
-								color.ring,
-								color.text,
-							)}
-						>
-							<div className="text-sm font-medium leading-tight">
-								{label || "Concept"}
-							</div>
-						</div>
+						<TextNode
+							id="preview"
+							data={{
+								label: label || "Concept Node",
+								color: color.name.split("-").at(0)!,
+							}}
+						/>
 					</div>
 				</div>
 
