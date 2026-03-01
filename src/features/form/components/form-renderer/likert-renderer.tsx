@@ -1,5 +1,3 @@
-"use client";
-
 import type { LikertOptions } from "@/features/form/lib/form-service";
 import { cn } from "@/lib/utils";
 

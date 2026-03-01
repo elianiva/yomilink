@@ -1,7 +1,8 @@
-import { useQuery } from "@tanstack/react-query";
 import { useEffect, useState } from "react";
 
 import { FormRpc } from "@/server/rpc/form";
+
+import { useRpcQuery } from "./use-rpc-query";
 
 export type FormUnlockStatus = {
 	isUnlocked: boolean;
@@ -22,7 +23,7 @@ export function useFormUnlock({
 }: UseFormUnlockOptions) {
 	const [localStatus, setLocalStatus] = useState<FormUnlockStatus | null>(null);
 
-	const query = useQuery({
+	const query = useRpcQuery({
 		...FormRpc.checkFormUnlock({ formId }),
 		enabled: enabled && !!formId,
 		refetchInterval: pollingInterval,

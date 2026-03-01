@@ -1,6 +1,3 @@
-"use client";
-
-import { useQuery } from "@tanstack/react-query";
 import { createFileRoute } from "@tanstack/react-router";
 import { BarChart3, List, Loader2, Users } from "lucide-react";
 import { useState } from "react";
@@ -14,6 +11,7 @@ import {
 	type FormResponse,
 } from "@/features/form/components/individual-responses-table";
 import { StratifiedGrouping } from "@/features/form/components/stratified-grouping";
+import { useRpcQuery } from "@/hooks/use-rpc-query";
 import { FormRpc } from "@/server/rpc/form";
 
 export const Route = createFileRoute("/dashboard/forms/$formId/results")({
@@ -30,17 +28,17 @@ function FormResultsPage() {
 		"individual",
 	);
 
-	const { data: formData, isLoading: formLoading } = useQuery({
-		...FormRpc.getFormById({ id: formId }),
-	});
+	const { data: formData, isLoading: formLoading } = useRpcQuery(
+		FormRpc.getFormById({ id: formId }),
+	);
 
-	const { data: responsesData, isLoading: responsesLoading } = useQuery({
-		...FormRpc.getFormResponses({
+	const { data: responsesData, isLoading: responsesLoading } = useRpcQuery(
+		FormRpc.getFormResponses({
 			formId: formId,
 			page: 1,
 			limit: 100,
 		}),
-	});
+	);
 
 	const isLoading = formLoading || responsesLoading;
 

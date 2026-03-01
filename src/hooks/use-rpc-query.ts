@@ -161,7 +161,9 @@ export function useRpcMutation<TData, TVariables, TContext = unknown>(
 					toast.success(successMessage ?? "Operation completed successfully");
 				}
 				// Call config onSuccess for non-error responses
-				configOnSuccess?.(unwrap(data));
+				const unwrapped = unwrap(data);
+				if (unwrapped === null) return;
+				configOnSuccess?.(unwrapped);
 			}
 
 			// Call original onSuccess

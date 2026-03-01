@@ -1,5 +1,3 @@
-"use client";
-
 import { CheckCircle2, ChevronLeft, ChevronRight, Save, Send } from "lucide-react";
 import { useEffect, useState } from "react";
 

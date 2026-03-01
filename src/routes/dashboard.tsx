@@ -32,8 +32,7 @@ export const Route = createFileRoute("/dashboard")({
 				// Error checking registration status
 				// TODO: figure out what to do here, for now just redirect
 				throw redirect({
-					to: "/dashboard/forms/take",
-					search: { formId: result.data.formId },
+					to: "/dashboard",
 				});
 			} else {
 				// If there's a registration form and it's not completed, redirect to it

@@ -1,7 +1,6 @@
 import { useForm } from "@tanstack/react-form";
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { Schema } from "effect";
-import { useState } from "react";
 
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
@@ -9,58 +8,44 @@ import { FieldInfo } from "@/components/ui/field-info";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
+import { JlptLevel, ProfileSchema } from "@/features/profile/lib/profile-service";
+import { useRpcMutation, useRpcQuery } from "@/hooks/use-rpc-query";
 import { authClient } from "@/lib/auth-client";
-import { getMe } from "@/server/rpc/profile";
-import { updateProfileRpc } from "@/server/rpc/profile";
+import { getMe, ProfileRpc } from "@/server/rpc/profile";
 
 export const Route = createFileRoute("/dashboard/profile")({
 	component: ProfilePage,
-	loader: () => getMe(),
-});
-
-const ProfileSchema = Schema.Struct({
-	name: Schema.String.pipe(Schema.minLength(1)),
-	age: Schema.NullOr(Schema.Number),
-	jlptLevel: Schema.NullOr(Schema.Union(Schema.Literal("N5", "N4", "N3", "N2", "N1", "None"))),
-	japaneseLearningDuration: Schema.NullOr(Schema.Number),
-	previousJapaneseScore: Schema.NullOr(Schema.Number),
-	mediaConsumption: Schema.NullOr(Schema.Number),
-	motivation: Schema.NullOr(Schema.String),
+	loader: async ({ context }) => {
+		const me = await getMe();
+		if (!me.success) {
+			// TODO: handle error
+			return null;
+		}
+		context.queryClient.setQueryData(ProfileRpc.me(), me.data);
+	},
 });
 
 function ProfilePage() {
-	const me = Route.useLoaderData();
+	const { data: me } = useRpcQuery(ProfileRpc.getMe());
+	const { mutate: updateProfile } = useRpcMutation(ProfileRpc.updateProfile());
+
 	const navigate = useNavigate();
-	const [error, setError] = useState<string | null>(null);
-	const [success, setSuccess] = useState<string | null>(null);
 
 	const form = useForm({
 		defaultValues: {
 			name: me?.name ?? "",
-			age: (me as any)?.age ?? null,
-			jlptLevel: (me as any)?.jlptLevel ?? "None",
-			japaneseLearningDuration: (me as any)?.japaneseLearningDuration ?? null,
-			previousJapaneseScore: (me as any)?.previousJapaneseScore ?? null,
-			mediaConsumption: (me as any)?.mediaConsumption ?? null,
-			motivation: (me as any)?.motivation ?? null,
+			age: me?.age ?? null,
+			jlptLevel: me?.jlptLevel ?? "None",
+			japaneseLearningDuration: me?.japaneseLearningDuration ?? null,
+			previousJapaneseScore: me?.previousJapaneseScore ?? null,
+			mediaConsumption: me?.mediaConsumption ?? null,
+			motivation: me?.motivation ?? null,
 		},
 		validators: {
 			onChange: Schema.standardSchemaV1(ProfileSchema),
 			onSubmit: Schema.standardSchemaV1(ProfileSchema),
 		},
-		onSubmit: async ({ value }) => {
-			setError(null);
-			setSuccess(null);
-			try {
-				const { error } = await updateProfileRpc({ data: value });
-				if (error) {
-					throw new Error(error.message ?? "Update failed");
-				}
-				setSuccess("Profile updated successfully");
-			} catch (e: unknown) {
-				setError(e instanceof Error ? e.message : "Failed to update profile");
-			}
-		},
+		onSubmit: ({ value }) => updateProfile(value),
 	});
 
 	const handleSignOut = async () => {
@@ -68,7 +53,7 @@ function ProfilePage() {
 		navigate({ to: "/login" });
 	};
 
-	if (me === null) {
+	if (me === null || me === undefined) {
 		return (
 			<div className="flex flex-1 items-center justify-center p-6">
 				<div className="rounded-2xl border border-border/60 bg-white px-8 py-6 shadow-sm">
@@ -96,18 +81,6 @@ function ProfilePage() {
 							</p>
 						</div>
 					</div>
-
-					{error ? (
-						<div className="rounded-md border border-destructive/40 bg-destructive/10 px-3 py-2 text-sm text-destructive">
-							{error}
-						</div>
-					) : null}
-
-					{success ? (
-						<div className="rounded-md border border-green-500/40 bg-green-500/10 px-3 py-2 text-sm text-green-700">
-							{success}
-						</div>
-					) : null}
 
 					<form
 						onSubmit={(e) => {
@@ -161,7 +134,9 @@ function ProfilePage() {
 											id="jlptLevel"
 											className="w-full h-10 rounded-md border border-input bg-background px-3 py-2 text-sm"
 											value={field.state.value ?? "None"}
-											onChange={(e) => field.handleChange(e.target.value)}
+											onChange={(e) =>
+												field.handleChange(e.target.value as JlptLevel)
+											}
 										>
 											<option value="None">None</option>
 											<option value="N5">N5</option>

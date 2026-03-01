@@ -1,5 +1,3 @@
-"use client";
-
 import { FileText, AlertTriangle, Eye, Send, X } from "lucide-react";
 
 import {

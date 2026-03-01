@@ -1,6 +1,3 @@
-"use client";
-
-import { useQuery } from "@tanstack/react-query";
 import { EyeIcon } from "lucide-react";
 import { useState } from "react";
 
@@ -16,6 +13,7 @@ import {
 import { FormRpc } from "@/server/rpc/form";
 
 import { ResponseDetailModal } from "./response-detail-modal";
+import { useRpcQuery } from "@/hooks/use-rpc-query";
 
 export type ResponseQuestion = {
 	id: string;
@@ -70,7 +68,7 @@ export function IndividualResponsesTable({
 	const [selectedResponse, setSelectedResponse] = useState<FormResponse | null>(null);
 
 	// For pagination, we'd fetch more data. For now, show what we have.
-	const { data: moreResponses } = useQuery({
+	const { data: moreResponses } = useRpcQuery({
 		...FormRpc.getFormResponses({
 			formId,
 			page: pagination.page,

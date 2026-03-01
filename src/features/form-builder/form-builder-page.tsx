@@ -1,4 +1,4 @@
-import { useQuery, useQueryClient } from "@tanstack/react-query";
+import { useQueryClient } from "@tanstack/react-query";
 import { useNavigate, useSearch } from "@tanstack/react-router";
 import { FilePlusIcon, Loader2, Save, Eye, EyeOff, ArrowLeft } from "lucide-react";
 import { useState, useCallback } from "react";
@@ -20,7 +20,7 @@ import type { FormMetadata } from "@/features/form/components/form-metadata-edit
 import type { QuestionWithOptions as FormPreviewQuestion } from "@/features/form/components/form-renderer/form-preview";
 import { FormPreview } from "@/features/form/components/form-renderer/form-preview";
 import type { CreateQuestionInput, UpdateQuestionInput } from "@/features/form/lib/form-service";
-import { useRpcMutation } from "@/hooks/use-rpc-query";
+import { useRpcMutation, useRpcQuery } from "@/hooks/use-rpc-query";
 import { FormRpc } from "@/server/rpc/form";
 
 import { EditorContent } from "./editor-content";
@@ -52,7 +52,7 @@ export function FormBuilderPage() {
 	const [showUnsavedDialog, setShowUnsavedDialog] = useState(false);
 
 	// Queries
-	const { data: existingForm, isLoading: isLoadingForm } = useQuery({
+	const { data: existingForm, isLoading: isLoadingForm } = useRpcQuery({
 		...FormRpc.getFormById({ id: formId ?? "" }),
 		enabled: isEditing,
 	});

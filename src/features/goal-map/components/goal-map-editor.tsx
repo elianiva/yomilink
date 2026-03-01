@@ -312,23 +312,6 @@ export function GoalMapEditor() {
 					generateKitMutation.mutate(
 						{ goalMapId },
 						{
-							onError: (error: Error) => {
-								toast.error(error, { operation: "generate kit" });
-							},
-							onSuccess: (data) => {
-								// Check if it's not an error response and has ok property
-								if (data && !isErrorResponse(data) && "ok" in data && data.ok) {
-									const message =
-										kitStatus?.exists && !kitStatus.isOutdated
-											? "Kit updated successfully"
-											: "Kit created successfully";
-									toast.success(message);
-								} else {
-									toast.error("Goal map not found", {
-										operation: "generate kit",
-									});
-								}
-							},
 							onSettled: () => {
 								setIsSavingForKit(false);
 							},
@@ -401,7 +384,7 @@ export function GoalMapEditor() {
 			<SaveDialog
 				open={saveOpen}
 				saving={saving}
-				topics={!isErrorResponse(topics) ? (topics ?? []) : []}
+				topics={topics ?? []}
 				topicsLoading={topicsLoading}
 				defaultTopicId={saveMeta.topicId}
 				defaultName={saveMeta.name}
@@ -415,7 +398,7 @@ export function GoalMapEditor() {
 			<SaveDialog
 				open={saveAsOpen}
 				saving={saving}
-				topics={!isErrorResponse(topics) ? (topics ?? []) : []}
+				topics={topics ?? []}
 				topicsLoading={topicsLoading}
 				defaultTopicId={saveMeta.topicId}
 				defaultName={saveMeta.name ? `${saveMeta.name} (copy)` : ""}
@@ -480,7 +463,7 @@ export function GoalMapEditor() {
 					onCreateKit={handleCreateKit}
 					saving={saving}
 					isNewMap={isNewMap}
-					kitStatus={!isErrorResponse(kitStatus) ? kitStatus : undefined}
+					kitStatus={kitStatus}
 					isGeneratingKit={generateKitMutation.isPending}
 				/>
 

@@ -1,6 +1,3 @@
-"use client";
-
-import { useQuery } from "@tanstack/react-query";
 import { createFileRoute, useNavigate, useSearch } from "@tanstack/react-router";
 import { ArrowLeftIcon, Loader2 } from "lucide-react";
 
@@ -11,6 +8,7 @@ import {
 	type QuestionWithOptions,
 } from "@/features/form/components/form-taker";
 import { FormRpc } from "@/server/rpc/form";
+import { useRpcQuery } from "@/hooks/use-rpc-query";
 
 export const Route = createFileRoute("/dashboard/forms/take")({
 	component: FormTakerPage,
@@ -60,7 +58,7 @@ function FormTakerPage() {
 	const searchParams = useSearch({ from: "/dashboard/forms/take" });
 	const formId = (searchParams as { formId?: string }).formId;
 
-	const { data, isLoading, error } = useQuery({
+	const { data, isLoading, error } = useRpcQuery({
 		...FormRpc.getFormById({ id: formId ?? "" }),
 		enabled: !!formId,
 	});

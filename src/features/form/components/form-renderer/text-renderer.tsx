@@ -1,5 +1,3 @@
-"use client";
-
 import { Textarea } from "@/components/ui/textarea";
 import type { TextOptions } from "@/features/form/lib/form-service";
 import { cn } from "@/lib/utils";

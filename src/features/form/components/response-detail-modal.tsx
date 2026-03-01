@@ -1,5 +1,3 @@
-"use client";
-
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 
 import type { FormResponse, ResponseQuestion } from "./individual-responses-table";

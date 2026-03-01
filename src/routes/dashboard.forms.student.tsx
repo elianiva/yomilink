@@ -1,10 +1,10 @@
-import { useQuery } from "@tanstack/react-query";
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { BookOpenIcon, CheckCircle2Icon, FileTextIcon, Loader2 } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { FormRpc } from "@/server/rpc/form";
+import { useRpcQuery } from "@/hooks/use-rpc-query";
 
 export const Route = createFileRoute("/dashboard/forms/student")({
 	component: StudentFormsPage,
@@ -27,9 +27,7 @@ type StudentForm = {
 function StudentFormsPage() {
 	const navigate = useNavigate({ from: "/dashboard/forms/student" });
 
-	const { data, isLoading } = useQuery({
-		...FormRpc.getStudentForms(),
-	});
+	const { data, isLoading } = useRpcQuery(FormRpc.getStudentForms());
 
 	const forms: StudentForm[] = Array.isArray(data) ? data : [];
 

@@ -1,6 +1,4 @@
-"use client";
-
-import { useQuery, useQueryClient } from "@tanstack/react-query";
+import { useQueryClient } from "@tanstack/react-query";
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { FilePlusIcon, Loader2 } from "lucide-react";
 import { useState } from "react";
@@ -16,7 +14,7 @@ import {
 	DialogTitle,
 } from "@/components/ui/dialog";
 import { FormList, type FormListItem } from "@/features/form/components/form-list";
-import { useRpcMutation } from "@/hooks/use-rpc-query";
+import { useRpcMutation, useRpcQuery } from "@/hooks/use-rpc-query";
 import { FormRpc } from "@/server/rpc/form";
 
 export const Route = createFileRoute("/dashboard/forms/")({
@@ -33,9 +31,7 @@ function AdminFormsPage() {
 	const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
 	const [formToDelete, setFormToDelete] = useState<string | null>(null);
 
-	const { data, isLoading } = useQuery({
-		...FormRpc.listForms(),
-	});
+	const { data, isLoading } = useRpcQuery(FormRpc.listForms());
 
 	const forms = Array.isArray(data) ? data : [];
 

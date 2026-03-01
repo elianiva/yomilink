@@ -172,18 +172,20 @@ export const isRole = (userId: string, role: string) =>
 		return userRecord?.role === role;
 	});
 
-export const requireGoalMapOwner = (userId: string, goalMapId: string) =>
-	Effect.gen(function* () {
-		const isOwner = yield* isGoalMapOwner(userId, goalMapId);
+export const requireGoalMapOwner = Effect.fn("requireGoalMapOwner")(
+	(userId: string, goalMapId: string) =>
+		Effect.gen(function* () {
+			const isOwner = yield* isGoalMapOwner(userId, goalMapId);
 
-		if (!isOwner) {
-			return yield* new ForbiddenError({
-				message: "You must be the owner of this goal map",
-			});
-		}
+			if (!isOwner) {
+				return yield* new ForbiddenError({
+					message: "You must be the owner of this goal map",
+				});
+			}
 
-		return userId;
-	});
+			return userId;
+		}),
+);
 
 export const requireGoalMapAccess = (userId: string, goalMapId: string) =>
 	Effect.gen(function* () {

@@ -1,5 +1,3 @@
-"use client";
-
 import { Check, GripVertical, Plus, Shuffle, Trash2 } from "lucide-react";
 import type * as React from "react";
 

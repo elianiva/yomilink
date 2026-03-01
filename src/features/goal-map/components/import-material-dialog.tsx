@@ -36,6 +36,9 @@ function ImportMaterialDialogImpl({ goalMapId }: ImportMaterialDialogProps) {
 		operation: "upload image",
 		showSuccess: true,
 		successMessage: "Image uploaded successfully",
+		onSuccess: (data) => {
+			setMaterialImages((prev) => [...prev, data.image]);
+		},
 	});
 
 	const handleFileChange = async (files: FileList | null) => {
@@ -60,16 +63,7 @@ function ImportMaterialDialogImpl({ goalMapId }: ImportMaterialDialogProps) {
 				return;
 			}
 
-			uploadMutation.mutate(
-				{ goalMapId, file },
-				{
-					onSuccess: (data) => {
-						if (data.success) {
-							setMaterialImages((prev) => [...prev, data.image]);
-						}
-					},
-				},
-			);
+			uploadMutation.mutate({ goalMapId, file });
 			return;
 		}
 

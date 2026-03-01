@@ -25,7 +25,6 @@ import type {
 	AssignmentAnalytics,
 	LearnerAnalytics,
 } from "@/features/analyzer/lib/analytics-service";
-import { isErrorResponse } from "@/hooks/use-rpc-error";
 import { useRpcMutation } from "@/hooks/use-rpc-query";
 import { useRpcQuery } from "@/hooks/use-rpc-query";
 import { toast } from "@/lib/error-toast";
@@ -182,21 +181,20 @@ function AnalyticsPage() {
 		{
 			...AnalyticsRpc.exportAnalyticsData(),
 			onSuccess: (result) => {
-				if (isErrorResponse(result)) {
-					return;
-				}
-				const blob = new Blob([result.data], {
-					type: result.contentType,
+				if (!result.success) return;
+
+				const blob = new Blob([result.data.data], {
+					type: result.data.contentType,
 				});
 				const url = URL.createObjectURL(blob);
 				const a = document.createElement("a");
 				a.href = url;
-				a.download = result.filename;
+				a.download = result.data.filename;
 				document.body.appendChild(a);
 				a.click();
 				document.body.removeChild(a);
 				URL.revokeObjectURL(url);
-				toast.success(`Exported ${result.filename}`);
+				toast.success(`Exported ${result.data.filename}`);
 			},
 		},
 		{
@@ -237,12 +235,11 @@ function AnalyticsPage() {
 								<SelectContent>
 									<AssignmentSelectContent
 										assignments={
-											!isErrorResponse(assignments) &&
 											Array.isArray(assignments)
 												? assignments.map((a) => ({
 														id: a.id,
 														title: a.title,
-														totalSubmissions: a.submissionCount ?? 0,
+														totalSubmissions: a.totalSubmissions ?? 0,
 													}))
 												: undefined
 										}
