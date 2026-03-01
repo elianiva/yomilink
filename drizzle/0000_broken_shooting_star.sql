@@ -23,11 +23,20 @@ CREATE TABLE `assignments` (
 	`time_limit_minutes` integer,
 	`start_date` integer,
 	`due_at` integer,
+	`pre_test_form_id` text,
+	`post_test_form_id` text,
+	`delayed_post_test_form_id` text,
+	`tam_form_id` text,
+	`delayed_post_test_delay_days` integer DEFAULT 7,
 	`created_by` text NOT NULL,
 	`created_at` integer DEFAULT (cast(unixepoch('subsecond') * 1000 as integer)) NOT NULL,
 	`updated_at` integer DEFAULT (cast(unixepoch('subsecond') * 1000 as integer)) NOT NULL,
 	FOREIGN KEY (`goal_map_id`) REFERENCES `goal_maps`(`id`) ON UPDATE no action ON DELETE no action,
-	FOREIGN KEY (`kit_id`) REFERENCES `kits`(`id`) ON UPDATE no action ON DELETE no action
+	FOREIGN KEY (`kit_id`) REFERENCES `kits`(`id`) ON UPDATE no action ON DELETE no action,
+	FOREIGN KEY (`pre_test_form_id`) REFERENCES `forms`(`id`) ON UPDATE no action ON DELETE no action,
+	FOREIGN KEY (`post_test_form_id`) REFERENCES `forms`(`id`) ON UPDATE no action ON DELETE no action,
+	FOREIGN KEY (`delayed_post_test_form_id`) REFERENCES `forms`(`id`) ON UPDATE no action ON DELETE no action,
+	FOREIGN KEY (`tam_form_id`) REFERENCES `forms`(`id`) ON UPDATE no action ON DELETE no action
 );
 --> statement-breakpoint
 CREATE INDEX `assignments_goalMapId_idx` ON `assignments` (`goal_map_id`);--> statement-breakpoint
@@ -49,6 +58,20 @@ CREATE TABLE `diagnoses` (
 --> statement-breakpoint
 CREATE INDEX `diagnoses_goalMapId_idx` ON `diagnoses` (`goal_map_id`);--> statement-breakpoint
 CREATE INDEX `diagnoses_learnerMapId_idx` ON `diagnoses` (`learner_map_id`);--> statement-breakpoint
+CREATE TABLE `experiment_groups` (
+	`id` text PRIMARY KEY NOT NULL,
+	`assignment_id` text NOT NULL,
+	`user_id` text NOT NULL,
+	`group_name` text,
+	`condition` text NOT NULL,
+	`created_at` integer DEFAULT (cast(unixepoch('subsecond') * 1000 as integer)) NOT NULL,
+	`updated_at` integer DEFAULT (cast(unixepoch('subsecond') * 1000 as integer)) NOT NULL,
+	FOREIGN KEY (`assignment_id`) REFERENCES `assignments`(`id`) ON UPDATE no action ON DELETE cascade,
+	FOREIGN KEY (`user_id`) REFERENCES `user`(`id`) ON UPDATE no action ON DELETE cascade
+);
+--> statement-breakpoint
+CREATE INDEX `experiment_groups_assignmentId_idx` ON `experiment_groups` (`assignment_id`);--> statement-breakpoint
+CREATE INDEX `experiment_groups_userId_idx` ON `experiment_groups` (`user_id`);--> statement-breakpoint
 CREATE TABLE `feedback` (
 	`id` text PRIMARY KEY NOT NULL,
 	`learner_map_id` text NOT NULL,
@@ -64,6 +87,49 @@ CREATE TABLE `feedback` (
 --> statement-breakpoint
 CREATE INDEX `feedback_learnerMapId_idx` ON `feedback` (`learner_map_id`);--> statement-breakpoint
 CREATE INDEX `feedback_goalMapId_idx` ON `feedback` (`goal_map_id`);--> statement-breakpoint
+CREATE TABLE `form_progress` (
+	`id` text PRIMARY KEY NOT NULL,
+	`form_id` text NOT NULL,
+	`user_id` text NOT NULL,
+	`status` text DEFAULT 'locked' NOT NULL,
+	`unlocked_at` integer,
+	`completed_at` integer,
+	`created_at` integer DEFAULT (cast(unixepoch('subsecond') * 1000 as integer)) NOT NULL,
+	`updated_at` integer DEFAULT (cast(unixepoch('subsecond') * 1000 as integer)) NOT NULL,
+	FOREIGN KEY (`form_id`) REFERENCES `forms`(`id`) ON UPDATE no action ON DELETE no action,
+	FOREIGN KEY (`user_id`) REFERENCES `user`(`id`) ON UPDATE no action ON DELETE no action
+);
+--> statement-breakpoint
+CREATE INDEX `form_progress_formId_idx` ON `form_progress` (`form_id`);--> statement-breakpoint
+CREATE INDEX `form_progress_userId_idx` ON `form_progress` (`user_id`);--> statement-breakpoint
+CREATE TABLE `form_responses` (
+	`id` text PRIMARY KEY NOT NULL,
+	`form_id` text NOT NULL,
+	`user_id` text NOT NULL,
+	`answers` text NOT NULL,
+	`submitted_at` integer,
+	`time_spent_seconds` integer,
+	`created_at` integer DEFAULT (cast(unixepoch('subsecond') * 1000 as integer)) NOT NULL,
+	`updated_at` integer DEFAULT (cast(unixepoch('subsecond') * 1000 as integer)) NOT NULL,
+	FOREIGN KEY (`form_id`) REFERENCES `forms`(`id`) ON UPDATE no action ON DELETE no action,
+	FOREIGN KEY (`user_id`) REFERENCES `user`(`id`) ON UPDATE no action ON DELETE no action
+);
+--> statement-breakpoint
+CREATE INDEX `form_responses_formId_idx` ON `form_responses` (`form_id`);--> statement-breakpoint
+CREATE INDEX `form_responses_userId_idx` ON `form_responses` (`user_id`);--> statement-breakpoint
+CREATE TABLE `forms` (
+	`id` text PRIMARY KEY NOT NULL,
+	`title` text NOT NULL,
+	`description` text,
+	`type` text DEFAULT 'registration' NOT NULL,
+	`status` text DEFAULT 'draft' NOT NULL,
+	`unlock_conditions` text,
+	`created_by` text NOT NULL,
+	`created_at` integer DEFAULT (cast(unixepoch('subsecond') * 1000 as integer)) NOT NULL,
+	`updated_at` integer DEFAULT (cast(unixepoch('subsecond') * 1000 as integer)) NOT NULL
+);
+--> statement-breakpoint
+CREATE INDEX `forms_createdBy_idx` ON `forms` (`created_by`);--> statement-breakpoint
 CREATE TABLE `goal_maps` (
 	`id` text PRIMARY KEY NOT NULL,
 	`teacher_id` text NOT NULL,
@@ -127,8 +193,9 @@ CREATE TABLE `learner_maps` (
 	`goal_map_id` text NOT NULL,
 	`kit_id` text NOT NULL,
 	`user_id` text NOT NULL,
-	`nodes` text NOT NULL,
-	`edges` text NOT NULL,
+	`nodes` text,
+	`edges` text,
+	`control_text` text(100000),
 	`status` text DEFAULT 'draft' NOT NULL,
 	`attempt` integer DEFAULT 1 NOT NULL,
 	`submitted_at` integer,
@@ -143,6 +210,20 @@ CREATE INDEX `learner_maps_assignmentId_idx` ON `learner_maps` (`assignment_id`)
 CREATE INDEX `learner_maps_goalMapId_idx` ON `learner_maps` (`goal_map_id`);--> statement-breakpoint
 CREATE INDEX `learner_maps_kitId_idx` ON `learner_maps` (`kit_id`);--> statement-breakpoint
 CREATE INDEX `learner_maps_userId_idx` ON `learner_maps` (`user_id`);--> statement-breakpoint
+CREATE TABLE `questions` (
+	`id` text PRIMARY KEY NOT NULL,
+	`form_id` text NOT NULL,
+	`type` text NOT NULL,
+	`question_text` text NOT NULL,
+	`options` text,
+	`order_index` integer NOT NULL,
+	`required` integer DEFAULT true NOT NULL,
+	`created_at` integer DEFAULT (cast(unixepoch('subsecond') * 1000 as integer)) NOT NULL,
+	`updated_at` integer DEFAULT (cast(unixepoch('subsecond') * 1000 as integer)) NOT NULL,
+	FOREIGN KEY (`form_id`) REFERENCES `forms`(`id`) ON UPDATE no action ON DELETE cascade
+);
+--> statement-breakpoint
+CREATE INDEX `questions_formId_idx` ON `questions` (`form_id`);--> statement-breakpoint
 CREATE TABLE `texts` (
 	`id` text PRIMARY KEY NOT NULL,
 	`title` text NOT NULL,
@@ -223,6 +304,12 @@ CREATE TABLE `user` (
 	`created_at` integer DEFAULT (cast(unixepoch('subsecond') * 1000 as integer)) NOT NULL,
 	`updated_at` integer DEFAULT (cast(unixepoch('subsecond') * 1000 as integer)) NOT NULL,
 	`role` text,
+	`age` integer,
+	`jlpt_level` text,
+	`japanese_learning_duration` integer,
+	`previous_japanese_score` real,
+	`media_consumption` real,
+	`motivation` text,
 	`banned` integer DEFAULT false,
 	`ban_reason` text,
 	`ban_expires` integer

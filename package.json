@@ -14,6 +14,8 @@
     "test:watch": "vitest run -c vitest.ui.config.ts --watch",
     "test:ui:watch": "vitest run -c vitest.ui.config.ts --watch",
     "test:service:watch": "vitest run -c vitest.service.config.ts --watch",
+	"db:generate": "bunx drizzle-kit generate",
+	"db:migrate": "bunx drizzle-kit migrate",
     "coverage": "vitest run --coverage",
     "coverage:ui": "vitest run --coverage --coverage.ui",
     "format": "oxfmt --write ./src/**/*",

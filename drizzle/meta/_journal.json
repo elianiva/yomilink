@@ -5,22 +5,8 @@
     {
       "idx": 0,
       "version": "6",
-      "when": 1767242700368,
-      "tag": "0000_cloudy_skreet",
-      "breakpoints": true
-    },
-    {
-      "idx": 1,
-      "version": "6",
-      "when": 1771416523183,
-      "tag": "0001_violet_layla_miller",
-      "breakpoints": true
-    },
-    {
-      "idx": 2,
-      "version": "6",
-      "when": 1771513440508,
-      "tag": "0002_sparkling_jigsaw",
+      "when": 1772351843849,
+      "tag": "0000_broken_shooting_star",
       "breakpoints": true
     }
   ]
