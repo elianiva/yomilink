@@ -1,4 +1,6 @@
+import { useNavigate } from "@tanstack/react-router";
 import { BadgeCheck, ChevronsUpDown, LogOut } from "lucide-react";
+import { toast } from "sonner";
 
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import {
@@ -28,7 +30,19 @@ export function NavUser({
 		role?: string | null;
 	};
 }) {
+	const navigate = useNavigate();
 	const { isMobile } = useSidebar();
+
+	async function handleLogout(e: Event) {
+		e.preventDefault();
+		try {
+			await authClient.signOut();
+			toast.success("You have been logged out");
+			navigate({ to: "/login" });
+		} catch {
+			toast.error("Failed to log out");
+		}
+	}
 
 	return (
 		<SidebarMenu>
@@ -82,12 +96,7 @@ export function NavUser({
 							</DropdownMenuItem>
 						</DropdownMenuGroup>
 						<DropdownMenuSeparator />
-						<DropdownMenuItem
-							onSelect={(e) => {
-								e.preventDefault();
-								void authClient.signOut();
-							}}
-						>
+						<DropdownMenuItem onSelect={handleLogout}>
 							<LogOut />
 							Log out
 						</DropdownMenuItem>
