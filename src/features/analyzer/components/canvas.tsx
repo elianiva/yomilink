@@ -68,23 +68,23 @@ function getEdgeStyleByType(type: "correct" | "missing" | "excessive" | "neutral
 	switch (type) {
 		case "correct":
 			return {
-				stroke: "#22c55e",
+				stroke: "var(--edge-correct)",
 				strokeWidth: 3,
 			};
 		case "excessive":
 			return {
-				stroke: "#3b82f6",
+				stroke: "var(--edge-excessive)",
 				strokeWidth: 3,
 			};
 		case "missing":
 			return {
-				stroke: "#ef4444",
+				stroke: "var(--edge-missing)",
 				strokeWidth: 2,
 				strokeDasharray: "5,5",
 			};
 		case "neutral":
 			return {
-				stroke: "#64748b",
+				stroke: "var(--edge-neutral)",
 				strokeWidth: 2,
 			};
 	}
@@ -288,12 +288,12 @@ function AnalyticsCanvasInner({
 					...edge,
 					type: "floating",
 					style: {
-						stroke: "#64748b",
+						stroke: "var(--edge-neutral)",
 						strokeWidth: 2,
 					},
 					markerEnd: {
 						type: "arrowclosed" as MarkerType,
-						color: "#64748b",
+						color: "var(--edge-neutral)",
 					},
 				});
 			}

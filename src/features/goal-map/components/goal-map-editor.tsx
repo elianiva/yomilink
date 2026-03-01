@@ -1,11 +1,16 @@
 import { getRouteApi, useNavigate } from "@tanstack/react-router";
 import type { Connection, MarkerType } from "@xyflow/react";
-import { Background, MiniMap, ReactFlow, ReactFlowProvider, useReactFlow } from "@xyflow/react";
+import {
+	Background,
+	ConnectionMode,
+	MiniMap,
+	ReactFlow,
+	ReactFlowProvider,
+	useReactFlow,
+} from "@xyflow/react";
 import { useAtom, useAtomValue, useSetAtom } from "jotai";
 import { useCallback, useEffect, useMemo, useState } from "react";
 
-import { ConnectionModeIndicator } from "@/components/ui/connection-mode-indicator";
-import { ContextMenuOverlay } from "@/components/ui/context-menu-overlay";
 import { AddConceptDialog } from "@/features/goal-map/components/add-concept-dialog";
 
 import "@xyflow/react/dist/style.css";
@@ -22,7 +27,6 @@ import { useSaveDialog } from "@/features/goal-map/hooks/use-save-dialog";
 import { useViewportControls } from "@/features/goal-map/hooks/use-viewport-controls";
 import {
 	conceptDialogOpenAtom,
-	connectionModeAtom,
 	contextMenuAtom,
 	directionEnabledAtom,
 	editNodeAtom,
@@ -45,8 +49,9 @@ import { SearchNodesPanel } from "@/features/kitbuild/components/search-nodes-pa
 import { TextNode } from "@/features/kitbuild/components/text-node";
 import { useRpcMutation, useRpcQuery } from "@/hooks/use-rpc-query";
 import { toast } from "@/lib/error-toast";
+import { areNodesConnected } from "@/lib/react-flow-types";
 import { pageTitleAtom } from "@/lib/page-title";
-import { cn, randomString } from "@/lib/utils";
+import { randomString } from "@/lib/utils";
 import { GoalMapRpc } from "@/server/rpc/goal-map";
 import { KitRpc } from "@/server/rpc/kit";
 import { TopicRpc } from "@/server/rpc/topic";
@@ -70,7 +75,6 @@ export function GoalMapEditor() {
 	const [searchOpen, setSearchOpen] = useAtom(searchOpenAtom);
 	const [isHydrated, setIsHydrated] = useAtom(isHydratedAtom);
 	const [contextMenu, setContextMenu] = useAtom(contextMenuAtom);
-	const [connectionMode, setConnectionMode] = useAtom(connectionModeAtom);
 	const [editNode, setEditNode] = useAtom(editNodeAtom);
 	const [materialImages, setMaterialImages] = useAtom(imagesAtom);
 	const materialText = useAtomValue(materialTextAtom);
@@ -124,8 +128,6 @@ export function GoalMapEditor() {
 		onConnect,
 		handleContextMenuEdit,
 		handleContextMenuDelete,
-		handleConnectTo,
-		handleConnectFrom,
 		handleEditNodeConfirm,
 	} = useContextMenu();
 
@@ -270,6 +272,16 @@ export function GoalMapEditor() {
 
 	const onConnectWrapper = useCallback(
 		(params: Connection) => {
+			// Prevent connecting a node to itself
+			if (params.source === params.target) {
+				toast.error("Cannot connect a node to itself");
+				return;
+			}
+			// Prevent duplicate edges between same pair of nodes
+			if (areNodesConnected(graphEdges, params.source, params.target)) {
+				toast.error("These nodes are already connected");
+				return;
+			}
 			const sType = getNodeType(params.source ?? null);
 			const tType = getNodeType(params.target ?? null);
 			const ok =
@@ -281,7 +293,27 @@ export function GoalMapEditor() {
 			}
 			onConnect(params, getNodeType);
 		},
-		[getNodeType, onConnect],
+		[getNodeType, graphEdges, onConnect],
+	);
+
+	// Handle connection drag end without valid target - close context menu to clean up
+	const onConnectEnd = useCallback(() => {
+		setContextMenu(null);
+	}, [setContextMenu]);
+
+	// Validate connection during drag (prevents visual feedback for invalid connections)
+	const isValidConnectionHandler = useCallback(
+		(params: { source: string; target: string }) => {
+			if (params.source === params.target) return false;
+			if (areNodesConnected(graphEdges, params.source, params.target)) return false;
+			const sType = getNodeType(params.source ?? null);
+			const tType = getNodeType(params.target ?? null);
+			return (
+				(sType === "text" && tType === "connector") ||
+				(sType === "connector" && tType === "text")
+			);
+		},
+		[getNodeType, graphEdges],
 	);
 
 	const handleSaveAs = (meta: { topicId: string; name: string; description?: string }) => {
@@ -413,12 +445,7 @@ export function GoalMapEditor() {
 				) : null}
 			</div>
 
-			<div
-				className={cn(
-					"rounded-xl border bg-card relative h-full overflow-hidden",
-					connectionMode?.active && "ring-2 ring-blue-500/50",
-				)}
-			>
+			<div className="rounded-xl border bg-card relative h-full overflow-hidden">
 				<ReactFlow
 					nodes={graphNodes}
 					edges={graphEdges}
@@ -427,10 +454,14 @@ export function GoalMapEditor() {
 					onNodesChange={onNodesChange}
 					onEdgesChange={onEdgesChange}
 					onConnect={onConnectWrapper}
+					onConnectEnd={onConnectEnd}
+					isValidConnection={isValidConnectionHandler}
 					onNodeClick={onNodeClick}
 					onPaneClick={onPaneClick}
 					defaultEdgeOptions={edgeOptions}
 					connectionLineComponent={FloatingConnectionLine}
+					connectionRadius={80}
+					connectionMode={ConnectionMode.Loose}
 					fitView
 				>
 					<MiniMap />
@@ -461,8 +492,6 @@ export function GoalMapEditor() {
 					isGeneratingKit={generateKitMutation.isPending}
 				/>
 
-				<ContextMenuOverlay visible={contextMenu !== null} />
-
 				{contextMenu && (
 					<NodeContextMenu
 						nodeId={contextMenu.nodeId}
@@ -470,21 +499,9 @@ export function GoalMapEditor() {
 						position={contextMenu.position}
 						onEdit={handleContextMenuEdit}
 						onDelete={handleContextMenuDelete}
-						onConnectTo={
-							contextMenu.nodeType === "connector" ? handleConnectTo : undefined
-						}
-						onConnectFrom={
-							contextMenu.nodeType === "connector" ? handleConnectFrom : undefined
-						}
 						onClose={() => setContextMenu(null)}
 					/>
 				)}
-
-				<ConnectionModeIndicator
-					active={connectionMode?.active ?? false}
-					direction={connectionMode?.direction ?? "to"}
-					onCancel={() => setConnectionMode(null)}
-				/>
 			</div>
 		</div>
 	);

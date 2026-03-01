@@ -5,9 +5,7 @@ import { memo } from "react";
 import { contextMenuAtom } from "@/features/goal-map/lib/atoms";
 import { cn } from "@/lib/utils";
 
-// Small invisible handles at center - only used for edge anchoring, not for initiating connections
-const ANCHOR_HANDLE_STYLE =
-	"!absolute !opacity-0 !w-1 !h-1 !min-w-0 !min-h-0 !border-none !pointer-events-none";
+const HANDLE_CLASSES = "!w-3 !h-3 !bg-background !border-2 !border-sky-500";
 
 function ConnectorNodeComponent({ id, data }: NodeProps<Node<{ label: string }>>) {
 	const contextMenu = useAtomValue(contextMenuAtom);
@@ -16,26 +14,29 @@ function ConnectorNodeComponent({ id, data }: NodeProps<Node<{ label: string }>>
 	return (
 		<div
 			className={cn(
-				"min-w-24 rounded-md bg-background px-3 py-1.5 shadow-sm ring-2 ring-sky-500 text-sky-800 transition-all duration-150",
+				"min-w-24 rounded-md bg-background px-3 py-1.5 shadow-sm ring-2 ring-sky-500 text-sky-800 transition-all duration-150 relative flex items-center justify-center",
 				isActive && "ring-4 scale-105 z-50 shadow-lg",
 			)}
 		>
-			<div className="text-sm font-medium leading-tight">{data?.label ?? "rel"}</div>
+			<p className="text-sm font-medium leading-tight text-center w-full">
+				{data?.label ?? "rel"}
+			</p>
 
-			{/* Small invisible handles at center - only for edge anchoring, not for initiating connections */}
+			{/* Target handle - left side */}
 			<Handle
 				type="target"
 				id="target"
-				position={Position.Top}
-				className={ANCHOR_HANDLE_STYLE}
-				isConnectable={false}
+				position={Position.Left}
+				isConnectable={true}
+				className={HANDLE_CLASSES}
 			/>
+			{/* Source handle - right side */}
 			<Handle
 				type="source"
 				id="source"
-				position={Position.Bottom}
-				className={ANCHOR_HANDLE_STYLE}
-				isConnectable={false}
+				position={Position.Right}
+				isConnectable={true}
+				className={HANDLE_CLASSES}
 			/>
 		</div>
 	);

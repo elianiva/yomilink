@@ -4,6 +4,7 @@ import type { Connection, MarkerType, NodeMouseHandler } from "@xyflow/react";
 import {
 	addEdge,
 	Background,
+	ConnectionMode,
 	MiniMap,
 	ReactFlow,
 	ReactFlowProvider,
@@ -25,8 +26,6 @@ import {
 	AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
 import { Button } from "@/components/ui/button";
-import { ConnectionModeIndicator } from "@/components/ui/connection-mode-indicator";
-import { ContextMenuOverlay } from "@/components/ui/context-menu-overlay";
 import { ConnectorNode } from "@/features/kitbuild/components/connector-node";
 import { FloatingConnectionLine } from "@/features/kitbuild/components/floating-connection-line";
 import { FloatingEdge } from "@/features/kitbuild/components/floating-edge";
@@ -38,7 +37,6 @@ import { MaterialDialog } from "@/features/learner-map/components/material-dialo
 import {
 	assignmentAtom,
 	attemptAtom,
-	connectionModeAtom,
 	contextMenuAtom,
 	lastSavedSnapshotAtom,
 	learnerEdgesAtom,
@@ -55,7 +53,7 @@ import { useHistory } from "@/hooks/use-history";
 import { useRpcMutation, useRpcQuery } from "@/hooks/use-rpc-query";
 import { formatDuration } from "@/lib/date-utils";
 import { toast } from "@/lib/error-toast";
-import { isValidConnection } from "@/lib/react-flow-types";
+import { areNodesConnected, isValidConnection } from "@/lib/react-flow-types";
 import { cn } from "@/lib/utils";
 import { AssignmentRpc } from "@/server/rpc/assignment";
 import { LearnerMapRpc } from "@/server/rpc/learner-map";
@@ -92,7 +90,6 @@ export function LearnerMapEditor() {
 	const { zoomIn: rfZoomIn, zoomOut: rfZoomOut, fitView } = useReactFlow();
 	const [searchOpen, setSearchOpen] = useAtom(searchOpenAtom);
 	const [materialOpen, setMaterialOpen] = useAtom(materialDialogOpenAtom);
-	const [connectionMode, setConnectionMode] = useAtom(connectionModeAtom);
 	const [contextMenu, setContextMenu] = useAtom(contextMenuAtom);
 	const [lastSavedSnapshot, setLastSavedSnapshot] = useAtom(lastSavedSnapshotAtom);
 	const materialText = useAtomValue(materialTextAtom);
@@ -196,38 +193,6 @@ export function LearnerMapEditor() {
 		status,
 	]);
 
-	// Helper to get node styling based on connection mode
-	const getNodeClassName = useCallback(
-		(node: (typeof nodes)[0]) => {
-			if (!connectionMode?.active) return "";
-
-			if (node.id === connectionMode.linkNodeId) {
-				return "ring-4 ring-blue-500 scale-105 shadow-lg";
-			}
-
-			if (node.type === "text") {
-				return "ring-2 ring-blue-300 animate-pulse cursor-pointer";
-			}
-
-			if (node.type === "connector") {
-				return "opacity-40";
-			}
-
-			return "";
-		},
-		[connectionMode],
-	);
-
-	// Apply connection mode styling to nodes
-	const styledNodes = useMemo(
-		() =>
-			nodes.map((node) => ({
-				...node,
-				className: getNodeClassName(node),
-			})),
-		[nodes, getNodeClassName],
-	);
-
 	// Auto-save effect
 	useEffect(() => {
 		if (!isHydrated || isSubmitted) return;
@@ -266,34 +231,10 @@ export function LearnerMapEditor() {
 		return () => clearInterval(timer);
 	}, [timeRemaining, isSubmitted]);
 
-	// Handle node click - show context menu or complete connection
+	// Handle node click - show context menu for connector nodes
 	const onNodeClick: NodeMouseHandler = useCallback(
 		(_event, node) => {
 			if (isSubmitted) return;
-
-			// If in connection mode, try to complete the connection
-			if (connectionMode?.active) {
-				const clickedType = node.type;
-
-				// Only allow connecting to concept (text) nodes
-				if (clickedType !== "text") {
-					return;
-				}
-
-				// Create the edge based on direction
-				const newEdge = {
-					id: `e-${connectionMode.linkNodeId}-${node.id}`,
-					source: connectionMode.direction === "to" ? connectionMode.linkNodeId : node.id,
-					target: connectionMode.direction === "to" ? node.id : connectionMode.linkNodeId,
-					type: "floating",
-					style: { stroke: "#16a34a", strokeWidth: 3 },
-					markerEnd: { type: "arrowclosed" as MarkerType, color: "#16a34a" },
-				};
-
-				setEdges((eds) => [...eds, newEdge]);
-				setConnectionMode(null);
-				return;
-			}
 
 			// Show context menu for connector nodes
 			if (node.type === "connector") {
@@ -313,34 +254,12 @@ export function LearnerMapEditor() {
 				}
 			}
 		},
-		[connectionMode, setEdges, setConnectionMode, setContextMenu, isSubmitted],
+		[setContextMenu, isSubmitted],
 	);
 
 	const onPaneClick = useCallback(() => {
 		setContextMenu(null);
-		setConnectionMode(null);
-	}, [setContextMenu, setConnectionMode]);
-
-	// Context menu actions
-	const handleConnectTo = useCallback(() => {
-		if (!contextMenu || contextMenu.nodeType !== "connector") return;
-		setConnectionMode({
-			active: true,
-			linkNodeId: contextMenu.nodeId,
-			direction: "to",
-		});
-		setContextMenu(null);
-	}, [contextMenu, setConnectionMode, setContextMenu]);
-
-	const handleConnectFrom = useCallback(() => {
-		if (!contextMenu || contextMenu.nodeType !== "connector") return;
-		setConnectionMode({
-			active: true,
-			linkNodeId: contextMenu.nodeId,
-			direction: "from",
-		});
-		setContextMenu(null);
-	}, [contextMenu, setConnectionMode, setContextMenu]);
+	}, [setContextMenu]);
 
 	const onConnect = useCallback(
 		(params: Connection) => {
@@ -349,11 +268,33 @@ export function LearnerMapEditor() {
 			const targetNode = nodes.find((n) => n.id === params.target);
 
 			// Only allow: concept -> connector or connector -> concept
-			if (!isValidConnection(sourceNode?.type, targetNode?.type)) return;
+			// Also prevent connecting to the same node
+			if (!isValidConnection(sourceNode?.type, targetNode?.type, params.source, params.target))
+				return;
+			// Prevent duplicate edges between same pair of nodes
+			if (areNodesConnected(edges, params.source, params.target)) return;
 
 			setEdges((eds) => addEdge(params, eds));
 		},
-		[nodes, setEdges, isSubmitted],
+		[nodes, edges, setEdges, isSubmitted],
+	);
+
+	// Handle connection drag end without valid target - close context menu to clean up
+	const onConnectEnd = useCallback(() => {
+		setContextMenu(null);
+	}, [setContextMenu]);
+
+	// Validate connection during drag (prevents visual feedback for invalid connections)
+	const isValidConnectionHandler = useCallback(
+		(params: { source: string; target: string }) => {
+			if (isSubmitted) return false;
+			if (params.source === params.target) return false;
+			if (areNodesConnected(edges, params.source, params.target)) return false;
+			const sourceNode = nodes.find((n) => n.id === params.source);
+			const targetNode = nodes.find((n) => n.id === params.target);
+			return isValidConnection(sourceNode?.type, targetNode?.type);
+		},
+		[nodes, edges, isSubmitted],
 	);
 
 	// Toolbar actions
@@ -527,24 +468,23 @@ export function LearnerMapEditor() {
 				</AlertDialogContent>
 			</AlertDialog>
 			{/* Canvas */}
-			<div
-				className={cn(
-					"rounded-xl border bg-card relative h-full overflow-hidden",
-					connectionMode?.active && "ring-2 ring-blue-500/50",
-				)}
-			>
+			<div className="rounded-xl border bg-card relative h-full overflow-hidden">
 				<ReactFlow
-					nodes={styledNodes}
+					nodes={nodes}
 					edges={edges}
 					nodeTypes={nodeTypes}
 					edgeTypes={edgeTypes}
 					onNodesChange={onNodesChange}
 					onEdgesChange={onEdgesChange}
 					onConnect={onConnect}
+					onConnectEnd={onConnectEnd}
+					isValidConnection={isValidConnectionHandler}
 					onNodeClick={onNodeClick}
 					onPaneClick={onPaneClick}
 					defaultEdgeOptions={edgeOptions}
 					connectionLineComponent={FloatingConnectionLine}
+					connectionRadius={80}
+					connectionMode={ConnectionMode.Loose}
 					fitView
 					nodesDraggable={!isSubmitted}
 					nodesConnectable={!isSubmitted}
@@ -576,32 +516,17 @@ export function LearnerMapEditor() {
 					isSubmitted={isSubmitted}
 					hasMaterial={!!materialText}
 				/>
-				{/* Dark overlay when context menu is open */}
-				<ContextMenuOverlay visible={contextMenu !== null} />
+
 				{/* Simple Context Menu for Connectors */}
 				{contextMenu && contextMenu.nodeType === "connector" && (
 					<div
 						className="absolute z-50 bg-background border rounded-lg shadow-lg p-1 min-w-30"
 						style={{
 							left: contextMenu.position.x,
-							top: contextMenu.position.y - 80,
+							top: contextMenu.position.y - 40,
 							transform: "translateX(-50%)",
 						}}
 					>
-						<button
-							type="button"
-							className="w-full px-3 py-1.5 text-sm text-left hover:bg-accent rounded"
-							onClick={handleConnectTo}
-						>
-							Connect To...
-						</button>
-						<button
-							type="button"
-							className="w-full px-3 py-1.5 text-sm text-left hover:bg-accent rounded"
-							onClick={handleConnectFrom}
-						>
-							Connect From...
-						</button>
 						<button
 							type="button"
 							className="w-full px-3 py-1.5 text-sm text-left text-muted-foreground hover:bg-accent rounded"
@@ -611,12 +536,6 @@ export function LearnerMapEditor() {
 						</button>
 					</div>
 				)}
-				{/* Connection Mode Indicator */}
-				<ConnectionModeIndicator
-					active={connectionMode?.active ?? false}
-					direction={connectionMode?.direction ?? "to"}
-					onCancel={() => setConnectionMode(null)}
-				/>
 			</div>
 		</div>
 	);

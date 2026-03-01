@@ -1,4 +1,4 @@
-import { ArrowLeft, ArrowRight, Pencil, Trash2 } from "lucide-react";
+import { Pencil, Trash2 } from "lucide-react";
 import { memo, useCallback, useEffect, useRef } from "react";
 
 import { Button } from "@/components/ui/button";
@@ -23,8 +23,6 @@ export type NodeContextMenuProps = {
 	position: { x: number; y: number };
 	onEdit: () => void;
 	onDelete: () => void;
-	onConnectTo?: () => void;
-	onConnectFrom?: () => void;
 	onClose: () => void;
 };
 
@@ -64,12 +62,10 @@ function ActionButton({ icon, label, onClick, variant = "default" }: ActionButto
 }
 
 function NodeContextMenuImpl({
-	nodeType,
+	nodeType: _nodeType,
 	position,
 	onEdit,
 	onDelete,
-	onConnectTo,
-	onConnectFrom,
 	onClose,
 }: NodeContextMenuProps) {
 	const menuRef = useRef<HTMLDivElement>(null);
@@ -147,27 +143,6 @@ function NodeContextMenuImpl({
 					onClick={(e) => e.stopPropagation()}
 					onKeyDown={handleKeyDown}
 				>
-					{/* Connection actions - only for connector/link nodes */}
-					{nodeType === "connector" && (
-						<>
-							{onConnectFrom && (
-								<ActionButton
-									icon={<ArrowLeft className="size-4" />}
-									label="Connect From"
-									onClick={onConnectFrom}
-								/>
-							)}
-							{onConnectTo && (
-								<ActionButton
-									icon={<ArrowRight className="size-4" />}
-									label="Connect To"
-									onClick={onConnectTo}
-								/>
-							)}
-							<div className="mx-1 h-5 w-px bg-border" aria-hidden="true" />
-						</>
-					)}
-
 					{/* Common actions */}
 					<ActionButton
 						icon={<Pencil className="size-4" />}

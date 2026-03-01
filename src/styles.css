@@ -56,6 +56,12 @@ body {
 	--chart-4: oklch(0.6 0.1 45);
 	--chart-5: oklch(0.52 0.12 15);
 
+	/* Edge colors - Soft semantic palette */
+	--edge-correct: oklch(0.65 0.08 145);
+	--edge-excessive: oklch(0.6 0.06 230);
+	--edge-missing: oklch(0.58 0.12 25);
+	--edge-neutral: oklch(0.55 0.04 65);
+
 	/* Sidebar - Slightly deeper cream */
 	--sidebar: oklch(0.975 0.006 75);
 	--sidebar-foreground: oklch(0.32 0.012 65);
@@ -147,6 +153,12 @@ body {
 	--chart-4: oklch(0.65 0.09 45);
 	--chart-5: oklch(0.58 0.11 15);
 
+	/* Edge colors - Soft semantic palette */
+	--edge-correct: oklch(0.68 0.07 145);
+	--edge-excessive: oklch(0.65 0.05 230);
+	--edge-missing: oklch(0.62 0.1 25);
+	--edge-neutral: oklch(0.6 0.03 65);
+
 	/* Sidebar - Deep warm charcoal */
 	--sidebar: oklch(0.205 0.014 65);
 	--sidebar-foreground: oklch(0.93 0.008 75);
@@ -217,6 +229,11 @@ body {
 	--color-chart-3: var(--chart-3);
 	--color-chart-4: var(--chart-4);
 	--color-chart-5: var(--chart-5);
+
+	--color-edge-correct: var(--edge-correct);
+	--color-edge-excessive: var(--edge-excessive);
+	--color-edge-missing: var(--edge-missing);
+	--color-edge-neutral: var(--edge-neutral);
 	--color-sidebar: var(--sidebar);
 	--color-sidebar-foreground: var(--sidebar-foreground);
 	--color-sidebar-primary: var(--sidebar-primary);

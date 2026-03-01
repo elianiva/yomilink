@@ -1,7 +1,9 @@
 import type { Connection, MarkerType, NodeMouseHandler } from "@xyflow/react";
 import { addEdge } from "@xyflow/react";
-import { useAtom, useAtomValue, useSetAtom } from "jotai";
+import { useAtom, useAtomValue } from "jotai";
 import { useCallback } from "react";
+
+import { areNodesConnected } from "@/lib/react-flow-types";
 
 import {
 	connectionModeAtom,
@@ -14,7 +16,7 @@ import {
 
 export function useContextMenu() {
 	const [nodes, setNodes] = useAtom(nodesAtom);
-	const setEdges = useSetAtom(edgesAtom);
+	const [edges, setEdges] = useAtom(edgesAtom);
 	const [contextMenu, setContextMenu] = useAtom(contextMenuAtom);
 	const [connectionMode, setConnectionMode] = useAtom(connectionModeAtom);
 	const [editNode, setEditNode] = useAtom(editNodeAtom);
@@ -116,6 +118,18 @@ export function useContextMenu() {
 					return;
 				}
 
+				// Prevent connecting to the same node
+				if (connectionMode.linkNodeId === node.id) {
+					setConnectionMode(null);
+					return;
+				}
+
+				// Prevent duplicate edges between same pair of nodes
+				if (areNodesConnected(edges, connectionMode.linkNodeId, node.id)) {
+					setConnectionMode(null);
+					return;
+				}
+
 				const newEdge = {
 					id: `e-${connectionMode.linkNodeId}-${node.id}`,
 					source: connectionMode.direction === "to" ? connectionMode.linkNodeId : node.id,
@@ -148,7 +162,7 @@ export function useContextMenu() {
 				});
 			}
 		},
-		[connectionMode, directionEnabled, setEdges, setConnectionMode, setContextMenu],
+		[connectionMode, directionEnabled, edges, setEdges, setConnectionMode, setContextMenu],
 	);
 
 	const onPaneClick = useCallback(() => {
@@ -158,6 +172,10 @@ export function useContextMenu() {
 
 	const onConnect = useCallback(
 		(params: Connection, getNodeType: (id: string | null) => string | undefined) => {
+			// Prevent connecting a node to itself
+			if (params.source === params.target) return;
+			// Prevent duplicate edges between same pair of nodes
+			if (areNodesConnected(edges, params.source, params.target)) return;
 			const sType = getNodeType(params.source ?? null);
 			const tType = getNodeType(params.target ?? null);
 			const ok =
@@ -166,7 +184,7 @@ export function useContextMenu() {
 			if (!ok) return;
 			setEdges((eds) => addEdge(params, eds));
 		},
-		[setEdges],
+		[edges, setEdges],
 	);
 
 	return {

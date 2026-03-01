@@ -3,11 +3,11 @@ import { useInternalNode } from "@xyflow/react";
 
 import { getEdgeParamsFromSourceToPoint } from "../lib/floating-edge-utils";
 
-const LINE_COLOR = "oklch(44.4% 0.011 73.639)";
+const PREVIEW_COLOR = "oklch(55.2% 0.016 285.938)";
 
 /**
  * Custom connection line that starts from the node boundary
- * rather than a fixed handle position.
+ * rather than a fixed handle position. Shows dashed preview line when dragging.
  */
 export function FloatingConnectionLine({ toX, toY, fromNode }: ConnectionLineComponentProps) {
 	const sourceNode = useInternalNode(fromNode?.id ?? "");
@@ -23,20 +23,16 @@ export function FloatingConnectionLine({ toX, toY, fromNode }: ConnectionLineCom
 
 	return (
 		<g>
+			{/* Dashed preview line */}
 			<path
 				fill="none"
-				stroke={LINE_COLOR}
+				stroke={PREVIEW_COLOR}
 				strokeWidth={3}
+				strokeDasharray="6,4"
 				d={`M ${sx},${sy} L ${toX},${toY}`}
 			/>
-			<circle
-				cx={toX}
-				cy={toY}
-				r={4}
-				fill={LINE_COLOR}
-				stroke={LINE_COLOR}
-				strokeWidth={1.5}
-			/>
+			{/* Target indicator dot */}
+			<circle cx={toX} cy={toY} r={5} fill={PREVIEW_COLOR} stroke="#fff" strokeWidth={2} />
 		</g>
 	);
 }

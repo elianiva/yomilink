@@ -1,4 +1,5 @@
 import { Check, X } from "lucide-react";
+
 import { cn } from "@/lib/utils";
 
 interface PasswordStrengthProps {
@@ -20,7 +21,12 @@ export function PasswordStrength({ password }: PasswordStrengthProps) {
 		strong: "bg-emerald-500",
 	};
 	const requirement = (label: string, met: boolean) => (
-		<div className={cn("flex items-center gap-1.5 text-xs", met ? "text-emerald-600" : "text-muted-foreground")}>
+		<div
+			className={cn(
+				"flex items-center gap-1.5 text-xs",
+				met ? "text-emerald-600" : "text-muted-foreground",
+			)}
+		>
 			{met ? <Check className="h-3 w-3" /> : <X className="h-3 w-3" />}
 			<span>{label}</span>
 		</div>
