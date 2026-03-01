@@ -7,7 +7,7 @@ export const Route = createFileRoute("/")({
 	component: () => null,
 	beforeLoad: async () => {
 		const me = await getMe();
-		if (me) throw redirect({ to: "/dashboard" });
+		if (me.success) throw redirect({ to: "/dashboard" });
 		throw redirect({ to: "/login" });
 	},
 });

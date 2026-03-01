@@ -11,12 +11,13 @@ import { Rpc, logRpcError } from "../rpc-helper";
 export const getMe = createServerFn()
 	.middleware([authMiddlewareOptional])
 	.handler(({ context }) =>
-		Effect.gen(function* () {
-			if (!context.user) {
-				return yield* Rpc.err("Not authenticated");
-			}
-			return Rpc.ok(context.user);
-		}).pipe(Effect.provide(AppLayer), Effect.runPromise),
+		Effect.fromNullable(context.user).pipe(
+			Effect.map(Rpc.ok),
+			Effect.withSpan("getMe"),
+			Effect.catchAll(() => Rpc.notFound("User")),
+			Effect.provide(AppLayer),
+			Effect.runPromise,
+		),
 	);
 
 export const updateProfileRpc = createServerFn()

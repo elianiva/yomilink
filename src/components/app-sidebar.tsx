@@ -74,11 +74,8 @@ const NAVBAR_ITEMS: NavItemWithRoles[] = [
 type AppSidebarProps = React.ComponentProps<typeof Sidebar>;
 
 export function AppSidebar(props: AppSidebarProps) {
-	const { data: me } = useRpcQuery(ProfileRpc.getMe());
-	const displayName = me?.name ?? null;
-	const displayEmail = me?.email ?? null;
-	const displayAvatar = me?.image ?? null;
-	const userRole = me?.role ?? "student";
+	const { data } = useRpcQuery(ProfileRpc.getMe());
+	const me = data!; // this will never be null because we preload the data in dashboard layout
 
 	// Filter navbar items based on user role
 	const filteredItems = useMemo(() => {
@@ -86,9 +83,9 @@ export function AppSidebar(props: AppSidebarProps) {
 			// If no roles specified, show to everyone
 			if (!item.roles) return true;
 			// Check if user's role is in the allowed roles
-			return item.roles.includes(userRole);
+			return item.roles.includes(me.role);
 		}).map((item) => item); // Remove roles from the item before passing to NavMain
-	}, [userRole]);
+	}, [me.role]);
 
 	return (
 		<Sidebar collapsible="icon" {...props}>
@@ -111,9 +108,9 @@ export function AppSidebar(props: AppSidebarProps) {
 			<SidebarFooter>
 				<NavUser
 					user={{
-						name: displayName as string,
-						email: displayEmail as string,
-						avatar: displayAvatar as string,
+						name: me.name ?? "User",
+						email: me.email ?? "user@example.com",
+						avatar: me.image ?? "",
 					}}
 				/>
 			</SidebarFooter>

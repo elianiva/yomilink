@@ -82,10 +82,8 @@ export function useRpcQuery<TData, TQueryKey extends readonly unknown[] = readon
 		retryDelay: (attemptIndex) => [1000, 2000, 4000][attemptIndex] ?? 4000,
 	});
 
-	const { data: rawData } = queryResult;
-	const processedResult = useMemo(() => extractRpcResult(rawData), [rawData]);
-
-	const { data: _rawData, ...restQueryResult } = queryResult;
+	const { data: rawData, ...restQueryResult } = queryResult;
+	const processedResult = extractRpcResult(rawData);
 
 	return {
 		...restQueryResult,

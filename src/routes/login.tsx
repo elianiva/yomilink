@@ -38,7 +38,7 @@ export const Route = createFileRoute("/login")({
 	ssr: true,
 	beforeLoad: async () => {
 		const me = await getMe();
-		if (me) throw redirect({ to: "/dashboard" });
+		if (me.success) throw redirect({ to: "/dashboard" });
 		return null;
 	},
 	component: LoginPage,

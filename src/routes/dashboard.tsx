@@ -49,16 +49,10 @@ export const Route = createFileRoute("/dashboard")({
 			}
 		}
 
-		return me.data;
+		return { me };
 	},
 	loader: async ({ context }) => {
-		context.queryClient.setQueryData<typeof AuthUser.Type>(ProfileRpc.me(), {
-			id: context.id,
-			role: context.role,
-			email: context.email,
-			name: context.name,
-			image: context.image,
-		});
+		context.queryClient.setQueryData(ProfileRpc.me(), context.me);
 	},
 	component: DashboardLayout,
 });
