@@ -81,8 +81,8 @@ describe("material-image-service", () => {
 						file,
 					});
 
-					assert.strictEqual(result.success, true);
-					assert.strictEqual(result.image.type, "image/png");
+				assert.strictEqual(result.id, mockUUID);
+				assert.strictEqual(result.type, "image/png");
 				}),
 			);
 
@@ -94,8 +94,8 @@ describe("material-image-service", () => {
 						file,
 					});
 
-					assert.strictEqual(result.success, true);
-					assert.strictEqual(result.image.type, "image/jpeg");
+				assert.strictEqual(result.id, mockUUID);
+				assert.strictEqual(result.type, "image/jpeg");
 				}),
 			);
 
@@ -107,8 +107,8 @@ describe("material-image-service", () => {
 						file,
 					});
 
-					assert.strictEqual(result.success, true);
-					assert.strictEqual(result.image.type, "image/jpg");
+				assert.strictEqual(result.id, mockUUID);
+				assert.strictEqual(result.type, "image/jpg");
 				}),
 			);
 
@@ -120,8 +120,8 @@ describe("material-image-service", () => {
 						file,
 					});
 
-					assert.strictEqual(result.success, true);
-					assert.strictEqual(result.image.type, "image/gif");
+				assert.strictEqual(result.id, mockUUID);
+				assert.strictEqual(result.type, "image/gif");
 				}),
 			);
 
@@ -133,8 +133,8 @@ describe("material-image-service", () => {
 						file,
 					});
 
-					assert.strictEqual(result.success, true);
-					assert.strictEqual(result.image.type, "image/webp");
+				assert.strictEqual(result.id, mockUUID);
+				assert.strictEqual(result.type, "image/webp");
 				}),
 			);
 
@@ -146,8 +146,8 @@ describe("material-image-service", () => {
 						file,
 					});
 
-					assert.strictEqual(result.success, true);
-					assert.strictEqual(result.image.type, "image/svg+xml");
+				assert.strictEqual(result.id, mockUUID);
+				assert.strictEqual(result.type, "image/svg+xml");
 				}),
 			);
 
@@ -221,7 +221,7 @@ describe("material-image-service", () => {
 						file,
 					});
 
-					assert.strictEqual(result.success, true);
+				assert.strictEqual(result.id, mockUUID);
 				}),
 			);
 
@@ -235,7 +235,7 @@ describe("material-image-service", () => {
 						file,
 					});
 
-					assert.strictEqual(result.success, true);
+				assert.strictEqual(result.id, mockUUID);
 				}),
 			);
 
@@ -277,14 +277,16 @@ describe("material-image-service", () => {
 						file,
 					});
 
-					assert.strictEqual(result.success, true);
-					assert.strictEqual(result.image.id, mockUUID);
-					assert.strictEqual(result.image.name, "my-image.png");
-					assert.strictEqual(result.image.type, "image/png");
-					assert.strictEqual(result.image.size, file.size);
-					assert.strictEqual(typeof result.image.uploadedAt, "number");
-				}),
-			);
+				assert.strictEqual(result.id, mockUUID);
+				assert.strictEqual(result.name, "my-image.png");
+				assert.strictEqual(result.type, "image/png");
+				assert.strictEqual(result.size, file.size);
+				assert.strictEqual(typeof result.uploadedAt, "number");
+				assert.strictEqual(result.url,
+					`/api/materials/images/goal-map-123/${mockUUID}`,
+				);
+			}),
+		);
 
 			it.effect("should return correct public URL format", () =>
 				Effect.gen(function* () {
@@ -295,12 +297,12 @@ describe("material-image-service", () => {
 						file,
 					});
 
-					assert.strictEqual(
-						result.image.url,
-						`/api/materials/images/${goalMapId}/${mockUUID}`,
-					);
-				}),
-			);
+				assert.strictEqual(
+					result.url,
+					`/api/materials/images/${goalMapId}/${mockUUID}`,
+				);
+			}),
+		);
 
 			it.effect("should call R2 put with correct key and metadata", () =>
 				Effect.gen(function* () {

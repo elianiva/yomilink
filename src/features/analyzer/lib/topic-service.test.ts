@@ -70,7 +70,7 @@ describe("topic-service", () => {
 					description: "Test Description",
 				});
 
-				assert.isTrue(result.success);
+				assert.strictEqual(result, true);
 			}).pipe(Effect.provide(DatabaseTest)),
 		);
 
@@ -80,7 +80,7 @@ describe("topic-service", () => {
 					title: "Test Topic",
 				});
 
-				assert.isTrue(result.success);
+				assert.strictEqual(result, true);
 			}).pipe(Effect.provide(DatabaseTest)),
 		);
 
@@ -91,7 +91,7 @@ describe("topic-service", () => {
 					description: undefined,
 				});
 
-				assert.isTrue(result.success);
+				assert.strictEqual(result, true);
 			}).pipe(Effect.provide(DatabaseTest)),
 		);
 

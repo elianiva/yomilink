@@ -120,7 +120,7 @@ describe("goal-map-service", () => {
 					edges: simpleGoalMap.edges,
 				});
 
-				assert.isTrue(result.success);
+				assert.strictEqual(result.errors.length, 0);
 				assert.deepStrictEqual(result.errors, []);
 			}).pipe(Effect.provide(DatabaseTest)),
 		);
@@ -139,7 +139,7 @@ describe("goal-map-service", () => {
 					edges: simpleGoalMap.edges,
 				});
 
-				assert.isTrue(result.success);
+				assert.strictEqual(result.errors.length, 0);
 
 				const updated = yield* getGoalMap({ goalMapId: goalMap.id });
 				assert.strictEqual(updated?.title, "Updated Title");
@@ -157,7 +157,7 @@ describe("goal-map-service", () => {
 					edges: [],
 				});
 
-				assert.isFalse(result.success);
+				assert.isTrue(result.errors.length > 0);
 				assert.isTrue(result.errors.length > 0);
 			}).pipe(Effect.provide(DatabaseTest)),
 		);
@@ -192,11 +192,9 @@ describe("goal-map-service", () => {
 					edges: simpleGoalMap.edges,
 				});
 
-				assert.isTrue(result.success);
-				if (result.success) {
-					assert.isDefined(result.propositions);
-					assert.isTrue(result.propositions.length > 0);
-				}
+				assert.strictEqual(result.errors.length, 0);
+				assert.isDefined(result.propositions);
+				assert.isTrue(result.propositions.length > 0);
 			}).pipe(Effect.provide(DatabaseTest)),
 		);
 
@@ -213,7 +211,7 @@ describe("goal-map-service", () => {
 					topicId: topic.id,
 				});
 
-				assert.isTrue(result.success);
+				assert.strictEqual(result.errors.length, 0);
 			}).pipe(Effect.provide(DatabaseTest)),
 		);
 
@@ -229,7 +227,7 @@ describe("goal-map-service", () => {
 					materialText: "This is learning material text",
 				});
 
-				assert.isTrue(result.success);
+				assert.strictEqual(result.errors.length, 0);
 			}).pipe(Effect.provide(DatabaseTest)),
 		);
 
@@ -245,7 +243,7 @@ describe("goal-map-service", () => {
 					edges: simpleGoalMap.edges,
 					materialText: "Original material",
 				});
-				assert.isTrue(firstSave.success);
+				assert.strictEqual(firstSave.errors.length, 0);
 
 				// Get the created goal map
 				const maps = yield* listGoalMaps(teacher.id);
@@ -260,7 +258,7 @@ describe("goal-map-service", () => {
 					materialText: "Updated material",
 				});
 
-				assert.isTrue(result.success);
+				assert.strictEqual(result.errors.length, 0);
 
 				const updated = yield* getGoalMap({ goalMapId });
 				assert.strictEqual(updated?.materialText, "Updated material");
@@ -457,7 +455,7 @@ describe("goal-map-service", () => {
 				const result = yield* deleteGoalMap(teacher.id, {
 					goalMapId: goalMap.id,
 				});
-				assert.isTrue(result.success);
+				assert.strictEqual(result, true);
 
 				const deleted = yield* getGoalMap({ goalMapId: goalMap.id });
 				assert.isNull(deleted);

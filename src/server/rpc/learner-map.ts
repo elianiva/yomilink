@@ -58,6 +58,12 @@ export const saveLearnerMapRpc = createServerFn()
 		saveLearnerMap(context.user.id, data).pipe(
 			Effect.map(() => Rpc.ok(true)),
 			Effect.withSpan("saveLearnerMap"),
+			Effect.tapError(logRpcError("saveLearnerMap")),
+			Effect.catchTags({
+				AssignmentNotFoundError: () => Rpc.notFound("Assignment"),
+				AccessDeniedError: () => Rpc.forbidden("Access denied"),
+				LearnerMapAlreadySubmittedError: () => Rpc.err("Cannot edit submitted map"),
+			}),
 			Effect.provide(AppLayer),
 			Effect.runPromise,
 		),
@@ -71,7 +77,11 @@ export const submitLearnerMapRpc = createServerFn()
 			Effect.map(Rpc.ok),
 			Effect.withSpan("submitLearnerMap"),
 			Effect.tapError(logRpcError("submitLearnerMap")),
-			Effect.catchAll(() => Rpc.err("Internal server error")),
+			Effect.catchTags({
+				LearnerMapNotFoundError: () => Rpc.notFound("Learner map"),
+				LearnerMapAlreadySubmittedError: () => Rpc.err("Already submitted"),
+				GoalMapNotFoundError: () => Rpc.notFound("Goal map"),
+			}),
 			Effect.provide(AppLayer),
 			Effect.runPromise,
 		),
@@ -96,10 +106,13 @@ export const startNewAttemptRpc = createServerFn()
 	.inputValidator((raw) => Schema.decodeUnknownSync(StartNewAttemptInput)(raw))
 	.handler(({ data, context }) =>
 		startNewAttempt(context.user.id, data).pipe(
-			Effect.map(Rpc.ok),
+			Effect.map(() => Rpc.ok(true)),
 			Effect.withSpan("startNewAttempt"),
 			Effect.tapError(logRpcError("startNewAttempt")),
-			Effect.catchAll(() => Rpc.err("Internal server error")),
+			Effect.catchTags({
+				NoPreviousAttemptError: () => Rpc.err("No previous attempt found"),
+				PreviousAttemptNotSubmittedError: () => Rpc.err("Previous attempt not submitted"),
+			}),
 			Effect.provide(AppLayer),
 			Effect.runPromise,
 		),
@@ -127,7 +140,10 @@ export const submitControlTextRpc = createServerFn()
 			Effect.map(() => Rpc.ok(true)),
 			Effect.withSpan("submitControlText"),
 			Effect.tapError(logRpcError("submitControlText")),
-			Effect.catchAll(() => Rpc.err("Internal server error")),
+			Effect.catchTags({
+				AssignmentNotFoundError: () => Rpc.notFound("Assignment"),
+				LearnerMapAlreadySubmittedError: () => Rpc.err("Already submitted"),
+			}),
 			Effect.provide(AppLayer),
 			Effect.runPromise,
 		),

@@ -47,6 +47,7 @@ export const saveGoalMapRpc = createServerFn()
 			Effect.withSpan("saveGoalMap"),
 			Effect.tapError(logRpcError("saveGoalMap")),
 			Effect.catchTags({
+				GoalMapValidationError: (e) => Rpc.err(`Validation failed: ${e.errors.join(", ")}`),
 				GoalMapNotFoundError: () => Rpc.notFound("Goal map"),
 				ForbiddenError: (e) => Rpc.forbidden(e.message),
 			}),

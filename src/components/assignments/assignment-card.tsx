@@ -7,10 +7,10 @@ interface AssignmentCardProps {
 	assignment: {
 		id: string;
 		title: string;
-		description: string;
-		goalMapTitle: string;
-		startDate: number;
-		dueAt: number;
+		description: string | null;
+		goalMapTitle: string | null;
+		startDate?: number;
+		dueAt?: number;
 		createdAt: number;
 		updatedAt: number;
 	};

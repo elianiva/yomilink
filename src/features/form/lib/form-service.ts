@@ -232,7 +232,7 @@ export const deleteForm = Effect.fn("deleteForm")(function* (formId: string) {
 
 	yield* db.delete(forms).where(eq(forms.id, formId));
 
-	return { id: formId };
+	return true;
 });
 
 export const publishForm = Effect.fn("publishForm")(function* (formId: string) {
@@ -247,7 +247,7 @@ export const publishForm = Effect.fn("publishForm")(function* (formId: string) {
 
 	yield* db.update(forms).set({ status: "published" }).where(eq(forms.id, formId));
 
-	return { id: formId, status: "published" };
+	return true;
 });
 
 export const unpublishForm = Effect.fn("unpublishForm")(function* (formId: string) {
@@ -262,7 +262,7 @@ export const unpublishForm = Effect.fn("unpublishForm")(function* (formId: strin
 
 	yield* db.update(forms).set({ status: "draft" }).where(eq(forms.id, formId));
 
-	return { id: formId, status: "draft" };
+	return true;
 });
 
 export const cloneForm = Effect.fn("cloneForm")(function* (formId: string, userId: string) {
@@ -305,7 +305,7 @@ export const cloneForm = Effect.fn("cloneForm")(function* (formId: string, userI
 		});
 	}
 
-	return { id: newFormId, originalFormId: formId };
+	return true;
 });
 
 export const SubmitFormResponseInput = Schema.Struct({
@@ -453,7 +453,7 @@ export const reorderQuestions = Effect.fn("reorderQuestions")(function* (
 			.where(and(eq(questions.id, input.questionIds[i]), eq(questions.formId, input.formId)));
 	}
 
-	return { formId: input.formId, reordered: input.questionIds.length };
+	return true;
 });
 
 export const submitFormResponse = Effect.fn("submitFormResponse")(function* (
@@ -521,11 +521,7 @@ export const submitFormResponse = Effect.fn("submitFormResponse")(function* (
 		});
 	}
 
-	return {
-		id: responseId,
-		formId: data.formId,
-		submittedAt,
-	};
+	return true;
 });
 
 // Question CRUD operations
@@ -618,15 +614,7 @@ export const createQuestion = Effect.fn("createQuestion")(function* (data: Creat
 		required: data.required,
 	});
 
-	return {
-		id: questionId,
-		formId: data.formId,
-		type: data.type,
-		questionText: data.questionText,
-		options: data.options ?? null,
-		orderIndex,
-		required: data.required,
-	};
+	return true;
 });
 
 export const UpdateQuestionInput = Schema.Struct({
@@ -677,7 +665,7 @@ export const updateQuestion = Effect.fn("updateQuestion")(function* (data: Updat
 		})
 		.where(eq(questions.id, data.questionId));
 
-	return { id: data.questionId };
+	return true;
 });
 
 export const deleteQuestion = Effect.fn("deleteQuestion")(function* (questionId: string) {
@@ -708,7 +696,7 @@ export const deleteQuestion = Effect.fn("deleteQuestion")(function* (questionId:
 
 	yield* db.delete(questions).where(eq(questions.id, questionId));
 
-	return { id: questionId };
+	return true;
 });
 
 // Check if user has completed the registration form

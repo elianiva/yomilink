@@ -211,8 +211,7 @@ describe("kit-service", () => {
 					goalMapId: goalMap.id,
 				});
 
-				assert.isTrue(result.ok);
-				assert.strictEqual(result.kitId, goalMap.id);
+				assert.strictEqual(result, true);
 			}).pipe(Effect.provide(DatabaseTest)),
 		);
 
@@ -227,7 +226,7 @@ describe("kit-service", () => {
 					goalMapId: goalMap.id,
 				});
 
-				assert.isTrue(result.ok);
+				assert.strictEqual(result, true);
 			}).pipe(Effect.provide(DatabaseTest)),
 		);
 

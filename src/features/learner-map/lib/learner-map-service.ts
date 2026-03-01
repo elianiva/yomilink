@@ -36,6 +36,21 @@ export class GoalMapNotFoundError extends Data.TaggedError("GoalMapNotFoundError
 	readonly goalMapId: string;
 }> {}
 
+
+export class AccessDeniedError extends Data.TaggedError("AccessDeniedError")<{
+	readonly assignmentId: string;
+}> {}
+
+export class NoPreviousAttemptError extends Data.TaggedError("NoPreviousAttemptError")<{
+	readonly assignmentId: string;
+}> {}
+
+export class PreviousAttemptNotSubmittedError extends Data.TaggedError(
+	"PreviousAttemptNotSubmittedError",
+)<{
+	readonly learnerMapId: string;
+}> {}
+
 export const GetAssignmentForStudentInput = Schema.Struct({
 	assignmentId: Schema.NonEmptyString,
 });
@@ -102,6 +117,10 @@ export const listStudentAssignments = Effect.fn("listStudentAssignments")(functi
 			goalMapId: assignments.goalMapId,
 			kitId: assignments.kitId,
 			dueAt: assignments.dueAt,
+			preTestFormId: assignments.preTestFormId,
+			postTestFormId: assignments.postTestFormId,
+			delayedPostTestFormId: assignments.delayedPostTestFormId,
+			tamFormId: assignments.tamFormId,
 			createdAt: assignments.createdAt,
 			goalMapTitle: goalMaps.title,
 			learnerMapStatus: learnerMaps.status,
@@ -181,7 +200,8 @@ export const getAssignmentForStudent = Effect.fn("getAssignmentForStudent")(func
 				nodes: learnerMaps.nodes,
 				edges: learnerMaps.edges,
 				status: learnerMaps.status,
-				attempt: learnerMaps.attempt,
+			attempt: learnerMaps.attempt,
+			controlText: learnerMaps.controlText,
 			},
 		})
 		.from(assignments)
@@ -218,6 +238,7 @@ export const getAssignmentForStudent = Effect.fn("getAssignmentForStudent")(func
 					edges: Array.isArray(result.learnerMap.edges) ? result.learnerMap.edges : [],
 					status: result.learnerMap.status,
 					attempt: result.learnerMap.attempt,
+					controlText: result.learnerMap.controlText,
 				}
 			: null,
 	};
@@ -246,7 +267,7 @@ export const saveLearnerMap = Effect.fn("saveLearnerMap")(function* (
 
 	const assignment = assignmentRows[0];
 	if (!assignment) {
-		return { success: false, error: "Assignment not found" } as const;
+		return yield* new AssignmentNotFoundError({ assignmentId: data.assignmentId });
 	}
 
 	// Verify user has access via cohort or direct targeting
@@ -275,7 +296,7 @@ export const saveLearnerMap = Effect.fn("saveLearnerMap")(function* (
 		.limit(1);
 
 	if (hasAccess.length === 0) {
-		return { success: false, error: "Access denied" } as const;
+		return yield* new AccessDeniedError({ assignmentId: data.assignmentId });
 	}
 
 	const existingRows = yield* db
@@ -287,10 +308,7 @@ export const saveLearnerMap = Effect.fn("saveLearnerMap")(function* (
 	const existing = existingRows[0];
 	if (existing) {
 		if (existing.status === "submitted") {
-			return {
-				success: false,
-				error: "Cannot edit submitted map",
-			} as const;
+			return yield* new LearnerMapAlreadySubmittedError({ learnerMapId: existing.id });
 		}
 
 		yield* db
@@ -304,7 +322,7 @@ export const saveLearnerMap = Effect.fn("saveLearnerMap")(function* (
 			})
 			.where(eq(learnerMaps.id, existing.id));
 
-		return { success: true, learnerMapId: existing.id } as const;
+		return true;
 	}
 
 	const learnerMapId = randomString();
@@ -321,7 +339,7 @@ export const saveLearnerMap = Effect.fn("saveLearnerMap")(function* (
 		attempt: 1,
 	});
 
-	return { success: true, learnerMapId } as const;
+	return true;
 });
 
 export const submitLearnerMap = Effect.fn("submitLearnerMap")(function* (
@@ -340,11 +358,11 @@ export const submitLearnerMap = Effect.fn("submitLearnerMap")(function* (
 
 	const learnerMap = learnerMapRows[0];
 	if (!learnerMap) {
-		return { success: false, error: "Learner map not found" } as const;
+		return yield* new LearnerMapNotFoundError({ assignmentId: input.assignmentId, userId });
 	}
 
 	if (learnerMap.status === "submitted") {
-		return { success: false, error: "Already submitted" } as const;
+		return yield* new LearnerMapAlreadySubmittedError({ learnerMapId: learnerMap.id });
 	}
 
 	const goalMapRows = yield* db
@@ -355,7 +373,7 @@ export const submitLearnerMap = Effect.fn("submitLearnerMap")(function* (
 
 	const goalMap = goalMapRows[0];
 	if (!goalMap) {
-		return { success: false, error: "Goal map not found" } as const;
+		return yield* new GoalMapNotFoundError({ goalMapId: learnerMap.goalMapId });
 	}
 
 	const goalMapEdges = Array.isArray(goalMap.edges) ? goalMap.edges : [];
@@ -383,10 +401,9 @@ export const submitLearnerMap = Effect.fn("submitLearnerMap")(function* (
 	});
 
 	return {
-		success: true,
 		diagnosisId,
 		diagnosis,
-	} as const;
+	};
 });
 
 export const getDiagnosis = Effect.fn("getDiagnosis")(function* (
@@ -495,14 +512,11 @@ export const startNewAttempt = Effect.fn("startNewAttempt")(function* (
 
 	const existing = existingRows[0];
 	if (!existing) {
-		return { success: false, error: "No previous attempt found" } as const;
+		return yield* new NoPreviousAttemptError({ assignmentId: input.assignmentId });
 	}
 
 	if (existing.status !== "submitted") {
-		return {
-			success: false,
-			error: "Previous attempt not submitted",
-		} as const;
+		return yield* new PreviousAttemptNotSubmittedError({ learnerMapId: existing.id });
 	}
 
 	yield* db
@@ -514,7 +528,7 @@ export const startNewAttempt = Effect.fn("startNewAttempt")(function* (
 		})
 		.where(eq(learnerMaps.id, existing.id));
 
-	return { success: true, attempt: existing.attempt + 1 } as const;
+	return true;
 });
 
 export const getPeerStats = Effect.fn("getPeerStats")(function* (
@@ -596,7 +610,7 @@ export const submitControlText = Effect.fn("submitControlText")(function* (
 
 	const assignment = assignmentRows[0];
 	if (!assignment) {
-		return { success: false, error: "Assignment not found" } as const;
+		return yield* new AssignmentNotFoundError({ assignmentId: input.assignmentId });
 	}
 
 	// Check for existing submission
@@ -610,10 +624,7 @@ export const submitControlText = Effect.fn("submitControlText")(function* (
 
 	const existing = existingRows[0];
 	if (existing?.status === "submitted") {
-		return {
-			success: false,
-			error: "Already submitted",
-		} as const;
+			return yield* new LearnerMapAlreadySubmittedError({ learnerMapId: existing.id });
 	}
 
 	if (existing) {
@@ -627,7 +638,7 @@ export const submitControlText = Effect.fn("submitControlText")(function* (
 			})
 			.where(eq(learnerMaps.id, existing.id));
 
-		return { success: true, learnerMapId: existing.id } as const;
+		return true;
 	}
 
 	// Create new learner map with control text
@@ -646,5 +657,5 @@ export const submitControlText = Effect.fn("submitControlText")(function* (
 		submittedAt: new Date(),
 	});
 
-	return { success: true, learnerMapId } as const;
+	return true;
 });

@@ -37,7 +37,7 @@ function ImportMaterialDialogImpl({ goalMapId }: ImportMaterialDialogProps) {
 		showSuccess: true,
 		successMessage: "Image uploaded successfully",
 		onSuccess: (data) => {
-			setMaterialImages((prev) => [...prev, data.image]);
+		setMaterialImages((prev) => [...prev, data]);
 		},
 	});
 

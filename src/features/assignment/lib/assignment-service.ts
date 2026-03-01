@@ -119,7 +119,7 @@ export const createAssignment = Effect.fn("createAssignment")(function* (
 		yield* db.insert(assignmentTargets).values(targets);
 	}
 
-	return { success: true, assignmentId } as const;
+	return true;
 });
 
 export const listTeacherAssignments = Effect.fn("listTeacherAssignments")(function* (
@@ -178,7 +178,7 @@ export const deleteAssignment = Effect.fn("deleteAssignment")(function* (
 
 	yield* db.delete(assignments).where(eq(assignments.id, input.id));
 
-	return { success: true } as const;
+	return true;
 });
 
 export const getAvailableCohorts = Effect.fn("getAvailableCohorts")(function* () {
@@ -258,7 +258,7 @@ export const saveExperimentGroups = Effect.fn("saveExperimentGroups")(function* 
 		yield* db.insert(experimentGroups).values(values);
 	}
 
-	return { success: true };
+	return true;
 });
 
 export const getExperimentGroupsByAssignmentId = Effect.fn("getExperimentGroupsByAssignmentId")(

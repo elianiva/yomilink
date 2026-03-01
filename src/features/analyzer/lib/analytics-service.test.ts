@@ -162,7 +162,7 @@ describe("analytics-service", () => {
 				);
 
 				Either.match(result, {
-					onLeft: (error) => assert.strictEqual(error._tag, "AssignmentNotFoundError"),
+				onLeft: (error) => assert.ok("_tag" in error && error._tag === "AssignmentNotFoundError"),
 					onRight: () => assert.fail("Expected Left but got Right"),
 				});
 			}).pipe(Effect.provide(DatabaseTest)),
@@ -187,7 +187,7 @@ describe("analytics-service", () => {
 				);
 
 				Either.match(result, {
-					onLeft: (error) => assert.strictEqual(error._tag, "AssignmentNotFoundError"),
+				onLeft: (error) => assert.ok("_tag" in error && error._tag === "AssignmentNotFoundError"),
 					onRight: () => assert.fail("Expected Left but got Right"),
 				});
 			}).pipe(Effect.provide(DatabaseTest)),
@@ -384,7 +384,7 @@ describe("analytics-service", () => {
 				);
 
 				Either.match(result, {
-					onLeft: (error) => assert.strictEqual(error._tag, "LearnerMapNotFoundError"),
+				onLeft: (error) => assert.ok("_tag" in error && error._tag === "LearnerMapNotFoundError"),
 					onRight: () => assert.fail("Expected Left but got Right"),
 				});
 			}).pipe(Effect.provide(DatabaseTest)),

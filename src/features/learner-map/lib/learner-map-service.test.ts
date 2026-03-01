@@ -1,6 +1,6 @@
 import { assert, beforeEach, describe, it } from "@effect/vitest";
 import { eq } from "drizzle-orm";
-import { Effect } from "effect";
+import { Effect, Either } from "effect";
 
 import {
 	createTestAssignment,
@@ -381,14 +381,15 @@ describe("learner-map-service", () => {
 			Effect.gen(function* () {
 				const student = yield* createTestUser({ role: "student" });
 
-				const result = yield* saveLearnerMap(student.id, {
-					assignmentId: "non-existent",
-					nodes: "[]",
-					edges: "[]",
-				});
+				const result = yield* Effect.either(
+					saveLearnerMap(student.id, {
+						assignmentId: "non-existent",
+						nodes: "[]",
+						edges: "[]",
+					}),
+				);
 
-				assert.isFalse(result.success);
-				assert.strictEqual(result.error, "Assignment not found");
+				assert.strictEqual(result._tag, "Left");
 			}).pipe(Effect.provide(DatabaseTest)),
 		);
 
@@ -414,15 +415,12 @@ describe("learner-map-service", () => {
 					edges,
 				});
 
-				assert.isTrue(result.success);
-				assert.isDefined(result.learnerMapId);
+				assert.strictEqual(result, true);
 
 				// Verify in database
-				assert.isDefined(result.learnerMapId);
 				const saved = yield* db
 					.select()
 					.from(learnerMaps)
-					.where(eq(learnerMaps.id, result.learnerMapId ?? ""))
 					.limit(1);
 
 				assert.strictEqual(saved.length, 1);
@@ -469,8 +467,7 @@ describe("learner-map-service", () => {
 					edges: newEdges,
 				});
 
-				assert.isTrue(result.success);
-				assert.strictEqual(result.learnerMapId, learnerMapId);
+				assert.strictEqual(result, true);
 
 				// Verify update
 				const updated = yield* db
@@ -510,14 +507,18 @@ describe("learner-map-service", () => {
 					attempt: 1,
 				});
 
-				const result = yield* saveLearnerMap(student.id, {
-					assignmentId: assignment.id,
-					nodes: "[]",
-					edges: "[]",
-				});
+				const result = yield* Effect.either(
+					saveLearnerMap(student.id, {
+						assignmentId: assignment.id,
+						nodes: "[]",
+						edges: "[]",
+					}),
+				);
 
-				assert.isFalse(result.success);
-				assert.strictEqual(result.error, "Cannot edit submitted map");
+				Either.match(result, {
+					onLeft: (error) => assert.ok("_tag" in error && error._tag === "LearnerMapAlreadySubmittedError"),
+					onRight: () => assert.fail("Expected error but got success"),
+				});
 			}).pipe(Effect.provide(DatabaseTest)),
 		);
 	});
@@ -527,12 +528,16 @@ describe("learner-map-service", () => {
 			Effect.gen(function* () {
 				const student = yield* createTestUser({ role: "student" });
 
-				const result = yield* submitLearnerMap(student.id, {
-					assignmentId: "non-existent",
-				});
+				const result = yield* Effect.either(
+					submitLearnerMap(student.id, {
+						assignmentId: "non-existent",
+					}),
+				);
 
-				assert.isFalse(result.success);
-				assert.strictEqual(result.error, "Learner map not found");
+				Either.match(result, {
+					onLeft: (error) => assert.ok("_tag" in error && error._tag === "LearnerMapNotFoundError"),
+					onRight: () => assert.fail("Expected error but got success"),
+				});
 			}).pipe(Effect.provide(DatabaseTest)),
 		);
 
@@ -561,12 +566,16 @@ describe("learner-map-service", () => {
 					attempt: 1,
 				});
 
-				const result = yield* submitLearnerMap(student.id, {
-					assignmentId: assignment.id,
-				});
+				const result = yield* Effect.either(
+					submitLearnerMap(student.id, {
+						assignmentId: assignment.id,
+					}),
+				);
 
-				assert.isFalse(result.success);
-				assert.strictEqual(result.error, "Already submitted");
+				Either.match(result, {
+					onLeft: (error) => assert.ok("_tag" in error && error._tag === "LearnerMapAlreadySubmittedError"),
+					onRight: () => assert.fail("Expected error but got success"),
+				});
 			}).pipe(Effect.provide(DatabaseTest)),
 		);
 
@@ -610,13 +619,12 @@ describe("learner-map-service", () => {
 					assignmentId: assignment.id,
 				});
 
-				assert.isTrue(result.success);
 				assert.isDefined(result.diagnosisId);
 				assert.isDefined(result.diagnosis);
-				assert.strictEqual(result.diagnosis?.correct.length, 1);
-				assert.strictEqual(result.diagnosis?.missing.length, 1);
-				assert.strictEqual(result.diagnosis?.excessive.length, 1);
-				assert.strictEqual(result.diagnosis?.score, 0.5); // 1/2 correct
+				assert.strictEqual(result.diagnosis.correct.length, 1);
+				assert.strictEqual(result.diagnosis.missing.length, 1);
+				assert.strictEqual(result.diagnosis.excessive.length, 1);
+				assert.strictEqual(result.diagnosis.score, 0.5); // 1/2 correct
 
 				// Verify learner map status updated
 				const updated = yield* db
@@ -633,7 +641,7 @@ describe("learner-map-service", () => {
 				const savedDiagnosis = yield* db
 					.select()
 					.from(diagnoses)
-					.where(eq(diagnoses.id, result.diagnosisId ?? ""))
+					.where(eq(diagnoses.id, result.diagnosisId))
 					.limit(1);
 
 				assert.strictEqual(savedDiagnosis.length, 1);
@@ -679,11 +687,10 @@ describe("learner-map-service", () => {
 					assignmentId: assignment.id,
 				});
 
-				assert.isTrue(result.success);
-				assert.strictEqual(result.diagnosis?.score, 1);
-				assert.strictEqual(result.diagnosis?.correct.length, 2);
-				assert.strictEqual(result.diagnosis?.missing.length, 0);
-				assert.strictEqual(result.diagnosis?.excessive.length, 0);
+				assert.strictEqual(result.diagnosis.score, 1);
+				assert.strictEqual(result.diagnosis.correct.length, 2);
+				assert.strictEqual(result.diagnosis.missing.length, 0);
+				assert.strictEqual(result.diagnosis.excessive.length, 0);
 			}).pipe(Effect.provide(DatabaseTest)),
 		);
 	});
@@ -812,12 +819,16 @@ describe("learner-map-service", () => {
 			Effect.gen(function* () {
 				const student = yield* createTestUser({ role: "student" });
 
-				const result = yield* startNewAttempt(student.id, {
-					assignmentId: "non-existent",
-				});
+				const result = yield* Effect.either(
+					startNewAttempt(student.id, {
+						assignmentId: "non-existent",
+					}),
+				);
 
-				assert.isFalse(result.success);
-				assert.strictEqual(result.error, "No previous attempt found");
+				Either.match(result, {
+					onLeft: (error) => assert.ok("_tag" in error && error._tag === "NoPreviousAttemptError"),
+					onRight: () => assert.fail("Expected error but got success"),
+				});
 			}).pipe(Effect.provide(DatabaseTest)),
 		);
 
@@ -846,12 +857,16 @@ describe("learner-map-service", () => {
 					attempt: 1,
 				});
 
-				const result = yield* startNewAttempt(student.id, {
-					assignmentId: assignment.id,
-				});
+				const result = yield* Effect.either(
+					startNewAttempt(student.id, {
+						assignmentId: assignment.id,
+					}),
+				);
 
-				assert.isFalse(result.success);
-				assert.strictEqual(result.error, "Previous attempt not submitted");
+				Either.match(result, {
+					onLeft: (error) => assert.ok("_tag" in error && error._tag === "PreviousAttemptNotSubmittedError"),
+					onRight: () => assert.fail("Expected error but got success"),
+				});
 			}).pipe(Effect.provide(DatabaseTest)),
 		);
 
@@ -886,8 +901,7 @@ describe("learner-map-service", () => {
 					assignmentId: assignment.id,
 				});
 
-				assert.isTrue(result.success);
-				assert.strictEqual(result.attempt, 2);
+				assert.strictEqual(result, true);
 
 				// Verify database updated
 				const updated = yield* db
@@ -932,8 +946,7 @@ describe("learner-map-service", () => {
 					assignmentId: assignment.id,
 				});
 
-				assert.isTrue(result.success);
-				assert.strictEqual(result.attempt, 6);
+				assert.strictEqual(result, true);
 			}).pipe(Effect.provide(DatabaseTest)),
 		);
 	});
@@ -1145,13 +1158,17 @@ describe("learner-map-service", () => {
 			Effect.gen(function* () {
 				const student = yield* createTestUser({ role: "student" });
 
-				const result = yield* submitControlText(student.id, {
-					assignmentId: "non-existent",
-					text: "This is my control text submission.",
-				});
+				const result = yield* Effect.either(
+					submitControlText(student.id, {
+						assignmentId: "non-existent",
+						text: "This is my control text submission.",
+					}),
+				);
 
-				assert.isFalse(result.success);
-				assert.strictEqual(result.error, "Assignment not found");
+				Either.match(result, {
+					onLeft: (error) => assert.ok("_tag" in error && error._tag === "AssignmentNotFoundError"),
+					onRight: () => assert.fail("Expected error but got success"),
+				});
 			}).pipe(Effect.provide(DatabaseTest)),
 		);
 
@@ -1176,14 +1193,12 @@ describe("learner-map-service", () => {
 					text: controlText,
 				});
 
-				assert.isTrue(result.success);
-				assert.isDefined(result.learnerMapId);
+				assert.strictEqual(result, true);
 
 				// Verify in database
 				const saved = yield* db
 					.select()
 					.from(learnerMaps)
-					.where(eq(learnerMaps.id, result.learnerMapId ?? ""))
 					.limit(1);
 
 				assert.strictEqual(saved.length, 1);
@@ -1230,8 +1245,7 @@ describe("learner-map-service", () => {
 					text: controlText,
 				});
 
-				assert.isTrue(result.success);
-				assert.strictEqual(result.learnerMapId, learnerMapId);
+				assert.strictEqual(result, true);
 
 				// Verify update
 				const updated = yield* db
@@ -1274,13 +1288,17 @@ describe("learner-map-service", () => {
 					submittedAt: new Date(),
 				});
 
-				const result = yield* submitControlText(student.id, {
-					assignmentId: assignment.id,
-					text: "Trying to submit again.",
-				});
+				const result = yield* Effect.either(
+					submitControlText(student.id, {
+						assignmentId: assignment.id,
+						text: "Trying to submit again.",
+					}),
+				);
 
-				assert.isFalse(result.success);
-				assert.strictEqual(result.error, "Already submitted");
+				Either.match(result, {
+					onLeft: (error) => assert.ok("_tag" in error && error._tag === "LearnerMapAlreadySubmittedError"),
+					onRight: () => assert.fail("Expected error but got success"),
+				});
 			}).pipe(Effect.provide(DatabaseTest)),
 		);
 	});

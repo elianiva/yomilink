@@ -79,8 +79,5 @@ export const uploadMaterialImage = Effect.fn("uploadMaterialImage")(function* (
 		uploadedAt: Date.now(),
 	};
 
-	return {
-		success: true,
-		image: imageMetadata,
-	} as const;
+	return imageMetadata;
 });

@@ -62,7 +62,7 @@ export const generateKitRpc = createServerFn()
 	.inputValidator((raw) => Schema.decodeUnknownSync(GenerateKitInput)(raw))
 	.handler(({ data, context }) =>
 		generateKit(context.user.id, data).pipe(
-			Effect.map(Rpc.ok),
+			Effect.map(() => Rpc.ok(true)),
 			Effect.withSpan("generateKit"),
 			Effect.tapError(logRpcError("generateKit")),
 			Effect.catchTags({

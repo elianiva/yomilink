@@ -43,5 +43,5 @@ export const createTopic = Effect.fn("createTopic")(function* (data: CreateTopic
 		description: data.description,
 	});
 
-	return { success: true } as const;
+	return true;
 });

@@ -1,5 +1,5 @@
 import { desc, eq, isNull } from "drizzle-orm";
-import { Effect, Schema } from "effect";
+import { Data, Effect, Schema } from "effect";
 
 import { validateNodes } from "@/features/goal-map/lib/validator";
 import { requireGoalMapOwner } from "@/lib/auth-authorization";
@@ -49,6 +49,11 @@ export const EdgeSchema = Schema.Struct({
 	label: Schema.optionalWith(Schema.String, { nullable: true }),
 	data: Schema.optionalWith(EdgeDataSchema, { nullable: true }),
 });
+
+class GoalMapValidationError extends Data.TaggedError("GoalMapValidationError")<{
+	errors: string[];
+	warnings: string[];
+}> {}
 export const GetGoalMapInput = Schema.Struct({
 	goalMapId: Schema.NonEmptyString,
 });
@@ -141,12 +146,12 @@ export const saveGoalMap = Effect.fn("saveGoalMap")(function* (
 	const validationResult = validateNodes(data.nodes, data.edges);
 
 	if (!validationResult.isValid) {
-		return {
-			success: false,
+		return yield* new GoalMapValidationError({
 			errors: validationResult.errors,
 			warnings: validationResult.warnings,
-		} as const;
+		});
 	}
+
 
 	let textId: string | null = null;
 	const hasMaterial =
@@ -210,11 +215,10 @@ export const saveGoalMap = Effect.fn("saveGoalMap")(function* (
 		});
 
 	return {
-		success: true,
 		errors: validationResult.errors,
 		warnings: validationResult.warnings,
 		propositions: validationResult.propositions,
-	} as const;
+	};
 });
 
 export const listGoalMaps = Effect.fn("listGoalMaps")(function* (userId: string) {
@@ -298,5 +302,5 @@ export const deleteGoalMap = Effect.fn("deleteGoalMap")(function* (
 	const db = yield* Database;
 	yield* requireGoalMapOwner(userId, input.goalMapId);
 	yield* db.delete(goalMaps).where(eq(goalMaps.id, input.goalMapId));
-	return { success: true } as const;
+	return true;
 });

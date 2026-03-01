@@ -384,17 +384,19 @@ export const unlockPostTestAfterAssignment = Effect.fn("unlockPostTestAfterAssig
 
 	if (learnerMapRows.length === 0) {
 		return {
-			success: false,
-			reason: "Assignment not completed",
-		};
+				scheduled: false,
+				unlockedAt: null,
+				reason: "Assignment not completed",
+			};
 	}
 
 	const completedAt = learnerMapRows[0].submittedAt;
 	if (!completedAt) {
 		return {
-			success: false,
-			reason: "Assignment not completed",
-		};
+				scheduled: false,
+				unlockedAt: null,
+				reason: "Assignment not completed",
+			};
 	}
 	const now = new Date();
 
@@ -406,10 +408,10 @@ export const unlockPostTestAfterAssignment = Effect.fn("unlockPostTestAfterAssig
 		// Check if unlock time has passed
 		if (unlockAt > now) {
 			return {
-				success: true,
 				scheduled: true,
 				unlockAt: unlockAt.toISOString(),
-				message: `Post-test will be available on ${unlockAt.toLocaleDateString()}`,
+				unlockedAt: null,
+				reason: null,
 			};
 		}
 	}
@@ -421,9 +423,9 @@ export const unlockPostTestAfterAssignment = Effect.fn("unlockPostTestAfterAssig
 	});
 
 	return {
-		success: true,
 		scheduled: false,
 		unlockedAt: result.unlockedAt,
+		reason: null,
 	};
 });
 

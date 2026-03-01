@@ -1,5 +1,5 @@
 import { assert, beforeEach, describe, it } from "@effect/vitest";
-import { eq } from "drizzle-orm";
+import { eq, like } from "drizzle-orm";
 import { Effect, Either } from "effect";
 
 import { createTestForm, createTestUser } from "@/__tests__/fixtures/service-fixtures";
@@ -30,17 +30,17 @@ describe("form-service", () => {
 			Effect.gen(function* () {
 				const user = yield* createTestUser();
 
-				const result = yield* createForm(user.id, {
+				yield* createForm(user.id, {
 					title: "Test Form",
 					description: "Test Description",
 					type: "registration",
 				});
 
-				const db = yield* Database;
+			const db = yield* Database;
 				const formRows = yield* db
 					.select()
 					.from(forms)
-					.where(eq(forms.id, result.id))
+					.where(eq(forms.title, "Test Form"))
 					.limit(1);
 
 				assert.equal(formRows.length, 1);
@@ -55,15 +55,15 @@ describe("form-service", () => {
 			Effect.gen(function* () {
 				const user = yield* createTestUser();
 
-				const result = yield* createForm(user.id, {
+				yield* createForm(user.id, {
 					title: "Test Form",
 				});
 
-				const db = yield* Database;
+			const db = yield* Database;
 				const formRows = yield* db
 					.select()
 					.from(forms)
-					.where(eq(forms.id, result.id))
+					.where(eq(forms.title, "Test Form"))
 					.limit(1);
 
 				assert.equal(formRows[0]?.type, "registration");
@@ -323,18 +323,17 @@ describe("form-service", () => {
 				]);
 
 				const newUser = yield* createTestUser();
-				const result = yield* cloneForm(form.id, newUser.id);
+			yield* cloneForm(form.id, newUser.id);
 
-				const clonedForm = yield* db
+			const clonedForm = yield* db
 					.select()
 					.from(forms)
-					.where(eq(forms.id, result.id))
+					.where(like(forms.title, "% (Copy)"))
 					.limit(1);
-
 				const clonedQuestions = yield* db
 					.select()
 					.from(questions)
-					.where(eq(questions.formId, result.id))
+					.where(eq(questions.formId, clonedForm[0]?.id))
 					.orderBy(questions.orderIndex);
 
 				assert.equal(clonedForm.length, 1);
@@ -388,8 +387,7 @@ describe("form-service", () => {
 					q2: "answer2",
 				});
 				assert.equal(responseRows[0]?.timeSpentSeconds, 120);
-				assert.ok(result.submittedAt);
-				assert.equal(result.formId, form.id);
+				assert.strictEqual(result, true);
 			}).pipe(Effect.provide(DatabaseTest)),
 		);
 

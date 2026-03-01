@@ -211,5 +211,5 @@ export const generateKit = Effect.fn("generateKit")(function* (
 	} else {
 		yield* db.insert(kits).values(payload);
 	}
-	return { ok: true, kitId: input.goalMapId } as const;
+	return true;
 });

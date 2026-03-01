@@ -57,5 +57,5 @@ export const updateProfile = Effect.fn("updateProfile")(function* (
 		})
 		.where(eq(user.id, userId));
 
-	return { ok: true };
+	return true;
 });

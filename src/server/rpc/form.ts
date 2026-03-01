@@ -50,7 +50,7 @@ export const createFormRpc = createServerFn()
 	.inputValidator((raw) => Schema.decodeUnknownSync(CreateFormInput)(raw))
 	.handler(({ data, context }) =>
 		createForm(context.user.id, data).pipe(
-			Effect.map(Rpc.ok),
+			Effect.map((result) => Rpc.ok(result)),
 			Effect.withSpan("createForm"),
 			Effect.tapError(logRpcError("createForm")),
 			Effect.provide(AppLayer),
@@ -206,7 +206,7 @@ export const cloneFormRpc = createServerFn()
 	.inputValidator((raw) => Schema.decodeUnknownSync(CloneFormInput)(raw))
 	.handler(({ data, context }) =>
 		cloneForm(data.formId, context.user.id).pipe(
-			Effect.map(Rpc.ok),
+			Effect.map(() => Rpc.ok(true)),
 			Effect.withSpan("cloneForm"),
 			Effect.tapError(logRpcError("cloneForm")),
 			Effect.provide(AppLayer),
@@ -280,7 +280,7 @@ export const createQuestionRpc = createServerFn()
 	.inputValidator((raw) => Schema.decodeUnknownSync(CreateQuestionInput)(raw))
 	.handler(({ data }) =>
 		createQuestion(data).pipe(
-			Effect.map(Rpc.ok),
+			Effect.map(() => Rpc.ok(true)),
 			Effect.withSpan("createQuestion"),
 			Effect.tapError(logRpcError("createQuestion")),
 			Effect.provide(AppLayer),
@@ -304,7 +304,7 @@ export const updateQuestionRpc = createServerFn()
 	.inputValidator((raw) => Schema.decodeUnknownSync(UpdateQuestionInput)(raw))
 	.handler(({ data }) =>
 		updateQuestion(data).pipe(
-			Effect.map(Rpc.ok),
+			Effect.map(() => Rpc.ok(true)),
 			Effect.withSpan("updateQuestion"),
 			Effect.tapError(logRpcError("updateQuestion")),
 			Effect.provide(AppLayer),
