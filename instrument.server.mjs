@@ -4,7 +4,7 @@ import * as Sentry from "@sentry/tanstackstart-react";
 const env = globalThis.process?.env || globalThis;
 
 Sentry.init({
-	dsn: env.SENTRY_DSN,
+	dsn: env.NODE_ENV !== "production" ? undefined : env.SENTRY_DSN,
 	sendDefaultPii: true,
 	spotlight: env.NODE_ENV !== "production",
 	tracesSampleRate: env.NODE_ENV !== "production" ? 1.0 : 0.1,

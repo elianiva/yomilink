@@ -2,6 +2,7 @@ import * as Sentry from "@sentry/tanstackstart-react";
 import { MutationCache, QueryClient } from "@tanstack/react-query";
 import { createRouter } from "@tanstack/react-router";
 import { setupRouterSsrQueryIntegration } from "@tanstack/react-router-ssr-query";
+
 import { ErrorPage } from "./components/error-page";
 import { routeTree } from "./routeTree.gen";
 
@@ -34,7 +35,7 @@ export const getRouter = () => {
 
 	if (!router.isServer) {
 		Sentry.init({
-			dsn: import.meta.env.VITE_SENTRY_DSN,
+			dsn: import.meta.env.DEV ? undefined : import.meta.env.VITE_SENTRY_DSN,
 			sendDefaultPii: true,
 			spotlight: import.meta.env.DEV,
 			tracesSampleRate: import.meta.env.DEV ? 1.0 : 0.1,
@@ -49,9 +50,7 @@ export const getRouter = () => {
 				// Filter out specific errors if needed
 				return event;
 			},
-			beforeSendTransaction(event: {
-				contexts?: { trace?: { data?: { url?: string } } };
-			}) {
+			beforeSendTransaction(event: { contexts?: { trace?: { data?: { url?: string } } } }) {
 				// Filter out health check transactions
 				if (event.contexts?.trace?.data?.url?.includes("/health")) {
 					return null;
