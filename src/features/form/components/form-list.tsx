@@ -95,8 +95,8 @@ export function FormList({
 				<Card
 					key={form.id}
 					className={cn(
-						"transition-colors hover:bg-accent/50",
-						onClick && "cursor-pointer",
+						"shadow-none border-[0.5px]",
+						onClick && "cursor-pointer hover:bg-primary/20",
 					)}
 					onClick={() => onClick?.(form)}
 				>

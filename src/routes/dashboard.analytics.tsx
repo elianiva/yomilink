@@ -86,12 +86,10 @@ function AnalyticsPage() {
 		],
 	);
 
-	// Fetch assignments
 	const { data: assignments, isLoading: assignmentsLoading } = useRpcQuery(
 		AnalyticsRpc.getTeacherAssignments(),
 	);
 
-	// Fetch analytics data for selected assignment
 	const {
 		data: analyticsData,
 		isLoading: analyticsLoading,
