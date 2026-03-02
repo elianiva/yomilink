@@ -1,29 +1,17 @@
 import { useQueryClient } from "@tanstack/react-query";
 import { useNavigate, useSearch } from "@tanstack/react-router";
-import { FilePlusIcon, Loader2, Save, Eye, EyeOff, ArrowLeft, RotateCcw } from "lucide-react";
-import { useState, useCallback, useEffect } from "react";
+import { Loader2 } from "lucide-react";
+import { useState, useCallback, useEffect, useMemo } from "react";
 import { toast } from "sonner";
 
-import {
-	AlertDialog,
-	AlertDialogAction,
-	AlertDialogCancel,
-	AlertDialogContent,
-	AlertDialogDescription,
-	AlertDialogFooter,
-	AlertDialogHeader,
-	AlertDialogTitle,
-} from "@/components/ui/alert-dialog";
-import { Button } from "@/components/ui/button";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import type { FormMetadata } from "@/features/form/components/form-metadata-editor";
-import type { QuestionWithOptions as FormPreviewQuestion } from "@/features/form/components/form-renderer/form-preview";
-import { FormPreview } from "@/features/form/components/form-renderer/form-preview";
 import type { CreateQuestionInput, UpdateQuestionInput } from "@/features/form/lib/form-service";
 import { useRpcMutation, useRpcQuery } from "@/hooks/use-rpc-query";
 import { FormRpc } from "@/server/rpc/form";
 
-import { EditorContent } from "./editor-content";
+import { FormBuilderDialogs } from "./form-builder-dialogs";
+import { FormBuilderHeader } from "./form-builder-header";
+import { FormBuilderTabs } from "./form-builder-tabs";
 import { QuestionEditorDialog } from "./question-editor-dialog";
 import {
 	type QuestionDialogState,
@@ -412,150 +400,70 @@ export function FormBuilderPage() {
 		toast.success("Draft cleared");
 	};
 
-	const isPending =
-		createFormMutation.isPending ||
-		updateFormMutation.isPending ||
-		createQuestionMutation.isPending ||
-		updateQuestionMutation.isPending ||
-		deleteQuestionMutation.isPending ||
-		publishFormMutation.isPending ||
-		unpublishFormMutation.isPending ||
-		isLoadingForm;
+	const isPending = useMemo(
+		() =>
+			createFormMutation.isPending ||
+			updateFormMutation.isPending ||
+			createQuestionMutation.isPending ||
+			updateQuestionMutation.isPending ||
+			deleteQuestionMutation.isPending ||
+			publishFormMutation.isPending ||
+			unpublishFormMutation.isPending ||
+			isLoadingForm,
+		[
+			createFormMutation.isPending,
+			updateFormMutation.isPending,
+			createQuestionMutation.isPending,
+			updateQuestionMutation.isPending,
+			deleteQuestionMutation.isPending,
+			publishFormMutation.isPending,
+			unpublishFormMutation.isPending,
+			isLoadingForm,
+		],
+	);
+
+	if (isLoadingForm) {
+		return (
+			<div className="flex h-64 items-center justify-center">
+				<Loader2 className="size-8 animate-spin text-primary" />
+			</div>
+		);
+	}
 
 	return (
 		<div className="space-y-6">
-			{/* Header */}
-			<div className="flex items-center justify-between">
-				<div className="flex items-center gap-4">
-					<Button variant="ghost" size="icon" onClick={handleBack}>
-						<ArrowLeft className="size-5" />
-					</Button>
-					<div className="flex items-center gap-3">
-						<FilePlusIcon className="size-6 text-primary" />
-						<div>
-							<h1 className="text-2xl font-semibold">
-								{isEditing ? "Edit Form" : "Create New Form"}
-							</h1>
-							<p className="text-muted-foreground">
-								{isEditing
-									? "Modify your form and questions"
-									: "Build a new form with questions and configuration"}
-							</p>
-						</div>
-					</div>
-				</div>
-				<div className="flex items-center gap-2">
-					{!isEditing && hasUnsavedChanges && (
-						<Button variant="ghost" size="sm" onClick={handleClearDraft}>
-							<RotateCcw className="mr-2 size-4" />
-							Clear Draft
-						</Button>
-					)}
-					{isEditing && metadata.status === "draft" && (
-						<Button
-							onClick={() => formId && publishFormMutation.mutate({ id: formId })}
-							disabled={isPending || questions.length === 0}
-							variant="outline"
-						>
-							{publishFormMutation.isPending ? (
-								<Loader2 className="mr-2 size-4 animate-spin" />
-							) : (
-								<Eye className="mr-2 size-4" />
-							)}
-							Publish
-						</Button>
-					)}
-					{isEditing && metadata.status === "published" && (
-						<Button
-							onClick={() => formId && unpublishFormMutation.mutate({ id: formId })}
-							disabled={isPending}
-							variant="outline"
-						>
-							{unpublishFormMutation.isPending ? (
-								<Loader2 className="mr-2 size-4 animate-spin" />
-							) : (
-								<EyeOff className="mr-2 size-4" />
-							)}
-							Unpublish
-						</Button>
-					)}
-					<Button onClick={handleSaveForm} disabled={isPending || !metadata.title.trim()}>
-						{isPending ? (
-							<Loader2 className="mr-2 size-4 animate-spin" />
-						) : (
-							<Save className="mr-2 size-4" />
-						)}
-						{isEditing ? "Save Changes" : "Create Form"}
-					</Button>
-				</div>
-			</div>
+			<FormBuilderHeader
+				isEditing={isEditing}
+				metadata={metadata}
+				hasUnsavedChanges={hasUnsavedChanges}
+				questionsCount={questions.length}
+				isPending={isPending}
+				createMutation={createFormMutation}
+				updateMutation={updateFormMutation}
+				publishMutation={publishFormMutation}
+				unpublishMutation={unpublishFormMutation}
+				onBack={handleBack}
+				onSave={handleSaveForm}
+				onPublish={() => formId && publishFormMutation.mutate({ id: formId })}
+				onUnpublish={() => formId && unpublishFormMutation.mutate({ id: formId })}
+				onClearDraft={handleClearDraft}
+			/>
 
-			{/* Mode Toggle - Only show when editing existing forms */}
-			{isEditing ? (
-				<Tabs
-					value={editorMode}
-					onValueChange={(v) => setEditorMode(v as EditorMode)}
-					className="w-full"
-				>
-					<TabsList className="grid w-fit grid-cols-2">
-						<TabsTrigger value="edit">Edit</TabsTrigger>
-						<TabsTrigger value="preview">Preview</TabsTrigger>
-					</TabsList>
+			<FormBuilderTabs
+				isEditing={isEditing}
+				formId={formId}
+				editorMode={editorMode}
+				metadata={metadata}
+				questions={questions}
+				isPending={isPending}
+				onEditorModeChange={setEditorMode}
+				onMetadataChange={handleMetadataChange}
+				onEditQuestion={(q) => handleOpenQuestionDialog(q.type as QuestionType, q)}
+				onDeleteQuestion={handleDeleteQuestion}
+				onReorderQuestions={handleReorderQuestions}
+				onAddQuestion={handleOpenQuestionDialog}
+			/>
 
-					<TabsContent value="edit" className="mt-6">
-						<EditorContent
-							metadata={metadata}
-							onMetadataChange={handleMetadataChange}
-							questions={questions}
-							onEditQuestion={(q) =>
-								handleOpenQuestionDialog(q.type as QuestionType, q)
-							}
-							onDeleteQuestion={handleDeleteQuestion}
-							onReorderQuestions={handleReorderQuestions}
-							onAddQuestion={handleOpenQuestionDialog}
-							isPending={isPending}
-							hasForm={true}
-						/>
-					</TabsContent>
-
-					<TabsContent value="preview" className="mt-6">
-						<FormPreview
-							form={{
-								id: formId ?? "preview",
-								title: metadata.title,
-								description: metadata.description ?? undefined,
-								type: metadata.type,
-								status: metadata.status,
-							}}
-							questions={questions.map((q) => ({
-								id: q.id,
-								questionText: q.questionText,
-								type: q.type,
-								orderIndex: q.orderIndex,
-								required: q.required,
-								options: q.options as FormPreviewQuestion["options"],
-							}))}
-							answers={{}}
-							onAnswerChange={() => {}}
-						/>
-					</TabsContent>
-				</Tabs>
-			) : (
-				// New form mode - no tabs, just editor
-				<EditorContent
-					metadata={metadata}
-					onMetadataChange={handleMetadataChange}
-					questions={questions}
-					onEditQuestion={(q) => handleOpenQuestionDialog(q.type as QuestionType, q)}
-					onDeleteQuestion={handleDeleteQuestion}
-					onReorderQuestions={handleReorderQuestions}
-					onAddQuestion={handleOpenQuestionDialog}
-					isPending={isPending}
-					hasForm={true}
-				/>
-			)}
-
-			{/* Question Editor Dialog */}
 			<QuestionEditorDialog
 				isOpen={questionDialog.isOpen}
 				questionType={questionDialog.questionType}
@@ -565,43 +473,14 @@ export function FormBuilderPage() {
 				isPending={createQuestionMutation.isPending || updateQuestionMutation.isPending}
 			/>
 
-			{/* Unsaved Changes Dialog */}
-			<AlertDialog open={showUnsavedDialog} onOpenChange={setShowUnsavedDialog}>
-				<AlertDialogContent>
-					<AlertDialogHeader>
-						<AlertDialogTitle>Unsaved Changes</AlertDialogTitle>
-						<AlertDialogDescription>
-							You have unsaved changes. Are you sure you want to leave?
-						</AlertDialogDescription>
-					</AlertDialogHeader>
-					<AlertDialogFooter>
-						<AlertDialogCancel onClick={() => setShowUnsavedDialog(false)}>
-							Stay
-						</AlertDialogCancel>
-						<AlertDialogAction
-							onClick={() => void navigate({ to: "/dashboard/forms" })}
-						>
-							Leave
-						</AlertDialogAction>
-					</AlertDialogFooter>
-				</AlertDialogContent>
-			</AlertDialog>
-
-			{/* Draft Recovery Dialog */}
-			<AlertDialog open={showDraftDialog} onOpenChange={setShowDraftDialog}>
-				<AlertDialogContent>
-					<AlertDialogHeader>
-						<AlertDialogTitle>Restore Draft?</AlertDialogTitle>
-						<AlertDialogDescription>
-							You have an unsaved form draft. Would you like to restore it?
-						</AlertDialogDescription>
-					</AlertDialogHeader>
-					<AlertDialogFooter>
-						<AlertDialogCancel onClick={handleDiscardDraft}>Discard</AlertDialogCancel>
-						<AlertDialogAction onClick={handleLoadDraft}>Restore</AlertDialogAction>
-					</AlertDialogFooter>
-				</AlertDialogContent>
-			</AlertDialog>
+			<FormBuilderDialogs
+				showUnsavedDialog={showUnsavedDialog}
+				showDraftDialog={showDraftDialog}
+				onShowUnsavedDialogChange={setShowUnsavedDialog}
+				onShowDraftDialogChange={setShowDraftDialog}
+				onLoadDraft={handleLoadDraft}
+				onDiscardDraft={handleDiscardDraft}
+			/>
 		</div>
 	);
 }
