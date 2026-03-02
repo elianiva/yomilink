@@ -34,12 +34,13 @@ const program = Effect.gen(function* () {
 	}
 
 	const {
-		demoKitId,
 		demoAssignmentId,
 		dailyLifeGoalMapId,
+		demoKitId,
 		dailyLifeData,
 		twoWeeksAgo,
 		oneWeekAgo,
+		studentConditionMap,
 	} = demoData;
 
 	// Step 4: Seed forms
@@ -70,12 +71,13 @@ const program = Effect.gen(function* () {
 		demoKitId,
 		dailyLifeData,
 		oneWeekAgo,
+		studentConditionMap,
 	);
 
 	yield* Effect.log(
 		"--- Seed completed ---\n" +
 			"Demo credentials:\n" +
-			"  Teacher: teacher@yomilink.local / teacher123\n" +
+			"  Teacher: teacher@demo.local / teacher123\n" +
 			"  Demo students: [name]@demo.local / demo12345\n" +
 			"    - tanaka, suzuki, yamamoto, watanabe, takahashi\n" +
 			"    - ito, nakamura, kobayashi, kato, matsumoto\n",

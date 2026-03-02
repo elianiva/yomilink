@@ -4,6 +4,7 @@ import { randomString } from "@/lib/utils";
 import { Database } from "@/server/db/client";
 import { diagnoses, learnerMaps } from "@/server/db/schema/app-schema";
 import { LEARNER_MAP_CONFIGS } from "../data/learner-maps.js";
+import { DEMO_SUMMARIES } from "../data/summaries.js";
 
 export function seedLearnerMaps(
 	userIdsByEmail: Record<string, string>,
@@ -12,11 +13,12 @@ export function seedLearnerMaps(
 	demoKitId: string,
 	dailyLifeData: { nodes: unknown[]; edges: Array<{ id: string; source: string; target: string }> },
 	oneWeekAgo: Date,
+	studentConditionMap: Record<string, "concept_map" | "summarizing">,
 ) {
 	return Effect.gen(function* () {
 		const db = yield* Database;
 
-		yield* Effect.log("Creating learner maps and diagnoses...");
+		yield* Effect.log("Creating learner maps, summaries, and diagnoses...");
 
 		const goalEdges = dailyLifeData.edges;
 		const edgeById: Record<string, { source: string; target: string }> = {};
@@ -52,6 +54,32 @@ export function seedLearnerMaps(
 					if (existingMapKeySet.has(mapKey)) {
 						yield* Effect.log(
 							`  Learner map for ${config.studentEmail} attempt ${config.attempt} already exists`,
+						);
+						return;
+					}
+
+					const condition = studentConditionMap[config.studentEmail] || "concept_map";
+
+					if (condition === "summarizing") {
+						const summaryText = DEMO_SUMMARIES[config.studentEmail];
+						if (!summaryText || config.attempt > 1) return;
+
+						const learnerMapId = randomString();
+						yield* db.insert(learnerMaps).values({
+							id: learnerMapId,
+							assignmentId: demoAssignmentId,
+							goalMapId: dailyLifeGoalMapId,
+							kitId: demoKitId,
+							userId: studentId,
+							controlText: summaryText,
+							nodes: null,
+							edges: null,
+							status: "submitted",
+							attempt: config.attempt,
+							submittedAt: submissionDate,
+						});
+						yield* Effect.log(
+							`  Created summary for ${config.studentEmail}`,
 						);
 						return;
 					}

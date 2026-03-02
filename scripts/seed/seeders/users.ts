@@ -41,13 +41,13 @@ export function seedUsers() {
 										name: seedUser.name as string,
 									},
 								}),
-							catch: (e) => {
-									console.error(
-										`Failed to create user ${seedUser.email}:`,
-										e,
+							catch: () =>
+								Effect.gen(function* () {
+									yield* Effect.logError(
+										`Failed to create user ${seedUser.email}`,
 									);
 									return { user: null };
-								},
+								}),
 						});
 						if (result.user) {
 							userId = result.user.id;
@@ -61,8 +61,8 @@ export function seedUsers() {
 							.set({ role: seedUser.roles?.[0] })
 							.where(eq(user.id, userId));
 						yield* Effect.log(
-							`Set role '${seedUser.roles?.[0]}' for ${seedUser.email}`,
-						);
+								`Set role '${seedUser.roles?.[0]}' for ${seedUser.email}`,
+							);
 					}
 
 					const demoStudent = DEMO_STUDENTS.find(
@@ -83,8 +83,8 @@ export function seedUsers() {
 							})
 							.where(eq(user.id, userId));
 						yield* Effect.log(
-							`Set demographic data for ${seedUser.email}`,
-						);
+								`Set demographic data for ${seedUser.email}`,
+							);
 					}
 
 					return {

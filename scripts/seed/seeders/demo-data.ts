@@ -5,10 +5,11 @@ import { Database } from "@/server/db/client";
 import {
 	assignments,
 	assignmentTargets,
+	experimentGroups,
 	kits,
 } from "@/server/db/schema/app-schema";
 import { cohortMembers, cohorts } from "@/server/db/schema/auth-schema";
-import { DEMO_STUDENT_EMAILS } from "../data/users.js";
+import { DEMO_STUDENTS } from "../data/users.js";
 
 export function seedDemoData(
 	userIdsByEmail: Record<string, string>,
@@ -42,7 +43,7 @@ export function seedDemoData(
 			yield* Effect.log(`  Created cohort: ${demoCohortName}`);
 		}
 
-		yield* Effect.log("Adding demo students to cohort...");
+		yield* Effect.log("Adding demo students to cohort and assigning experiment groups...");
 
 		const existingMembers = yield* db
 			.select()
@@ -53,31 +54,36 @@ export function seedDemoData(
 			existingMembers.map((m) => m.userId),
 		);
 
+		const studentConditionMap: Record<string, "concept_map" | "summarizing"> = {};
+
 		yield* Effect.all(
-			DEMO_STUDENT_EMAILS.map((studentEmail) =>
+			DEMO_STUDENTS.map((student, index) =>
 				Effect.gen(function* () {
-					const studentId = userIdsByEmail[studentEmail];
+					const studentId = userIdsByEmail[student.email];
 					if (!studentId) {
 						yield* Effect.log(
-							`  Student ${studentEmail} not found, skipping...`,
+							`  Student ${student.email} not found, skipping...`,
 						);
 						return;
 					}
+
+					// Assign condition (50/50 split)
+					const condition = index < 5 ? "concept_map" : "summarizing";
+					studentConditionMap[student.email] = condition;
 
 					if (existingMemberIds.has(studentId)) {
 						yield* Effect.log(
-							`  ${studentEmail} already in cohort`,
+							`  ${student.email} already in cohort`,
 						);
-						return;
+					} else {
+						yield* db.insert(cohortMembers).values({
+							id: randomString(),
+							cohortId: demoCohortId,
+							userId: studentId,
+							role: "member",
+						});
+						yield* Effect.log(`  Added ${student.email} to cohort`);
 					}
-
-					yield* db.insert(cohortMembers).values({
-						id: randomString(),
-						cohortId: demoCohortId,
-						userId: studentId,
-						role: "member",
-					});
-					yield* Effect.log(`  Added ${studentEmail} to cohort`);
 				}),
 			),
 			{ concurrency: 10 },
@@ -183,6 +189,32 @@ export function seedDemoData(
 			yield* Effect.log("  Linked assignment to cohort");
 		}
 
+		yield* Effect.log("Seeding experiment groups...");
+		const existingGroups = yield* db
+			.select()
+			.from(experimentGroups)
+			.where(eq(experimentGroups.assignmentId, demoAssignmentId));
+
+		if (existingGroups.length > 0) {
+			yield* Effect.log("  Experiment groups already seeded");
+		} else {
+			yield* Effect.all(
+				Object.entries(studentConditionMap).map(([email, condition]) =>
+					Effect.gen(function* () {
+						const userId = userIdsByEmail[email];
+						if (!userId) return;
+						yield* db.insert(experimentGroups).values({
+							id: randomString(),
+							assignmentId: demoAssignmentId,
+							userId,
+							condition,
+						});
+					}),
+				),
+			);
+			yield* Effect.log("  Seeded experiment groups");
+		}
+
 		return {
 			demoCohortId,
 			demoKitId,
@@ -191,6 +223,7 @@ export function seedDemoData(
 			dailyLifeData,
 			twoWeeksAgo,
 			oneWeekAgo,
+			studentConditionMap,
 		};
 	});
 }
