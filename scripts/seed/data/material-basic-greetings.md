@@ -4,80 +4,115 @@ description: "Essential Japanese greetings for everyday use"
 nodes:
   - id: "greeting"
     type: "text"
-    position: { x: 200, y: 50 }
-    data: { label: "挨拶\nAisatsu", color: "green" }
+    position: { x: 260, y: 40 }
+    data: { label: "挨拶", color: "green" }
   - id: "time"
     type: "text"
-    position: { x: 50, y: 150 }
-    data: { label: "時間\nTime", color: "blue" }
-  - id: "morning"
-    type: "text"
-    position: { x: 50, y: 250 }
-    data: { label: "朝\nMorning", color: "amber" }
-  - id: "afternoon"
-    type: "text"
-    position: { x: 200, y: 250 }
-    data: { label: "昼\nAfternoon", color: "amber" }
-  - id: "evening"
-    type: "text"
-    position: { x: 350, y: 250 }
-    data: { label: "夜\nEvening", color: "amber" }
+    position: { x: 80, y: 180 }
+    data: { label: "時間", color: "blue" }
   - id: "relationship"
     type: "text"
-    position: { x: 500, y: 150 }
-    data: { label: "関係\nRelationship", color: "blue" }
+    position: { x: 440, y: 180 }
+    data: { label: "人間関係", color: "blue" }
+  - id: "morning"
+    type: "text"
+    position: { x: 40, y: 340 }
+    data: { label: "朝", color: "amber" }
+  - id: "afternoon"
+    type: "text"
+    position: { x: 180, y: 340 }
+    data: { label: "昼", color: "amber" }
+  - id: "evening"
+    type: "text"
+    position: { x: 320, y: 340 }
+    data: { label: "夜", color: "amber" }
   - id: "farewell"
     type: "text"
-    position: { x: 500, y: 350 }
-    data: { label: "別れ\nFarewell", color: "purple" }
+    position: { x: 460, y: 340 }
+    data: { label: "別れの挨拶", color: "purple" }
   - id: "politeness"
     type: "text"
-    position: { x: 50, y: 350 }
-    data: { label: "丁寧さ\nPoliteness", color: "purple" }
+    position: { x: 620, y: 340 }
+    data: { label: "丁寧さ", color: "purple" }
   - id: "gratitude"
     type: "text"
-    position: { x: 200, y: 450 }
-    data: { label: "感謝\nGratitude", color: "red" }
+    position: { x: 540, y: 490 }
+    data: { label: "感謝", color: "red" }
   - id: "apology"
     type: "text"
-    position: { x: 350, y: 450 }
-    data: { label: "謝罪\nApology", color: "red" }
+    position: { x: 700, y: 490 }
+    data: { label: "謝罪", color: "red" }
+  - id: "conn-types"
+    type: "connector"
+    position: { x: 260, y: 110 }
+    data: { label: "には" }
+  - id: "conn-time"
+    type: "connector"
+    position: { x: 140, y: 260 }
+    data: { label: "の挨拶は" }
+  - id: "conn-rel"
+    type: "connector"
+    position: { x: 520, y: 260 }
+    data: { label: "で変わる" }
+  - id: "conn-polite"
+    type: "connector"
+    position: { x: 620, y: 420 }
+    data: { label: "に含まれる" }
+  - id: "conn-used"
+    type: "connector"
+    position: { x: 370, y: 420 }
+    data: { label: "でも大切" }
 edges:
   - id: "e1"
     source: "greeting"
-    target: "time"
+    target: "conn-types"
   - id: "e2"
-    source: "greeting"
-    target: "relationship"
+    source: "conn-types"
+    target: "time"
   - id: "e3"
-    source: "time"
-    target: "morning"
+    source: "conn-types"
+    target: "relationship"
   - id: "e4"
     source: "time"
-    target: "afternoon"
+    target: "conn-time"
   - id: "e5"
-    source: "time"
-    target: "evening"
+    source: "conn-time"
+    target: "morning"
   - id: "e6"
-    source: "relationship"
-    target: "farewell"
+    source: "conn-time"
+    target: "afternoon"
   - id: "e7"
-    source: "relationship"
-    target: "politeness"
+    source: "conn-time"
+    target: "evening"
   - id: "e8"
-    source: "politeness"
-    target: "gratitude"
+    source: "relationship"
+    target: "conn-rel"
   - id: "e9"
-    source: "politeness"
-    target: "apology"
+    source: "conn-rel"
+    target: "farewell"
   - id: "e10"
-    source: "morning"
+    source: "conn-rel"
     target: "politeness"
   - id: "e11"
-    source: "afternoon"
-    target: "politeness"
+    source: "politeness"
+    target: "conn-polite"
   - id: "e12"
+    source: "conn-polite"
+    target: "gratitude"
+  - id: "e13"
+    source: "conn-polite"
+    target: "apology"
+  - id: "e14"
+    source: "morning"
+    target: "conn-used"
+  - id: "e15"
+    source: "afternoon"
+    target: "conn-used"
+  - id: "e16"
     source: "evening"
+    target: "conn-used"
+  - id: "e17"
+    source: "conn-used"
     target: "politeness"
 ---
 

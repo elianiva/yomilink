@@ -3,6 +3,8 @@ import { Background, MiniMap, ReactFlow, ReactFlowProvider, useReactFlow } from 
 import { ZoomIn, ZoomOut } from "lucide-react";
 import { useEffect, useMemo, useState } from "react";
 
+import "@xyflow/react/dist/style.css";
+
 import { ConnectorNode } from "@/features/kitbuild/components/connector-node";
 import { FloatingEdge } from "@/features/kitbuild/components/floating-edge";
 import { TextNode } from "@/features/kitbuild/components/text-node";
@@ -184,7 +186,10 @@ function AnalyticsCanvasInner({
 
 				// Count edge classifications per edge key
 				for (const classification of currentEdgeClassifications) {
-					const key = `${classification.edge.source}-${classification.edge.target}`;
+					const key = JSON.stringify([
+						classification.edge.source,
+						classification.edge.target,
+					]);
 					const counts = edgeCounts.get(key) || {
 						correct: 0,
 						missing: 0,
@@ -197,7 +202,7 @@ function AnalyticsCanvasInner({
 
 				// Create separate edges for each type with different curves
 				for (const [key, counts] of edgeCounts.entries()) {
-					const [source, target] = key.split("-");
+					const [source, target] = JSON.parse(key) as [string, string];
 					const types: Array<"correct" | "missing" | "excessive" | "neutral"> = [
 						"correct",
 						"missing",
@@ -313,7 +318,10 @@ function AnalyticsCanvasInner({
 				for (const classification of currentEdgeClassifications) {
 					if (classification.type === "missing") continue;
 
-					const key = `${classification.edge.source}-${classification.edge.target}`;
+					const key = JSON.stringify([
+						classification.edge.source,
+						classification.edge.target,
+					]);
 					const counts = edgeCounts.get(key) || {
 						correct: 0,
 						excessive: 0,
@@ -325,7 +333,7 @@ function AnalyticsCanvasInner({
 
 				// Create separate edges for each type with different curves
 				for (const [key, counts] of edgeCounts.entries()) {
-					const [source, target] = key.split("-");
+					const [source, target] = JSON.parse(key) as [string, string];
 					const types: Array<"correct" | "excessive" | "neutral"> = [
 						"correct",
 						"excessive",

@@ -87,12 +87,12 @@ export function MetricsContent({ assignmentId }: MetricsContentProps) {
 			{
 				status: "submitted",
 				count: summary.submittedCount,
-				fill: "var(--color-submitted)",
+				fill: "var(--color-chart-1)",
 			},
 			{
 				status: "draft",
 				count: summary.draftCount,
-				fill: "var(--color-draft)",
+				fill: "var(--color-chart-2)",
 			},
 		];
 
@@ -109,17 +109,17 @@ export function MetricsContent({ assignmentId }: MetricsContentProps) {
 			{
 				name: "Correct",
 				value: Number.parseFloat(avgEdgeTypes.correct.toFixed(2)),
-				fill: "var(--color-correct)",
+				fill: "var(--color-edge-correct)",
 			},
 			{
 				name: "Missing",
 				value: Number.parseFloat(avgEdgeTypes.missing.toFixed(2)),
-				fill: "var(--color-missing)",
+				fill: "var(--color-edge-missing)",
 			},
 			{
 				name: "Excessive",
 				value: Number.parseFloat(avgEdgeTypes.excessive.toFixed(2)),
-				fill: "var(--color-excessive)",
+				fill: "var(--color-edge-excessive)",
 			},
 		];
 

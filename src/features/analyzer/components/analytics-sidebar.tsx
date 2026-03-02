@@ -192,7 +192,7 @@ export function AnalyticsSidebar({
 									value={statusFilter}
 									onValueChange={(v) => setStatusFilter(v as typeof statusFilter)}
 								>
-									<SelectTrigger size="sm" className="h-8 w-full">
+									<SelectTrigger size="sm" className="h-8 w-full border-[0.5px]">
 										<SelectValue />
 									</SelectTrigger>
 									<SelectContent>
@@ -205,15 +205,15 @@ export function AnalyticsSidebar({
 								<div className="relative">
 									<Search className="absolute left-2 top-1/2 -translate-y-1/2 size-4 text-muted-foreground" />
 									<Input
-										className="pl-8 h-8"
+										className="pl-8 h-8 border-[0.5px]"
 										placeholder="Search learner…"
 										value={searchQuery}
 										onChange={(e) => setSearchQuery(e.target.value)}
 									/>
 								</div>
 
-								<div className="max-h-64 overflow-auto rounded-md border">
-									<div className="flex items-center justify-between text-xs text-muted-foreground px-3 py-2 border-b">
+								<div className="max-h-64 overflow-auto rounded-md border-[0.5px]">
+									<div className="flex items-center justify-between text-xs text-muted-foreground px-3 py-2 border-b-[0.5px]">
 										<div className="flex items-center gap-2">
 											<Checkbox
 												checked={selectAllState.checked}

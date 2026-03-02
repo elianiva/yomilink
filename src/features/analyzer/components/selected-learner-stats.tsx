@@ -20,15 +20,15 @@ export function SelectedLearnerStats({ selectedLearners }: SelectedLearnerStatsP
 			</div>
 			<div className="flex items-center gap-4 text-xs">
 				<div className="flex items-center gap-1.5">
-					<LegendDot color="#22c55e" />
+					<LegendDot color="var(--edge-correct)" />
 					<span>{selectedLearners.reduce((sum, l) => sum + l.correct, 0)} correct</span>
 				</div>
 				<div className="flex items-center gap-1.5">
-					<LegendDot color="#ef4444" />
+					<LegendDot color="var(--edge-missing)" />
 					<span>{selectedLearners.reduce((sum, l) => sum + l.missing, 0)} missing</span>
 				</div>
 				<div className="flex items-center gap-1.5">
-					<LegendDot color="#3b82f6" />
+					<LegendDot color="var(--edge-excessive)" />
 					<span>
 						{selectedLearners.reduce((sum, l) => sum + l.excessive, 0)} excessive
 					</span>

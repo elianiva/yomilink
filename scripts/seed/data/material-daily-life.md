@@ -4,97 +4,113 @@ description: "Learn about daily routines and lifestyle in Japan"
 nodes:
   - id: "daily-life"
     type: "text"
-    position: { x: 300, y: 50 }
-    data: { label: "日常生活\nDaily Life", color: "green" }
+    position: { x: 340, y: 40 }
+    data: { label: "日常生活", color: "green" }
   - id: "morning"
     type: "text"
-    position: { x: 100, y: 150 }
-    data: { label: "朝\nMorning", color: "blue" }
+    position: { x: 120, y: 170 }
+    data: { label: "朝", color: "blue" }
   - id: "afternoon"
     type: "text"
-    position: { x: 300, y: 150 }
-    data: { label: "昼\nAfternoon", color: "blue" }
+    position: { x: 340, y: 170 }
+    data: { label: "昼", color: "blue" }
   - id: "evening"
     type: "text"
-    position: { x: 500, y: 150 }
-    data: { label: "夜\nEvening", color: "blue" }
+    position: { x: 560, y: 170 }
+    data: { label: "夜", color: "blue" }
   - id: "wake-up"
     type: "text"
-    position: { x: 50, y: 280 }
-    data: { label: "起きる\nWake up", color: "amber" }
+    position: { x: 40, y: 330 }
+    data: { label: "起きる", color: "amber" }
   - id: "breakfast"
     type: "text"
-    position: { x: 150, y: 280 }
-    data: { label: "朝ご飯\nBreakfast", color: "amber" }
+    position: { x: 180, y: 330 }
+    data: { label: "朝ご飯", color: "amber" }
   - id: "work"
     type: "text"
-    position: { x: 250, y: 280 }
-    data: { label: "仕事\nWork", color: "amber" }
+    position: { x: 300, y: 330 }
+    data: { label: "仕事", color: "amber" }
   - id: "lunch"
     type: "text"
-    position: { x: 350, y: 280 }
-    data: { label: "昼ご飯\nLunch", color: "amber" }
+    position: { x: 420, y: 330 }
+    data: { label: "昼ご飯", color: "amber" }
   - id: "dinner"
     type: "text"
-    position: { x: 450, y: 280 }
-    data: { label: "晩ご飯\nDinner", color: "amber" }
+    position: { x: 540, y: 330 }
+    data: { label: "晩ご飯", color: "amber" }
   - id: "sleep"
     type: "text"
-    position: { x: 550, y: 280 }
-    data: { label: "寝る\nSleep", color: "amber" }
+    position: { x: 660, y: 330 }
+    data: { label: "寝る", color: "amber" }
   - id: "commute"
     type: "text"
-    position: { x: 200, y: 400 }
-    data: { label: "通勤\nCommute", color: "purple" }
+    position: { x: 210, y: 470 }
+    data: { label: "通勤", color: "purple" }
   - id: "free-time"
     type: "text"
-    position: { x: 400, y: 400 }
-    data: { label: "自由時間\nFree time", color: "purple" }
+    position: { x: 500, y: 470 }
+    data: { label: "自由時間", color: "purple" }
+  - id: "conn-day-parts"
+    type: "connector"
+    position: { x: 340, y: 105 }
+    data: { label: "には" }
+  - id: "conn-morning"
+    type: "connector"
+    position: { x: 120, y: 250 }
+    data: { label: "にすることは" }
+  - id: "conn-afternoon"
+    type: "connector"
+    position: { x: 340, y: 250 }
+    data: { label: "にすることは" }
+  - id: "conn-evening"
+    type: "connector"
+    position: { x: 560, y: 250 }
+    data: { label: "にすることは" }
 edges:
   - id: "e1"
     source: "daily-life"
-    target: "morning"
+    target: "conn-day-parts"
   - id: "e2"
-    source: "daily-life"
-    target: "afternoon"
+    source: "conn-day-parts"
+    target: "morning"
   - id: "e3"
-    source: "daily-life"
-    target: "evening"
+    source: "conn-day-parts"
+    target: "afternoon"
   - id: "e4"
-    source: "morning"
-    target: "wake-up"
+    source: "conn-day-parts"
+    target: "evening"
   - id: "e5"
     source: "morning"
-    target: "breakfast"
+    target: "conn-morning"
   - id: "e6"
-    source: "afternoon"
-    target: "work"
+    source: "conn-morning"
+    target: "wake-up"
   - id: "e7"
-    source: "afternoon"
-    target: "lunch"
+    source: "conn-morning"
+    target: "breakfast"
   - id: "e8"
-    source: "evening"
-    target: "dinner"
+    source: "conn-morning"
+    target: "commute"
   - id: "e9"
-    source: "evening"
-    target: "sleep"
+    source: "afternoon"
+    target: "conn-afternoon"
   - id: "e10"
-    source: "wake-up"
-    target: "commute"
-  - id: "e11"
-    source: "breakfast"
-    target: "commute"
-  - id: "e12"
-    source: "commute"
+    source: "conn-afternoon"
     target: "work"
+  - id: "e11"
+    source: "conn-afternoon"
+    target: "lunch"
+  - id: "e12"
+    source: "evening"
+    target: "conn-evening"
   - id: "e13"
-    source: "work"
-    target: "free-time"
+    source: "conn-evening"
+    target: "dinner"
   - id: "e14"
-    source: "dinner"
+    source: "conn-evening"
     target: "free-time"
   - id: "e15"
-    source: "free-time"
+    source: "conn-evening"
     target: "sleep"
 ---
 

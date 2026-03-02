@@ -34,7 +34,7 @@ export function LearnerList({
 					type="button"
 					key={learner.learnerMapId}
 					className={cn(
-						"flex w-full items-center justify-between px-3 py-2 border-b last:border-b-0 text-left hover:bg-muted/50",
+						"flex w-full items-center justify-between px-3 py-2 border-b-[0.5px] last:border-b-0 text-left hover:bg-muted/50",
 						selectedLearnerMapIds.has(learner.learnerMapId) && "bg-muted",
 					)}
 					onClick={() => onToggleLearner(learner.learnerMapId)}

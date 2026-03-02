@@ -58,7 +58,7 @@ export function AnalyticsControls({ visibility, onChange }: AnalyticsControlsPro
 						checked={visibility.showCorrectEdges}
 						onCheckedChange={(v) => onChange({ showCorrectEdges: v })}
 					/>
-					<LegendDot color="#22c55e" />
+					<LegendDot color="var(--edge-correct)" />
 					<span>Correct</span>
 				</div>
 				<div className="flex items-center gap-2 text-xs">
@@ -66,7 +66,7 @@ export function AnalyticsControls({ visibility, onChange }: AnalyticsControlsPro
 						checked={visibility.showMissingEdges}
 						onCheckedChange={(v) => onChange({ showMissingEdges: v })}
 					/>
-					<LegendDot color="#ef4444" />
+					<LegendDot color="var(--edge-missing)" />
 					<span>Missing</span>
 				</div>
 				<div className="flex items-center gap-2 text-xs">
@@ -74,7 +74,7 @@ export function AnalyticsControls({ visibility, onChange }: AnalyticsControlsPro
 						checked={visibility.showExcessiveEdges}
 						onCheckedChange={(v) => onChange({ showExcessiveEdges: v })}
 					/>
-					<LegendDot color="#3b82f6" />
+					<LegendDot color="var(--edge-excessive)" />
 					<span>Excessive</span>
 				</div>
 				<div className="flex items-center gap-2 text-xs">
@@ -82,7 +82,7 @@ export function AnalyticsControls({ visibility, onChange }: AnalyticsControlsPro
 						checked={visibility.showNeutralEdges}
 						onCheckedChange={(v) => onChange({ showNeutralEdges: v })}
 					/>
-					<LegendDot color="#64748b" />
+					<LegendDot color="var(--edge-neutral)" />
 					<span>Neutral</span>
 				</div>
 			</div>
