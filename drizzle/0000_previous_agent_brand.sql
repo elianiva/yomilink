@@ -285,6 +285,7 @@ CREATE TABLE `user` (
 	`id` text PRIMARY KEY NOT NULL,
 	`name` text NOT NULL,
 	`email` text NOT NULL,
+	`student_id` text,
 	`email_verified` integer DEFAULT false NOT NULL,
 	`image` text,
 	`created_at` integer DEFAULT (cast(unixepoch('subsecond') * 1000 as integer)) NOT NULL,
@@ -299,7 +300,7 @@ CREATE TABLE `user` (
 	`banned` integer DEFAULT false,
 	`ban_reason` text,
 	`ban_expires` integer,
-	`study_group` text DEFAULT 'experiment' NOT NULL
+	`study_group` text
 );
 --> statement-breakpoint
 CREATE UNIQUE INDEX `user_email_unique` ON `user` (`email`);--> statement-breakpoint

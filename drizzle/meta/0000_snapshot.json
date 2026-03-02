@@ -1,7 +1,7 @@
 {
   "version": "6",
   "dialect": "sqlite",
-  "id": "430be2bc-8a9b-43b3-88cb-cc7e2b10f1e6",
+  "id": "7edba2bc-f980-4852-8e4f-1bac6fa638d7",
   "prevId": "00000000-0000-0000-0000-000000000000",
   "tables": {
     "assignment_targets": {
@@ -2074,6 +2074,13 @@
           "notNull": true,
           "autoincrement": false
         },
+        "student_id": {
+          "name": "student_id",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false,
+          "autoincrement": false
+        },
         "email_verified": {
           "name": "email_verified",
           "type": "integer",
@@ -2180,9 +2187,8 @@
           "name": "study_group",
           "type": "text",
           "primaryKey": false,
-          "notNull": true,
-          "autoincrement": false,
-          "default": "'experiment'"
+          "notNull": false,
+          "autoincrement": false
         }
       },
       "indexes": {
