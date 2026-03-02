@@ -63,6 +63,10 @@ export class Auth extends Effect.Service<Auth>()("Auth", {
 						type: "string",
 						required: false,
 					},
+					studyGroup: {
+						type: "string",
+						required: false,
+					},
 				},
 			},
 			logger: { disabled: false },
@@ -95,6 +99,9 @@ export const AuthUser = Schema.Struct({
 	previousJapaneseScore: Schema.optionalWith(Schema.Number, { nullable: true }),
 	mediaConsumption: Schema.optionalWith(Schema.Number, { nullable: true }),
 	motivation: Schema.optionalWith(Schema.String, { nullable: true }),
+	studyGroup: Schema.optionalWith(Schema.Union(Schema.Literal("experiment", "control")), {
+		nullable: true,
+	}),
 });
 
 export function getServerUser(headers: Headers) {

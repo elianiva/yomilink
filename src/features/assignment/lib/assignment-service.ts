@@ -4,7 +4,6 @@ import { Data, Effect, Schema } from "effect";
 import { randomString } from "@/lib/utils";
 import { Database } from "@/server/db/client";
 import { assignments, assignmentTargets, goalMaps, kits } from "@/server/db/schema/app-schema";
-import { experimentGroups } from "@/server/db/schema/app-schema";
 import { cohortMembers, cohorts, user } from "@/server/db/schema/auth-schema";
 
 export const CreateAssignmentInput = Schema.Struct({
@@ -242,20 +241,12 @@ export const saveExperimentGroups = Effect.fn("saveExperimentGroups")(function* 
 ) {
 	const db = yield* Database;
 
-	// Delete existing groups for this assignment
-	yield* db.delete(experimentGroups).where(eq(experimentGroups.assignmentId, input.assignmentId));
-
-	// Insert new groups
-	if (input.groups.length > 0) {
-		const values = input.groups.map((g) => ({
-			id: randomString(),
-			assignmentId: input.assignmentId,
-			userId: g.userId,
-			groupName: g.groupName ?? null,
-			condition: g.condition,
-		}));
-
-		yield* db.insert(experimentGroups).values(values);
+	// Update studyGroup for each user
+	for (const g of input.groups) {
+		yield* db
+			.update(user)
+			.set({ studyGroup: g.condition === "concept_map" ? "experiment" : "control" })
+			.where(eq(user.id, g.userId));
 	}
 
 	return true;
@@ -265,10 +256,19 @@ export const getExperimentGroupsByAssignmentId = Effect.fn("getExperimentGroupsB
 	function* (assignmentId: string) {
 		const db = yield* Database;
 
+		// This previously fetched from experimentGroups table.
+		// Now we fetch from user table via assignmentTargets.
 		const rows = yield* db
-			.select()
-			.from(experimentGroups)
-			.where(eq(experimentGroups.assignmentId, assignmentId));
+			.select({
+				id: user.id,
+				assignmentId: sql<string>`${assignmentId}`,
+				userId: user.id,
+				groupName: sql<string>`null`,
+				condition: sql<string>`case when ${user.studyGroup} = 'experiment' then 'concept_map' else 'summarizing' end`,
+			})
+			.from(user)
+			.innerJoin(assignmentTargets, eq(assignmentTargets.userId, user.id))
+			.where(eq(assignmentTargets.assignmentId, assignmentId));
 
 		return rows;
 	},
@@ -295,14 +295,14 @@ export const getExperimentCondition = Effect.fn("getExperimentCondition")(functi
 	const db = yield* Database;
 
 	const rows = yield* db
-		.select()
-		.from(experimentGroups)
-		.where(
-			and(
-				eq(experimentGroups.assignmentId, assignmentId),
-				eq(experimentGroups.userId, userId),
-			),
-		)
+		.select({
+			id: user.id,
+			assignmentId: sql<string>`${assignmentId}`,
+			userId: user.id,
+			condition: sql<string>`case when ${user.studyGroup} = 'experiment' then 'concept_map' else 'summarizing' end`,
+		})
+		.from(user)
+		.where(eq(user.id, userId))
 		.limit(1);
 
 	return rows[0] ?? null;

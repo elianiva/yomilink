@@ -1,14 +1,19 @@
-import { mutationOptions } from "@tanstack/react-query";
+import { queryOptions, mutationOptions } from "@tanstack/react-query";
 import { createServerFn } from "@tanstack/react-start";
 import { Data, Effect, Layer, Schema } from "effect";
 
 import { Auth } from "@/lib/auth";
+import { randomString } from "@/lib/utils";
 import { authMiddlewareOptional } from "@/middlewares/auth";
+import { Database } from "@/server/db/client";
+import { cohortMembers, cohorts } from "@/server/db/schema/auth-schema";
 
 import { AppLayer } from "../app-layer";
-import { Rpc, logRpcError } from "../rpc-helper";
+import { Rpc, logRpcError, type RpcResult } from "../rpc-helper";
 
 export const JlptLevelSchema = Schema.Union(Schema.Literal("N5", "N4", "N3", "N2", "N1", "None"));
+
+export const StudyGroupSchema = Schema.Union(Schema.Literal("experiment", "control"));
 
 export const SignUpInput = Schema.Struct({
 	name: Schema.NonEmptyString,
@@ -16,6 +21,8 @@ export const SignUpInput = Schema.Struct({
 	password: Schema.String.pipe(Schema.minLength(8)),
 	age: Schema.NullOr(Schema.Number),
 	jlptLevel: JlptLevelSchema,
+	cohortId: Schema.NonEmptyString,
+	studyGroup: StudyGroupSchema,
 	japaneseLearningDuration: Schema.NullOr(Schema.Number),
 	previousJapaneseScore: Schema.NullOr(Schema.Number),
 	mediaConsumption: Schema.NullOr(Schema.Number),
@@ -51,6 +58,7 @@ export const signUpRpc = createServerFn()
 	.handler(({ data }) =>
 		Effect.gen(function* () {
 			const auth = yield* Auth;
+			const db = yield* Database;
 
 			const result = yield* Effect.tryPromise({
 				try: () =>
@@ -65,14 +73,23 @@ export const signUpRpc = createServerFn()
 							previousJapaneseScore: data.previousJapaneseScore ?? undefined,
 							mediaConsumption: data.mediaConsumption ?? undefined,
 							motivation: data.motivation ?? undefined,
+							studyGroup: data.studyGroup,
 						},
 					}),
 				catch: (e) => new SignUpFailedError({ message: getFriendlySignUpError(e) }),
 			});
 
-			if (!result) {
+			if (!result || !result.user) {
 				return yield* new SignUpFailedError({ message: "Signup returned no result" });
 			}
+
+			// Add user to the selected cohort
+			yield* db.insert(cohortMembers).values({
+				id: randomString(),
+				userId: result.user.id,
+				cohortId: data.cohortId,
+				role: "member",
+			});
 
 			return Rpc.ok({ success: true });
 		}).pipe(
@@ -94,4 +111,30 @@ export const AuthRpc = {
 			mutationKey: [...AuthRpc.auth(), "signUp"],
 			mutationFn: (data: SignUpInput) => signUpRpc({ data }),
 		}),
+	listCohorts: () =>
+		queryOptions({
+			queryKey: [...AuthRpc.auth(), "cohorts"],
+			queryFn: () => listCohortsRpc() as Promise<RpcResult<{ id: string; name: string }[]>>,
+		}),
 };
+
+export const listCohortsRpc = createServerFn()
+	.middleware([authMiddlewareOptional])
+	.handler(() =>
+		Effect.gen(function* () {
+			const db = yield* Database;
+			const rows = yield* db
+				.select({
+					id: cohorts.id,
+					name: cohorts.name,
+				})
+				.from(cohorts)
+				.orderBy(cohorts.name);
+
+			return Rpc.ok(rows);
+		}).pipe(
+			Effect.withSpan("listCohorts"),
+			Effect.provide(AppLayer),
+			Effect.runPromise,
+		),
+	);

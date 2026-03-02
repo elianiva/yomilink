@@ -5,10 +5,9 @@ import { Database } from "@/server/db/client";
 import {
 	assignments,
 	assignmentTargets,
-	experimentGroups,
 	kits,
 } from "@/server/db/schema/app-schema";
-import { cohortMembers, cohorts } from "@/server/db/schema/auth-schema";
+import { cohortMembers, cohorts, user } from "@/server/db/schema/auth-schema";
 import { DEMO_STUDENTS } from "../data/users.js";
 
 export function seedDemoData(
@@ -190,30 +189,18 @@ export function seedDemoData(
 		}
 
 		yield* Effect.log("Seeding experiment groups...");
-		const existingGroups = yield* db
+		const existingStudents = yield* db
 			.select()
-			.from(experimentGroups)
-			.where(eq(experimentGroups.assignmentId, demoAssignmentId));
+			.from(user)
+			.where(eq(user.role, "student"));
 
-		if (existingGroups.length > 0) {
-			yield* Effect.log("  Experiment groups already seeded");
-		} else {
-			yield* Effect.all(
-				Object.entries(studentConditionMap).map(([email, condition]) =>
-					Effect.gen(function* () {
-						const userId = userIdsByEmail[email];
-						if (!userId) return;
-						yield* db.insert(experimentGroups).values({
-							id: randomString(),
-							assignmentId: demoAssignmentId,
-							userId,
-							condition,
-						});
-					}),
-				),
-			);
-			yield* Effect.log("  Seeded experiment groups");
+		for (const s of existingStudents) {
+			const condition = studentConditionMap[s.email];
+			if (condition) {
+				yield* db.update(user).set({ studyGroup: condition === "concept_map" ? "experiment" : "control" }).where(eq(user.id, s.id));
+			}
 		}
+		yield* Effect.log("  Seeded experiment groups (studyGroup on user)");
 
 		return {
 			demoCohortId,

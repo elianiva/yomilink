@@ -3,6 +3,7 @@ import { AppLayer } from "@/server/app-layer";
 import { Auth } from "@/lib/auth";
 import {
 	seedUsers,
+	seedCohorts,
 	seedGoalMaps,
 	seedDemoData,
 	seedForms,
@@ -15,6 +16,9 @@ const program = Effect.gen(function* () {
 
 	// Step 1: Seed users
 	const { userIdsByEmail, teacherId } = yield* seedUsers();
+
+	// Step 1.5: Seed cohorts
+	yield* seedCohorts();
 
 	// Step 2: Seed topics and goal maps
 	const { goalMapIdsByTitle, goalMapDataByTitle } =

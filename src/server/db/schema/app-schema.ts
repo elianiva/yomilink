@@ -451,66 +451,6 @@ export const formProgress = sqliteTable(
 	],
 );
 
-export const experimentGroups = sqliteTable(
-	"experiment_groups",
-	{
-		id: text("id").primaryKey(),
-		assignmentId: text("assignment_id")
-			.notNull()
-			.references(() => assignments.id, { onDelete: "cascade" }),
-		userId: text("user_id")
-			.notNull()
-			.references(() => user.id, { onDelete: "cascade" }),
-		groupName: text("group_name"),
-		condition: text("condition", {
-			enum: ["summarizing", "concept_map"],
-		}).notNull(),
-		...timestamps,
-	},
-	(table) => [
-		index("experiment_groups_assignmentId_idx").on(table.assignmentId),
-		index("experiment_groups_userId_idx").on(table.userId),
-	],
-);
-
-export const experimentGroupsRelations = relations(experimentGroups, ({ one }) => ({
-	assignment: one(assignments, {
-		fields: [experimentGroups.assignmentId],
-		references: [assignments.id],
-	}),
-	user: one(user, {
-		fields: [experimentGroups.userId],
-		references: [user.id],
-	}),
-}));
-export const formsRelations = relations(forms, ({ one, many }) => ({
-	creator: one(user, {
-		fields: [forms.createdBy],
-		references: [user.id],
-	}),
-	questions: many(questions),
-	responses: many(formResponses),
-	progress: many(formProgress),
-}));
-
-export const questionsRelations = relations(questions, ({ one }) => ({
-	form: one(forms, {
-		fields: [questions.formId],
-		references: [forms.id],
-	}),
-}));
-
-export const formResponsesRelations = relations(formResponses, ({ one }) => ({
-	form: one(forms, {
-		fields: [formResponses.formId],
-		references: [forms.id],
-	}),
-	user: one(user, {
-		fields: [formResponses.userId],
-		references: [user.id],
-	}),
-}));
-
 export const formProgressRelations = relations(formProgress, ({ one }) => ({
 	form: one(forms, {
 		fields: [formProgress.formId],

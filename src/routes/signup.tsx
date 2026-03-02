@@ -1,7 +1,7 @@
 import { useForm } from "@tanstack/react-form";
 import { createFileRoute, Link, redirect, useNavigate } from "@tanstack/react-router";
 import { Schema } from "effect";
-import { UserIcon, BookOpenIcon, ChevronLeft, ChevronRight } from "lucide-react";
+import { UserIcon, BookOpenIcon, ChevronLeft, ChevronRight, SchoolIcon } from "lucide-react";
 import { AnimatePresence, motion } from "motion/react";
 import { useState } from "react";
 
@@ -12,9 +12,9 @@ import { Label } from "@/components/ui/label";
 import { PasswordStrength } from "@/components/ui/password-strength";
 import { SearchableSelect } from "@/components/ui/searchable-select";
 import { Textarea } from "@/components/ui/textarea";
-import { useRpcMutation } from "@/hooks/use-rpc-query";
+import { useRpcMutation, useRpcQuery } from "@/hooks/use-rpc-query";
 import { cn } from "@/lib/utils";
-import { AuthRpc, type SignUpInput, JlptLevelSchema } from "@/server/rpc/auth";
+import { AuthRpc, type SignUpInput, JlptLevelSchema, StudyGroupSchema } from "@/server/rpc/auth";
 import { getMe } from "@/server/rpc/profile";
 
 export const Route = createFileRoute("/signup")({
@@ -72,8 +72,10 @@ const SignUpSchema = Schema.Struct({
 	confirmPassword: Schema.String,
 	age: Schema.NullOr(Schema.Number),
 	jlptLevel: JlptLevelSchema,
+	cohortId: Schema.NonEmptyString,
 	japaneseLearningDuration: Schema.NullOr(Schema.Number),
 	previousJapaneseScore: Schema.NullOr(Schema.Number),
+	studyGroup: StudyGroupSchema,
 	mediaConsumption: Schema.NullOr(Schema.Number),
 	motivation: Schema.NullOr(Schema.String),
 }).pipe(
@@ -83,7 +85,7 @@ const SignUpSchema = Schema.Struct({
 );
 
 type Step = {
-	id: "account" | "personal";
+	id: "account" | "personal" | "cohort";
 	title: string;
 	description: string;
 	icon: typeof UserIcon;
@@ -101,6 +103,12 @@ const steps: Step[] = [
 		title: "Personal Information",
 		description: "Tell us about your Japanese learning journey",
 		icon: BookOpenIcon,
+	},
+	{
+		id: "cohort",
+		title: "Cohort Selection",
+		description: "Choose your assigned class or cohort",
+		icon: SchoolIcon,
 	},
 ];
 
@@ -125,6 +133,8 @@ function SignUpPage() {
 			confirmPassword: "",
 			age: null as unknown as number | null,
 			jlptLevel: "None" as SignUpInput["jlptLevel"],
+			cohortId: "",
+			studyGroup: "experiment" as SignUpInput["studyGroup"],
 			japaneseLearningDuration: null as unknown as number | null,
 			previousJapaneseScore: null as unknown as number | null,
 			mediaConsumption: null as unknown as number | null,
@@ -141,6 +151,8 @@ function SignUpPage() {
 				password: value.password,
 				age: value.age,
 				jlptLevel: value.jlptLevel,
+				cohortId: value.cohortId,
+				studyGroup: value.studyGroup,
 				japaneseLearningDuration: value.japaneseLearningDuration,
 				previousJapaneseScore: value.previousJapaneseScore,
 				mediaConsumption: value.mediaConsumption,
@@ -148,6 +160,12 @@ function SignUpPage() {
 			});
 		},
 	});
+
+	const { data: cohortsData } = useRpcQuery(AuthRpc.listCohorts());
+	const cohorts = (cohortsData ?? []).map((c) => ({
+		id: c.id,
+		label: c.name,
+	}));
 
 	const handleNext = (e: React.MouseEvent) => {
 		e.preventDefault();
@@ -503,6 +521,77 @@ function SignUpPage() {
 										</fieldset>
 									</motion.div>
 								)}
+
+								{currentStep === 2 && (
+									<motion.div
+										key="cohort"
+										custom={direction}
+										variants={stepVariants}
+										initial="enter"
+										animate="center"
+										exit="exit"
+										transition={{ duration: 0.1, ease: "easeOut" }}
+									>
+										<fieldset className="space-y-5">
+											<form.Field name="cohortId">
+												{(field) => (
+													<div className="space-y-1.5">
+														<Label htmlFor="cohortId">
+															Select Your Cohort
+														</Label>
+														<SearchableSelect
+															value={field.state.value}
+															onChange={(value) =>
+																field.handleChange(value)
+															}
+															options={cohorts}
+															placeholder="Search cohorts..."
+															searchPlaceholder="Search cohort name..."
+														/>
+														<p className="text-xs text-muted-foreground">
+															Choose the class assigned by your
+															instructor.
+														</p>
+														<FieldInfo field={field} />
+													</div>
+												)}
+											</form.Field>
+
+											<form.Field name="studyGroup">
+												{(field) => (
+													<div className="space-y-1.5">
+														<Label htmlFor="studyGroup">
+															Study Group Type
+														</Label>
+														<SearchableSelect
+															value={field.state.value}
+															onChange={(value) =>
+																field.handleChange(
+																	value as "experiment" | "control",
+																)
+															}
+															options={[
+																{
+																	id: "experiment",
+																	label: "Experiment",
+																},
+																{
+																	id: "control",
+																	label: "Control",
+																},
+															]}
+															placeholder="Select group type"
+														/>
+														<p className="text-xs text-muted-foreground">
+															If unsure, select 'Experiment'.
+														</p>
+														<FieldInfo field={field} />
+													</div>
+												)}
+											</form.Field>
+										</fieldset>
+									</motion.div>
+								)}
 							</AnimatePresence>
 						</div>
 						{/* Navigation */}
@@ -524,34 +613,67 @@ function SignUpPage() {
 							{currentStep < steps.length - 1 ? (
 								<form.Subscribe
 									selector={(state) => {
-										const { name, email, password, confirmPassword } =
-											state.values;
+										const {
+											name,
+											email,
+											password,
+											confirmPassword,
+											age,
+											jlptLevel,
+											japaneseLearningDuration,
+											mediaConsumption,
+										} = state.values;
 										return {
-											nameFilled: !!name,
-											emailFilled: !!email,
-											passwordFilled: !!password,
-											confirmFilled: !!confirmPassword,
-											nameErrors: state.fieldMeta.name?.errors.length ?? 0,
-											emailErrors: state.fieldMeta.email?.errors.length ?? 0,
-											passwordErrors:
-												state.fieldMeta.password?.errors.length ?? 0,
-											confirmErrors:
-												state.fieldMeta.confirmPassword?.errors.length ?? 0,
-											passwordsMatch: password === confirmPassword,
+											step0: {
+												filled:
+													!!name &&
+													!!email &&
+													!!password &&
+													!!confirmPassword,
+												errors:
+													(state.fieldMeta.name?.errors.length ?? 0) +
+													(state.fieldMeta.email?.errors.length ?? 0) +
+													(state.fieldMeta.password?.errors.length ?? 0) +
+													(state.fieldMeta.confirmPassword?.errors
+														.length ?? 0),
+												passwordsMatch: password === confirmPassword,
+											},
+											step1: {
+												filled:
+													age !== null &&
+													!!jlptLevel &&
+													japaneseLearningDuration !== null &&
+													mediaConsumption !== null,
+												errors:
+													(state.fieldMeta.age?.errors.length ?? 0) +
+													(state.fieldMeta.jlptLevel?.errors.length ??
+														0) +
+													(state.fieldMeta.japaneseLearningDuration?.errors
+														.length ?? 0) +
+													(state.fieldMeta.mediaConsumption?.errors
+														.length ?? 0),
+											},
+											step2: {
+												filled: !!state.values.cohortId && !!state.values.studyGroup,
+												errors: (state.fieldMeta.cohortId?.errors.length ?? 0) + (state.fieldMeta.studyGroup?.errors.length ?? 0),
+											}
 										};
 									}}
 								>
 									{(state) => {
-										const canProceed =
-											state.nameFilled &&
-											state.emailFilled &&
-											state.passwordFilled &&
-											state.confirmFilled &&
-											state.nameErrors === 0 &&
-											state.emailErrors === 0 &&
-											state.passwordErrors === 0 &&
-											state.confirmErrors === 0 &&
-											state.passwordsMatch;
+										let canProceed = false;
+										if (currentStep === 0) {
+											canProceed =
+												state.step0.filled &&
+												state.step0.errors === 0 &&
+												state.step0.passwordsMatch;
+										} else if (currentStep === 1) {
+											canProceed =
+												state.step1.filled && state.step1.errors === 0;
+										} else if (currentStep === 2) {
+											canProceed = state.step2.filled && state.step2.errors === 0;
+										}
+
 										return (
 											<Button
 												type="button"

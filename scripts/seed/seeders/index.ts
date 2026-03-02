@@ -1,4 +1,5 @@
 export * from "./users.js";
+export * from "./cohorts.js";
 export * from "./goal-maps.js";
 export * from "./demo-data.js";
 export * from "./forms.js";
