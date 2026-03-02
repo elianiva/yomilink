@@ -1,15 +1,8 @@
 import { getRouteApi, useNavigate } from "@tanstack/react-router";
-import type { Connection, MarkerType } from "@xyflow/react";
-import {
-	Background,
-	ConnectionMode,
-	MiniMap,
-	ReactFlow,
-	ReactFlowProvider,
-	useReactFlow,
-} from "@xyflow/react";
+import type { Connection } from "@xyflow/react";
+import { ReactFlowProvider, useReactFlow } from "@xyflow/react";
 import { useAtom, useAtomValue, useSetAtom } from "jotai";
-import { useCallback, useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 
 import { AddConceptDialog } from "@/features/goal-map/components/add-concept-dialog";
 
@@ -28,7 +21,6 @@ import { useViewportControls } from "@/features/goal-map/hooks/use-viewport-cont
 import {
 	conceptDialogOpenAtom,
 	contextMenuAtom,
-	directionEnabledAtom,
 	editNodeAtom,
 	imagesAtom,
 	isHydratedAtom,
@@ -41,12 +33,9 @@ import {
 	getColorByValue,
 	type TailwindColor,
 } from "@/features/kitbuild/components/color-picker";
-import { ConnectorNode } from "@/features/kitbuild/components/connector-node";
-import { FloatingConnectionLine } from "@/features/kitbuild/components/floating-connection-line";
-import { FloatingEdge } from "@/features/kitbuild/components/floating-edge";
+import { ConceptMapCanvas } from "@/features/kitbuild/components/concept-map-canvas";
 import { NodeContextMenu } from "@/features/kitbuild/components/node-context-menu";
 import { SearchNodesPanel } from "@/features/kitbuild/components/search-nodes-panel";
-import { TextNode } from "@/features/kitbuild/components/text-node";
 import { useRpcMutation, useRpcQuery } from "@/hooks/use-rpc-query";
 import { toast } from "@/lib/error-toast";
 import { areNodesConnected } from "@/lib/react-flow-types";
@@ -57,15 +46,6 @@ import { KitRpc } from "@/server/rpc/kit";
 import { TopicRpc } from "@/server/rpc/topic";
 
 const routeApi = getRouteApi("/dashboard/goal-map/$goalMapId");
-
-const NODE_TYPES = {
-	text: TextNode,
-	connector: ConnectorNode,
-};
-
-const EDGE_TYPES = {
-	floating: FloatingEdge,
-};
 
 export function GoalMapEditor() {
 	const { getViewport } = useReactFlow();
@@ -79,7 +59,6 @@ export function GoalMapEditor() {
 	const [materialImages, setMaterialImages] = useAtom(imagesAtom);
 	const materialText = useAtomValue(materialTextAtom);
 	const setMaterialText = useSetAtom(materialTextAtom);
-	const directionEnabled = useAtomValue(directionEnabledAtom);
 	const [isSavingForKit, setIsSavingForKit] = useState(false);
 
 	const { goalMapId } = routeApi.useParams();
@@ -131,8 +110,7 @@ export function GoalMapEditor() {
 		handleEditNodeConfirm,
 	} = useContextMenu();
 
-	const { zoomIn, zoomOut, fit, centerMap, toggleDirection, autoLayout, updateEdgeMarkers } =
-		useViewportControls();
+	const { zoomIn, zoomOut, fit, centerMap, autoLayout } = useViewportControls();
 
 	const {
 		saveMeta,
@@ -357,21 +335,6 @@ export function GoalMapEditor() {
 		}
 	}, [lastSavedSnapshot, graphNodes, graphEdges, setLastSavedSnapshot]);
 
-	const edgeOptions = useMemo(
-		() => ({
-			type: "floating",
-			style: { stroke: "#16a34a", strokeWidth: 3 },
-			markerEnd: directionEnabled
-				? { type: "arrowclosed" as MarkerType, color: "#16a34a" }
-				: undefined,
-		}),
-		[directionEnabled],
-	);
-
-	useEffect(() => {
-		updateEdgeMarkers();
-	}, [directionEnabled, updateEdgeMarkers]);
-
 	return (
 		<div className="h-full relative">
 			<AddConceptDialog
@@ -446,11 +409,9 @@ export function GoalMapEditor() {
 			</div>
 
 			<div className="rounded-xl border bg-card relative h-full overflow-hidden">
-				<ReactFlow
+				<ConceptMapCanvas
 					nodes={graphNodes}
 					edges={graphEdges}
-					nodeTypes={NODE_TYPES}
-					edgeTypes={EDGE_TYPES}
 					onNodesChange={onNodesChange}
 					onEdgesChange={onEdgesChange}
 					onConnect={onConnectWrapper}
@@ -458,21 +419,15 @@ export function GoalMapEditor() {
 					isValidConnection={isValidConnectionHandler}
 					onNodeClick={onNodeClick}
 					onPaneClick={onPaneClick}
-					defaultEdgeOptions={edgeOptions}
-					connectionLineComponent={FloatingConnectionLine}
-					connectionRadius={80}
-					connectionMode={ConnectionMode.Loose}
-					fitView
+					readOnly={false}
 				>
-					<MiniMap />
-					<Background gap={16} />
 					<SearchNodesPanel
 						open={searchOpen}
 						nodes={graphNodes}
 						onClose={() => setSearchOpen(false)}
 						onSelectNode={selectNode}
 					/>
-				</ReactFlow>
+				</ConceptMapCanvas>
 
 				<EditorToolbar
 					onUndo={undo}
@@ -481,7 +436,6 @@ export function GoalMapEditor() {
 					onZoomOut={zoomOut}
 					onFit={fit}
 					onCenterMap={centerMap}
-					onToggleDirection={toggleDirection}
 					onAutoLayout={autoLayout}
 					onDelete={deleteSelected}
 					onSave={() => doSave({ topicId: saveMeta.topicId, name: saveMeta.name })}

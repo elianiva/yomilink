@@ -1,6 +1,5 @@
-import { useAtomValue, useSetAtom } from "jotai";
+import { useSetAtom } from "jotai";
 import {
-	ArrowRight,
 	FileText,
 	Grid3X3,
 	Loader2,
@@ -27,7 +26,6 @@ import {
 import { useSaveDialog } from "../hooks/use-save-dialog";
 import {
 	conceptDialogOpenAtom,
-	directionEnabledAtom,
 	importDialogOpenAtom,
 	linkDialogOpenAtom,
 	searchOpenAtom,
@@ -40,7 +38,6 @@ export type EditorToolbarProps = {
 	onZoomOut: () => void;
 	onFit: () => void;
 	onCenterMap: () => void;
-	onToggleDirection: () => void;
 	onAutoLayout: () => void;
 	onDelete: () => void;
 	onSave: () => void;
@@ -66,7 +63,6 @@ function EditorToolbarImpl({
 	onZoomOut,
 	onFit,
 	onCenterMap,
-	onToggleDirection,
 	onAutoLayout,
 	onDelete,
 	onSave,
@@ -80,7 +76,6 @@ function EditorToolbarImpl({
 	const setLinkDialogOpen = useSetAtom(linkDialogOpenAtom);
 	const setImportDialogOpen = useSetAtom(importDialogOpenAtom);
 	const setSearchOpen = useSetAtom(searchOpenAtom);
-	const directionEnabled = useAtomValue(directionEnabledAtom);
 	const { setSaveOpen, setSaveAsOpen } = useSaveDialog();
 
 	const handleSave = () => {
@@ -173,12 +168,6 @@ function EditorToolbarImpl({
 					icon={Search}
 					label="Search nodes"
 					onClick={() => setSearchOpen(true)}
-					handle={tooltipHandle}
-				/>
-				<ToolbarButton
-					icon={ArrowRight}
-					label={directionEnabled ? "Disable edge direction" : "Enable edge direction"}
-					onClick={onToggleDirection}
 					handle={tooltipHandle}
 				/>
 				<ToolbarButton
@@ -278,8 +267,7 @@ function EditorToolbarImpl({
 										</div>
 									) : (
 										"Create a kit from this map"
-									)
-								}
+									)}
 							/>
 						</>
 					)}

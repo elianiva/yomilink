@@ -1,19 +1,11 @@
 import { useQueryClient } from "@tanstack/react-query";
 import { useNavigate, getRouteApi } from "@tanstack/react-router";
-import type { Connection, MarkerType, NodeMouseHandler } from "@xyflow/react";
-import {
-	addEdge,
-	Background,
-	ConnectionMode,
-	MiniMap,
-	ReactFlow,
-	ReactFlowProvider,
-	useReactFlow,
-} from "@xyflow/react";
+import type { Connection, NodeMouseHandler } from "@xyflow/react";
+import { addEdge, ReactFlowProvider, useReactFlow } from "@xyflow/react";
 
 import "@xyflow/react/dist/style.css";
 import { useAtom, useAtomValue, useSetAtom } from "jotai";
-import { useCallback, useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 
 import {
 	AlertDialog,
@@ -26,12 +18,8 @@ import {
 	AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
 import { Button } from "@/components/ui/button";
-import { ConnectorNode } from "@/features/kitbuild/components/connector-node";
-import { FloatingConnectionLine } from "@/features/kitbuild/components/floating-connection-line";
-import { FloatingEdge } from "@/features/kitbuild/components/floating-edge";
+import { ConceptMapCanvas } from "@/features/kitbuild/components/concept-map-canvas";
 import { SearchNodesPanel } from "@/features/kitbuild/components/search-nodes-panel";
-import { TextNode } from "@/features/kitbuild/components/text-node";
-import { getLayoutedElements } from "@/features/kitbuild/lib/layout";
 import { LearnerToolbar } from "@/features/learner-map/components/learner-toolbar";
 import { MaterialDialog } from "@/features/learner-map/components/material-dialog";
 import {
@@ -51,6 +39,7 @@ import { arrangeNodesByType } from "@/features/learner-map/lib/grid-layout";
 import { useGraphChangeHandlers } from "@/hooks/use-graph-change-handlers";
 import { useHistory } from "@/hooks/use-history";
 import { useRpcMutation, useRpcQuery } from "@/hooks/use-rpc-query";
+import { getLayoutedElements } from "@/features/kitbuild/lib/layout";
 import { formatDuration } from "@/lib/date-utils";
 import { toast } from "@/lib/error-toast";
 import { areNodesConnected, isValidConnection } from "@/lib/react-flow-types";
@@ -68,26 +57,11 @@ export function LearnerMapEditor() {
 	const { assignmentId } = routeApi.useParams();
 	const navigate = useNavigate();
 	const queryClient = useQueryClient();
-
-	const nodeTypes = useMemo(
-		() => ({
-			text: TextNode,
-			connector: ConnectorNode,
-		}),
-		[],
-	);
-
-	const edgeTypes = useMemo(
-		() => ({
-			floating: FloatingEdge,
-		}),
-		[],
-	);
+	const { zoomIn: rfZoomIn, zoomOut: rfZoomOut, fitView } = useReactFlow();
 
 	// Atom state
 	const [nodes, setNodes] = useAtom(learnerNodesAtom);
 	const [edges, setEdges] = useAtom(learnerEdgesAtom);
-	const { zoomIn: rfZoomIn, zoomOut: rfZoomOut, fitView } = useReactFlow();
 	const [searchOpen, setSearchOpen] = useAtom(searchOpenAtom);
 	const [materialOpen, setMaterialOpen] = useAtom(materialDialogOpenAtom);
 	const [contextMenu, setContextMenu] = useAtom(contextMenuAtom);
@@ -354,16 +328,6 @@ export function LearnerMapEditor() {
 		}
 	};
 
-	// Edge options
-	const edgeOptions = useMemo(
-		() => ({
-			type: "floating",
-			style: { stroke: "#16a34a", strokeWidth: 3 },
-			markerEnd: { type: "arrowclosed" as MarkerType, color: "#16a34a" },
-		}),
-		[],
-	);
-
 	if (isLoading) {
 		return (
 			<div className="h-full flex items-center justify-center">
@@ -469,11 +433,9 @@ export function LearnerMapEditor() {
 			</AlertDialog>
 			{/* Canvas */}
 			<div className="rounded-xl border bg-card relative h-full overflow-hidden">
-				<ReactFlow
+				<ConceptMapCanvas
 					nodes={nodes}
 					edges={edges}
-					nodeTypes={nodeTypes}
-					edgeTypes={edgeTypes}
 					onNodesChange={onNodesChange}
 					onEdgesChange={onEdgesChange}
 					onConnect={onConnect}
@@ -481,24 +443,15 @@ export function LearnerMapEditor() {
 					isValidConnection={isValidConnectionHandler}
 					onNodeClick={onNodeClick}
 					onPaneClick={onPaneClick}
-					defaultEdgeOptions={edgeOptions}
-					connectionLineComponent={FloatingConnectionLine}
-					connectionRadius={80}
-					connectionMode={ConnectionMode.Loose}
-					fitView
-					nodesDraggable={!isSubmitted}
-					nodesConnectable={!isSubmitted}
-					elementsSelectable={!isSubmitted}
+					readOnly={isSubmitted}
 				>
-					<MiniMap />
-					<Background gap={16} />
 					<SearchNodesPanel
 						open={searchOpen}
 						nodes={nodes}
 						onClose={() => setSearchOpen(false)}
 						onSelectNode={selectNode}
 					/>
-				</ReactFlow>
+				</ConceptMapCanvas>
 				{/* Toolbar */}
 				<LearnerToolbar
 					onUndo={undo}

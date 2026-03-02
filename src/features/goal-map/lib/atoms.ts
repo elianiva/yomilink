@@ -11,7 +11,6 @@ export const edgesAtom = atom<Edge[]>([]);
 export const conceptDialogOpenAtom = atom(false);
 export const linkDialogOpenAtom = atom(false);
 export const searchOpenAtom = atom(false);
-export const directionEnabledAtom = atom(true);
 
 // Image draft state
 export const imageDraftAtom = atom<{

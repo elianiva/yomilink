@@ -7,14 +7,14 @@ import { cn } from "@/lib/utils";
 
 const HANDLE_CLASSES = "!w-3 !h-3 !bg-background !border-2 !border-sky-500";
 
-function ConnectorNodeComponent({ id, data }: NodeProps<Node<{ label: string }>>) {
+function ConnectorNodeComponent({ id, data }: Partial<NodeProps<Node<{ label: string }>>>) {
 	const contextMenu = useAtomValue(contextMenuAtom);
 	const isActive = contextMenu?.nodeId === id;
 
 	return (
 		<div
 			className={cn(
-				"min-w-24 rounded-md bg-background px-3 py-1.5 shadow-sm ring-2 ring-sky-500 text-sky-800 transition-all duration-150 relative flex items-center justify-center",
+				"w-fit min-w-24 rounded-md bg-background px-3 py-1.5 shadow-sm ring-2 ring-sky-500 text-sky-800 transition-all duration-150 relative flex items-center justify-center",
 				isActive && "ring-4 scale-105 z-50 shadow-lg",
 			)}
 		>

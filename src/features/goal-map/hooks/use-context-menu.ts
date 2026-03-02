@@ -1,6 +1,6 @@
-import type { Connection, MarkerType, NodeMouseHandler } from "@xyflow/react";
+import type { Connection, NodeMouseHandler } from "@xyflow/react";
 import { addEdge } from "@xyflow/react";
-import { useAtom, useAtomValue } from "jotai";
+import { useAtom } from "jotai";
 import { useCallback } from "react";
 
 import { areNodesConnected } from "@/lib/react-flow-types";
@@ -8,7 +8,6 @@ import { areNodesConnected } from "@/lib/react-flow-types";
 import {
 	connectionModeAtom,
 	contextMenuAtom,
-	directionEnabledAtom,
 	edgesAtom,
 	editNodeAtom,
 	nodesAtom,
@@ -20,7 +19,6 @@ export function useContextMenu() {
 	const [contextMenu, setContextMenu] = useAtom(contextMenuAtom);
 	const [connectionMode, setConnectionMode] = useAtom(connectionModeAtom);
 	const [editNode, setEditNode] = useAtom(editNodeAtom);
-	const directionEnabled = useAtomValue(directionEnabledAtom);
 
 	const handleContextMenuEdit = useCallback(() => {
 		if (!contextMenu) return;
@@ -136,9 +134,7 @@ export function useContextMenu() {
 					target: connectionMode.direction === "to" ? node.id : connectionMode.linkNodeId,
 					type: "floating",
 					style: { stroke: "#16a34a", strokeWidth: 3 },
-					markerEnd: directionEnabled
-						? { type: "arrowclosed" as MarkerType, color: "#16a34a" }
-						: undefined,
+					markerEnd: { type: "arrowclosed" as const, color: "#16a34a" },
 				};
 
 				setEdges((eds) => [...eds, newEdge]);
@@ -162,7 +158,7 @@ export function useContextMenu() {
 				});
 			}
 		},
-		[connectionMode, directionEnabled, edges, setEdges, setConnectionMode, setContextMenu],
+		[connectionMode, edges, setEdges, setConnectionMode, setContextMenu],
 	);
 
 	const onPaneClick = useCallback(() => {

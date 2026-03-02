@@ -11,6 +11,7 @@ import {
 } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { ConnectorNode } from "@/features/kitbuild/components/connector-node";
 
 const LINK_PRESETS = [
 	"is",
@@ -106,11 +107,7 @@ function AddLinkDialogImpl({
 
 					<div className="space-y-2">
 						<Label>Preview</Label>
-						<div className="inline-block min-w-24 rounded-md bg-background px-3 py-1.5 shadow-sm ring-2 ring-sky-500 text-sky-800">
-							<div className="text-sm font-medium leading-tight">
-								{label || "link"}
-							</div>
-						</div>
+						<ConnectorNode id="preview" data={{ label: label || "link" }} />
 					</div>
 				</div>
 
