@@ -1,22 +1,13 @@
-import {
-	ArrowDownIcon,
-	ArrowUpIcon,
-	Check,
-	GripVertical,
-	Plus,
-	Shuffle,
-	Trash2,
-} from "lucide-react";
+import { Check, Plus, Shuffle } from "lucide-react";
+import { AnimatePresence, motion } from "motion/react";
 import type * as React from "react";
 
 import { Button } from "@/components/ui/button";
-import { Checkbox } from "@/components/ui/checkbox";
-import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Switch } from "@/components/ui/switch";
 import { Textarea } from "@/components/ui/textarea";
+import { AnswerOptionCard } from "@/features/form/components/answer-option-card";
 import type { McqOptions } from "@/features/form/lib/form-service";
-import { cn } from "@/lib/utils";
 
 export interface McqQuestionData {
 	questionText: string;
@@ -60,16 +51,17 @@ export function McqQuestionEditor({ data, onChange, disabled = false }: McqQuest
 	const handleOptionTextChange = (optionId: string, text: string) => {
 		onChange({
 			...data,
-			options: data.options.map((opt) => (opt.id === optionId ? { ...opt, text } : opt)),
+			options: data.options.map((opt) =>
+				opt.id === optionId ? { ...opt, text } : opt,
+			),
 		});
 	};
 
-	const handleCorrectAnswerToggle = (optionId: string, checked: boolean) => {
+	const handleCorrectAnswerToggle = (optionId: string) => {
+		// Only allow one correct answer - radio button behavior
 		onChange({
 			...data,
-			correctOptionIds: checked
-				? [...data.correctOptionIds, optionId]
-				: data.correctOptionIds.filter((id) => id !== optionId),
+			correctOptionIds: data.correctOptionIds.includes(optionId) ? [] : [optionId],
 		});
 	};
 
@@ -118,84 +110,25 @@ export function McqQuestionEditor({ data, onChange, disabled = false }: McqQuest
 					</span>
 				</div>
 
-				<div className="space-y-2">
-					{data.options.map((option, index) => (
-						<div
-							key={option.id}
-							data-testid={`option-row-${index}`}
-							className={cn(
-								"flex items-start gap-2 rounded-lg border p-3 transition-colors",
-								data.correctOptionIds.includes(option.id) &&
-									"border-green-500/50 bg-green-50/50 dark:bg-green-950/20",
-							)}
-						>
-							<div className="flex flex-col gap-1 pt-1">
-								<Button
-									type="button"
-									variant="ghost"
-									size="icon"
-									className="h-5 w-5"
-									disabled={disabled || index === 0}
-									onClick={() => handleMoveOption(index, "up")}
-									data-testid={`move-up-${index}`}
-								>
-									<ArrowUpIcon className="size-3" />
-								</Button>
-								<Button
-									type="button"
-									variant="ghost"
-									size="icon"
-									className="h-5 w-5"
-									disabled={disabled || index === data.options.length - 1}
-									onClick={() => handleMoveOption(index, "down")}
-									data-testid={`move-down-${index}`}
-								>
-									<ArrowDownIcon className="size-3" />
-								</Button>
-							</div>
-
-							<Checkbox
-								id={`correct-${option.id}`}
-								data-testid={`correct-checkbox-${index}`}
-								checked={data.correctOptionIds.includes(option.id)}
-								onCheckedChange={(checked) =>
-									handleCorrectAnswerToggle(option.id, checked as boolean)
-								}
+				<motion.div className="space-y-2" layout>
+					<AnimatePresence mode="popLayout">
+						{data.options.map((option, index) => (
+							<AnswerOptionCard
+								key={option.id}
+								option={option}
+								index={index}
+								totalOptions={data.options.length}
+								isCorrect={data.correctOptionIds.includes(option.id)}
 								disabled={disabled}
-								aria-label="Mark as correct answer"
+								onMoveUp={() => handleMoveOption(index, "up")}
+								onMoveDown={() => handleMoveOption(index, "down")}
+								onTextChange={(text) => handleOptionTextChange(option.id, text)}
+								onCorrectToggle={() => handleCorrectAnswerToggle(option.id)}
+								onRemove={() => handleRemoveOption(option.id)}
 							/>
-
-							<div className="flex-1">
-								<Input
-									data-testid={`option-input-${index}`}
-									value={option.text}
-									onChange={(e) =>
-										handleOptionTextChange(option.id, e.target.value)
-									}
-									placeholder={`Option ${index + 1}`}
-									disabled={disabled}
-									className={cn(
-										data.correctOptionIds.includes(option.id) &&
-											"border-green-500/50 focus-visible:ring-green-500/30",
-									)}
-								/>
-							</div>
-
-							<Button
-								type="button"
-								variant="ghost"
-								size="icon"
-								className="h-8 w-8 shrink-0 text-destructive hover:text-destructive"
-								onClick={() => handleRemoveOption(option.id)}
-								disabled={disabled || data.options.length <= 2}
-								data-testid={`remove-option-${index}`}
-								aria-label="Remove option"
-							>
-								<Trash2 className="h-4 w-4" />
-							</Button>
-						</div>
-					))}
-				</div>
+						))}
+					</AnimatePresence>
+				</motion.div>
 
 				<Button
 					type="button"

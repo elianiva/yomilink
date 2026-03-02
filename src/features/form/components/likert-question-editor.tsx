@@ -139,32 +139,27 @@ export function LikertQuestionEditor({
 					<Label>Scale Labels</Label>
 					<Button
 						type="button"
-						variant="ghost"
+						variant="link"
 						size="sm"
 						onClick={handleResetLabels}
 						disabled={disabled}
 						data-testid="reset-labels-button"
+						className="font-normal! text-muted-foreground p-0"
 					>
 						Reset to defaults
 					</Button>
 				</div>
 
-				<div
-					className="grid gap-2"
-					style={{
-						gridTemplateColumns: `repeat(${Math.min(data.scaleSize, 5)}, 1fr)`,
-					}}
-					data-testid="label-inputs"
-				>
+				<div className="flex flex-col gap-2" data-testid="label-inputs">
 					{Array.from({ length: data.scaleSize }, (_, i) => {
 						const key = String(i + 1);
 						return (
-							<div key={key} className="space-y-1">
+							<div key={key} className="flex gap-3">
 								<Label
 									htmlFor={`label-${key}`}
-									className="text-xs text-muted-foreground"
+									className="text-muted-foreground"
 								>
-									{key}
+									{key}.
 								</Label>
 								<Input
 									id={`label-${key}`}
@@ -177,14 +172,6 @@ export function LikertQuestionEditor({
 							</div>
 						);
 					})}
-				</div>
-
-				<div className="mt-2 rounded-lg border p-3">
-					<p className="text-xs text-muted-foreground" data-testid="preview-label">
-						Preview: <span className="font-medium">1</span> = "{data.labels["1"] || "1"}
-						" → <span className="font-medium">{data.scaleSize}</span> = "
-						{data.labels[String(data.scaleSize)] || String(data.scaleSize)}"
-					</p>
 				</div>
 			</div>
 

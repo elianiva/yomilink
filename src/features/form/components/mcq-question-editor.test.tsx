@@ -94,9 +94,10 @@ describe("McqQuestionEditor", () => {
 				/>,
 			);
 
-			const checkboxes = screen.getAllByRole("checkbox");
-			expect(checkboxes[0]).not.toBeChecked();
-			expect(checkboxes[1]).toBeChecked();
+			// Find the correct toggle buttons by their text content in the option rows
+			const optionRows = screen.getAllByTestId(/^option-row-/);
+			expect(optionRows[0].textContent).not.toContain("Correct");
+			expect(optionRows[1].textContent).toContain("Correct");
 		});
 
 		it("shows shuffle state", () => {
@@ -180,7 +181,7 @@ describe("McqQuestionEditor", () => {
 				/>,
 			);
 
-			await user.click(screen.getByTestId("correct-checkbox-0"));
+			await user.click(screen.getByTestId("correct-toggle-0"));
 
 			expect(handleChange).toHaveBeenCalledWith(
 				expect.objectContaining({
