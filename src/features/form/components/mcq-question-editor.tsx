@@ -1,4 +1,12 @@
-import { Check, GripVertical, Plus, Shuffle, Trash2 } from "lucide-react";
+import {
+	ArrowDownIcon,
+	ArrowUpIcon,
+	Check,
+	GripVertical,
+	Plus,
+	Shuffle,
+	Trash2,
+} from "lucide-react";
 import type * as React from "react";
 
 import { Button } from "@/components/ui/button";
@@ -131,7 +139,7 @@ export function McqQuestionEditor({ data, onChange, disabled = false }: McqQuest
 									onClick={() => handleMoveOption(index, "up")}
 									data-testid={`move-up-${index}`}
 								>
-									<GripVertical className="h-3 w-3 rotate-90" />
+									<ArrowUpIcon className="size-3" />
 								</Button>
 								<Button
 									type="button"
@@ -142,7 +150,7 @@ export function McqQuestionEditor({ data, onChange, disabled = false }: McqQuest
 									onClick={() => handleMoveOption(index, "down")}
 									data-testid={`move-down-${index}`}
 								>
-									<GripVertical className="h-3 w-3 rotate-90" />
+									<ArrowDownIcon className="size-3" />
 								</Button>
 							</div>
 
