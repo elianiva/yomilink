@@ -31,7 +31,7 @@ import {
 	type EditorMode,
 	defaultMetadata,
 } from "./types";
-import type { QuestionWithOptions } from "./types";
+import type { QuestionOptions, QuestionWithOptions } from "./types";
 
 const STORAGE_KEY = "form-builder-draft";
 
@@ -69,7 +69,6 @@ export function FormBuilderPage() {
 	const [showUnsavedDialog, setShowUnsavedDialog] = useState(false);
 	const [showDraftDialog, setShowDraftDialog] = useState(false);
 
-	// Queries
 	const { data: existingForm, isLoading: isLoadingForm } = useRpcQuery({
 		...FormRpc.getFormById({ id: formId ?? "" }),
 		enabled: isEditing,
@@ -121,7 +120,6 @@ export function FormBuilderPage() {
 		localStorage.setItem(STORAGE_KEY, JSON.stringify(draft));
 	}, [metadata, questions, isEditing, isDraftLoaded]);
 
-	// Mutations
 	const createFormMutation = useRpcMutation(FormRpc.createForm(), {
 		operation: "create form",
 		showSuccess: false,
@@ -238,7 +236,6 @@ export function FormBuilderPage() {
 		},
 	});
 
-	// Handlers
 	const handleMetadataChange = useCallback((newMetadata: FormMetadata) => {
 		setMetadata(newMetadata);
 		setHasUnsavedChanges(true);
@@ -286,7 +283,7 @@ export function FormBuilderPage() {
 
 	const handleSaveQuestion = async (questionData: {
 		questionText: string;
-		options: unknown;
+		options: QuestionOptions;
 		required: boolean;
 	}) => {
 		const editingQuestion = questionDialog.editingQuestion;
@@ -323,7 +320,7 @@ export function FormBuilderPage() {
 				formId: formId ?? generateDraftId(),
 				type: questionDialog.questionType,
 				questionText: questionData.questionText,
-				options: questionData.options,
+				options: questionData.options as QuestionOptions,
 				required: questionData.required,
 				orderIndex: questions.length,
 				createdAt: new Date(),
@@ -600,9 +597,7 @@ export function FormBuilderPage() {
 						</AlertDialogDescription>
 					</AlertDialogHeader>
 					<AlertDialogFooter>
-						<AlertDialogCancel onClick={handleDiscardDraft}>
-							Discard
-						</AlertDialogCancel>
+						<AlertDialogCancel onClick={handleDiscardDraft}>Discard</AlertDialogCancel>
 						<AlertDialogAction onClick={handleLoadDraft}>Restore</AlertDialogAction>
 					</AlertDialogFooter>
 				</AlertDialogContent>

@@ -1,14 +1,5 @@
 import { useSetAtom } from "jotai";
-import {
-	FileText,
-	Grid3X3,
-	Loader2,
-	Plus,
-	Save,
-	Search,
-	Shuffle,
-	Trash2,
-} from "lucide-react";
+import { FileText, Grid3X3, Loader2, Plus, Save, Search, Shuffle, Trash2 } from "lucide-react";
 import { memo } from "react";
 
 import { ToolbarButton } from "@/components/toolbar/toolbar-button";
@@ -267,7 +258,8 @@ function EditorToolbarImpl({
 										</div>
 									) : (
 										"Create a kit from this map"
-									)}
+									)
+								}
 							/>
 						</>
 					)}

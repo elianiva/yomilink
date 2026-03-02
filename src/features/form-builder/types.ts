@@ -1,5 +1,6 @@
 import type { FormMetadata } from "@/features/form/components/form-metadata-editor";
 import type { Question } from "@/features/form/components/question-list";
+import type { LikertOptions, McqOptions, TextOptions } from "@/features/form/lib/form-service";
 
 export type QuestionType = "mcq" | "likert" | "text";
 export type EditorMode = "edit" | "preview";
@@ -11,7 +12,6 @@ export interface SearchParams {
 // Extended question type that includes options from the database
 export interface QuestionWithOptions extends Question {
 	formId: string;
-	options: unknown;
 	createdAt?: Date;
 	updatedAt?: Date;
 }
@@ -41,12 +41,14 @@ export interface EditorContentProps {
 	hasForm: boolean;
 }
 
+export type QuestionOptions = McqOptions | LikertOptions | TextOptions;
+
 export interface QuestionEditorDialogProps {
 	isOpen: boolean;
 	questionType: QuestionType | null;
 	editingQuestion: QuestionWithOptions | null;
 	onClose: () => void;
-	onSave: (data: { questionText: string; options: unknown; required: boolean }) => void;
+	onSave: (data: { questionText: string; options: QuestionOptions; required: boolean }) => void;
 	isPending: boolean;
 }
 
@@ -56,7 +58,7 @@ export interface EditorWrapperProps {
 		options: unknown;
 		required: boolean;
 	} | null;
-	onSave: (data: { questionText: string; options: unknown; required: boolean }) => void;
+	onSave: (data: { questionText: string; options: QuestionOptions; required: boolean }) => void;
 	onCancel: () => void;
 	isPending: boolean;
 }

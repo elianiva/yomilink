@@ -38,8 +38,8 @@ import { NodeContextMenu } from "@/features/kitbuild/components/node-context-men
 import { SearchNodesPanel } from "@/features/kitbuild/components/search-nodes-panel";
 import { useRpcMutation, useRpcQuery } from "@/hooks/use-rpc-query";
 import { toast } from "@/lib/error-toast";
-import { areNodesConnected } from "@/lib/react-flow-types";
 import { pageTitleAtom } from "@/lib/page-title";
+import { areNodesConnected } from "@/lib/react-flow-types";
 import { randomString } from "@/lib/utils";
 import { GoalMapRpc } from "@/server/rpc/goal-map";
 import { KitRpc } from "@/server/rpc/kit";

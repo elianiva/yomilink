@@ -287,9 +287,9 @@ function TextQuestionEditorWrapper({
 		questionText: initialData?.questionText ?? "",
 		options: (initialData?.options as
 			| {
-					minLength: number | null;
-					maxLength: number | null;
-					placeholder: string | null;
+					minLength?: number | null;
+					maxLength?: number | null;
+					placeholder?: string | null;
 			  }
 			| undefined) ?? {
 			minLength: null,
@@ -305,9 +305,9 @@ function TextQuestionEditorWrapper({
 			questionText: data.questionText,
 			options: {
 				type: "text" as const,
-				minLength: data.options.minLength,
-				maxLength: data.options.maxLength,
-				placeholder: data.options.placeholder,
+				minLength: data.options.minLength ?? undefined,
+				maxLength: data.options.maxLength ?? undefined,
+				placeholder: data.options.placeholder ?? undefined,
 			},
 			required: data.required,
 		});
@@ -318,9 +318,9 @@ function TextQuestionEditorWrapper({
 			<TextQuestionEditor
 				data={{
 					questionText: data.questionText,
-					minLength: data.options.minLength,
-					maxLength: data.options.maxLength,
-					placeholder: data.options.placeholder,
+					minLength: data.options.minLength ?? null,
+					maxLength: data.options.maxLength ?? null,
+					placeholder: data.options.placeholder ?? null,
 					required: data.required,
 				}}
 				onChange={(newData) =>

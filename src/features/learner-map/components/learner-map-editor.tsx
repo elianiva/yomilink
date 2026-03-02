@@ -20,6 +20,7 @@ import {
 import { Button } from "@/components/ui/button";
 import { ConceptMapCanvas } from "@/features/kitbuild/components/concept-map-canvas";
 import { SearchNodesPanel } from "@/features/kitbuild/components/search-nodes-panel";
+import { getLayoutedElements } from "@/features/kitbuild/lib/layout";
 import { LearnerToolbar } from "@/features/learner-map/components/learner-toolbar";
 import { MaterialDialog } from "@/features/learner-map/components/material-dialog";
 import {
@@ -39,7 +40,6 @@ import { arrangeNodesByType } from "@/features/learner-map/lib/grid-layout";
 import { useGraphChangeHandlers } from "@/hooks/use-graph-change-handlers";
 import { useHistory } from "@/hooks/use-history";
 import { useRpcMutation, useRpcQuery } from "@/hooks/use-rpc-query";
-import { getLayoutedElements } from "@/features/kitbuild/lib/layout";
 import { formatDuration } from "@/lib/date-utils";
 import { toast } from "@/lib/error-toast";
 import { areNodesConnected, isValidConnection } from "@/lib/react-flow-types";
@@ -243,7 +243,9 @@ export function LearnerMapEditor() {
 
 			// Only allow: concept -> connector or connector -> concept
 			// Also prevent connecting to the same node
-			if (!isValidConnection(sourceNode?.type, targetNode?.type, params.source, params.target))
+			if (
+				!isValidConnection(sourceNode?.type, targetNode?.type, params.source, params.target)
+			)
 				return;
 			// Prevent duplicate edges between same pair of nodes
 			if (areNodesConnected(edges, params.source, params.target)) return;

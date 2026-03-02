@@ -162,17 +162,6 @@ export function TextQuestionEditor({ data, onChange, disabled = false }: TextQue
 					/>
 				</div>
 			</div>
-
-			{data.minLength !== null && data.maxLength !== null && (
-				<div
-					className="rounded-lg border border-info bg-info/10 p-3"
-					data-testid="validation-preview"
-				>
-					<p className="text-xs text-info">
-						Answer must be between {data.minLength} and {data.maxLength} characters
-					</p>
-				</div>
-			)}
 		</div>
 	);
 }

@@ -42,7 +42,7 @@ export function AnswerOptionCard({
 			animate={{ opacity: 1, y: 0 }}
 			exit={{ opacity: 0, scale: 0.95 }}
 			transition={{
-				duration: 0.15,
+				duration: 0.1,
 				layout: { duration: 0.1 },
 			}}
 			className={cn(
@@ -95,9 +95,7 @@ export function AnswerOptionCard({
 					data-testid={`correct-toggle-${index}`}
 					className={cn(
 						"self-start flex items-center gap-1 text-xs font-medium transition-colors",
-						isCorrect
-							? "text-green-600"
-							: "text-muted-foreground hover:text-green-600",
+						isCorrect ? "text-green-600" : "text-muted-foreground hover:text-green-600",
 					)}
 				>
 					{isCorrect ? (

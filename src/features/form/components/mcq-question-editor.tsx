@@ -51,9 +51,7 @@ export function McqQuestionEditor({ data, onChange, disabled = false }: McqQuest
 	const handleOptionTextChange = (optionId: string, text: string) => {
 		onChange({
 			...data,
-			options: data.options.map((opt) =>
-				opt.id === optionId ? { ...opt, text } : opt,
-			),
+			options: data.options.map((opt) => (opt.id === optionId ? { ...opt, text } : opt)),
 		});
 	};
 

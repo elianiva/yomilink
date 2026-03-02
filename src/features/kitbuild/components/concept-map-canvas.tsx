@@ -1,16 +1,5 @@
-import type {
-	Connection,
-	EdgeChange,
-	NodeChange,
-	NodeMouseHandler,
-} from "@xyflow/react";
-import {
-	Background,
-	ConnectionMode,
-	MiniMap,
-	ReactFlow,
-	useReactFlow,
-} from "@xyflow/react";
+import type { Connection, EdgeChange, NodeChange, NodeMouseHandler } from "@xyflow/react";
+import { Background, ConnectionMode, MiniMap, ReactFlow, useReactFlow } from "@xyflow/react";
 import { useCallback, useMemo } from "react";
 
 import type { Node, Edge } from "@/features/learner-map/lib/comparator";
