@@ -36,6 +36,7 @@ export const DEFAULT_USERS: readonly SeedUser[] = [
 export interface DemoStudent {
 	email: string;
 	name: string;
+	studentId: string;
 	age: number;
 	jlptLevel: "N5" | "N4" | "N3" | "N2" | "N1" | "None";
 	japaneseLearningDuration: number;
@@ -48,6 +49,7 @@ export const DEMO_STUDENTS: DemoStudent[] = [
 	{
 		email: "tanaka@demo.local",
 		name: "Tanaka Yuki",
+		studentId: "STD-001",
 		age: 20,
 		jlptLevel: "N5",
 		japaneseLearningDuration: 12,
@@ -58,6 +60,7 @@ export const DEMO_STUDENTS: DemoStudent[] = [
 	{
 		email: "suzuki@demo.local",
 		name: "Suzuki Hana",
+		studentId: "STD-002",
 		age: 19,
 		jlptLevel: "N5",
 		japaneseLearningDuration: 8,
@@ -68,6 +71,7 @@ export const DEMO_STUDENTS: DemoStudent[] = [
 	{
 		email: "yamamoto@demo.local",
 		name: "Yamamoto Kenji",
+		studentId: "STD-003",
 		age: 21,
 		jlptLevel: "N4",
 		japaneseLearningDuration: 18,
@@ -78,6 +82,7 @@ export const DEMO_STUDENTS: DemoStudent[] = [
 	{
 		email: "watanabe@demo.local",
 		name: "Watanabe Mei",
+		studentId: "STD-004",
 		age: 20,
 		jlptLevel: "N5",
 		japaneseLearningDuration: 10,
@@ -88,6 +93,7 @@ export const DEMO_STUDENTS: DemoStudent[] = [
 	{
 		email: "takahashi@demo.local",
 		name: "Takahashi Ryo",
+		studentId: "STD-005",
 		age: 19,
 		jlptLevel: "None",
 		japaneseLearningDuration: 6,
@@ -98,6 +104,7 @@ export const DEMO_STUDENTS: DemoStudent[] = [
 	{
 		email: "ito@demo.local",
 		name: "Ito Sakura",
+		studentId: "STD-006",
 		age: 20,
 		jlptLevel: "N5",
 		japaneseLearningDuration: 14,
@@ -108,6 +115,7 @@ export const DEMO_STUDENTS: DemoStudent[] = [
 	{
 		email: "nakamura@demo.local",
 		name: "Nakamura Sota",
+		studentId: "STD-007",
 		age: 22,
 		jlptLevel: "N4",
 		japaneseLearningDuration: 24,
@@ -118,6 +126,7 @@ export const DEMO_STUDENTS: DemoStudent[] = [
 	{
 		email: "kobayashi@demo.local",
 		name: "Kobayashi Rin",
+		studentId: "STD-008",
 		age: 18,
 		jlptLevel: "None",
 		japaneseLearningDuration: 4,
@@ -128,6 +137,7 @@ export const DEMO_STUDENTS: DemoStudent[] = [
 	{
 		email: "kato@demo.local",
 		name: "Kato Haruto",
+		studentId: "STD-009",
 		age: 21,
 		jlptLevel: "N5",
 		japaneseLearningDuration: 16,
@@ -138,6 +148,7 @@ export const DEMO_STUDENTS: DemoStudent[] = [
 	{
 		email: "matsumoto@demo.local",
 		name: "Matsumoto Yui",
+		studentId: "STD-010",
 		age: 20,
 		jlptLevel: "N5",
 		japaneseLearningDuration: 11,

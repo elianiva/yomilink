@@ -17,6 +17,7 @@ import { Route as DashboardIndexRouteImport } from './routes/dashboard.index'
 import { Route as DashboardProfileRouteImport } from './routes/dashboard.profile'
 import { Route as DashboardAnalyticsRouteImport } from './routes/dashboard.analytics'
 import { Route as ApiHealthRouteImport } from './routes/api/health'
+import { Route as DashboardUsersIndexRouteImport } from './routes/dashboard.users.index'
 import { Route as DashboardFormsIndexRouteImport } from './routes/dashboard.forms.index'
 import { Route as DashboardAssignmentsIndexRouteImport } from './routes/dashboard.assignments.index'
 import { Route as DashboardLearnerMapAssignmentIdRouteImport } from './routes/dashboard.learner-map.$assignmentId'
@@ -70,6 +71,11 @@ const ApiHealthRoute = ApiHealthRouteImport.update({
   id: '/api/health',
   path: '/api/health',
   getParentRoute: () => rootRouteImport,
+} as any)
+const DashboardUsersIndexRoute = DashboardUsersIndexRouteImport.update({
+  id: '/users/',
+  path: '/users/',
+  getParentRoute: () => DashboardRoute,
 } as any)
 const DashboardFormsIndexRoute = DashboardFormsIndexRouteImport.update({
   id: '/forms/',
@@ -163,6 +169,7 @@ export interface FileRoutesByFullPath {
   '/dashboard/learner-map/$assignmentId': typeof DashboardLearnerMapAssignmentIdRouteWithChildren
   '/dashboard/assignments/': typeof DashboardAssignmentsIndexRoute
   '/dashboard/forms/': typeof DashboardFormsIndexRoute
+  '/dashboard/users/': typeof DashboardUsersIndexRoute
   '/dashboard/analytics/$assignmentId/metrics': typeof DashboardAnalyticsAssignmentIdMetricsRoute
   '/dashboard/forms/$formId/results': typeof DashboardFormsFormIdResultsRoute
   '/dashboard/learner-map/$assignmentId/result': typeof DashboardLearnerMapAssignmentIdResultRoute
@@ -185,6 +192,7 @@ export interface FileRoutesByTo {
   '/dashboard/learner-map/$assignmentId': typeof DashboardLearnerMapAssignmentIdRouteWithChildren
   '/dashboard/assignments': typeof DashboardAssignmentsIndexRoute
   '/dashboard/forms': typeof DashboardFormsIndexRoute
+  '/dashboard/users': typeof DashboardUsersIndexRoute
   '/dashboard/analytics/$assignmentId/metrics': typeof DashboardAnalyticsAssignmentIdMetricsRoute
   '/dashboard/forms/$formId/results': typeof DashboardFormsFormIdResultsRoute
   '/dashboard/learner-map/$assignmentId/result': typeof DashboardLearnerMapAssignmentIdResultRoute
@@ -209,6 +217,7 @@ export interface FileRoutesById {
   '/dashboard/learner-map/$assignmentId': typeof DashboardLearnerMapAssignmentIdRouteWithChildren
   '/dashboard/assignments/': typeof DashboardAssignmentsIndexRoute
   '/dashboard/forms/': typeof DashboardFormsIndexRoute
+  '/dashboard/users/': typeof DashboardUsersIndexRoute
   '/dashboard/analytics/$assignmentId/metrics': typeof DashboardAnalyticsAssignmentIdMetricsRoute
   '/dashboard/forms/$formId/results': typeof DashboardFormsFormIdResultsRoute
   '/dashboard/learner-map/$assignmentId/result': typeof DashboardLearnerMapAssignmentIdResultRoute
@@ -234,6 +243,7 @@ export interface FileRouteTypes {
     | '/dashboard/learner-map/$assignmentId'
     | '/dashboard/assignments/'
     | '/dashboard/forms/'
+    | '/dashboard/users/'
     | '/dashboard/analytics/$assignmentId/metrics'
     | '/dashboard/forms/$formId/results'
     | '/dashboard/learner-map/$assignmentId/result'
@@ -256,6 +266,7 @@ export interface FileRouteTypes {
     | '/dashboard/learner-map/$assignmentId'
     | '/dashboard/assignments'
     | '/dashboard/forms'
+    | '/dashboard/users'
     | '/dashboard/analytics/$assignmentId/metrics'
     | '/dashboard/forms/$formId/results'
     | '/dashboard/learner-map/$assignmentId/result'
@@ -279,6 +290,7 @@ export interface FileRouteTypes {
     | '/dashboard/learner-map/$assignmentId'
     | '/dashboard/assignments/'
     | '/dashboard/forms/'
+    | '/dashboard/users/'
     | '/dashboard/analytics/$assignmentId/metrics'
     | '/dashboard/forms/$formId/results'
     | '/dashboard/learner-map/$assignmentId/result'
@@ -352,6 +364,13 @@ declare module '@tanstack/react-router' {
       fullPath: '/api/health'
       preLoaderRoute: typeof ApiHealthRouteImport
       parentRoute: typeof rootRouteImport
+    }
+    '/dashboard/users/': {
+      id: '/dashboard/users/'
+      path: '/users'
+      fullPath: '/dashboard/users/'
+      preLoaderRoute: typeof DashboardUsersIndexRouteImport
+      parentRoute: typeof DashboardRoute
     }
     '/dashboard/forms/': {
       id: '/dashboard/forms/'
@@ -486,6 +505,7 @@ interface DashboardRouteChildren {
   DashboardLearnerMapAssignmentIdRoute: typeof DashboardLearnerMapAssignmentIdRouteWithChildren
   DashboardAssignmentsIndexRoute: typeof DashboardAssignmentsIndexRoute
   DashboardFormsIndexRoute: typeof DashboardFormsIndexRoute
+  DashboardUsersIndexRoute: typeof DashboardUsersIndexRoute
   DashboardFormsFormIdResultsRoute: typeof DashboardFormsFormIdResultsRoute
 }
 
@@ -502,6 +522,7 @@ const DashboardRouteChildren: DashboardRouteChildren = {
     DashboardLearnerMapAssignmentIdRouteWithChildren,
   DashboardAssignmentsIndexRoute: DashboardAssignmentsIndexRoute,
   DashboardFormsIndexRoute: DashboardFormsIndexRoute,
+  DashboardUsersIndexRoute: DashboardUsersIndexRoute,
   DashboardFormsFormIdResultsRoute: DashboardFormsFormIdResultsRoute,
 }
 

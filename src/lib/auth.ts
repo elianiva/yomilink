@@ -63,6 +63,10 @@ export class Auth extends Effect.Service<Auth>()("Auth", {
 						type: "string",
 						required: false,
 					},
+					studentId: {
+						type: "string",
+						required: false,
+					},
 					studyGroup: {
 						type: "string",
 						required: false,
@@ -87,6 +91,7 @@ export const AuthUser = Schema.Struct({
 	role: Schema.optionalWith(Role, { default: () => "student" }),
 	email: Schema.optionalWith(Schema.NonEmptyString, { nullable: true }),
 	name: Schema.optionalWith(Schema.NonEmptyString, { nullable: true }),
+	studentId: Schema.optionalWith(Schema.String, { nullable: true }),
 	image: Schema.optionalWith(Schema.NonEmptyString, { nullable: true }),
 	age: Schema.optionalWith(Schema.Number, { nullable: true }),
 	jlptLevel: Schema.optionalWith(

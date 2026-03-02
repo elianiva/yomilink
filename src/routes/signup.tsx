@@ -71,6 +71,7 @@ const SignUpSchema = Schema.Struct({
 	),
 	confirmPassword: Schema.String,
 	age: Schema.NullOr(Schema.Number),
+	studentId: Schema.NullOr(Schema.String),
 	jlptLevel: JlptLevelSchema,
 	cohortId: Schema.NonEmptyString,
 	japaneseLearningDuration: Schema.NullOr(Schema.Number),
@@ -132,6 +133,7 @@ function SignUpPage() {
 			password: "",
 			confirmPassword: "",
 			age: null as unknown as number | null,
+			studentId: null as unknown as string | null,
 			jlptLevel: "None" as SignUpInput["jlptLevel"],
 			cohortId: "",
 			studyGroup: "experiment" as SignUpInput["studyGroup"],
@@ -150,6 +152,7 @@ function SignUpPage() {
 				email: value.email,
 				password: value.password,
 				age: value.age,
+				studentId: value.studentId,
 				jlptLevel: value.jlptLevel,
 				cohortId: value.cohortId,
 				studyGroup: value.studyGroup,
@@ -289,6 +292,25 @@ function SignUpPage() {
 													</div>
 												)}
 											</form.Field>
+
+										<form.Field name="studentId">
+											{(field) => (
+												<div className="space-y-1.5">
+													<Label htmlFor="studentId">Student ID</Label>
+													<Input
+														id="studentId"
+														placeholder="Enter your student ID"
+														value={field.state.value ?? ""}
+														onChange={(e) =>
+															field.handleChange(e.target.value || null)
+														}
+														onBlur={field.handleBlur}
+														autoComplete="off"
+													/>
+													<FieldInfo field={field} />
+												</div>
+											)}
+										</form.Field>
 
 											<form.Field name="email">
 												{(field) => (

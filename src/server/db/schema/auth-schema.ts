@@ -5,6 +5,7 @@ export const user = sqliteTable("user", {
 	id: text("id").primaryKey(),
 	name: text("name").notNull(),
 	email: text("email").notNull().unique(),
+	studentId: text("student_id"),
 	emailVerified: integer("email_verified", { mode: "boolean" }).default(false).notNull(),
 	image: text("image"),
 	createdAt: integer("created_at", { mode: "timestamp_ms" })
@@ -28,9 +29,7 @@ export const user = sqliteTable("user", {
 	banExpires: integer("ban_expires", { mode: "timestamp_ms" }),
 	studyGroup: text("study_group", {
 		enum: ["experiment", "control"],
-	})
-		.notNull()
-		.default("experiment"),
+	}),
 });
 
 export const session = sqliteTable(

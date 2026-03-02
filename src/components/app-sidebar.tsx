@@ -5,6 +5,7 @@ import {
 	LayoutPanelLeftIcon,
 	type LucideIcon,
 	ScanSearchIcon,
+	UsersIcon,
 } from "lucide-react";
 import { useMemo } from "react";
 
@@ -54,6 +55,12 @@ const NAVBAR_ITEMS: NavItemWithRoles[] = [
 		title: "Forms",
 		url: "/dashboard/forms",
 		icon: FileTextIcon,
+		roles: ["teacher", "admin"],
+	},
+	{
+		title: "Users",
+		url: "/dashboard/users",
+		icon: UsersIcon,
 		roles: ["teacher", "admin"],
 	},
 	// Student items

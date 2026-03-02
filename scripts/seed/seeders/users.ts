@@ -72,6 +72,7 @@ export function seedUsers() {
 						yield* db
 							.update(user)
 							.set({
+								studentId: demoStudent.studentId,
 								age: demoStudent.age,
 								jlptLevel: demoStudent.jlptLevel,
 								japaneseLearningDuration:
