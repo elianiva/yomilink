@@ -16,6 +16,7 @@ import { Route as IndexRouteImport } from './routes/index'
 import { Route as DashboardIndexRouteImport } from './routes/dashboard.index'
 import { Route as DashboardProfileRouteImport } from './routes/dashboard.profile'
 import { Route as DashboardAnalyticsRouteImport } from './routes/dashboard.analytics'
+import { Route as ApiHealthRouteImport } from './routes/api/health'
 import { Route as DashboardFormsIndexRouteImport } from './routes/dashboard.forms.index'
 import { Route as DashboardAssignmentsIndexRouteImport } from './routes/dashboard.assignments.index'
 import { Route as DashboardLearnerMapAssignmentIdRouteImport } from './routes/dashboard.learner-map.$assignmentId'
@@ -64,6 +65,11 @@ const DashboardAnalyticsRoute = DashboardAnalyticsRouteImport.update({
   id: '/analytics',
   path: '/analytics',
   getParentRoute: () => DashboardRoute,
+} as any)
+const ApiHealthRoute = ApiHealthRouteImport.update({
+  id: '/api/health',
+  path: '/api/health',
+  getParentRoute: () => rootRouteImport,
 } as any)
 const DashboardFormsIndexRoute = DashboardFormsIndexRouteImport.update({
   id: '/forms/',
@@ -144,6 +150,7 @@ export interface FileRoutesByFullPath {
   '/dashboard': typeof DashboardRouteWithChildren
   '/login': typeof LoginRoute
   '/signup': typeof SignupRoute
+  '/api/health': typeof ApiHealthRoute
   '/dashboard/analytics': typeof DashboardAnalyticsRouteWithChildren
   '/dashboard/profile': typeof DashboardProfileRoute
   '/dashboard/': typeof DashboardIndexRoute
@@ -165,6 +172,7 @@ export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/login': typeof LoginRoute
   '/signup': typeof SignupRoute
+  '/api/health': typeof ApiHealthRoute
   '/dashboard/analytics': typeof DashboardAnalyticsRouteWithChildren
   '/dashboard/profile': typeof DashboardProfileRoute
   '/dashboard': typeof DashboardIndexRoute
@@ -188,6 +196,7 @@ export interface FileRoutesById {
   '/dashboard': typeof DashboardRouteWithChildren
   '/login': typeof LoginRoute
   '/signup': typeof SignupRoute
+  '/api/health': typeof ApiHealthRoute
   '/dashboard/analytics': typeof DashboardAnalyticsRouteWithChildren
   '/dashboard/profile': typeof DashboardProfileRoute
   '/dashboard/': typeof DashboardIndexRoute
@@ -212,6 +221,7 @@ export interface FileRouteTypes {
     | '/dashboard'
     | '/login'
     | '/signup'
+    | '/api/health'
     | '/dashboard/analytics'
     | '/dashboard/profile'
     | '/dashboard/'
@@ -233,6 +243,7 @@ export interface FileRouteTypes {
     | '/'
     | '/login'
     | '/signup'
+    | '/api/health'
     | '/dashboard/analytics'
     | '/dashboard/profile'
     | '/dashboard'
@@ -255,6 +266,7 @@ export interface FileRouteTypes {
     | '/dashboard'
     | '/login'
     | '/signup'
+    | '/api/health'
     | '/dashboard/analytics'
     | '/dashboard/profile'
     | '/dashboard/'
@@ -278,6 +290,7 @@ export interface RootRouteChildren {
   DashboardRoute: typeof DashboardRouteWithChildren
   LoginRoute: typeof LoginRoute
   SignupRoute: typeof SignupRoute
+  ApiHealthRoute: typeof ApiHealthRoute
   ApiAuthSplatRoute: typeof ApiAuthSplatRoute
   ApiMaterialsImagesGoalMapIdImageIdRoute: typeof ApiMaterialsImagesGoalMapIdImageIdRoute
 }
@@ -332,6 +345,13 @@ declare module '@tanstack/react-router' {
       fullPath: '/dashboard/analytics'
       preLoaderRoute: typeof DashboardAnalyticsRouteImport
       parentRoute: typeof DashboardRoute
+    }
+    '/api/health': {
+      id: '/api/health'
+      path: '/api/health'
+      fullPath: '/api/health'
+      preLoaderRoute: typeof ApiHealthRouteImport
+      parentRoute: typeof rootRouteImport
     }
     '/dashboard/forms/': {
       id: '/dashboard/forms/'
@@ -494,6 +514,7 @@ const rootRouteChildren: RootRouteChildren = {
   DashboardRoute: DashboardRouteWithChildren,
   LoginRoute: LoginRoute,
   SignupRoute: SignupRoute,
+  ApiHealthRoute: ApiHealthRoute,
   ApiAuthSplatRoute: ApiAuthSplatRoute,
   ApiMaterialsImagesGoalMapIdImageIdRoute:
     ApiMaterialsImagesGoalMapIdImageIdRoute,

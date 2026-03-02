@@ -23,7 +23,9 @@
     "lint": "oxlint --fix ./src/**/*",
     "typecheck": "tsgo --noEmit",
     "cf-typegen": "wrangler types",
-    "deploy": "wrangler deploy",
+    "deploy:check": "bun run typecheck && bun run lint && bun run test",
+    "deploy": "bun run deploy:check && wrangler deploy",
+    "deploy:staging": "bun run deploy:check && wrangler deploy --env staging",
     "ui": "bunx shadcn@canary",
     "effect:prepare": "effect-language-service patch"
   },
