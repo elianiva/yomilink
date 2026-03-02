@@ -1,6 +1,10 @@
 import { BaseEdge, type EdgeProps, getStraightPath, useInternalNode } from "@xyflow/react";
 
-import { getEdgeParams } from "../lib/floating-edge-utils";
+import {
+	getEdgeParams,
+	getQuadraticCurvePoint,
+	getQuadraticCurvePath,
+} from "../lib/floating-edge-utils";
 
 /**
  * A custom edge that connects to the closest point on the node boundary
@@ -18,27 +22,28 @@ export function FloatingEdge({ id, source, target, markerEnd, style, data }: Edg
 
 	const badge = data?.badge as string | undefined;
 	const curveOffset = (data?.curveOffset as number) ?? 0;
+	const badgeT = Math.max(0.2, Math.min(0.8, (data?.badgeT as number) ?? 0.5));
+	const useCurvedPath = Boolean(data?.useCurvedPath);
 
-	// Calculate offset positions for multi-view edges
-	let offsetX = 0;
-	let offsetY = 0;
-	if (curveOffset !== 0) {
-		const dx = tx - sx;
-		const dy = ty - sy;
-		const length = Math.sqrt(dx * dx + dy * dy);
-		if (length > 0) {
-			// Calculate perpendicular offset
-			offsetX = (-dy / length) * curveOffset * 0.3;
-			offsetY = (dx / length) * curveOffset * 0.3;
-		}
-	}
-
-	const [edgePath] = getStraightPath({
-		sourceX: sx + offsetX,
-		sourceY: sy + offsetY,
-		targetX: tx + offsetX,
-		targetY: ty + offsetY,
+	const [straightPath] = getStraightPath({
+		sourceX: sx,
+		sourceY: sy,
+		targetX: tx,
+		targetY: ty,
 	});
+
+	const curvedPath = getQuadraticCurvePath({
+		sx,
+		sy,
+		tx,
+		ty,
+		curveOffset,
+	});
+
+	const edgePath = useCurvedPath ? curvedPath : straightPath;
+	const badgePoint = useCurvedPath
+		? getQuadraticCurvePoint({ sx, sy, tx, ty, curveOffset, t: badgeT })
+		: { x: (sx + tx) / 2, y: (sy + ty) / 2 };
 
 	return (
 		<>
@@ -47,8 +52,8 @@ export function FloatingEdge({ id, source, target, markerEnd, style, data }: Edg
 				<foreignObject
 					width={20}
 					height={20}
-					x={(sx + tx) / 2 + offsetX - 10}
-					y={(sy + ty) / 2 + offsetY - 10}
+					x={badgePoint.x - 10}
+					y={badgePoint.y - 10}
 					className="overflow-visible"
 				>
 					<div className="relative inline-flex items-center justify-center">
@@ -58,7 +63,7 @@ export function FloatingEdge({ id, source, target, markerEnd, style, data }: Edg
 								borderColor: style?.stroke || "#64748b",
 							}}
 						/>
-						<span className="relative z-10 text-[10px] font-bold tabular-nums">
+						<span className="relative z-10 text-[10px] font-bold tabular-nums flex items-center justify-center size-6">
 							{badge}
 						</span>
 					</div>

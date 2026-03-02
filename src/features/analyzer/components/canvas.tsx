@@ -77,6 +77,7 @@ function getEdgeStyleByType(type: "correct" | "missing" | "excessive" | "neutral
 			return {
 				stroke: "var(--edge-excessive)",
 				strokeWidth: 3,
+				strokeDasharray: "5,5",
 			};
 		case "missing":
 			return {
@@ -90,6 +91,17 @@ function getEdgeStyleByType(type: "correct" | "missing" | "excessive" | "neutral
 				strokeWidth: 2,
 			};
 	}
+}
+
+function getSymmetricCurveOffset(index: number, total: number, gap = 44) {
+	if (total <= 1) return 0;
+	return (index - (total - 1) / 2) * gap;
+}
+
+function getBadgeT(index: number, total: number) {
+	if (total <= 1) return 0.5;
+	const centered = index - (total - 1) / 2;
+	return Math.max(0.3, Math.min(0.7, 0.5 + centered * 0.08));
 }
 
 export function AnalyticsCanvas(props: AnalyticsCanvasProps) {
@@ -200,7 +212,7 @@ function AnalyticsCanvasInner({
 					edgeCounts.set(key, counts);
 				}
 
-				// Create separate edges for each type with different curves
+				// Create separate edges for each type with symmetric curves
 				for (const [key, counts] of edgeCounts.entries()) {
 					const [source, target] = JSON.parse(key) as [string, string];
 					const types: Array<"correct" | "missing" | "excessive" | "neutral"> = [
@@ -209,48 +221,41 @@ function AnalyticsCanvasInner({
 						"excessive",
 						"neutral",
 					];
-					let curveOffset = 0;
 
-					for (const type of types) {
-						const count = counts[type];
-						if (count === 0) continue;
-
-						let shouldShow = false;
+					const visibleTypes = types.filter((type) => {
+						if (counts[type] === 0) return false;
 						switch (type) {
 							case "correct":
-								shouldShow = visibility.showCorrectEdges;
-								break;
+								return visibility.showCorrectEdges;
 							case "missing":
-								shouldShow = visibility.showMissingEdges;
-								break;
+								return visibility.showMissingEdges;
 							case "excessive":
-								shouldShow = visibility.showExcessiveEdges;
-								break;
+								return visibility.showExcessiveEdges;
 							case "neutral":
-								shouldShow = visibility.showNeutralEdges;
-								break;
+								return visibility.showNeutralEdges;
 						}
+					});
 
-						if (shouldShow) {
-							const style = getEdgeStyleByType(type);
-							edgesToDisplay.push({
-								id: `${key}-${type}`,
-								source,
-								target,
-								type: "floating",
-								style,
-								animated: type === "missing",
-								markerEnd: {
-									type: "arrowclosed" as MarkerType,
-									color: style.stroke,
-								},
-								data: {
-									badge: count.toString(),
-									curveOffset,
-								},
-							});
-							curveOffset += 30; // Offset for next edge type
-						}
+					for (const [index, type] of visibleTypes.entries()) {
+						const style = getEdgeStyleByType(type);
+						edgesToDisplay.push({
+							id: `${key}-${type}`,
+							source,
+							target,
+							type: "floating",
+							style,
+							animated: type === "missing",
+							markerEnd: {
+								type: "arrowclosed" as MarkerType,
+								color: style.stroke,
+							},
+							data: {
+								badge: counts[type].toString(),
+								curveOffset: getSymmetricCurveOffset(index, visibleTypes.length),
+								badgeT: getBadgeT(index, visibleTypes.length),
+								useCurvedPath: true,
+							},
+						});
 					}
 				}
 			} else {
@@ -331,7 +336,7 @@ function AnalyticsCanvasInner({
 					edgeCounts.set(key, counts);
 				}
 
-				// Create separate edges for each type with different curves
+				// Create separate edges for each type with symmetric curves
 				for (const [key, counts] of edgeCounts.entries()) {
 					const [source, target] = JSON.parse(key) as [string, string];
 					const types: Array<"correct" | "excessive" | "neutral"> = [
@@ -339,44 +344,38 @@ function AnalyticsCanvasInner({
 						"excessive",
 						"neutral",
 					];
-					let curveOffset = 0;
 
-					for (const type of types) {
-						const count = counts[type];
-						if (count === 0) continue;
-
-						let shouldShow = false;
+					const visibleTypes = types.filter((type) => {
+						if (counts[type] === 0) return false;
 						switch (type) {
 							case "correct":
-								shouldShow = visibility.showCorrectEdges;
-								break;
+								return visibility.showCorrectEdges;
 							case "excessive":
-								shouldShow = visibility.showExcessiveEdges;
-								break;
+								return visibility.showExcessiveEdges;
 							case "neutral":
-								shouldShow = visibility.showNeutralEdges;
-								break;
+								return visibility.showNeutralEdges;
 						}
+					});
 
-						if (shouldShow) {
-							const style = getEdgeStyleByType(type);
-							edgesToDisplay.push({
-								id: `${key}-${type}`,
-								source,
-								target,
-								type: "floating",
-								style,
-								markerEnd: {
-									type: "arrowclosed" as MarkerType,
-									color: style.stroke,
-								},
-								data: {
-									badge: count.toString(),
-									curveOffset,
-								},
-							});
-							curveOffset += 30;
-						}
+					for (const [index, type] of visibleTypes.entries()) {
+						const style = getEdgeStyleByType(type);
+						edgesToDisplay.push({
+							id: `${key}-${type}`,
+							source,
+							target,
+							type: "floating",
+							style,
+							markerEnd: {
+								type: "arrowclosed" as MarkerType,
+								color: style.stroke,
+							},
+							data: {
+								badge: counts[type].toString(),
+								curveOffset: getSymmetricCurveOffset(index, visibleTypes.length),
+								badgeT: getBadgeT(index, visibleTypes.length),
+								useCurvedPath: true,
+							},
+						});
 					}
 				}
 			} else {

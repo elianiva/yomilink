@@ -1,7 +1,12 @@
 import type { Node } from "@xyflow/react";
 import { describe, expect, it } from "vitest";
 
-import { getEdgeParams, getEdgeParamsFromSourceToPoint } from "./floating-edge-utils";
+import {
+	getEdgeParams,
+	getEdgeParamsFromSourceToPoint,
+	getQuadraticCurvePath,
+	getQuadraticCurvePoint,
+} from "./floating-edge-utils";
 
 describe("getNodeCenter", () => {
 	it("should calculate center point correctly", () => {
@@ -185,5 +190,48 @@ describe("getEdgeParamsFromSourceToPoint", () => {
 
 		expect(result.sx).toBeDefined();
 		expect(result.sy).toBeDefined();
+	});
+});
+
+describe("quadratic curve helpers", () => {
+	it("should generate quadratic path command", () => {
+		const path = getQuadraticCurvePath({
+			sx: 0,
+			sy: 0,
+			tx: 100,
+			ty: 0,
+			curveOffset: 20,
+		});
+
+		expect(path).toContain("M 0,0 Q");
+		expect(path).toContain("100,0");
+	});
+
+	it("should return midpoint when no curve offset", () => {
+		const point = getQuadraticCurvePoint({
+			sx: 0,
+			sy: 0,
+			tx: 100,
+			ty: 0,
+			curveOffset: 0,
+			t: 0.5,
+		});
+
+		expect(point.x).toBeCloseTo(50, 5);
+		expect(point.y).toBeCloseTo(0, 5);
+	});
+
+	it("should bend midpoint away from straight line when offset exists", () => {
+		const point = getQuadraticCurvePoint({
+			sx: 0,
+			sy: 0,
+			tx: 100,
+			ty: 0,
+			curveOffset: 20,
+			t: 0.5,
+		});
+
+		expect(point.x).toBeCloseTo(50, 5);
+		expect(point.y).toBeGreaterThan(0);
 	});
 });

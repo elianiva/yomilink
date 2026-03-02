@@ -129,3 +129,77 @@ export function getEdgeParamsFromSourceToPoint(
 		ty: targetPoint.y,
 	};
 }
+
+function getQuadraticControlPoint({
+	sx,
+	sy,
+	tx,
+	ty,
+	curveOffset,
+}: {
+	sx: number;
+	sy: number;
+	tx: number;
+	ty: number;
+	curveOffset: number;
+}) {
+	const dx = tx - sx;
+	const dy = ty - sy;
+	const length = Math.sqrt(dx * dx + dy * dy);
+	if (length === 0 || curveOffset === 0) {
+		return { cx: (sx + tx) / 2, cy: (sy + ty) / 2 };
+	}
+
+	const normalX = -dy / length;
+	const normalY = dx / length;
+	const midpointX = (sx + tx) / 2;
+	const midpointY = (sy + ty) / 2;
+	const maxOffset = Math.max(12, length * 0.35);
+	const clampedOffset = Math.max(-maxOffset, Math.min(maxOffset, curveOffset));
+
+	return {
+		cx: midpointX + normalX * clampedOffset,
+		cy: midpointY + normalY * clampedOffset,
+	};
+}
+
+export function getQuadraticCurvePath({
+	sx,
+	sy,
+	tx,
+	ty,
+	curveOffset,
+}: {
+	sx: number;
+	sy: number;
+	tx: number;
+	ty: number;
+	curveOffset: number;
+}) {
+	const { cx, cy } = getQuadraticControlPoint({ sx, sy, tx, ty, curveOffset });
+	return `M ${sx},${sy} Q ${cx},${cy} ${tx},${ty}`;
+}
+
+export function getQuadraticCurvePoint({
+	sx,
+	sy,
+	tx,
+	ty,
+	curveOffset,
+	t,
+}: {
+	sx: number;
+	sy: number;
+	tx: number;
+	ty: number;
+	curveOffset: number;
+	t: number;
+}) {
+	const { cx, cy } = getQuadraticControlPoint({ sx, sy, tx, ty, curveOffset });
+	const oneMinusT = 1 - t;
+
+	return {
+		x: oneMinusT * oneMinusT * sx + 2 * oneMinusT * t * cx + t * t * tx,
+		y: oneMinusT * oneMinusT * sy + 2 * oneMinusT * t * cy + t * t * ty,
+	};
+}
