@@ -5,55 +5,55 @@ nodes:
   - id: "seasons"
     type: "text"
     position: { x: 300, y: 50 }
-    data: { label: "四季\nFour Seasons", color: "green-500" }
+    data: { label: "四季\nFour Seasons", color: "green" }
   - id: "spring"
     type: "text"
     position: { x: 100, y: 150 }
-    data: { label: "春\nSpring", color: "pink-500" }
+    data: { label: "春\nSpring", color: "pink" }
   - id: "summer"
     type: "text"
     position: { x: 250, y: 150 }
-    data: { label: "夏\nSummer", color: "red-500" }
+    data: { label: "夏\nSummer", color: "red" }
   - id: "autumn"
     type: "text"
     position: { x: 400, y: 150 }
-    data: { label: "秋\nAutumn", color: "amber-500" }
+    data: { label: "秋\nAutumn", color: "amber" }
   - id: "winter"
     type: "text"
     position: { x: 550, y: 150 }
-    data: { label: "冬\nWinter", color: "blue-500" }
+    data: { label: "冬\nWinter", color: "blue" }
   - id: "cherry-blossom"
     type: "text"
     position: { x: 50, y: 280 }
-    data: { label: "桜\nCherry blossom", color: "pink-500" }
+    data: { label: "桜\nCherry blossom", color: "pink" }
   - id: "hanami"
     type: "text"
     position: { x: 150, y: 280 }
-    data: { label: "花見\nFlower viewing", color: "pink-500" }
+    data: { label: "花見\nFlower viewing", color: "pink" }
   - id: "festival"
     type: "text"
     position: { x: 250, y: 280 }
-    data: { label: "祭り\nFestival", color: "red-500" }
+    data: { label: "祭り\nFestival", color: "red" }
   - id: "fireworks"
     type: "text"
     position: { x: 350, y: 280 }
-    data: { label: "花火\nFireworks", color: "red-500" }
+    data: { label: "花火\nFireworks", color: "red" }
   - id: "leaves"
     type: "text"
     position: { x: 450, y: 280 }
-    data: { label: "紅葉\nAutumn leaves", color: "amber-500" }
+    data: { label: "紅葉\nAutumn leaves", color: "amber" }
   - id: "new-year"
     type: "text"
     position: { x: 550, y: 280 }
-    data: { label: "お正月\nNew Year", color: "blue-500" }
+    data: { label: "お正月\nNew Year", color: "blue" }
   - id: "weather"
     type: "text"
     position: { x: 200, y: 400 }
-    data: { label: "天気\nWeather", color: "purple-500" }
+    data: { label: "天気\nWeather", color: "purple" }
   - id: "food"
     type: "text"
     position: { x: 400, y: 400 }
-    data: { label: "食べ物\nFood", color: "purple-500" }
+    data: { label: "食べ物\nFood", color: "purple" }
 edges:
   - id: "e1"
     source: "seasons"

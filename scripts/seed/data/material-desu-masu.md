@@ -5,43 +5,43 @@ nodes:
   - id: "politeness"
     type: "text"
     position: { x: 250, y: 50 }
-    data: { label: "丁寧語\nPoliteness", color: "green-500" }
+    data: { label: "丁寧語\nPoliteness", color: "green" }
   - id: "desu"
     type: "text"
     position: { x: 100, y: 150 }
-    data: { label: "です\nDesu", color: "blue-500" }
+    data: { label: "です\nDesu", color: "blue" }
   - id: "masu"
     type: "text"
     position: { x: 400, y: 150 }
-    data: { label: "ます\nMasu", color: "blue-500" }
+    data: { label: "ます\nMasu", color: "blue" }
   - id: "copula"
     type: "text"
     position: { x: 50, y: 280 }
-    data: { label: "コピュラ\nCopula", color: "amber-500" }
+    data: { label: "コピュラ\nCopula", color: "amber" }
   - id: "verb"
     type: "text"
     position: { x: 200, y: 280 }
-    data: { label: "動詞\nVerb", color: "amber-500" }
+    data: { label: "動詞\nVerb", color: "amber" }
   - id: "noun"
     type: "text"
     position: { x: 350, y: 280 }
-    data: { label: "名詞\nNoun", color: "amber-500" }
+    data: { label: "名詞\nNoun", color: "amber" }
   - id: "topic"
     type: "text"
     position: { x: 500, y: 280 }
-    data: { label: "トピック\nTopic", color: "purple-500" }
+    data: { label: "トピック\nTopic", color: "purple" }
   - id: "question"
     type: "text"
     position: { x: 50, y: 400 }
-    data: { label: "疑問\nQuestion", color: "red-500" }
+    data: { label: "疑問\nQuestion", color: "red" }
   - id: "negative"
     type: "text"
     position: { x: 200, y: 400 }
-    data: { label: "否定\nNegative", color: "red-500" }
+    data: { label: "否定\nNegative", color: "red" }
   - id: "sentence"
     type: "text"
     position: { x: 350, y: 400 }
-    data: { label: "文章\nSentence", color: "purple-500" }
+    data: { label: "文章\nSentence", color: "purple" }
 edges:
   - id: "e1"
     source: "politeness"

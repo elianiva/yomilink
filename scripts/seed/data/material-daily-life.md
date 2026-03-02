@@ -5,51 +5,51 @@ nodes:
   - id: "daily-life"
     type: "text"
     position: { x: 300, y: 50 }
-    data: { label: "日常生活\nDaily Life", color: "green-500" }
+    data: { label: "日常生活\nDaily Life", color: "green" }
   - id: "morning"
     type: "text"
     position: { x: 100, y: 150 }
-    data: { label: "朝\nMorning", color: "blue-500" }
+    data: { label: "朝\nMorning", color: "blue" }
   - id: "afternoon"
     type: "text"
     position: { x: 300, y: 150 }
-    data: { label: "昼\nAfternoon", color: "blue-500" }
+    data: { label: "昼\nAfternoon", color: "blue" }
   - id: "evening"
     type: "text"
     position: { x: 500, y: 150 }
-    data: { label: "夜\nEvening", color: "blue-500" }
+    data: { label: "夜\nEvening", color: "blue" }
   - id: "wake-up"
     type: "text"
     position: { x: 50, y: 280 }
-    data: { label: "起きる\nWake up", color: "amber-500" }
+    data: { label: "起きる\nWake up", color: "amber" }
   - id: "breakfast"
     type: "text"
     position: { x: 150, y: 280 }
-    data: { label: "朝ご飯\nBreakfast", color: "amber-500" }
+    data: { label: "朝ご飯\nBreakfast", color: "amber" }
   - id: "work"
     type: "text"
     position: { x: 250, y: 280 }
-    data: { label: "仕事\nWork", color: "amber-500" }
+    data: { label: "仕事\nWork", color: "amber" }
   - id: "lunch"
     type: "text"
     position: { x: 350, y: 280 }
-    data: { label: "昼ご飯\nLunch", color: "amber-500" }
+    data: { label: "昼ご飯\nLunch", color: "amber" }
   - id: "dinner"
     type: "text"
     position: { x: 450, y: 280 }
-    data: { label: "晩ご飯\nDinner", color: "amber-500" }
+    data: { label: "晩ご飯\nDinner", color: "amber" }
   - id: "sleep"
     type: "text"
     position: { x: 550, y: 280 }
-    data: { label: "寝る\nSleep", color: "amber-500" }
+    data: { label: "寝る\nSleep", color: "amber" }
   - id: "commute"
     type: "text"
     position: { x: 200, y: 400 }
-    data: { label: "通勤\nCommute", color: "purple-500" }
+    data: { label: "通勤\nCommute", color: "purple" }
   - id: "free-time"
     type: "text"
     position: { x: 400, y: 400 }
-    data: { label: "自由時間\nFree time", color: "purple-500" }
+    data: { label: "自由時間\nFree time", color: "purple" }
 edges:
   - id: "e1"
     source: "daily-life"

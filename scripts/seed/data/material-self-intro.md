@@ -5,47 +5,47 @@ nodes:
   - id: "identity"
     type: "text"
     position: { x: 250, y: 50 }
-    data: { label: "自己紹介\nSelf-intro", color: "green-500" }
+    data: { label: "自己紹介\nSelf-intro", color: "green" }
   - id: "watashi"
     type: "text"
     position: { x: 50, y: 150 }
-    data: { label: "私\nWatashi", color: "blue-500" }
+    data: { label: "私\nWatashi", color: "blue" }
   - id: "name"
     type: "text"
     position: { x: 150, y: 150 }
-    data: { label: "名前\nName", color: "amber-500" }
+    data: { label: "名前\nName", color: "amber" }
   - id: "nationality"
     type: "text"
     position: { x: 250, y: 150 }
-    data: { label: "国籍\nNationality", color: "amber-500" }
+    data: { label: "国籍\nNationality", color: "amber" }
   - id: "job"
     type: "text"
     position: { x: 350, y: 150 }
-    data: { label: "職業\nJob", color: "amber-500" }
+    data: { label: "職業\nJob", color: "amber" }
   - id: "topic"
     type: "text"
     position: { x: 50, y: 280 }
-    data: { label: "トピック\nTopic", color: "blue-500" }
+    data: { label: "トピック\nTopic", color: "blue" }
   - id: "particle-wa"
     type: "text"
     position: { x: 150, y: 280 }
-    data: { label: "は\nWa", color: "purple-500" }
+    data: { label: "は\nWa", color: "purple" }
   - id: "copula"
     type: "text"
     position: { x: 250, y: 280 }
-    data: { label: "です\nDesu", color: "purple-500" }
+    data: { label: "です\nDesu", color: "purple" }
   - id: "hajimemashite"
     type: "text"
     position: { x: 50, y: 400 }
-    data: { label: "初めまして\nFirst meeting", color: "red-500" }
+    data: { label: "初めまして\nFirst meeting", color: "red" }
   - id: "yoroshiku"
     type: "text"
     position: { x: 250, y: 400 }
-    data: { label: "よろしく\nRequest", color: "red-500" }
+    data: { label: "よろしく\nRequest", color: "red" }
   - id: "politeness"
     type: "text"
     position: { x: 400, y: 280 }
-    data: { label: "丁寧\nPoliteness", color: "red-500" }
+    data: { label: "丁寧\nPoliteness", color: "red" }
 edges:
   - id: "e1"
     source: "identity"

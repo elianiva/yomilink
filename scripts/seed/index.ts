@@ -24,12 +24,28 @@ const program = Effect.gen(function* () {
 	const { goalMapIdsByTitle, goalMapDataByTitle } =
 		yield* seedGoalMaps(teacherId);
 
-	// Step 3: Create demo data (cohort, kit, assignment)
+	// Step 3: Seed forms
+	const {
+		tamFormId,
+		feedbackFormId,
+		preTestFormId,
+		postTestFormId,
+		delayedTestFormId,
+	} = yield* seedForms(teacherId);
+
+	// Step 4: Create demo data (cohort, kit, assignment)
 	const demoData = yield* seedDemoData(
 		userIdsByEmail,
 		teacherId,
 		goalMapIdsByTitle,
 		goalMapDataByTitle,
+		{
+			tamFormId,
+			feedbackFormId,
+			preTestFormId,
+			postTestFormId,
+			delayedTestFormId,
+		},
 	);
 
 	if (!demoData) {
@@ -46,15 +62,6 @@ const program = Effect.gen(function* () {
 		oneWeekAgo,
 		studentConditionMap,
 	} = demoData;
-
-	// Step 4: Seed forms
-	const {
-		tamFormId,
-		feedbackFormId,
-		preTestFormId,
-		postTestFormId,
-		delayedTestFormId,
-	} = yield* seedForms(teacherId);
 
 	// Step 5: Seed responses
 	yield* seedResponses(

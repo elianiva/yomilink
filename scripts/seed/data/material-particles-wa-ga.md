@@ -5,43 +5,43 @@ nodes:
   - id: "particles"
     type: "text"
     position: { x: 250, y: 50 }
-    data: { label: "助詞\nParticles", color: "green-500" }
+    data: { label: "助詞\nParticles", color: "green" }
   - id: "wa"
     type: "text"
     position: { x: 100, y: 150 }
-    data: { label: "は\nWa", color: "blue-500" }
+    data: { label: "は\nWa", color: "blue" }
   - id: "ga"
     type: "text"
     position: { x: 400, y: 150 }
-    data: { label: "が\nGa", color: "blue-500" }
+    data: { label: "が\nGa", color: "blue" }
   - id: "topic"
     type: "text"
     position: { x: 50, y: 280 }
-    data: { label: "トピック\nTopic", color: "amber-500" }
+    data: { label: "トピック\nTopic", color: "amber" }
   - id: "subject"
     type: "text"
     position: { x: 200, y: 280 }
-    data: { label: "主格\nSubject", color: "amber-500" }
+    data: { label: "主格\nSubject", color: "amber" }
   - id: "known"
     type: "text"
     position: { x: 50, y: 400 }
-    data: { label: "既知\nKnown", color: "purple-500" }
+    data: { label: "既知\nKnown", color: "purple" }
   - id: "new"
     type: "text"
     position: { x: 200, y: 400 }
-    data: { label: "新情報\nNew", color: "purple-500" }
+    data: { label: "新情報\nNew", color: "purple" }
   - id: "contrast"
     type: "text"
     position: { x: 350, y: 280 }
-    data: { label: "対比\nContrast", color: "red-500" }
+    data: { label: "対比\nContrast", color: "red" }
   - id: "emphasis"
     type: "text"
     position: { x: 350, y: 400 }
-    data: { label: "強調\nEmphasis", color: "red-500" }
+    data: { label: "強調\nEmphasis", color: "red" }
   - id: "question"
     type: "text"
     position: { x: 500, y: 340 }
-    data: { label: "疑問詞\nQuestion word", color: "blue-500" }
+    data: { label: "疑問詞\nQuestion word", color: "blue" }
 edges:
   - id: "e1"
     source: "particles"

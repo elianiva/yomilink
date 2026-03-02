@@ -15,6 +15,13 @@ export function seedDemoData(
 	teacherId: string,
 	goalMapIdsByTitle: Record<string, string>,
 	goalMapDataByTitle: Record<string, { nodes: unknown[]; edges: Array<{ id: string; source: string; target: string }> }>,
+	formIds: {
+		tamFormId: string;
+		feedbackFormId: string;
+		preTestFormId: string;
+		postTestFormId: string;
+		delayedTestFormId: string;
+	},
 ) {
 	return Effect.gen(function* () {
 		const db = yield* Database;
@@ -150,7 +157,17 @@ export function seedDemoData(
 		let demoAssignmentId: string;
 		if (existingAssignment[0]) {
 			demoAssignmentId = existingAssignment[0].id;
-			yield* Effect.log(`  Assignment "${assignmentTitle}" already exists`);
+			yield* db
+				.update(assignments)
+				.set({
+					preTestFormId: formIds.preTestFormId,
+					postTestFormId: formIds.postTestFormId,
+					delayedPostTestFormId: formIds.delayedTestFormId,
+					tamFormId: formIds.tamFormId,
+					createdBy: teacherId,
+				})
+				.where(eq(assignments.id, demoAssignmentId));
+			yield* Effect.log(`  Assignment "${assignmentTitle}" already exists, updated form links and owner`);
 		} else {
 			demoAssignmentId = randomString();
 
@@ -164,8 +181,16 @@ export function seedDemoData(
 				timeLimitMinutes: 30,
 				startDate: twoWeeksAgo,
 				dueAt: oneWeekAgo,
+				preTestFormId: formIds.preTestFormId,
+				postTestFormId: formIds.postTestFormId,
+				delayedPostTestFormId: formIds.delayedTestFormId,
+				tamFormId: formIds.tamFormId,
 				createdBy: teacherId,
 			});
+			yield* db
+				.update(assignments)
+				.set({ createdBy: teacherId })
+				.where(eq(assignments.id, demoAssignmentId));
 			yield* Effect.log(`  Created assignment: ${assignmentTitle}`);
 		}
 

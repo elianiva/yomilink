@@ -43,7 +43,8 @@ export function seedForms(teacherId: string) {
 		const existingTamQuestions = yield* db
 			.select()
 			.from(questions)
-			.where(eq(questions.formId, tamFormId));
+			.where(eq(questions.formId, tamFormId))
+			.orderBy(questions.orderIndex);
 
 		if (existingTamQuestions.length === 0) {
 			yield* Effect.log(`  Creating ${TAM_QUESTIONS.length} TAM questions...`);
@@ -65,7 +66,26 @@ export function seedForms(teacherId: string) {
 			);
 			yield* Effect.log(`  Created ${TAM_QUESTIONS.length} TAM questions`);
 		} else {
-			yield* Effect.log(`  TAM questions already exist`);
+			yield* Effect.log(`  Updating ${TAM_QUESTIONS.length} TAM questions...`);
+			yield* Effect.all(
+				TAM_QUESTIONS.map((q, index) =>
+					Effect.gen(function* () {
+						const existingQuestion = existingTamQuestions[index];
+						if (existingQuestion) {
+							yield* db
+								.update(questions)
+								.set({
+									questionText: q.questionText,
+									options: JSON.stringify(q.options),
+									type: q.type,
+								})
+								.where(eq(questions.id, existingQuestion.id));
+						}
+					}),
+				),
+				{ concurrency: 10 },
+			);
+			yield* Effect.log(`  TAM questions updated`);
 		}
 
 		const feedbackFormTitle = "Feedback Questionnaire - Kit-Build Experience";

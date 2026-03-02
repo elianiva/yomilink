@@ -5,43 +5,43 @@ nodes:
   - id: "greeting"
     type: "text"
     position: { x: 200, y: 50 }
-    data: { label: "挨拶\nAisatsu", color: "green-500" }
+    data: { label: "挨拶\nAisatsu", color: "green" }
   - id: "time"
     type: "text"
     position: { x: 50, y: 150 }
-    data: { label: "時間\nTime", color: "blue-500" }
+    data: { label: "時間\nTime", color: "blue" }
   - id: "morning"
     type: "text"
     position: { x: 50, y: 250 }
-    data: { label: "朝\nMorning", color: "amber-500" }
+    data: { label: "朝\nMorning", color: "amber" }
   - id: "afternoon"
     type: "text"
     position: { x: 200, y: 250 }
-    data: { label: "昼\nAfternoon", color: "amber-500" }
+    data: { label: "昼\nAfternoon", color: "amber" }
   - id: "evening"
     type: "text"
     position: { x: 350, y: 250 }
-    data: { label: "夜\nEvening", color: "amber-500" }
+    data: { label: "夜\nEvening", color: "amber" }
   - id: "relationship"
     type: "text"
     position: { x: 500, y: 150 }
-    data: { label: "関係\nRelationship", color: "blue-500" }
+    data: { label: "関係\nRelationship", color: "blue" }
   - id: "farewell"
     type: "text"
     position: { x: 500, y: 350 }
-    data: { label: "別れ\nFarewell", color: "purple-500" }
+    data: { label: "別れ\nFarewell", color: "purple" }
   - id: "politeness"
     type: "text"
     position: { x: 50, y: 350 }
-    data: { label: "丁寧さ\nPoliteness", color: "purple-500" }
+    data: { label: "丁寧さ\nPoliteness", color: "purple" }
   - id: "gratitude"
     type: "text"
     position: { x: 200, y: 450 }
-    data: { label: "感謝\nGratitude", color: "red-500" }
+    data: { label: "感謝\nGratitude", color: "red" }
   - id: "apology"
     type: "text"
     position: { x: 350, y: 450 }
-    data: { label: "謝罪\nApology", color: "red-500" }
+    data: { label: "謝罪\nApology", color: "red" }
 edges:
   - id: "e1"
     source: "greeting"

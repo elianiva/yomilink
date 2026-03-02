@@ -58,20 +58,6 @@ CREATE TABLE `diagnoses` (
 --> statement-breakpoint
 CREATE INDEX `diagnoses_goalMapId_idx` ON `diagnoses` (`goal_map_id`);--> statement-breakpoint
 CREATE INDEX `diagnoses_learnerMapId_idx` ON `diagnoses` (`learner_map_id`);--> statement-breakpoint
-CREATE TABLE `experiment_groups` (
-	`id` text PRIMARY KEY NOT NULL,
-	`assignment_id` text NOT NULL,
-	`user_id` text NOT NULL,
-	`group_name` text,
-	`condition` text NOT NULL,
-	`created_at` integer DEFAULT (cast(unixepoch('subsecond') * 1000 as integer)) NOT NULL,
-	`updated_at` integer DEFAULT (cast(unixepoch('subsecond') * 1000 as integer)) NOT NULL,
-	FOREIGN KEY (`assignment_id`) REFERENCES `assignments`(`id`) ON UPDATE no action ON DELETE cascade,
-	FOREIGN KEY (`user_id`) REFERENCES `user`(`id`) ON UPDATE no action ON DELETE cascade
-);
---> statement-breakpoint
-CREATE INDEX `experiment_groups_assignmentId_idx` ON `experiment_groups` (`assignment_id`);--> statement-breakpoint
-CREATE INDEX `experiment_groups_userId_idx` ON `experiment_groups` (`user_id`);--> statement-breakpoint
 CREATE TABLE `feedback` (
 	`id` text PRIMARY KEY NOT NULL,
 	`learner_map_id` text NOT NULL,
@@ -312,7 +298,8 @@ CREATE TABLE `user` (
 	`motivation` text,
 	`banned` integer DEFAULT false,
 	`ban_reason` text,
-	`ban_expires` integer
+	`ban_expires` integer,
+	`study_group` text DEFAULT 'experiment' NOT NULL
 );
 --> statement-breakpoint
 CREATE UNIQUE INDEX `user_email_unique` ON `user` (`email`);--> statement-breakpoint

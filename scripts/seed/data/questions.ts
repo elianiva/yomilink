@@ -1,51 +1,51 @@
 export const TAM_QUESTIONS = [
 	{
-		questionText: "キットビルドを使うことで、読解力が向上する。",
+		questionText: "Using Kit-Build improves my reading comprehension skills.",
 		type: "likert" as const,
 		options: ["1", "2", "3", "4", "5"],
 	},
 	{
-		questionText: "キットビルドは、文章の構造や関係性を理解するのに役立つ。",
+		questionText: "Kit-Build is helpful for understanding the structure and relationships within a text.",
 		type: "likert" as const,
 		options: ["1", "2", "3", "4", "5"],
 	},
 	{
-		questionText: "キットビルドを使うと、読んだ内容の情報を整理しやすくなる。",
+		questionText: "Using Kit-Build makes it easier to organize information from what I have read.",
 		type: "likert" as const,
 		options: ["1", "2", "3", "4", "5"],
 	},
 	{
-		questionText: "キットビルドを使うことは、従来の学習方法よりも日本語の読解学習に効果的だと思う。",
+		questionText: "I think using Kit-Build is more effective for learning Japanese reading than traditional methods.",
 		type: "likert" as const,
 		options: ["1", "2", "3", "4", "5"],
 	},
 	{
-		questionText: "キットビルドは私の日本語学習に有用である。",
+		questionText: "Kit-Build is useful for my Japanese language learning.",
 		type: "likert" as const,
 		options: ["1", "2", "3", "4", "5"],
 	},
 	{
-		questionText: "キットビルドは使いやすいと感じた。",
+		questionText: "I found Kit-Build easy to use.",
 		type: "likert" as const,
 		options: ["1", "2", "3", "4", "5"],
 	},
 	{
-		questionText: "キットビルドの操作画面（インターフェース）は明快で分かりやすい。",
+		questionText: "The Kit-Build interface is clear and easy to understand.",
 		type: "likert" as const,
 		options: ["1", "2", "3", "4", "5"],
 	},
 	{
-		questionText: "キットビルドの使い方は、すぐに習得できた。",
+		questionText: "I was able to learn how to use Kit-Build quickly.",
 		type: "likert" as const,
 		options: ["1", "2", "3", "4", "5"],
 	},
 	{
-		questionText: "キットビルドで概念（コンセプト）をつなげる操作は直感的である。",
+		questionText: "Connecting concepts in Kit-Build is intuitive.",
 		type: "likert" as const,
 		options: ["1", "2", "3", "4", "5"],
 	},
 	{
-		questionText: "キットビルドを使っている際、あまり精神的な努力（難しさ）を必要としなかった。",
+		questionText: "Using Kit-Build did not require much mental effort.",
 		type: "likert" as const,
 		options: ["1", "2", "3", "4", "5"],
 	},
