@@ -1,0 +1,87 @@
+import { Layer, Logger, Effect } from "effect";
+import { AppLayer } from "@/server/app-layer";
+import { Auth } from "@/lib/auth";
+import {
+	seedUsers,
+	seedGoalMaps,
+	seedDemoData,
+	seedForms,
+	seedResponses,
+	seedLearnerMaps,
+} from "./seeders/index.js";
+
+const program = Effect.gen(function* () {
+	yield* Effect.log("Seeding database...");
+
+	// Step 1: Seed users
+	const { userIdsByEmail, teacherId } = yield* seedUsers();
+
+	// Step 2: Seed topics and goal maps
+	const { goalMapIdsByTitle, goalMapDataByTitle } =
+		yield* seedGoalMaps(teacherId);
+
+	// Step 3: Create demo data (cohort, kit, assignment)
+	const demoData = yield* seedDemoData(
+		userIdsByEmail,
+		teacherId,
+		goalMapIdsByTitle,
+		goalMapDataByTitle,
+	);
+
+	if (!demoData) {
+		yield* Effect.log("Failed to create demo data - Japanese Daily Life goal map not found");
+		return;
+	}
+
+	const {
+		demoKitId,
+		demoAssignmentId,
+		dailyLifeGoalMapId,
+		dailyLifeData,
+		twoWeeksAgo,
+		oneWeekAgo,
+	} = demoData;
+
+	// Step 4: Seed forms
+	const {
+		tamFormId,
+		feedbackFormId,
+		preTestFormId,
+		postTestFormId,
+		delayedTestFormId,
+	} = yield* seedForms(teacherId);
+
+	// Step 5: Seed responses
+	yield* seedResponses(
+		userIdsByEmail,
+		tamFormId,
+		feedbackFormId,
+		preTestFormId,
+		postTestFormId,
+		delayedTestFormId,
+		{ oneWeekAgo, twoWeeksAgo },
+	);
+
+	// Step 6: Create learner maps and diagnoses
+	yield* seedLearnerMaps(
+		userIdsByEmail,
+		demoAssignmentId,
+		dailyLifeGoalMapId,
+		demoKitId,
+		dailyLifeData,
+		oneWeekAgo,
+	);
+
+	yield* Effect.log(
+		"--- Seed completed ---\n" +
+			"Demo credentials:\n" +
+			"  Teacher: teacher@yomilink.local / teacher123\n" +
+			"  Demo students: [name]@demo.local / demo12345\n" +
+			"    - tanaka, suzuki, yamamoto, watanabe, takahashi\n" +
+			"    - ito, nakamura, kobayashi, kato, matsumoto\n",
+	);
+}).pipe(
+	Effect.provide(Layer.mergeAll(AppLayer, Auth.Default, Logger.pretty)),
+);
+
+Effect.runPromise(program);
