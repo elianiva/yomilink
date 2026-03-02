@@ -84,7 +84,7 @@ export function FormBuilderPage() {
 
 	// Load existing form data when editing
 	useEffect(() => {
-		if (isEditing && existingForm && !("error" in existingForm)) {
+		if (isEditing && existingForm) {
 			setMetadata({
 				title: existingForm.form.title ?? "",
 				description: existingForm.form.description,

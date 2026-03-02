@@ -14,45 +14,6 @@ export const Route = createFileRoute("/dashboard/forms/take")({
 	component: FormTakerPage,
 });
 
-type FormQueryResponse = {
-	readonly success: true;
-	readonly form: {
-		readonly id: string;
-		readonly title: string;
-		readonly description: string | null;
-		readonly type: "pre_test" | "post_test" | "registration" | "control";
-		readonly status: "draft" | "published";
-		readonly unlockConditions: unknown;
-		readonly createdBy: string;
-		readonly createdAt: Date;
-		readonly updatedAt: Date;
-	};
-	readonly questions: Array<{
-		readonly id: string;
-		readonly formId: string;
-		readonly type: "mcq" | "likert" | "text";
-		readonly questionText: string;
-		readonly options:
-			| { readonly id: string; readonly text: string }[]
-			| {
-					readonly type: "likert";
-					readonly scaleSize: number;
-					readonly labels: { readonly [key: string]: string };
-			  }
-			| {
-					readonly type: "text";
-					readonly minLength?: number;
-					readonly maxLength?: number;
-					readonly placeholder?: string;
-			  }
-			| null;
-		readonly orderIndex: number;
-		readonly required: boolean;
-		readonly createdAt: Date;
-		readonly updatedAt: Date;
-	}>;
-};
-
 function FormTakerPage() {
 	const navigate = useNavigate({ from: "/dashboard/forms/take" });
 	const searchParams = useSearch({ from: "/dashboard/forms/take" });
@@ -98,19 +59,16 @@ function FormTakerPage() {
 		);
 	}
 
-	// Type assertion since we can't narrow the union type properly
-	const response = data as FormQueryResponse;
-
 	// Transform data to match expected types
 	const formData: FormData = {
-		id: response.form.id,
-		title: response.form.title,
-		description: response.form.description ?? undefined,
-		type: response.form.type,
-		status: response.form.status,
+		id: data.form.id,
+		title: data.form.title,
+		description: data.form.description ?? undefined,
+		type: data.form.type,
+		status: data.form.status,
 	};
 
-	const questionData: QuestionWithOptions[] = response.questions.map((q) => {
+	const questionData: QuestionWithOptions[] = data.questions.map((q) => {
 		// Transform options based on question type
 		let transformedOptions: QuestionWithOptions["options"];
 

@@ -61,25 +61,8 @@ export function PreTestGateway({
 		);
 	}
 
-	// Error state - check if data is undefined or has success: false
-	const hasError =
-		error || !unlockStatus || ("success" in unlockStatus && unlockStatus.success === false);
-
-	if (hasError) {
-		return (
-			<div className={cn("flex items-center justify-center p-8", className)}>
-				<Card className="w-full max-w-md">
-					<CardContent className="pt-6 text-center">
-						<p className="text-destructive">Failed to check pre-test status</p>
-						<p className="text-sm text-muted-foreground mt-2">Please try again later</p>
-					</CardContent>
-				</Card>
-			</div>
-		);
-	}
-
-	// Type guard - ensure we have the right shape
-	if (!("isUnlocked" in unlockStatus)) {
+	// Error state - check if data is undefined
+	if (error || !unlockStatus) {
 		return (
 			<div className={cn("flex items-center justify-center p-8", className)}>
 				<Card className="w-full max-w-md">

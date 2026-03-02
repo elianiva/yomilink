@@ -28,9 +28,12 @@ function FormResultsPage() {
 		"individual",
 	);
 
-	const { data: formData, isLoading: formLoading } = useRpcQuery(
-		FormRpc.getFormById({ id: formId }),
-	);
+	const {
+		data: formData,
+		isLoading: formLoading,
+		isRpcError: isFormError,
+		rpcError: formError,
+	} = useRpcQuery(FormRpc.getFormById({ id: formId }));
 
 	const { data: responsesData, isLoading: responsesLoading } = useRpcQuery(
 		FormRpc.getFormResponses({
@@ -42,14 +45,26 @@ function FormResultsPage() {
 
 	const isLoading = formLoading || responsesLoading;
 
-	// Type guard to check if response is successful
-	const isSuccess = <T,>(data: T): data is T & { success: true } =>
-		!!(data && typeof data === "object" && "success" in data && data.success);
-
-	if (isLoading || !isSuccess(formData)) {
+	if (isLoading) {
 		return (
 			<div className="flex items-center justify-center py-12">
 				<Loader2 className="h-8 w-8 animate-spin text-muted-foreground" />
+			</div>
+		);
+	}
+
+	if (isFormError) {
+		return (
+			<div className="flex flex-col items-center justify-center py-12">
+				<p className="text-muted-foreground">{formError ?? "Failed to load form"}</p>
+			</div>
+		);
+	}
+
+	if (!formData) {
+		return (
+			<div className="flex flex-col items-center justify-center py-12">
+				<p className="text-muted-foreground">Form not found</p>
 			</div>
 		);
 	}
@@ -63,17 +78,15 @@ function FormResultsPage() {
 	}
 
 	const { form, questions } = formData;
-	const responses = (isSuccess(responsesData) ? responsesData.responses : []) as FormResponse[];
-	const pagination = isSuccess(responsesData)
-		? responsesData.pagination
-		: {
-				page: 1,
-				limit: 20,
-				total: 0,
-				totalPages: 0,
-				hasNextPage: false,
-				hasPrevPage: false,
-			};
+	const responses = (responsesData?.responses ?? []) as FormResponse[];
+	const pagination = responsesData?.pagination ?? {
+		page: 1,
+		limit: 20,
+		total: 0,
+		totalPages: 0,
+		hasNextPage: false,
+		hasPrevPage: false,
+	};
 
 	// Cast questions to the expected type
 	const typedQuestions = questions.map((q) => ({
