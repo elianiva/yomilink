@@ -95,10 +95,6 @@ const formStatusConfig: Record<FormStatus, { label: string; dot: string }> = {
 	},
 };
 
-function truncateId(id: string): string {
-	return id.length > 6 ? `${id.slice(0, 6)}` : id;
-}
-
 export function FormList({
 	forms,
 	onEdit,
@@ -131,8 +127,6 @@ export function FormList({
 					locked: 0,
 					total: 0,
 				};
-				const completionRate =
-					stats.total > 0 ? Math.round((stats.completed / stats.total) * 100) : 0;
 
 				const handleClick = () => {
 					if (onClick) {
@@ -204,7 +198,7 @@ export function FormList({
 									</div>
 
 									{/* Stats Section */}
-									<div className="hidden sm:flex items-center gap-3 mt-2">
+									<div className="hidden sm:flex items-center mt-2 gap-3">
 										<div className="flex items-center gap-1.5">
 											<Users className="size-3.5 text-stone-400" />
 											<div className="flex items-baseline gap-1">
@@ -212,31 +206,25 @@ export function FormList({
 													{stats.completed}
 												</span>
 												<span className="text-sm text-stone-400">
-													/ {stats.total}
+													/{stats.total}
 												</span>
 											</div>
 										</div>
-
+										<span className="text-xs text-stone-600/50">|</span>
 										{/* Breakdown - monochrome */}
-										<div className="flex items-center gap-2 text-[10px] text-stone-500">
-											{stats.completed > 0 && (
-												<span className="flex items-center gap-0.5">
-													<CheckCircle2 className="size-3" />
-													{stats.completed}
-												</span>
-											)}
-											{stats.available > 0 && (
-												<span className="flex items-center gap-0.5">
-													<Unlock className="size-3" />
-													{stats.available}
-												</span>
-											)}
-											{stats.locked > 0 && (
-												<span className="flex items-center gap-0.5 text-stone-400">
-													<Lock className="size-3" />
-													{stats.locked}
-												</span>
-											)}
+										<div className="flex items-center gap-2 text-sm text-stone-500">
+											<span className="flex items-center gap-0.5">
+												<CheckCircle2 className="size-3" />
+												{stats.completed}
+											</span>
+											<span className="flex items-center gap-0.5">
+												<Unlock className="size-3" />
+												{stats.available}
+											</span>
+											<span className="flex items-center gap-0.5 text-stone-400">
+												<Lock className="size-3" />
+												{stats.locked}
+											</span>
 										</div>
 									</div>
 								</div>
