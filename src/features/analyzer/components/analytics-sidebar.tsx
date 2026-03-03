@@ -12,6 +12,7 @@ import {
 } from "@/components/ui/select";
 import { Separator } from "@/components/ui/separator";
 import { Skeleton } from "@/components/ui/skeleton";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useRpcQuery } from "@/hooks/use-rpc-query";
 import { AnalyticsRpc } from "@/server/rpc/analytics";
 
@@ -98,8 +99,27 @@ export function AnalyticsSidebar({
 		return { checked: false, indeterminate: true };
 	}, [filteredLearners.length, selectedLearnerMapIds.size]);
 
-	const handleToggleAll = (checked: boolean) => {
-		onToggleAll(checked ? filteredLearners.map((l: LearnerAnalytics) => l.learnerMapId) : []);
+	const groupedLearners = useMemo(() => {
+		const isSummaryLearner = (learner: LearnerAnalytics) =>
+			learner.condition === "summarizing" || learner.score === null;
+		return {
+			conceptMap: filteredLearners.filter((l) => !isSummaryLearner(l)),
+			summary: filteredLearners.filter(isSummaryLearner),
+		};
+	}, [filteredLearners]);
+
+	const counts = useMemo(
+		() => ({
+			conceptMap: groupedLearners.conceptMap.length,
+			summary: groupedLearners.summary.length,
+		}),
+		[groupedLearners],
+	);
+
+	const handleToggleAll = (checked: boolean | "indeterminate") => {
+		onToggleAll(
+			checked === true ? filteredLearners.map((l: LearnerAnalytics) => l.learnerMapId) : [],
+		);
 	};
 
 	const assignmentsForSelect = useMemo(
@@ -212,28 +232,71 @@ export function AnalyticsSidebar({
 									/>
 								</div>
 
-								<div className="max-h-64 overflow-auto rounded-md border-[0.5px]">
-									<div className="flex items-center justify-between text-xs text-muted-foreground px-3 py-2 border-b-[0.5px]">
-										<div className="flex items-center gap-2">
+								<Tabs defaultValue="conceptMap" className="w-full">
+									<TabsList variant="line" className="w-full">
+										<TabsTrigger
+											value="conceptMap"
+											className="text-xs px-2 flex-1"
+										>
+											Concept Map ({counts.conceptMap})
+										</TabsTrigger>
+										<TabsTrigger
+											value="summary"
+											className="text-xs px-2 flex-1"
+										>
+											Summary ({counts.summary})
+										</TabsTrigger>
+									</TabsList>
+
+									<div className="rounded-md border-[0.5px] mt-2">
+										<div className="flex items-center px-3 py-2 border-b-[0.5px]">
 											<Checkbox
 												checked={selectAllState.checked}
 												indeterminate={selectAllState.indeterminate}
 												onCheckedChange={handleToggleAll}
 											/>
-											<div className="text-xs">
-												{selectedLearnerMapIds.size} of{" "}
-												{filteredLearners.length} selected
-											</div>
+											<span className="text-xs text-muted-foreground ml-2">
+												Select all
+											</span>
 										</div>
-										<div>Score</div>
+										<TabsContent value="conceptMap" className="m-0">
+											<div className="max-h-48 overflow-auto">
+												{groupedLearners.conceptMap.length > 0 ? (
+													<LearnerList
+														conceptMap={groupedLearners.conceptMap}
+														isLoading={analyticsLoading}
+														selectedLearnerMapIds={
+															selectedLearnerMapIds
+														}
+														onToggleLearner={onToggleLearner}
+													/>
+												) : (
+													<div className="px-3 py-6 text-center text-xs text-muted-foreground">
+														No concept map learners
+													</div>
+												)}
+											</div>
+										</TabsContent>
+										<TabsContent value="summary" className="m-0">
+											<div className="max-h-48 overflow-auto">
+												{groupedLearners.summary.length > 0 ? (
+													<LearnerList
+														summary={groupedLearners.summary}
+														isLoading={analyticsLoading}
+														selectedLearnerMapIds={
+															selectedLearnerMapIds
+														}
+														onToggleLearner={onToggleLearner}
+													/>
+												) : (
+													<div className="px-3 py-6 text-center text-xs text-muted-foreground">
+														No summary learners
+													</div>
+												)}
+											</div>
+										</TabsContent>
 									</div>
-									<LearnerList
-										learners={filteredLearners}
-										isLoading={analyticsLoading}
-										selectedLearnerMapIds={selectedLearnerMapIds}
-										onToggleLearner={onToggleLearner}
-									/>
-								</div>
+								</Tabs>
 							</>
 						)}
 					</div>

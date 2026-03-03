@@ -94,6 +94,9 @@ export const LearnerAnalyticsSchema = Schema.Struct({
 	userId: Schema.String,
 	userName: Schema.String,
 	learnerMapId: Schema.String,
+	condition: Schema.optional(
+		Schema.Union(Schema.Literal("concept_map"), Schema.Literal("summarizing")),
+	),
 	status: MapStatusSchema,
 	score: Schema.NullOr(Schema.Number),
 	attempt: Schema.Number,
@@ -282,6 +285,7 @@ export const getAnalyticsForAssignment = Effect.fn("getAnalyticsForAssignment")(
 			score: diagnoses.score,
 			perLink: diagnoses.perLink,
 			userName: user.name,
+			condition: user.studyGroup,
 		})
 		.from(learnerMaps)
 		.innerJoin(user, eq(learnerMaps.userId, user.id))
@@ -309,6 +313,12 @@ export const getAnalyticsForAssignment = Effect.fn("getAnalyticsForAssignment")(
 					userId: lm.userId,
 					userName: lm.userName,
 					learnerMapId: lm.id,
+					condition:
+						lm.condition === "experiment"
+							? "concept_map"
+							: lm.condition === "control"
+								? "summarizing"
+								: undefined,
 					status: lm.status,
 					score: lm.score,
 					attempt: lm.attempt,

@@ -2,17 +2,23 @@ import { Checkbox } from "@/components/ui/checkbox";
 import type { LearnerAnalytics } from "@/features/analyzer/lib/analytics-service";
 import { cn } from "@/lib/utils";
 
-export function LearnerList({
-	learners,
-	isLoading,
-	selectedLearnerMapIds,
-	onToggleLearner,
-}: {
-	learners: LearnerAnalytics[];
+interface LearnerListProps {
+	conceptMap?: LearnerAnalytics[];
+	summary?: LearnerAnalytics[];
 	isLoading: boolean;
 	selectedLearnerMapIds: Set<string>;
 	onToggleLearner: (learnerMapId: string) => void;
-}) {
+}
+
+export function LearnerList({
+	conceptMap,
+	summary,
+	isLoading,
+	selectedLearnerMapIds,
+	onToggleLearner,
+}: LearnerListProps) {
+	const learners = conceptMap ?? summary ?? [];
+
 	if (isLoading) {
 		return (
 			<div className="px-3 py-6 text-center text-xs text-muted-foreground">Loading...</div>

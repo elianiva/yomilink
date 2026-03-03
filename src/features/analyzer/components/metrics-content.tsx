@@ -68,9 +68,13 @@ export function MetricsContent({ assignmentId }: MetricsContentProps) {
 			return null;
 		}
 
-		const { learners, summary } = analyticsData;
+		const { learners } = analyticsData;
+		const isSummaryLearner = (learner: LearnerAnalytics) =>
+			learner.condition === "summarizing" || learner.score === null;
+		const summaryLearners = learners.filter(isSummaryLearner);
+		const conceptMapLearners = learners.filter((l) => !isSummaryLearner(l));
 
-		const scoreDistribution = learners
+		const scoreDistribution = conceptMapLearners
 			.filter((l) => l.score !== null)
 			.reduce<Record<string, number>>((acc, learner) => {
 				const score = learner.score ?? 0;
@@ -86,24 +90,27 @@ export function MetricsContent({ assignmentId }: MetricsContentProps) {
 		const statusBreakdown = [
 			{
 				status: "submitted",
-				count: summary.submittedCount,
+				count: conceptMapLearners.filter((l) => l.status === "submitted").length,
 				fill: "var(--color-chart-1)",
 			},
 			{
 				status: "draft",
-				count: summary.draftCount,
+				count: conceptMapLearners.filter((l) => l.status === "draft").length,
 				fill: "var(--color-chart-2)",
 			},
 		];
 
-		const avgEdgeTypes = learners.reduce(
-			(acc, learner) => ({
-				correct: acc.correct + learner.correct / learners.length,
-				missing: acc.missing + learner.missing / learners.length,
-				excessive: acc.excessive + learner.excessive / learners.length,
-			}),
-			{ correct: 0, missing: 0, excessive: 0 },
-		);
+		const avgEdgeTypes =
+			conceptMapLearners.length > 0
+				? conceptMapLearners.reduce(
+						(acc, learner) => ({
+							correct: acc.correct + learner.correct / conceptMapLearners.length,
+							missing: acc.missing + learner.missing / conceptMapLearners.length,
+							excessive: acc.excessive + learner.excessive / conceptMapLearners.length,
+						}),
+						{ correct: 0, missing: 0, excessive: 0 },
+				  )
+				: { correct: 0, missing: 0, excessive: 0 };
 
 		const edgeTypeData = [
 			{
@@ -123,27 +130,59 @@ export function MetricsContent({ assignmentId }: MetricsContentProps) {
 			},
 		];
 
-		const attemptDistribution = learners.reduce<Record<string, number>>((acc, learner) => {
-			acc[`Attempt ${learner.attempt}`] = (acc[`Attempt ${learner.attempt}`] || 0) + 1;
-			return acc;
-		}, {});
+		const attemptDistribution = conceptMapLearners.reduce<Record<string, number>>(
+			(acc, learner) => {
+				acc[`Attempt ${learner.attempt}`] = (acc[`Attempt ${learner.attempt}`] || 0) + 1;
+				return acc;
+			},
+			{},
+		);
 
-		const topLearners = [...learners]
+		const topLearners = [...conceptMapLearners]
 			.sort((a, b) => (b.score ?? 0) - (a.score ?? 0))
 			.slice(0, 5);
-		const bottomLearners = [...learners]
+		const bottomLearners = [...conceptMapLearners]
 			.filter((l) => l.score !== null)
 			.sort((a, b) => (a.score ?? 0) - (b.score ?? 0))
 			.slice(0, 5);
 
+		const conceptMapScores = conceptMapLearners
+			.map((l) => l.score)
+			.filter((s): s is number => s !== null);
+		const summaryScores = summaryLearners
+			.map((l) => l.score)
+			.filter((s): s is number => s !== null);
+
 		return {
 			data: analyticsData,
+			conceptMapLearners,
+			summaryLearners,
 			scoreDistribution,
 			statusBreakdown,
 			edgeTypeData,
 			attemptDistribution,
 			topLearners,
 			bottomLearners,
+			conceptMapStats: {
+				total: conceptMapLearners.length,
+				submitted: conceptMapLearners.filter((l) => l.status === "submitted").length,
+				draft: conceptMapLearners.filter((l) => l.status === "draft").length,
+				avgScore:
+					conceptMapScores.length > 0
+						? conceptMapScores.reduce((a, b) => a + b, 0) / conceptMapScores.length
+						: null,
+				highestScore:
+					conceptMapScores.length > 0 ? Math.max(...conceptMapScores) : null,
+			},
+			summaryStats: {
+				total: summaryLearners.length,
+				submitted: summaryLearners.filter((l) => l.status === "submitted").length,
+				draft: summaryLearners.filter((l) => l.status === "draft").length,
+				avgScore:
+					summaryScores.length > 0
+						? summaryScores.reduce((a, b) => a + b, 0) / summaryScores.length
+						: null,
+			},
 		};
 	}, [analyticsData]);
 
@@ -181,25 +220,43 @@ export function MetricsContent({ assignmentId }: MetricsContentProps) {
 			</div>
 
 			<div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-				<StatCard title="Total Learners" value={metrics.data.summary.totalLearners} />
+				<StatCard title="Concept Map Learners" value={metrics.conceptMapStats.total} />
 				<StatCard
-					title="Submitted"
-					value={metrics.data.summary.submittedCount}
-					total={metrics.data.summary.totalLearners}
+					title="Concept Map Submitted"
+					value={metrics.conceptMapStats.submitted}
+					total={metrics.conceptMapStats.total}
 				/>
 				<StatCard
-					title="Average Score"
+					title="Concept Map Avg Score"
 					value={
-						metrics.data.summary.avgScore
-							? `${metrics.data.summary.avgScore.toFixed(1)}%`
+						metrics.conceptMapStats.avgScore
+							? `${metrics.conceptMapStats.avgScore.toFixed(1)}%`
 							: "N/A"
 					}
 				/>
 				<StatCard
-					title="Highest Score"
+					title="Concept Map Highest Score"
 					value={
-						metrics.data.summary.highestScore !== null
-							? `${metrics.data.summary.highestScore}%`
+						metrics.conceptMapStats.highestScore !== null
+							? `${metrics.conceptMapStats.highestScore}%`
+							: "N/A"
+					}
+				/>
+			</div>
+
+			<div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+				<StatCard title="Summary Learners" value={metrics.summaryStats.total} />
+				<StatCard
+					title="Summary Submitted"
+					value={metrics.summaryStats.submitted}
+					total={metrics.summaryStats.total}
+				/>
+				<StatCard title="Summary Drafts" value={metrics.summaryStats.draft} />
+				<StatCard
+					title="Summary Avg Score"
+					value={
+						metrics.summaryStats.avgScore
+							? `${metrics.summaryStats.avgScore.toFixed(1)}%`
 							: "N/A"
 					}
 				/>
@@ -322,9 +379,9 @@ export function MetricsContent({ assignmentId }: MetricsContentProps) {
 					<CardHeader>
 						<CardTitle className="flex items-center gap-2">
 							<TrendingUp className="size-4" />
-							Top 5 Performers
+							Top 5 Concept Map Performers
 						</CardTitle>
-						<CardDescription>Learners with highest scores</CardDescription>
+						<CardDescription>Learners with highest concept map scores</CardDescription>
 					</CardHeader>
 					<CardContent>
 						<PerformanceList learners={metrics.topLearners} />
@@ -335,7 +392,7 @@ export function MetricsContent({ assignmentId }: MetricsContentProps) {
 					<CardHeader>
 						<CardTitle className="flex items-center gap-2">
 							<BarChart3 className="size-4" />
-							Bottom 5 Performers
+							Bottom 5 Concept Map Performers
 						</CardTitle>
 						<CardDescription>Learners needing improvement</CardDescription>
 					</CardHeader>
@@ -344,6 +401,18 @@ export function MetricsContent({ assignmentId }: MetricsContentProps) {
 					</CardContent>
 				</Card>
 			</div>
+
+			<Card>
+				<CardHeader>
+					<CardTitle>Summarizing Learners</CardTitle>
+					<CardDescription>
+						Dedicated summary condition view (not grouped with concept map)
+					</CardDescription>
+				</CardHeader>
+				<CardContent>
+					<PerformanceList learners={metrics.summaryLearners} />
+				</CardContent>
+			</Card>
 		</div>
 	);
 }
