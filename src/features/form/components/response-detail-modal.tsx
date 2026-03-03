@@ -1,12 +1,15 @@
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 
-import type { FormResponse, ResponseQuestion } from "./individual-responses-table";
+import type {
+	FormResponseOutput as FormResponse,
+	QuestionOutput as ResponseQuestion,
+} from "@/features/form/lib/form-service";
 import { LikertScaleDisplay } from "./likert-scale-display";
 import { McqOptionsDisplay } from "./mcq-options-display";
 
 type ResponseDetailModalProps = {
 	response: FormResponse;
-	questions: ResponseQuestion[];
+	questions: ReadonlyArray<ResponseQuestion>;
 	open: boolean;
 	onOpenChange: (open: boolean) => void;
 };
@@ -19,9 +22,9 @@ export function ResponseDetailModal({
 }: ResponseDetailModalProps) {
 	const sortedQuestions = [...questions].sort((a, b) => a.orderIndex - b.orderIndex);
 
-	const formatDate = (date: Date | string | null) => {
-		if (!date) return "-";
-		const d = date instanceof Date ? date : new Date(date);
+	const formatDate = (timestamp: number | null) => {
+		if (!timestamp) return "-";
+		const d = new Date(timestamp);
 		return d.toLocaleDateString("en-US", {
 			month: "short",
 			day: "numeric",

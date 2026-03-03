@@ -116,19 +116,42 @@ export const getFormById = Effect.fn("getFormById")(function* (formId: string) {
 		updatedAt: formRow.updatedAt,
 	};
 
-	const mappedQuestions = questionRows.map((q) => ({
-		id: q.id,
-		formId: q.formId,
-		type: q.type,
-		questionText: q.questionText,
-		options: q.options ?? null,
-		orderIndex: q.orderIndex,
-		required: q.required,
-		createdAt: q.createdAt,
-		updatedAt: q.updatedAt,
-	}));
+	const mappedQuestions = yield* Effect.all(
+		questionRows.map((q) =>
+			Effect.gen(function* () {
+				const parsedOptions = yield* safeParseJson(
+					q.options,
+					null,
+					Schema.NullOr(QuestionOptions),
+				);
+				return {
+					id: q.id,
+					formId: q.formId,
+					type: q.type,
+					questionText: q.questionText,
+					options: parsedOptions,
+					orderIndex: q.orderIndex,
+					required: q.required,
+					createdAt: q.createdAt,
+					updatedAt: q.updatedAt,
+				};
+			}),
+		),
+		{ concurrency: "unbounded" },
+	);
 
-	return { form, questions: mappedQuestions };
+	return yield* Schema.encode(GetFormByIdOutputSchema)({
+		form: {
+			...form,
+			createdAt: form.createdAt.getTime(),
+			updatedAt: form.updatedAt.getTime(),
+		},
+		questions: mappedQuestions.map((q) => ({
+			...q,
+			createdAt: q.createdAt.getTime(),
+			updatedAt: q.updatedAt.getTime(),
+		})),
+	});
 });
 
 export const listForms = Effect.fn("listForms")(function* (userId: string) {
@@ -392,8 +415,11 @@ export const getFormResponses = Effect.fn("getFormResponses")(function* (
 		),
 	);
 
-	return {
-		responses: parsedResponses,
+	return yield* Schema.encode(GetFormResponsesOutputSchema)({
+		responses: parsedResponses.map((r) => ({
+			...r,
+			submittedAt: r.submittedAt?.getTime() ?? null,
+		})),
 		pagination: {
 			page,
 			limit,
@@ -402,7 +428,7 @@ export const getFormResponses = Effect.fn("getFormResponses")(function* (
 			hasNextPage: page < totalPages,
 			hasPrevPage: page > 1,
 		},
-	};
+	});
 });
 
 export const ReorderQuestionsInput = Schema.Struct({
@@ -712,6 +738,79 @@ export const deleteQuestion = Effect.fn("deleteQuestion")(function* (questionId:
 
 	return true;
 });
+
+// Output schemas for RPC serialization
+export const FormOutputSchema = Schema.Struct({
+	id: Schema.String,
+	title: Schema.String,
+	description: Schema.NullOr(Schema.String),
+	type: Schema.Union(
+		Schema.Literal("pre_test"),
+		Schema.Literal("post_test"),
+		Schema.Literal("delayed_test"),
+		Schema.Literal("registration"),
+		Schema.Literal("tam"),
+		Schema.Literal("control"),
+	),
+	status: Schema.Union(Schema.Literal("draft"), Schema.Literal("published")),
+	unlockConditions: FormUnlockConditionsNullable,
+	createdBy: Schema.String,
+	createdAt: Schema.Number,
+	updatedAt: Schema.Number,
+});
+
+export const QuestionOutputSchema = Schema.Struct({
+	id: Schema.String,
+	formId: Schema.String,
+	type: Schema.Union(Schema.Literal("mcq"), Schema.Literal("likert"), Schema.Literal("text")),
+	questionText: Schema.String,
+	options: Schema.NullOr(QuestionOptions),
+	orderIndex: Schema.Number,
+	required: Schema.Boolean,
+	createdAt: Schema.Number,
+	updatedAt: Schema.Number,
+});
+
+export const ResponseUserSchema = Schema.Struct({
+	id: Schema.String,
+	name: Schema.NullOr(Schema.String),
+	email: Schema.String,
+});
+
+export const FormResponseOutputSchema = Schema.Struct({
+	id: Schema.String,
+	formId: Schema.String,
+	userId: Schema.String,
+	answers: Schema.Record({ key: Schema.String, value: Schema.Any }),
+	submittedAt: Schema.NullOr(Schema.Number),
+	timeSpentSeconds: Schema.NullOr(Schema.Number),
+	user: ResponseUserSchema,
+});
+
+export const GetFormByIdOutputSchema = Schema.Struct({
+	form: FormOutputSchema,
+	questions: Schema.Array(QuestionOutputSchema),
+});
+
+export const PaginationInfoSchema = Schema.Struct({
+	page: Schema.Number,
+	limit: Schema.Number,
+	total: Schema.Number,
+	totalPages: Schema.Number,
+	hasNextPage: Schema.Boolean,
+	hasPrevPage: Schema.Boolean,
+});
+
+export const GetFormResponsesOutputSchema = Schema.Struct({
+	responses: Schema.Array(FormResponseOutputSchema),
+	pagination: PaginationInfoSchema,
+});
+
+export type GetFormByIdOutput = typeof GetFormByIdOutputSchema.Type;
+export type GetFormResponsesOutput = typeof GetFormResponsesOutputSchema.Type;
+export type FormOutput = typeof FormOutputSchema.Type;
+export type QuestionOutput = typeof QuestionOutputSchema.Type;
+export type FormResponseOutput = typeof FormResponseOutputSchema.Type;
 
 // Check if user has completed the registration form
 // Returns the registration form ID if it exists and user's completion status

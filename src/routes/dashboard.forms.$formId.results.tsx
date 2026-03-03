@@ -9,6 +9,7 @@ import { AggregatedResponses } from "@/features/form/components/aggregated-respo
 import {
 	IndividualResponsesTable,
 	type FormResponse,
+	type ResponseQuestion,
 } from "@/features/form/components/individual-responses-table";
 import { StratifiedGrouping } from "@/features/form/components/stratified-grouping";
 import { useRpcQuery } from "@/hooks/use-rpc-query";
@@ -78,7 +79,7 @@ function FormResultsPage() {
 	}
 
 	const { form, questions } = formData;
-	const responses = (responsesData?.responses ?? []) as FormResponse[];
+	const responses = responsesData?.responses ?? [];
 	const pagination = responsesData?.pagination ?? {
 		page: 1,
 		limit: 20,
@@ -87,12 +88,6 @@ function FormResultsPage() {
 		hasNextPage: false,
 		hasPrevPage: false,
 	};
-
-	// Cast questions to the expected type
-	const typedQuestions = questions.map((q) => ({
-		...q,
-		options: q.options as Record<string, unknown> | null,
-	}));
 
 	return (
 		<div className="space-y-6">
@@ -137,21 +132,21 @@ function FormResultsPage() {
 				<TabsContent value="individual" className="mt-6">
 					<IndividualResponsesTable
 						responses={responses}
-						questions={typedQuestions}
+						questions={questions}
 						pagination={pagination}
 						formId={formId}
 					/>
 				</TabsContent>
 
 				<TabsContent value="aggregated" className="mt-6">
-					<AggregatedResponses responses={responses} questions={typedQuestions} />
+					<AggregatedResponses responses={responses} questions={questions} />
 				</TabsContent>
 
 				{form.type === "pre_test" && (
 					<TabsContent value="grouping" className="mt-6">
 						<StratifiedGrouping
 							responses={responses}
-							questions={typedQuestions}
+							questions={questions}
 							formId={formId}
 						/>
 					</TabsContent>
@@ -162,19 +157,8 @@ function FormResultsPage() {
 }
 
 function generateCsv(
-	responses: Array<{
-		id: string;
-		user: { name: string | null; email: string };
-		answers: Record<string, unknown>;
-		submittedAt: Date | null;
-		timeSpentSeconds: number | null;
-	}>,
-	questions: Array<{
-		id: string;
-		questionText: string;
-		type: string;
-		options: unknown;
-	}>,
+	responses: ReadonlyArray<FormResponse>,
+	questions: ReadonlyArray<ResponseQuestion>,
 ): string {
 	const headers = [
 		"Student Name",
@@ -184,12 +168,9 @@ function generateCsv(
 		...questions.map((q) => q.questionText),
 	];
 	const rows = responses.map((response) => {
-		const submittedAt =
-			response.submittedAt instanceof Date
-				? response.submittedAt.toISOString()
-				: response.submittedAt
-					? new Date(response.submittedAt).toISOString()
-					: "";
+		const submittedAt = response.submittedAt
+			? new Date(response.submittedAt).toISOString()
+			: "";
 
 		const questionAnswers = questions.map((q) => {
 			const answer = response.answers?.[q.id];

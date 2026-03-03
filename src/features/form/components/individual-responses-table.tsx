@@ -10,38 +10,18 @@ import {
 	TableHeader,
 	TableRow,
 } from "@/components/ui/table";
+import type { FormResponseOutput, QuestionOutput } from "@/features/form/lib/form-service";
 import { useRpcQuery } from "@/hooks/use-rpc-query";
 import { FormRpc } from "@/server/rpc/form";
 
 import { ResponseDetailModal } from "./response-detail-modal";
 
-export type ResponseQuestion = {
-	id: string;
-	formId: string;
-	type: "mcq" | "likert" | "text";
-	questionText: string;
-	options: Record<string, unknown> | null;
-	orderIndex: number;
-	required: boolean;
-	createdAt: Date;
-	updatedAt: Date;
-};
+// Re-export types from service for convenience
+export type { FormResponseOutput as FormResponse, QuestionOutput as ResponseQuestion };
 
-export type ResponseUser = {
-	id: string;
-	name: string | null;
-	email: string;
-};
-
-export type FormResponse = {
-	id: string;
-	formId: string;
-	userId: string;
-	answers: Record<string, unknown>;
-	submittedAt: Date | null;
-	timeSpentSeconds: number | null;
-	user: ResponseUser;
-};
+// Local aliases for internal use
+type FormResponse = FormResponseOutput;
+type ResponseQuestion = QuestionOutput;
 
 export type PaginationInfo = {
 	page: number;
@@ -53,8 +33,8 @@ export type PaginationInfo = {
 };
 
 type IndividualResponsesTableProps = {
-	responses: FormResponse[];
-	questions: ResponseQuestion[];
+	responses: ReadonlyArray<FormResponse>;
+	questions: ReadonlyArray<ResponseQuestion>;
 	pagination: PaginationInfo;
 	formId: string;
 };
@@ -90,9 +70,9 @@ export function IndividualResponsesTable({
 		);
 	}
 
-	const formatDate = (date: Date | string | null) => {
-		if (!date) return "-";
-		const d = date instanceof Date ? date : new Date(date);
+	const formatDate = (timestamp: number | null) => {
+		if (!timestamp) return "-";
+		const d = new Date(timestamp);
 		return d.toLocaleDateString("en-US", {
 			month: "short",
 			day: "numeric",

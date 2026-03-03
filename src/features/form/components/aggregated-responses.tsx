@@ -1,11 +1,14 @@
 import { useMemo } from "react";
 import { Bar, BarChart, ResponsiveContainer, XAxis, YAxis } from "recharts";
 
-import type { ResponseQuestion, FormResponse } from "./individual-responses-table";
+import type {
+	FormResponseOutput as FormResponse,
+	QuestionOutput as ResponseQuestion,
+} from "@/features/form/lib/form-service";
 
 type AggregatedResponsesProps = {
-	responses: FormResponse[];
-	questions: ResponseQuestion[];
+	responses: ReadonlyArray<FormResponse>;
+	questions: ReadonlyArray<ResponseQuestion>;
 };
 
 type McqStats = {

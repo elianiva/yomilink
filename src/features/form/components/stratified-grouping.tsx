@@ -15,17 +15,20 @@ import {
 import { useRpcMutation, useRpcQuery } from "@/hooks/use-rpc-query";
 import { AssignmentRpc } from "@/server/rpc/assignment";
 
-import type { FormResponse, ResponseQuestion } from "./individual-responses-table";
+import type {
+	FormResponseOutput as FormResponse,
+	QuestionOutput as ResponseQuestion,
+} from "@/features/form/lib/form-service";
 
 type StratifiedGroupingProps = {
-	responses: FormResponse[];
-	questions: ResponseQuestion[];
+	responses: ReadonlyArray<FormResponse>;
+	questions: ReadonlyArray<ResponseQuestion>;
 	formId: string;
 };
 
 type Group = {
 	id: number;
-	members: FormResponse[];
+	members: Array<FormResponse>;
 	condition: "summarizing" | "concept_map";
 };
 
