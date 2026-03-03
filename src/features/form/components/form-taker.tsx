@@ -1,3 +1,4 @@
+import { format } from "date-fns";
 import { CheckCircle2, ChevronLeft, ChevronRight, Save, Send } from "lucide-react";
 import { useEffect, useState } from "react";
 
@@ -201,7 +202,7 @@ export function FormTaker({
 							<span className="flex items-center gap-1">
 								<Save className="h-3 w-3" />
 								{lastSaved
-									? `Saved ${lastSaved.toLocaleTimeString()}`
+									? `Saved ${format(lastSaved, "h:mm a")}`
 									: "Auto-save enabled"}
 							</span>
 						</span>

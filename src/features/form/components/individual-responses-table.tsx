@@ -12,6 +12,7 @@ import {
 } from "@/components/ui/table";
 import type { FormResponseOutput, QuestionOutput } from "@/features/form/lib/form-service";
 import { useRpcQuery } from "@/hooks/use-rpc-query";
+import { formatDateTime } from "@/lib/date-utils";
 import { FormRpc } from "@/server/rpc/form";
 
 import { ResponseDetailModal } from "./response-detail-modal";
@@ -67,16 +68,9 @@ export function IndividualResponsesTable({
 		);
 	}
 
-	const formatDate = (timestamp: number | null) => {
+	const formatResponseDate = (timestamp: number | null) => {
 		if (!timestamp) return "-";
-		const d = new Date(timestamp);
-		return d.toLocaleDateString("en-US", {
-			month: "short",
-			day: "numeric",
-			year: "numeric",
-			hour: "2-digit",
-			minute: "2-digit",
-		});
+		return formatDateTime(timestamp);
 	};
 
 	const formatTimeSpent = (seconds: number | null) => {
@@ -109,7 +103,7 @@ export function IndividualResponsesTable({
 									</div>
 								</div>
 							</TableCell>
-							<TableCell>{formatDate(response.submittedAt)}</TableCell>
+							<TableCell>{formatResponseDate(response.submittedAt)}</TableCell>
 							<TableCell>{formatTimeSpent(response.timeSpentSeconds)}</TableCell>
 							<TableCell className="text-right">
 								<Button

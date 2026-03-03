@@ -1,4 +1,5 @@
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import { formatDateTime } from "@/lib/date-utils";
 
 import type {
 	FormResponseOutput as FormResponse,
@@ -22,16 +23,9 @@ export function ResponseDetailModal({
 }: ResponseDetailModalProps) {
 	const sortedQuestions = [...questions].sort((a, b) => a.orderIndex - b.orderIndex);
 
-	const formatDate = (timestamp: number | null) => {
+	const formatResponseDate = (timestamp: number | null) => {
 		if (!timestamp) return "-";
-		const d = new Date(timestamp);
-		return d.toLocaleDateString("en-US", {
-			month: "short",
-			day: "numeric",
-			year: "numeric",
-			hour: "2-digit",
-			minute: "2-digit",
-		});
+		return formatDateTime(timestamp);
 	};
 
 	const formatTimeSpent = (seconds: number | null) => {
@@ -106,7 +100,7 @@ export function ResponseDetailModal({
 							<div>
 								<div className="text-sm text-muted-foreground">Submitted</div>
 								<div className="font-medium">
-									{formatDate(response.submittedAt)}
+									{formatResponseDate(response.submittedAt)}
 								</div>
 							</div>
 							<div>

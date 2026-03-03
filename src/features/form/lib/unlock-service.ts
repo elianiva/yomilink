@@ -1,3 +1,4 @@
+import { format } from "date-fns";
 import { and, eq, isNotNull } from "drizzle-orm";
 import { Data, Effect, Schema } from "effect";
 
@@ -458,8 +459,8 @@ export const calculateDelayedUnlock = Effect.fn("calculateDelayedUnlock")(
 				delayDays: input.delayDays,
 				unlockAt: unlockAt.toISOString(),
 				isUnlocked,
-				formattedUnlockDate: unlockAt.toLocaleDateString(),
-				formattedUnlockTime: unlockAt.toLocaleTimeString(),
+				formattedUnlockDate: format(unlockAt, "MMM d, yyyy"),
+				formattedUnlockTime: format(unlockAt, "h:mm a"),
 			};
 		}),
 );

@@ -20,6 +20,7 @@ import {
 	DropdownMenuItem,
 	DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
+import { formatRelativeTime } from "@/lib/date-utils";
 import { cn } from "@/lib/utils";
 
 export type FormType =
@@ -93,25 +94,6 @@ const formStatusConfig: Record<FormStatus, { label: string; dot: string }> = {
 		dot: "bg-primary",
 	},
 };
-
-function formatRelativeTime(date: Date): string {
-	const now = new Date();
-	const diff = now.getTime() - date.getTime();
-	const days = Math.floor(diff / (1000 * 60 * 60 * 24));
-
-	if (days === 0) {
-		const hours = Math.floor(diff / (1000 * 60 * 60));
-		if (hours === 0) {
-			const mins = Math.floor(diff / (1000 * 60));
-			return mins <= 1 ? "Just now" : `${mins}m ago`;
-		}
-		return `${hours}h ago`;
-	}
-	if (days === 1) return "Yesterday";
-	if (days < 7) return `${days}d ago`;
-	if (days < 30) return `${Math.floor(days / 7)}w ago`;
-	return date.toLocaleDateString("en-US", { month: "short", day: "numeric" });
-}
 
 function truncateId(id: string): string {
 	return id.length > 6 ? `${id.slice(0, 6)}` : id;
@@ -215,7 +197,6 @@ export function FormList({
 											<>
 												<span className="text-stone-300">·</span>
 												<span className="text-xs text-stone-400">
-													{format(form.createdAt, "DD MMM YYYY")}
 													{formatRelativeTime(form.createdAt)}
 												</span>
 											</>

@@ -1,3 +1,4 @@
+import { format } from "date-fns";
 import { Effect } from "effect";
 import { describe, expect, it } from "vitest";
 
@@ -18,7 +19,7 @@ describe("calculateDelayedUnlock", () => {
 
 		expect(result.delayDays).toBe(7);
 		expect(new Date(result.unlockAt).getDate()).toBe(expectedUnlock.getDate());
-		expect(result.formattedUnlockDate).toBe(expectedUnlock.toLocaleDateString());
+		expect(result.formattedUnlockDate).toBe(format(expectedUnlock, "MMM d, yyyy"));
 	});
 
 	it("returns isUnlocked true when delay has passed", async () => {
