@@ -293,24 +293,28 @@ function SignUpPage() {
 												)}
 											</form.Field>
 
-										<form.Field name="studentId">
-											{(field) => (
-												<div className="space-y-1.5">
-													<Label htmlFor="studentId">Student ID</Label>
-													<Input
-														id="studentId"
-														placeholder="Enter your student ID"
-														value={field.state.value ?? ""}
-														onChange={(e) =>
-															field.handleChange(e.target.value || null)
-														}
-														onBlur={field.handleBlur}
-														autoComplete="off"
-													/>
-													<FieldInfo field={field} />
-												</div>
-											)}
-										</form.Field>
+											<form.Field name="studentId">
+												{(field) => (
+													<div className="space-y-1.5">
+														<Label htmlFor="studentId">
+															Student ID
+														</Label>
+														<Input
+															id="studentId"
+															placeholder="Enter your student ID"
+															value={field.state.value ?? ""}
+															onChange={(e) =>
+																field.handleChange(
+																	e.target.value || null,
+																)
+															}
+															onBlur={field.handleBlur}
+															autoComplete="off"
+														/>
+														<FieldInfo field={field} />
+													</div>
+												)}
+											</form.Field>
 
 											<form.Field name="email">
 												{(field) => (
@@ -589,7 +593,9 @@ function SignUpPage() {
 															value={field.state.value}
 															onChange={(value) =>
 																field.handleChange(
-																	value as "experiment" | "control",
+																	value as
+																		| "experiment"
+																		| "control",
 																)
 															}
 															options={[
@@ -670,15 +676,20 @@ function SignUpPage() {
 													(state.fieldMeta.age?.errors.length ?? 0) +
 													(state.fieldMeta.jlptLevel?.errors.length ??
 														0) +
-													(state.fieldMeta.japaneseLearningDuration?.errors
-														.length ?? 0) +
+													(state.fieldMeta.japaneseLearningDuration
+														?.errors.length ?? 0) +
 													(state.fieldMeta.mediaConsumption?.errors
 														.length ?? 0),
 											},
 											step2: {
-												filled: !!state.values.cohortId && !!state.values.studyGroup,
-												errors: (state.fieldMeta.cohortId?.errors.length ?? 0) + (state.fieldMeta.studyGroup?.errors.length ?? 0),
-											}
+												filled:
+													!!state.values.cohortId &&
+													!!state.values.studyGroup,
+												errors:
+													(state.fieldMeta.cohortId?.errors.length ?? 0) +
+													(state.fieldMeta.studyGroup?.errors.length ??
+														0),
+											},
 										};
 									}}
 								>
@@ -693,7 +704,8 @@ function SignUpPage() {
 											canProceed =
 												state.step1.filled && state.step1.errors === 0;
 										} else if (currentStep === 2) {
-											canProceed = state.step2.filled && state.step2.errors === 0;
+											canProceed =
+												state.step2.filled && state.step2.errors === 0;
 										}
 
 										return (

@@ -106,10 +106,11 @@ export function MetricsContent({ assignmentId }: MetricsContentProps) {
 						(acc, learner) => ({
 							correct: acc.correct + learner.correct / conceptMapLearners.length,
 							missing: acc.missing + learner.missing / conceptMapLearners.length,
-							excessive: acc.excessive + learner.excessive / conceptMapLearners.length,
+							excessive:
+								acc.excessive + learner.excessive / conceptMapLearners.length,
 						}),
 						{ correct: 0, missing: 0, excessive: 0 },
-				  )
+					)
 				: { correct: 0, missing: 0, excessive: 0 };
 
 		const edgeTypeData = [
@@ -171,8 +172,7 @@ export function MetricsContent({ assignmentId }: MetricsContentProps) {
 					conceptMapScores.length > 0
 						? conceptMapScores.reduce((a, b) => a + b, 0) / conceptMapScores.length
 						: null,
-				highestScore:
-					conceptMapScores.length > 0 ? Math.max(...conceptMapScores) : null,
+				highestScore: conceptMapScores.length > 0 ? Math.max(...conceptMapScores) : null,
 			},
 			summaryStats: {
 				total: summaryLearners.length,

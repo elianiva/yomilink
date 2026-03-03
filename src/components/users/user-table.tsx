@@ -8,8 +8,8 @@ import {
 	TableHeader,
 	TableRow,
 } from "@/components/ui/table";
-import { formatDate } from "@/lib/date-utils";
 import type { UserWithCohorts } from "@/features/user/lib/user-service";
+import { formatDate } from "@/lib/date-utils";
 
 type UserTableProps = {
 	users: UserWithCohorts[];
@@ -47,7 +47,9 @@ export function UserTable({ users, selectedIds, onSelectionChange, onUserClick }
 							checked={allSelected}
 							ref={(el) => {
 								if (el) {
-									(el as HTMLButtonElement & { indeterminate: boolean }).indeterminate = someSelected;
+									(
+										el as HTMLButtonElement & { indeterminate: boolean }
+									).indeterminate = someSelected;
 								}
 							}}
 							onCheckedChange={handleSelectAll}
@@ -79,12 +81,12 @@ export function UserTable({ users, selectedIds, onSelectionChange, onUserClick }
 							<TableCell onClick={(e) => e.stopPropagation()}>
 								<Checkbox
 									checked={selectedIds.includes(user.id)}
-									onCheckedChange={(checked) => handleSelectOne(user.id, !!checked)}
+									onCheckedChange={(checked) =>
+										handleSelectOne(user.id, !!checked)
+									}
 								/>
 							</TableCell>
-							<TableCell className="font-medium">
-								{user.studentId ?? "—"}
-							</TableCell>
+							<TableCell className="font-medium">{user.studentId ?? "—"}</TableCell>
 							<TableCell className="font-medium">{user.name}</TableCell>
 							<TableCell>{user.email}</TableCell>
 							<TableCell>
@@ -95,10 +97,14 @@ export function UserTable({ users, selectedIds, onSelectionChange, onUserClick }
 							<TableCell>
 								{user.studyGroup ? (
 									<Badge variant="outline" className="text-xs">
-										{user.studyGroup === "experiment" ? "Experiment" : "Control"}
+										{user.studyGroup === "experiment"
+											? "Experiment"
+											: "Control"}
 									</Badge>
 								) : (
-									<span className="text-muted-foreground text-xs">Unassigned</span>
+									<span className="text-muted-foreground text-xs">
+										Unassigned
+									</span>
 								)}
 							</TableCell>
 							<TableCell>

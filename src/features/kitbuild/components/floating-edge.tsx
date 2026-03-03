@@ -1,6 +1,17 @@
 import { BaseEdge, type EdgeProps, getStraightPath, useInternalNode } from "@xyflow/react";
 
 import {
+	Tooltip,
+	TooltipArrow,
+	TooltipPortal,
+	TooltipPopup,
+	TooltipPositioner,
+	TooltipTrigger,
+	TooltipViewport,
+	createTooltipHandle,
+} from "@/components/ui/tooltip";
+
+import {
 	getEdgeParams,
 	getQuadraticCurvePoint,
 	getQuadraticCurvePath,
@@ -13,6 +24,7 @@ import {
 export function FloatingEdge({ id, source, target, markerEnd, style, data }: EdgeProps) {
 	const sourceNode = useInternalNode(source);
 	const targetNode = useInternalNode(target);
+	const tooltipHandle = createTooltipHandle();
 
 	if (!sourceNode || !targetNode) {
 		return null;
@@ -24,6 +36,13 @@ export function FloatingEdge({ id, source, target, markerEnd, style, data }: Edg
 	const curveOffset = (data?.curveOffset as number) ?? 0;
 	const badgeT = Math.max(0.2, Math.min(0.8, (data?.badgeT as number) ?? 0.5));
 	const useCurvedPath = Boolean(data?.useCurvedPath);
+	const createdByRaw = data?.createdBy as string | undefined;
+	const createdBy = createdByRaw
+		?.split("\n")
+		.map((name) => name.trim())
+		.filter(Boolean)
+		.filter((name, index, arr) => arr.indexOf(name) === index)
+		.join("\n");
 
 	const [straightPath] = getStraightPath({
 		sourceX: sx,
@@ -56,17 +75,47 @@ export function FloatingEdge({ id, source, target, markerEnd, style, data }: Edg
 					y={badgePoint.y - 10}
 					className="overflow-visible"
 				>
-					<div className="relative inline-flex items-center justify-center">
-						<div
-							className="absolute inset-0 rounded-full bg-background border-2"
-							style={{
-								borderColor: style?.stroke || "#64748b",
-							}}
-						/>
-						<span className="relative z-10 text-[10px] font-bold tabular-nums flex items-center justify-center size-6">
-							{badge}
-						</span>
-					</div>
+					{createdBy ? (
+						<Tooltip handle={tooltipHandle}>
+							<div className="relative inline-flex items-center justify-center pointer-events-auto">
+								<TooltipTrigger
+									handle={tooltipHandle}
+									delay={50}
+									className="relative z-10 text-[10px] font-bold tabular-nums flex items-center justify-center size-6 cursor-pointer rounded-full hover:border-2 hover:border-primary"
+								>
+									{badge}
+								</TooltipTrigger>
+								<div
+									className="absolute inset-0 rounded-full bg-background border-2 -z-10"
+									style={{
+										borderColor: style?.stroke || "#64748b",
+									}}
+								/>
+							</div>
+							<TooltipPortal>
+								<TooltipPositioner sideOffset={4}>
+									<TooltipPopup>
+										<TooltipArrow />
+										<TooltipViewport className="whitespace-pre-line">
+											{createdBy}
+										</TooltipViewport>
+									</TooltipPopup>
+								</TooltipPositioner>
+							</TooltipPortal>
+						</Tooltip>
+					) : (
+						<div className="relative inline-flex items-center justify-center">
+							<span className="relative z-10 text-[10px] font-bold tabular-nums flex items-center justify-center size-6">
+								{badge}
+							</span>
+							<div
+								className="absolute inset-0 rounded-full bg-background border-2"
+								style={{
+									borderColor: style?.stroke || "#64748b",
+								}}
+							/>
+						</div>
+					)}
 				</foreignObject>
 			)}
 		</>

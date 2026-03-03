@@ -597,7 +597,10 @@ describe("analytics-service", () => {
 				assert.strictEqual(result.learnerName, "Summary Student");
 				assert.strictEqual(result.status, "submitted");
 				assert.strictEqual(result.submittedAt, submittedAt.getTime());
-				assert.strictEqual(result.controlText, "This is a full learner summary submission.");
+				assert.strictEqual(
+					result.controlText,
+					"This is a full learner summary submission.",
+				);
 			}).pipe(Effect.provide(DatabaseTest)),
 		);
 	});

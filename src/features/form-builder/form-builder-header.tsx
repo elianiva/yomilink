@@ -95,7 +95,7 @@ export function FormBuilderHeader({
 					</Button>
 				)}
 				<Button onClick={onSave} disabled={isPending || !metadata.title.trim()}>
-					{(createMutation.isPending || updateMutation.isPending) ? (
+					{createMutation.isPending || updateMutation.isPending ? (
 						<Loader2 className="mr-2 size-4 animate-spin" />
 					) : (
 						<Save className="mr-2 size-4" />

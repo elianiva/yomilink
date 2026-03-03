@@ -61,7 +61,10 @@ export function BulkCohortDialog({
 				<div className="space-y-4 py-4">
 					<div className="space-y-2">
 						<span className="text-sm font-medium">Action</span>
-						<Select value={action} onValueChange={(v) => setAction(v as "add" | "remove")}>
+						<Select
+							value={action}
+							onValueChange={(v) => setAction(v as "add" | "remove")}
+						>
 							<SelectTrigger>
 								<SelectValue />
 							</SelectTrigger>

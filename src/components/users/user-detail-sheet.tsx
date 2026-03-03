@@ -2,13 +2,6 @@ import { useEffect, useState } from "react";
 
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import {
-	Sheet,
-	SheetContent,
-	SheetDescription,
-	SheetHeader,
-	SheetTitle,
-} from "@/components/ui/sheet";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import {
@@ -18,6 +11,13 @@ import {
 	SelectTrigger,
 	SelectValue,
 } from "@/components/ui/select";
+import {
+	Sheet,
+	SheetContent,
+	SheetDescription,
+	SheetHeader,
+	SheetTitle,
+} from "@/components/ui/sheet";
 import { Textarea } from "@/components/ui/textarea";
 import type { UserWithCohorts, UpdateUserInput } from "@/features/user/lib/user-service";
 
@@ -110,14 +110,18 @@ export function UserDetailSheet({
 				<div className="space-y-6 px-6 py-6">
 					{/* Basic Info */}
 					<div className="space-y-4">
-						<h3 className="text-sm font-medium text-muted-foreground">Basic Information</h3>
+						<h3 className="text-sm font-medium text-muted-foreground">
+							Basic Information
+						</h3>
 						<div className="grid gap-4">
 							<div className="grid gap-2">
 								<Label htmlFor="name">Name</Label>
 								<Input
 									id="name"
 									value={formData.name ?? ""}
-									onChange={(e) => setFormData({ ...formData, name: e.target.value })}
+									onChange={(e) =>
+										setFormData({ ...formData, name: e.target.value })
+									}
 								/>
 							</div>
 							<div className="grid gap-2">
@@ -136,7 +140,9 @@ export function UserDetailSheet({
 									id="email"
 									type="email"
 									value={formData.email ?? ""}
-									onChange={(e) => setFormData({ ...formData, email: e.target.value })}
+									onChange={(e) =>
+										setFormData({ ...formData, email: e.target.value })
+									}
 								/>
 							</div>
 							{canModifyRole && (
@@ -173,7 +179,9 @@ export function UserDetailSheet({
 									onChange={(e) =>
 										setFormData({
 											...formData,
-											age: e.target.value ? Number(e.target.value) : undefined,
+											age: e.target.value
+												? Number(e.target.value)
+												: undefined,
 										})
 									}
 								/>
@@ -228,7 +236,9 @@ export function UserDetailSheet({
 								<Textarea
 									id="motivation"
 									value={formData.motivation ?? ""}
-									onChange={(e) => setFormData({ ...formData, motivation: e.target.value })}
+									onChange={(e) =>
+										setFormData({ ...formData, motivation: e.target.value })
+									}
 								/>
 							</div>
 						</div>
@@ -245,7 +255,9 @@ export function UserDetailSheet({
 									</Badge>
 								))
 							) : (
-								<span className="text-sm text-muted-foreground">No cohorts assigned</span>
+								<span className="text-sm text-muted-foreground">
+									No cohorts assigned
+								</span>
 							)}
 						</div>
 					</div>
@@ -253,7 +265,9 @@ export function UserDetailSheet({
 					{/* Admin Actions */}
 					{canBan && (
 						<div className="space-y-4 border-t pt-4">
-							<h3 className="text-sm font-medium text-muted-foreground">Admin Actions</h3>
+							<h3 className="text-sm font-medium text-muted-foreground">
+								Admin Actions
+							</h3>
 							{user.banned ? (
 								<Button variant="outline" onClick={() => onUnban(user.id)}>
 									Unban User
@@ -269,17 +283,26 @@ export function UserDetailSheet({
 										<Button variant="destructive" onClick={handleBan}>
 											Confirm Ban
 										</Button>
-										<Button variant="outline" onClick={() => setShowBanInput(false)}>
+										<Button
+											variant="outline"
+											onClick={() => setShowBanInput(false)}
+										>
 											Cancel
 										</Button>
 									</div>
 								</div>
 							) : (
 								<div className="flex gap-2">
-									<Button variant="destructive" onClick={() => setShowBanInput(true)}>
+									<Button
+										variant="destructive"
+										onClick={() => setShowBanInput(true)}
+									>
 										Ban User
 									</Button>
-									<Button variant="outline" onClick={() => onPasswordReset(user.id)}>
+									<Button
+										variant="outline"
+										onClick={() => onPasswordReset(user.id)}
+									>
 										Reset Password
 									</Button>
 								</div>

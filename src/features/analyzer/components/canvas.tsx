@@ -4,7 +4,6 @@ import { ZoomIn, ZoomOut } from "lucide-react";
 import { useEffect, useMemo, useState } from "react";
 
 import "@xyflow/react/dist/style.css";
-
 import { ConnectorNode } from "@/features/kitbuild/components/connector-node";
 import { FloatingEdge } from "@/features/kitbuild/components/floating-edge";
 import { TextNode } from "@/features/kitbuild/components/text-node";
@@ -41,10 +40,12 @@ interface AnalyticsCanvasProps {
 	edgeClassifications?: ReadonlyArray<{
 		edge: Edge;
 		type: "correct" | "missing" | "excessive" | "neutral";
+		createdBy?: string;
 	}>;
 	allEdgeClassifications?: ReadonlyArray<{
 		edge: Edge;
 		type: "correct" | "missing" | "excessive" | "neutral";
+		createdBy?: string;
 	}>;
 	visibility: {
 		showGoalMap: boolean;
@@ -139,6 +140,9 @@ function AnalyticsCanvasInner({
 		[isMultiView, allEdgeClassifications, edgeClassifications],
 	);
 
+	const edgeKeyFor = (edge: Pick<Edge, "source" | "target">) =>
+		JSON.stringify([edge.source, edge.target]);
+
 	// Compute merged nodes from goal map and all learner maps
 	const mergedNodes = useMemo(() => {
 		const nodeMap = new Map<string, Node>();
@@ -186,34 +190,36 @@ function AnalyticsCanvasInner({
 		if (showGoalMap && showLearnerMap) {
 			if (isMultiView) {
 				// Multi-view: Aggregate edges and create separate edges per type with badges
-				const edgeCounts = new Map<
+				// Track counts and creators per edge key and per type
+				const edgeData = new Map<
 					string,
 					{
-						correct: number;
-						missing: number;
-						excessive: number;
-						neutral: number;
+						correct: { count: number; creators: Set<string> };
+						missing: { count: number; creators: Set<string> };
+						excessive: { count: number; creators: Set<string> };
+						neutral: { count: number; creators: Set<string> };
 					}
 				>();
 
-				// Count edge classifications per edge key
+				// Count edge classifications per edge key and track creators per type
 				for (const classification of currentEdgeClassifications) {
-					const key = JSON.stringify([
-						classification.edge.source,
-						classification.edge.target,
-					]);
-					const counts = edgeCounts.get(key) || {
-						correct: 0,
-						missing: 0,
-						excessive: 0,
-						neutral: 0,
+					const key = edgeKeyFor(classification.edge);
+					const data = edgeData.get(key) || {
+						correct: { count: 0, creators: new Set<string>() },
+						missing: { count: 0, creators: new Set<string>() },
+						excessive: { count: 0, creators: new Set<string>() },
+						neutral: { count: 0, creators: new Set<string>() },
 					};
-					counts[classification.type]++;
-					edgeCounts.set(key, counts);
+					data[classification.type].count++;
+					const creator = classification.createdBy;
+					if (creator) {
+						data[classification.type].creators.add(creator);
+					}
+					edgeData.set(key, data);
 				}
 
 				// Create separate edges for each type with symmetric curves
-				for (const [key, counts] of edgeCounts.entries()) {
+				for (const [key, data] of edgeData.entries()) {
 					const [source, target] = JSON.parse(key) as [string, string];
 					const types: Array<"correct" | "missing" | "excessive" | "neutral"> = [
 						"correct",
@@ -223,7 +229,7 @@ function AnalyticsCanvasInner({
 					];
 
 					const visibleTypes = types.filter((type) => {
-						if (counts[type] === 0) return false;
+						if (data[type].count === 0) return false;
 						switch (type) {
 							case "correct":
 								return visibility.showCorrectEdges;
@@ -238,6 +244,7 @@ function AnalyticsCanvasInner({
 
 					for (const [index, type] of visibleTypes.entries()) {
 						const style = getEdgeStyleByType(type);
+						const creatorList = Array.from(data[type].creators).sort().join("\n");
 						edgesToDisplay.push({
 							id: `${key}-${type}`,
 							source,
@@ -250,10 +257,11 @@ function AnalyticsCanvasInner({
 								color: style.stroke,
 							},
 							data: {
-								badge: counts[type].toString(),
+								badge: data[type].count.toString(),
 								curveOffset: getSymmetricCurveOffset(index, visibleTypes.length),
 								badgeT: getBadgeT(index, visibleTypes.length),
 								useCurvedPath: true,
+								createdBy: creatorList || undefined,
 							},
 						});
 					}
@@ -287,6 +295,10 @@ function AnalyticsCanvasInner({
 								type: "arrowclosed" as MarkerType,
 								color: style.stroke,
 							},
+							data: {
+								...classification.edge.data,
+								createdBy: classification.createdBy ?? currentLearnerMaps[0]?.userName,
+							},
 						});
 					}
 				}
@@ -310,34 +322,37 @@ function AnalyticsCanvasInner({
 		} else if (showLearnerMap) {
 			if (isMultiView) {
 				// Multi-view: Show aggregated edges without missing
-				const edgeCounts = new Map<
+				// Track counts and creators per edge key and per type
+				const edgeData = new Map<
 					string,
 					{
-						correct: number;
-						excessive: number;
-						neutral: number;
+						correct: { count: number; creators: Set<string> };
+						excessive: { count: number; creators: Set<string> };
+						neutral: { count: number; creators: Set<string> };
 					}
 				>();
 
-				// Count edge classifications per edge key
+				// Count edge classifications per edge key and track creators per type
 				for (const classification of currentEdgeClassifications) {
 					if (classification.type === "missing") continue;
 
-					const key = JSON.stringify([
-						classification.edge.source,
-						classification.edge.target,
-					]);
-					const counts = edgeCounts.get(key) || {
-						correct: 0,
-						excessive: 0,
-						neutral: 0,
+					const key = edgeKeyFor(classification.edge);
+					const data = edgeData.get(key) || {
+						correct: { count: 0, creators: new Set<string>() },
+						excessive: { count: 0, creators: new Set<string>() },
+						neutral: { count: 0, creators: new Set<string>() },
 					};
-					counts[classification.type as "correct" | "excessive" | "neutral"]++;
-					edgeCounts.set(key, counts);
+					const type = classification.type as "correct" | "excessive" | "neutral";
+					data[type].count++;
+					const creator = classification.createdBy;
+					if (creator) {
+						data[type].creators.add(creator);
+					}
+					edgeData.set(key, data);
 				}
 
 				// Create separate edges for each type with symmetric curves
-				for (const [key, counts] of edgeCounts.entries()) {
+				for (const [key, data] of edgeData.entries()) {
 					const [source, target] = JSON.parse(key) as [string, string];
 					const types: Array<"correct" | "excessive" | "neutral"> = [
 						"correct",
@@ -346,7 +361,7 @@ function AnalyticsCanvasInner({
 					];
 
 					const visibleTypes = types.filter((type) => {
-						if (counts[type] === 0) return false;
+						if (data[type].count === 0) return false;
 						switch (type) {
 							case "correct":
 								return visibility.showCorrectEdges;
@@ -359,6 +374,7 @@ function AnalyticsCanvasInner({
 
 					for (const [index, type] of visibleTypes.entries()) {
 						const style = getEdgeStyleByType(type);
+						const creatorList = Array.from(data[type].creators).sort().join("\n");
 						edgesToDisplay.push({
 							id: `${key}-${type}`,
 							source,
@@ -370,10 +386,11 @@ function AnalyticsCanvasInner({
 								color: style.stroke,
 							},
 							data: {
-								badge: counts[type].toString(),
+								badge: data[type].count.toString(),
 								curveOffset: getSymmetricCurveOffset(index, visibleTypes.length),
 								badgeT: getBadgeT(index, visibleTypes.length),
 								useCurvedPath: true,
+								createdBy: creatorList || undefined,
 							},
 						});
 					}
@@ -405,6 +422,10 @@ function AnalyticsCanvasInner({
 								type: "arrowclosed" as MarkerType,
 								color: style.stroke,
 							},
+							data: {
+								...classification.edge.data,
+								createdBy: classification.createdBy ?? currentLearnerMaps[0]?.userName,
+							},
 						});
 					}
 				}
@@ -417,6 +438,7 @@ function AnalyticsCanvasInner({
 		showLearnerMap,
 		isMultiView,
 		currentEdgeClassifications,
+		currentLearnerMaps,
 		goalMap.edges,
 		visibility.showCorrectEdges,
 		visibility.showMissingEdges,

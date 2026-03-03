@@ -134,9 +134,5 @@ export const listCohortsRpc = createServerFn()
 				.orderBy(cohorts.name);
 
 			return Rpc.ok(rows);
-		}).pipe(
-			Effect.withSpan("listCohorts"),
-			Effect.provide(AppLayer),
-			Effect.runPromise,
-		),
+		}).pipe(Effect.withSpan("listCohorts"), Effect.provide(AppLayer), Effect.runPromise),
 	);

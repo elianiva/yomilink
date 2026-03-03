@@ -57,7 +57,7 @@ export function AnalyticsCanvasWrapper({
 
 	if (multipleLearnerMapsError) {
 		return (
-			<div className="flex-1 m-3 rounded-md border">
+			<div className="flex-1 m-3 rounded-md border-[0.5px]">
 				<ErrorCard
 					title="Failed to load learner maps"
 					description={multipleLearnerMapsError}
@@ -69,7 +69,7 @@ export function AnalyticsCanvasWrapper({
 	}
 
 	return (
-		<div className="flex-1 m-3 rounded-md border overflow-hidden">
+		<div className="flex-1 m-3 rounded-md border-[0.5px] overflow-hidden">
 			{multipleLearnerMapsLoading && selectedLearnerMapIds.size > 0 ? (
 				<CanvasSkeleton />
 			) : (

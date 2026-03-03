@@ -23,9 +23,7 @@ function McqPreview({ options }: { options: McqOptions }) {
 			{displayOptions.map((option, index) => (
 				<div
 					key={option.id}
-					className={cn(
-						"flex items-center gap-2 rounded-md border bg-muted/40 p-2",
-					)}
+					className={cn("flex items-center gap-2 rounded-md border bg-muted/40 p-2")}
 				>
 					<div className="flex h-4 w-4 shrink-0 items-center justify-center rounded-full border border-muted-foreground/50">
 						{index === 0 && <Check className="h-2.5 w-2.5 text-muted-foreground" />}
@@ -113,7 +111,9 @@ export function QuestionPreview({ question }: QuestionPreviewProps) {
 			{options && (
 				<div className="mt-3">
 					{options.type === "mcq" && <McqPreview options={options as McqOptions} />}
-					{options.type === "likert" && <LikertPreview options={options as LikertOptions} />}
+					{options.type === "likert" && (
+						<LikertPreview options={options as LikertOptions} />
+					)}
 					{options.type === "text" && <TextPreview options={options as TextOptions} />}
 				</div>
 			)}

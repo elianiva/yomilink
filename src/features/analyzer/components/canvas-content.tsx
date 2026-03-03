@@ -1,6 +1,6 @@
+import { Loader2Icon } from "lucide-react";
 import { lazy, Suspense, useMemo } from "react";
 
-import { Skeleton } from "@/components/ui/skeleton";
 import type {
 	AssignmentAnalytics,
 	LearnerMapResult,
@@ -14,10 +14,7 @@ const AnalyticsCanvas = lazy(() =>
 function CanvasSkeleton() {
 	return (
 		<div className="w-full h-full flex items-center justify-center">
-			<div className="flex flex-col items-center gap-4">
-				<Skeleton className="h-8 w-48" />
-				<Skeleton className="h-4 w-32" />
-			</div>
+			<Loader2Icon className="animate-spin size-8" />
 		</div>
 	);
 }
@@ -50,7 +47,13 @@ export function CanvasContent({
 	);
 
 	const allEdgeClassificationsMemo = useMemo(
-		() => multipleLearnerMapDetails?.flatMap((m) => m.edgeClassifications) ?? [],
+		() =>
+			multipleLearnerMapDetails?.flatMap((m) =>
+				m.edgeClassifications.map((classification) => ({
+					...classification,
+					createdBy: m.learnerMap.userName,
+				})),
+			) ?? [],
 		[multipleLearnerMapDetails],
 	);
 

@@ -1,10 +1,4 @@
-import {
-	CalendarIcon,
-	CheckCircle2Icon,
-	MapIcon,
-	Trash2Icon,
-	UsersIcon,
-} from "lucide-react";
+import { CalendarIcon, CheckCircle2Icon, MapIcon, Trash2Icon, UsersIcon } from "lucide-react";
 
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -120,7 +114,8 @@ export function AssignmentCard({ assignment, onDelete }: AssignmentCardProps) {
 					<span className="font-medium">{totalStudents}</span>
 				</div>
 				<div className="text-sm text-muted-foreground">
-					Submitted: <span className="font-medium text-foreground">{submittedStudents}</span>/
+					Submitted:{" "}
+					<span className="font-medium text-foreground">{submittedStudents}</span>/
 					{totalStudents}
 				</div>
 				{assignedCohorts.length > 0 && (
@@ -130,7 +125,8 @@ export function AssignmentCard({ assignment, onDelete }: AssignmentCardProps) {
 				)}
 				{assignedUsers.length > 0 && (
 					<p className="text-xs text-muted-foreground line-clamp-2">
-						Direct users: {assignedUsers.map((assignedUser) => assignedUser.name).join(", ")}
+						Direct users:{" "}
+						{assignedUsers.map((assignedUser) => assignedUser.name).join(", ")}
 					</p>
 				)}
 			</div>
@@ -152,7 +148,11 @@ export function AssignmentCard({ assignment, onDelete }: AssignmentCardProps) {
 						submitted={assignment.delayedPostTestSubmitted}
 						total={totalStudents}
 					/>
-					<FormProgress label="TAM" submitted={assignment.tamSubmitted} total={totalStudents} />
+					<FormProgress
+						label="TAM"
+						submitted={assignment.tamSubmitted}
+						total={totalStudents}
+					/>
 				</div>
 			)}
 		</div>

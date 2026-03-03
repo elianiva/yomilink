@@ -3,18 +3,18 @@ import { createFileRoute } from "@tanstack/react-router";
 import { useState } from "react";
 import { toast } from "sonner";
 
+import { Guard } from "@/components/auth/Guard";
+import { Button } from "@/components/ui/button";
+import { Skeleton } from "@/components/ui/skeleton";
 import { BulkCohortDialog } from "@/components/users/bulk-cohort-dialog";
 import { UserDetailSheet } from "@/components/users/user-detail-sheet";
 import { UserFilterBar } from "@/components/users/user-filter-bar";
 import { UserTable } from "@/components/users/user-table";
-import { Guard } from "@/components/auth/Guard";
-import { Button } from "@/components/ui/button";
-import { Skeleton } from "@/components/ui/skeleton";
-import { useRpcMutation, useRpcQuery } from "@/hooks/use-rpc-query";
 import type { UserFilterInput, UserWithCohorts } from "@/features/user/lib/user-service";
+import { useRpcMutation, useRpcQuery } from "@/hooks/use-rpc-query";
 import { AssignmentRpc } from "@/server/rpc/assignment";
-import { UserRpc } from "@/server/rpc/user";
 import { ProfileRpc } from "@/server/rpc/profile";
+import { UserRpc } from "@/server/rpc/user";
 
 export const Route = createFileRoute("/dashboard/users/")({
 	component: () => (
@@ -105,7 +105,10 @@ function UsersPage() {
 		setSheetOpen(true);
 	};
 
-	const handleSave = (userId: string, data: Parameters<typeof updateMutation.mutate>[0]["data"]) => {
+	const handleSave = (
+		userId: string,
+		data: Parameters<typeof updateMutation.mutate>[0]["data"],
+	) => {
 		updateMutation.mutate(
 			{ userId, data },
 			{
@@ -133,15 +136,18 @@ function UsersPage() {
 	};
 
 	const handlePasswordReset = (userId: string) => {
-		passwordResetMutation.mutate({ userId }, {
-			onSuccess: (result) => {
-				if (result.success && result.data) {
-					toast.success("Password reset link generated", {
-						description: `Reset token: ${result.data.resetToken}`,
-					});
-				}
+		passwordResetMutation.mutate(
+			{ userId },
+			{
+				onSuccess: (result) => {
+					if (result.success && result.data) {
+						toast.success("Password reset link generated", {
+							description: `Reset token: ${result.data.resetToken}`,
+						});
+					}
+				},
 			},
-		});
+		);
 	};
 
 	const handleBulkAction = (action: "assign" | "ban") => {

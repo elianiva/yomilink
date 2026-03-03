@@ -109,45 +109,50 @@ function AnalyticsPage() {
 
 	return (
 		<TooltipProvider delay={300}>
-			<div className="h-full grid grid-cols-1 lg:grid-cols-[280px_1fr] gap-4">
-				<AnalyticsSidebar
+			<section className="rounded-lg border-[0.5px] overflow-hidden h-full flex flex-col">
+				<AnalyticsToolbar
 					selectedAssignmentId={selectedAssignmentId}
-					onSelectAssignment={handleSelectAssignment}
-					selectedLearnerMapIds={selectedLearnerMapIds}
-					onToggleLearner={handleToggleLearner}
-					onToggleAll={handleToggleAll}
-					activeTab={activeLearnerTab}
-					onTabChange={setActiveLearnerTab}
+					analyticsData={analyticsData ?? null}
+					tooltipHandle={tooltipHandle}
+					onRefresh={handleRefresh}
 				/>
 
-				<section className="rounded-lg border-[0.5px] overflow-hidden flex flex-col">
-					<AnalyticsToolbar
+				<div className="grid grid-cols-1 lg:grid-cols-[280px_1fr] flex-1">
+					<AnalyticsSidebar
 						selectedAssignmentId={selectedAssignmentId}
-						analyticsData={analyticsData ?? null}
-						tooltipHandle={tooltipHandle}
-						onRefresh={handleRefresh}
+						onSelectAssignment={handleSelectAssignment}
+						selectedLearnerMapIds={selectedLearnerMapIds}
+						onToggleLearner={handleToggleLearner}
+						onToggleAll={handleToggleAll}
+						activeTab={activeLearnerTab}
+						onTabChange={setActiveLearnerTab}
 					/>
 
-					{activeLearnerTab === "conceptMap" ? (
-						<>
-							<AnalyticsControls visibility={visibility} onChange={handleVisibilityChange} />
-							<SelectedLearnerStats selectedLearners={selectedLearners} />
-							<AnalyticsCanvasWrapper
+					<div className="h-full flex flex-col">
+						{activeLearnerTab === "conceptMap" ? (
+							<>
+								<AnalyticsControls
+									visibility={visibility}
+									onChange={handleVisibilityChange}
+								/>
+								<SelectedLearnerStats selectedLearners={selectedLearners} />
+								<AnalyticsCanvasWrapper
+									selectedAssignmentId={selectedAssignmentId}
+									selectedLearnerMapIds={selectedLearnerMapIds}
+									analyticsData={analyticsData ?? null}
+									visibility={visibility}
+								/>
+							</>
+						) : (
+							<AnalyticsSummaryPanel
 								selectedAssignmentId={selectedAssignmentId}
+								summaryLearners={summaryLearners}
 								selectedLearnerMapIds={selectedLearnerMapIds}
-								analyticsData={analyticsData ?? null}
-								visibility={visibility}
 							/>
-						</>
-					) : (
-						<AnalyticsSummaryPanel
-							selectedAssignmentId={selectedAssignmentId}
-							summaryLearners={summaryLearners}
-							selectedLearnerMapIds={selectedLearnerMapIds}
-						/>
-					)}
-				</section>
-			</div>
+						)}
+					</div>
+				</div>
+			</section>
 			<TooltipContent handle={tooltipHandle} />
 		</TooltipProvider>
 	);

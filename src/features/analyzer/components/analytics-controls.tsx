@@ -28,7 +28,7 @@ interface AnalyticsControlsProps {
 
 export function AnalyticsControls({ visibility, onChange }: AnalyticsControlsProps) {
 	return (
-		<div className="border-b p-3 space-y-3">
+		<div className="border-b-[0.5px] p-3 space-y-3">
 			<div className="flex items-center justify-between">
 				<SectionTitle>Connector Visibility</SectionTitle>
 			</div>

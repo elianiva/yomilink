@@ -12,7 +12,7 @@ export function SelectedLearnerStats({ selectedLearners }: SelectedLearnerStatsP
 	if (selectedLearners.length === 0) return null;
 
 	return (
-		<div className="border-b px-3 py-2 flex items-center justify-between bg-muted/30">
+		<div className="border-b-[0.5px] px-3 py-2 flex items-center justify-between bg-muted/30">
 			<div className="text-sm font-medium">
 				{selectedLearners.length === 1
 					? selectedLearners[0]?.userName

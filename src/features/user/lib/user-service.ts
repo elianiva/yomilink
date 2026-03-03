@@ -145,7 +145,12 @@ export const listUsers = Effect.fn("listUsers")((input: UserFilterInput) =>
 				return { users: [], total: 0, page, pageSize, totalPages: 0 };
 			}
 
-			conditions.push(inArray(user.id, memberIds.map((m) => m.userId)));
+			conditions.push(
+				inArray(
+					user.id,
+					memberIds.map((m) => m.userId),
+				),
+			);
 		}
 
 		const whereClause = conditions.length > 0 ? and(...conditions) : undefined;
@@ -214,7 +219,10 @@ export const listUsers = Effect.fn("listUsers")((input: UserFilterInput) =>
 					mediaConsumption: row.mediaConsumption,
 					motivation: row.motivation,
 					studyGroup: row.studyGroup,
-					cohorts: row.cohortId && row.cohortName ? [{ id: row.cohortId, name: row.cohortName }] : [],
+					cohorts:
+						row.cohortId && row.cohortName
+							? [{ id: row.cohortId, name: row.cohortName }]
+							: [],
 				});
 			}
 		}
@@ -283,7 +291,8 @@ export const updateUser = Effect.fn("updateUser")(
 			if (data.previousJapaneseScore !== undefined) {
 				updateData.previousJapaneseScore = data.previousJapaneseScore;
 			}
-			if (data.mediaConsumption !== undefined) updateData.mediaConsumption = data.mediaConsumption;
+			if (data.mediaConsumption !== undefined)
+				updateData.mediaConsumption = data.mediaConsumption;
 			if (data.motivation !== undefined) updateData.motivation = data.motivation;
 			if (data.studyGroup !== undefined) {
 				updateData.studyGroup = data.studyGroup === "unassigned" ? null : data.studyGroup;
@@ -463,7 +472,10 @@ export const bulkAssignCohort = Effect.fn("bulkAssignCohort")((input: BulkCohort
 			yield* db
 				.delete(cohortMembers)
 				.where(
-					and(eq(cohortMembers.cohortId, cohortId), inArray(cohortMembers.userId, userIds)),
+					and(
+						eq(cohortMembers.cohortId, cohortId),
+						inArray(cohortMembers.userId, userIds),
+					),
 				);
 
 			return { successCount: userIds.length, failedCount: 0 };

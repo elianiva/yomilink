@@ -295,7 +295,10 @@ export const listTeacherAssignments = Effect.fn("listTeacherAssignments")(functi
 			if (target.userId) {
 				assignedUserIds.add(target.userId);
 				const directUser = directUserById.get(target.userId);
-				if (directUser && !assignedUsers.some((assignedUser) => assignedUser.id === directUser.id)) {
+				if (
+					directUser &&
+					!assignedUsers.some((assignedUser) => assignedUser.id === directUser.id)
+				) {
 					assignedUsers.push(directUser);
 				}
 			}
@@ -307,7 +310,10 @@ export const listTeacherAssignments = Effect.fn("listTeacherAssignments")(functi
 					}
 				}
 				const cohort = cohortById.get(target.cohortId);
-				if (cohort && !assignedCohorts.some((assignedCohort) => assignedCohort.id === cohort.id)) {
+				if (
+					cohort &&
+					!assignedCohorts.some((assignedCohort) => assignedCohort.id === cohort.id)
+				) {
 					assignedCohorts.push({
 						id: cohort.id,
 						name: cohort.name,
@@ -329,28 +335,28 @@ export const listTeacherAssignments = Effect.fn("listTeacherAssignments")(functi
 					(responsesByFormId.get(row.preTestFormId ?? "") ?? new Set<string>()).has(
 						assignedUserId,
 					),
-			  ).length
+				).length
 			: null;
 		const postTestSubmitted = row.postTestFormId
 			? Array.from(assignedUserIds).filter((assignedUserId) =>
 					(responsesByFormId.get(row.postTestFormId ?? "") ?? new Set<string>()).has(
 						assignedUserId,
 					),
-			  ).length
+				).length
 			: null;
 		const delayedPostTestSubmitted = row.delayedPostTestFormId
 			? Array.from(assignedUserIds).filter((assignedUserId) =>
-					(responsesByFormId.get(row.delayedPostTestFormId ?? "") ?? new Set<string>()).has(
-						assignedUserId,
-					),
-			  ).length
+					(
+						responsesByFormId.get(row.delayedPostTestFormId ?? "") ?? new Set<string>()
+					).has(assignedUserId),
+				).length
 			: null;
 		const tamSubmitted = row.tamFormId
 			? Array.from(assignedUserIds).filter((assignedUserId) =>
 					(responsesByFormId.get(row.tamFormId ?? "") ?? new Set<string>()).has(
 						assignedUserId,
 					),
-			  ).length
+				).length
 			: null;
 
 		return {
