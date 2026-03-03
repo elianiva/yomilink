@@ -6,7 +6,7 @@ import { Database } from "@/server/db/client";
 import { formProgress, formResponses, forms, questions } from "@/server/db/schema/app-schema";
 import { user } from "@/server/db/schema/auth-schema";
 
-import { FormUnlockConditions, FormUnlockConditionsNullable } from "./unlock-service";
+import { FormUnlockConditionsType, FormUnlockConditionsNullable } from "./unlock-service";
 
 /** Shared form type literals */
 export const FORM_TYPES = [
@@ -196,7 +196,7 @@ export const updateForm = Effect.fn("updateForm")(function* (
 		description: string | null;
 		type: FormType;
 		status: "draft" | "published";
-		unlockConditions: FormUnlockConditions | null;
+		unlockConditions: FormUnlockConditionsType | null;
 	}>,
 ) {
 	const db = yield* Database;
@@ -888,7 +888,7 @@ export const getStudentForms = Effect.fn("getStudentForms")(function* (userId: s
 		let isUnlocked = false;
 
 		// Check unlock conditions
-		const unlockConditions = form.unlockConditions as FormUnlockConditions | null;
+		const unlockConditions = form.unlockConditions as FormUnlockConditionsType | null;
 
 		if (!unlockConditions || unlockConditions.conditions.length === 0) {
 			// No conditions = available by default

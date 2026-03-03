@@ -16,9 +16,6 @@ import { FormRpc } from "@/server/rpc/form";
 
 import { ResponseDetailModal } from "./response-detail-modal";
 
-// Re-export types from service for convenience
-export type { FormResponseOutput as FormResponse, QuestionOutput as ResponseQuestion };
-
 // Local aliases for internal use
 type FormResponse = FormResponseOutput;
 type ResponseQuestion = QuestionOutput;

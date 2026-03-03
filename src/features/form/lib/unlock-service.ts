@@ -35,11 +35,8 @@ export const FormUnlockConditionsSchema = Schema.Struct({
 	}),
 });
 
-type UnlockConditionType = Schema.Schema.Type<typeof UnlockConditionSchema>;
-type FormUnlockConditionsType = Schema.Schema.Type<typeof FormUnlockConditionsSchema>;
-
-export type { UnlockConditionType as UnlockCondition };
-export type { FormUnlockConditionsType as FormUnlockConditions };
+export type UnlockConditionType = Schema.Schema.Type<typeof UnlockConditionSchema>;
+export type FormUnlockConditionsType = Schema.Schema.Type<typeof FormUnlockConditionsSchema>;
 
 // Nullable schema for safe parsing from DB (which can have null values)
 export const FormUnlockConditionsNullable = Schema.NullOr(FormUnlockConditionsSchema);

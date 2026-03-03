@@ -210,10 +210,3 @@ export function filterArrayResponse<T>(response: unknown): T[] {
 
 	return [];
 }
-
-// Re-export for backward compatibility with old naming
-export type {
-	RpcError as RpcErrorResponse,
-	RpcSuccess as RpcSuccessResponse,
-	RpcResult as RpcResponse,
-};
