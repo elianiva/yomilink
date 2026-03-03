@@ -21,7 +21,11 @@ export const Route = createFileRoute("/signup")({
 	ssr: true,
 	beforeLoad: async () => {
 		const me = await getMe();
-		if (me.success) throw redirect({ to: "/dashboard" });
+		if (me.success) {
+			// Redirect students to assignments, others to dashboard
+			const target = me.data.role === "student" ? "/dashboard/assignments" : "/dashboard";
+			throw redirect({ to: target });
+		}
 		return null;
 	},
 	component: SignUpPage,

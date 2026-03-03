@@ -1,4 +1,4 @@
-import { Link, createFileRoute } from "@tanstack/react-router";
+import { Link, createFileRoute, redirect } from "@tanstack/react-router";
 import { Plus } from "lucide-react";
 import { useMemo, useState } from "react";
 
@@ -13,6 +13,12 @@ import { GoalMapRpc } from "@/server/rpc/goal-map";
 import { TopicRpc } from "@/server/rpc/topic";
 
 export const Route = createFileRoute("/dashboard/")({
+	beforeLoad: async ({ context }) => {
+		// Students should not access the concept maps page
+		if (context.me?.data?.role === "student") {
+			throw redirect({ to: "/dashboard/assignments" });
+		}
+	},
 	component: DashboardHome,
 });
 
