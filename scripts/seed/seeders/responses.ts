@@ -235,18 +235,18 @@ export function seedResponses(
 							for (let i = 0; i < testQuestions.length; i++) {
 								const q = READING_COMPREHENSION_QUESTIONS[i];
 								if (!q) continue; // Safety check
-								let answerIndex: number;
+								let selectedOptionId: string;
 								if (scores[i] === 1) {
-									answerIndex = q.correctAnswer;
+									selectedOptionId = q.correctOptionId;
 								} else {
-									const wrongOptions = [0, 1, 2, 3].filter(
-										(n) => n !== q.correctAnswer,
-									);
-									answerIndex =
-										wrongOptions[Math.floor(Math.random() * wrongOptions.length)] || 0;
+									const wrongOptionIds = q.options
+										.filter((opt) => opt.id !== q.correctOptionId)
+										.map((opt) => opt.id);
+									selectedOptionId =
+										wrongOptionIds[Math.floor(Math.random() * wrongOptionIds.length)] || q.options[0].id;
 								}
-								// USE QUESTION ID AS KEY
-								answers[testQuestions[i].id] = String(answerIndex);
+								// USE QUESTION ID AS KEY, OPTION ID AS VALUE
+								answers[testQuestions[i].id] = selectedOptionId;
 							}
 
 							const submissionDate = new Date(

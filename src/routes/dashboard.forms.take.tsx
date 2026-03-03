@@ -74,13 +74,13 @@ function FormTakerPage() {
 
 		if (q.type === "mcq" && Array.isArray(q.options)) {
 			transformedOptions = q.options as { id: string; text: string }[];
-		} else if (q.type === "likert" && q.options && "type" in q.options) {
+		} else if (q.type === "likert" && q.options) {
 			transformedOptions = q.options as {
 				type: "likert";
 				scaleSize: number;
 				labels: { [key: string]: string };
 			};
-		} else if (q.type === "text" && q.options && "type" in q.options) {
+		} else if (q.type === "text" && q.options) {
 			transformedOptions = q.options as {
 				type: "text";
 				minLength?: number;

@@ -1,6 +1,8 @@
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 
 import type { FormResponse, ResponseQuestion } from "./individual-responses-table";
+import { LikertScaleDisplay } from "./likert-scale-display";
+import { McqOptionsDisplay } from "./mcq-options-display";
 
 type ResponseDetailModalProps = {
 	response: FormResponse;
@@ -48,16 +50,27 @@ export function ResponseDetailModal({
 					options: Array<{ id: string; text: string }>;
 				} | null;
 				if (!options?.options) return String(answer);
-				const selectedOption = options.options.find((o) => o.id === answer);
-				return selectedOption?.text ?? String(answer);
+				return (
+					<McqOptionsDisplay
+						options={options.options}
+						selectedOptionId={String(answer)}
+					/>
+				);
 			}
 			case "likert": {
-				const labels = question.options as {
+				const options = question.options as {
+					scaleSize: number;
 					labels: Record<string, string>;
 				} | null;
 				const value = Number(answer);
-				if (!labels?.labels) return String(value);
-				return `${value}: ${labels.labels[String(value)] ?? ""}`;
+				if (!options?.labels || Number.isNaN(value)) return String(answer);
+				return (
+					<LikertScaleDisplay
+						scaleSize={options.scaleSize}
+						labels={options.labels}
+						selectedValue={value}
+					/>
+				);
 			}
 			case "text":
 				return <div className="whitespace-pre-wrap">{String(answer)}</div>;

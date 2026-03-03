@@ -221,12 +221,19 @@ export function seedForms(teacherId: string) {
 			yield* Effect.all(
 				READING_COMPREHENSION_QUESTIONS.map((q, index) =>
 					Effect.gen(function* () {
+						// Format MCQ options with proper structure including correctOptionIds
+						const mcqOptions = {
+							type: "mcq" as const,
+							options: q.options,
+							correctOptionIds: [q.correctOptionId],
+							shuffle: false,
+						};
 						yield* db.insert(questions).values({
 							id: randomString(),
 							formId: formId,
 							type: "mcq",
 							questionText: `[${q.bloomLevel}] ${q.questionText}`,
-							options: JSON.stringify(q.options),
+							options: JSON.stringify(mcqOptions),
 							orderIndex: index,
 							required: true,
 						});

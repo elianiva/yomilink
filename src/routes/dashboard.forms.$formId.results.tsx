@@ -117,7 +117,7 @@ function FormResultsPage() {
 			</div>
 
 			<Tabs value={activeTab} onValueChange={(v) => setActiveTab(v as typeof activeTab)}>
-				<TabsList>
+				<TabsList variant="line">
 					<TabsTrigger value="individual" className="gap-2">
 						<List className="h-4 w-4" />
 						Individual
