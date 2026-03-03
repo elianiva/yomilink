@@ -162,7 +162,7 @@ export const listForms = Effect.fn("listForms")(function* (userId: string) {
 		.where(eq(forms.createdBy, userId))
 		.orderBy(forms.createdAt);
 
-	const formsWithParsedConditions = yield* Effect.all(
+	const formsWithStats = yield* Effect.all(
 		formRows.map((formRow) =>
 			Effect.gen(function* () {
 				const unlockConditions = yield* safeParseJson(
@@ -170,6 +170,29 @@ export const listForms = Effect.fn("listForms")(function* (userId: string) {
 					null,
 					FormUnlockConditionsNullable,
 				);
+
+				// Get progress stats for this form
+				const progressRows = yield* db
+					.select({
+						status: formProgress.status,
+						count: count(),
+					})
+					.from(formProgress)
+					.where(eq(formProgress.formId, formRow.id))
+					.groupBy(formProgress.status);
+
+				const stats = {
+					completed: 0,
+					available: 0,
+					locked: 0,
+					total: 0,
+				};
+
+				for (const row of progressRows) {
+					stats[row.status] = row.count;
+					stats.total += row.count;
+				}
+
 				return {
 					id: formRow.id,
 					title: formRow.title,
@@ -180,13 +203,14 @@ export const listForms = Effect.fn("listForms")(function* (userId: string) {
 					createdBy: formRow.createdBy,
 					createdAt: formRow.createdAt,
 					updatedAt: formRow.updatedAt,
+					stats,
 				};
 			}),
 		),
 		{ concurrency: "unbounded" },
 	);
 
-	return formsWithParsedConditions;
+	return formsWithStats;
 });
 
 export const updateForm = Effect.fn("updateForm")(function* (

@@ -80,6 +80,7 @@ function AdminFormsPage() {
 		status: form.status,
 		createdAt: form.createdAt,
 		updatedAt: form.updatedAt,
+		stats: form.stats,
 	}));
 
 	return (
@@ -110,6 +111,7 @@ function AdminFormsPage() {
 					onEdit={handleEdit}
 					onDelete={handleDelete}
 					onViewResults={handleViewResults}
+					onClick={handleViewResults}
 				/>
 			)}
 
