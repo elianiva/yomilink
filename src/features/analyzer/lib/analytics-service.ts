@@ -31,6 +31,12 @@ export const GetMultipleLearnerMapsInput = Schema.Struct({
 
 export type GetMultipleLearnerMapsInput = typeof GetMultipleLearnerMapsInput.Type;
 
+export const GetLearnerSummaryTextInput = Schema.Struct({
+	learnerMapId: Schema.NonEmptyString,
+});
+
+export type GetLearnerSummaryTextInput = typeof GetLearnerSummaryTextInput.Type;
+
 export const MapStatusSchema = Schema.Union(
 	Schema.Literal("draft"),
 	Schema.Literal("submitted"),
@@ -176,6 +182,17 @@ export const LearnerMapDetailsSchema = Schema.Struct({
 });
 
 export type LearnerMapDetails = typeof LearnerMapDetailsSchema.Type;
+
+export const LearnerSummaryTextSchema = Schema.Struct({
+	learnerMapId: Schema.String,
+	learnerId: Schema.String,
+	learnerName: Schema.String,
+	status: MapStatusSchema,
+	submittedAt: Schema.NullOr(Schema.Number),
+	controlText: Schema.NullOr(Schema.String),
+});
+
+export type LearnerSummaryText = typeof LearnerSummaryTextSchema.Type;
 
 export const ExportResultSchema = Schema.Struct({
 	filename: Schema.String,
@@ -471,6 +488,42 @@ export const getMultipleLearnerMaps = Effect.fn("getMultipleLearnerMaps")(functi
 	);
 
 	return results.filter((r) => r !== null);
+});
+
+export const getLearnerSummaryText = Effect.fn("getLearnerSummaryText")(function* (
+	input: GetLearnerSummaryTextInput,
+) {
+	const db = yield* Database;
+
+	const learnerMapRows = yield* db
+		.select({
+			learnerMapId: learnerMaps.id,
+			learnerId: learnerMaps.userId,
+			learnerName: user.name,
+			status: learnerMaps.status,
+			submittedAt: learnerMaps.submittedAt,
+			controlText: learnerMaps.controlText,
+		})
+		.from(learnerMaps)
+		.innerJoin(user, eq(learnerMaps.userId, user.id))
+		.where(eq(learnerMaps.id, input.learnerMapId))
+		.limit(1);
+
+	const learnerMap = learnerMapRows[0];
+	if (!learnerMap) {
+		return yield* new LearnerMapNotFoundError({
+			learnerMapId: input.learnerMapId,
+		});
+	}
+
+	return yield* Schema.encode(LearnerSummaryTextSchema)({
+		learnerMapId: learnerMap.learnerMapId,
+		learnerId: learnerMap.learnerId,
+		learnerName: learnerMap.learnerName,
+		status: learnerMap.status,
+		submittedAt: learnerMap.submittedAt?.getTime() ?? null,
+		controlText: learnerMap.controlText ?? null,
+	});
 });
 
 export const exportAnalyticsData = Effect.fn("exportAnalyticsData")(function* (

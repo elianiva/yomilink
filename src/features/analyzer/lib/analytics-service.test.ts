@@ -17,6 +17,7 @@ import {
 	exportAnalyticsData,
 	getAnalyticsForAssignment,
 	getLearnerMapForAnalytics,
+	getLearnerSummaryText,
 	getTeacherAssignments,
 	type AssignmentAnalytics,
 } from "./analytics-service";
@@ -544,6 +545,59 @@ describe("analytics-service", () => {
 				);
 				assert.strictEqual(correctEdges.length, 1);
 				assert.strictEqual(missingEdges.length, 1);
+			}).pipe(Effect.provide(DatabaseTest)),
+		);
+	});
+
+	describe("getLearnerSummaryText", () => {
+		it.effect("should return LearnerMapNotFoundError when learner map does not exist", () =>
+			Effect.gen(function* () {
+				const result = yield* Effect.either(
+					getLearnerSummaryText({ learnerMapId: "non-existent-id" }),
+				);
+
+				Either.match(result, {
+					onLeft: (error) =>
+						assert.ok("_tag" in error && error._tag === "LearnerMapNotFoundError"),
+					onRight: () => assert.fail("Expected Left but got Right"),
+				});
+			}).pipe(Effect.provide(DatabaseTest)),
+		);
+
+		it.effect("should return learner summary text and metadata", () =>
+			Effect.gen(function* () {
+				const teacher = yield* createTestUser();
+				const student = yield* createTestUser({
+					email: "summary-student@test.com",
+					name: "Summary Student",
+				});
+				const goalMap = yield* createTestGoalMap(teacher.id, {
+					nodes: JSON.stringify(simpleGoalMap.nodes),
+					edges: JSON.stringify(simpleGoalMap.edges),
+				});
+				const kit = yield* createTestKit(goalMap.id, teacher.id);
+				const assignment = yield* createTestAssignment(teacher.id, goalMap.id, kit.id);
+				const submittedAt = new Date();
+				const learnerMap = yield* createTestLearnerMap(
+					student.id,
+					assignment.id,
+					goalMap.id,
+					kit.id,
+					{
+						status: "submitted",
+						submittedAt,
+						controlText: "This is a full learner summary submission.",
+					},
+				);
+
+				const result = yield* getLearnerSummaryText({ learnerMapId: learnerMap.id });
+
+				assert.strictEqual(result.learnerMapId, learnerMap.id);
+				assert.strictEqual(result.learnerId, student.id);
+				assert.strictEqual(result.learnerName, "Summary Student");
+				assert.strictEqual(result.status, "submitted");
+				assert.strictEqual(result.submittedAt, submittedAt.getTime());
+				assert.strictEqual(result.controlText, "This is a full learner summary submission.");
 			}).pipe(Effect.provide(DatabaseTest)),
 		);
 	});

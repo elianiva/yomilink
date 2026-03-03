@@ -5,7 +5,11 @@ import { Guard } from "@/components/auth/Guard";
 import { createTooltipHandle, TooltipContent, TooltipProvider } from "@/components/ui/tooltip";
 import { AnalyticsCanvasWrapper } from "@/features/analyzer/components/analytics-canvas-wrapper";
 import { AnalyticsControls } from "@/features/analyzer/components/analytics-controls";
-import { AnalyticsSidebar } from "@/features/analyzer/components/analytics-sidebar";
+import {
+	AnalyticsSidebar,
+	type AnalyticsLearnerTab,
+} from "@/features/analyzer/components/analytics-sidebar";
+import { AnalyticsSummaryPanel } from "@/features/analyzer/components/analytics-summary-panel";
 import { AnalyticsToolbar } from "@/features/analyzer/components/analytics-toolbar";
 import { SelectedLearnerStats } from "@/features/analyzer/components/selected-learner-stats";
 import type { LearnerAnalytics } from "@/features/analyzer/lib/analytics-service";
@@ -23,6 +27,7 @@ export const Route = createFileRoute("/dashboard/analytics")({
 function AnalyticsPage() {
 	const [selectedAssignmentId, setSelectedAssignmentId] = useState<string | null>(null);
 	const [selectedLearnerMapIds, setSelectedLearnerMapIds] = useState<Set<string>>(new Set());
+	const [activeLearnerTab, setActiveLearnerTab] = useState<AnalyticsLearnerTab>("conceptMap");
 
 	const tooltipHandle = createTooltipHandle();
 
@@ -66,13 +71,34 @@ function AnalyticsPage() {
 		});
 	}, []);
 
-	const handleToggleAll = useCallback((learnerMapIds: string[]) => {
-		setSelectedLearnerMapIds(new Set(learnerMapIds));
+	const handleToggleAll = useCallback((checked: boolean, learnerMapIds: string[]) => {
+		setSelectedLearnerMapIds((prev) => {
+			const next = new Set(prev);
+			if (checked) {
+				for (const learnerMapId of learnerMapIds) {
+					next.add(learnerMapId);
+				}
+				return next;
+			}
+
+			for (const learnerMapId of learnerMapIds) {
+				next.delete(learnerMapId);
+			}
+			return next;
+		});
 	}, []);
+
+	const summaryLearners = useMemo(() => {
+		if (!analyticsData) return [];
+		return analyticsData.learners.filter(
+			(l: LearnerAnalytics) => l.condition === "summarizing" || l.score === null,
+		);
+	}, [analyticsData]);
 
 	const handleSelectAssignment = useCallback((id: string | null) => {
 		setSelectedAssignmentId(id);
 		setSelectedLearnerMapIds(new Set());
+		setActiveLearnerTab("conceptMap");
 	}, []);
 
 	const handleRefresh = useCallback(() => {
@@ -90,6 +116,8 @@ function AnalyticsPage() {
 					selectedLearnerMapIds={selectedLearnerMapIds}
 					onToggleLearner={handleToggleLearner}
 					onToggleAll={handleToggleAll}
+					activeTab={activeLearnerTab}
+					onTabChange={setActiveLearnerTab}
 				/>
 
 				<section className="rounded-lg border-[0.5px] overflow-hidden flex flex-col">
@@ -100,16 +128,24 @@ function AnalyticsPage() {
 						onRefresh={handleRefresh}
 					/>
 
-					<AnalyticsControls visibility={visibility} onChange={handleVisibilityChange} />
-
-					<SelectedLearnerStats selectedLearners={selectedLearners} />
-
-					<AnalyticsCanvasWrapper
-						selectedAssignmentId={selectedAssignmentId}
-						selectedLearnerMapIds={selectedLearnerMapIds}
-						analyticsData={analyticsData ?? null}
-						visibility={visibility}
-					/>
+					{activeLearnerTab === "conceptMap" ? (
+						<>
+							<AnalyticsControls visibility={visibility} onChange={handleVisibilityChange} />
+							<SelectedLearnerStats selectedLearners={selectedLearners} />
+							<AnalyticsCanvasWrapper
+								selectedAssignmentId={selectedAssignmentId}
+								selectedLearnerMapIds={selectedLearnerMapIds}
+								analyticsData={analyticsData ?? null}
+								visibility={visibility}
+							/>
+						</>
+					) : (
+						<AnalyticsSummaryPanel
+							selectedAssignmentId={selectedAssignmentId}
+							summaryLearners={summaryLearners}
+							selectedLearnerMapIds={selectedLearnerMapIds}
+						/>
+					)}
 				</section>
 			</div>
 			<TooltipContent handle={tooltipHandle} />

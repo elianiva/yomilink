@@ -53,12 +53,16 @@ function FilterSkeleton() {
 	);
 }
 
+export type AnalyticsLearnerTab = "conceptMap" | "summary";
+
 interface AnalyticsSidebarProps {
 	selectedAssignmentId: string | null;
 	onSelectAssignment: (id: string | null) => void;
 	selectedLearnerMapIds: Set<string>;
 	onToggleLearner: (learnerMapId: string) => void;
-	onToggleAll: (learnerMapIds: string[]) => void;
+	onToggleAll: (checked: boolean, learnerMapIds: string[]) => void;
+	activeTab: AnalyticsLearnerTab;
+	onTabChange: (tab: AnalyticsLearnerTab) => void;
 }
 
 export function AnalyticsSidebar({
@@ -67,6 +71,8 @@ export function AnalyticsSidebar({
 	selectedLearnerMapIds,
 	onToggleLearner,
 	onToggleAll,
+	activeTab,
+	onTabChange,
 }: AnalyticsSidebarProps) {
 	const [searchQuery, setSearchQuery] = useState("");
 	const [statusFilter, setStatusFilter] = useState<"All" | "submitted" | "draft">("All");
@@ -91,14 +97,6 @@ export function AnalyticsSidebar({
 		});
 	}, [analyticsData, searchQuery, statusFilter]);
 
-	const selectAllState = useMemo(() => {
-		if (filteredLearners.length === 0) return { checked: false, indeterminate: false };
-		if (selectedLearnerMapIds.size === 0) return { checked: false, indeterminate: false };
-		if (selectedLearnerMapIds.size === filteredLearners.length)
-			return { checked: true, indeterminate: false };
-		return { checked: false, indeterminate: true };
-	}, [filteredLearners.length, selectedLearnerMapIds.size]);
-
 	const groupedLearners = useMemo(() => {
 		const isSummaryLearner = (learner: LearnerAnalytics) =>
 			learner.condition === "summarizing" || learner.score === null;
@@ -116,10 +114,26 @@ export function AnalyticsSidebar({
 		[groupedLearners],
 	);
 
+	const activeTabLearners = useMemo(
+		() => (activeTab === "conceptMap" ? groupedLearners.conceptMap : groupedLearners.summary),
+		[activeTab, groupedLearners],
+	);
+
+	const selectedInActiveTabCount = useMemo(
+		() => activeTabLearners.filter((l) => selectedLearnerMapIds.has(l.learnerMapId)).length,
+		[activeTabLearners, selectedLearnerMapIds],
+	);
+
+	const selectAllState = useMemo(() => {
+		if (activeTabLearners.length === 0) return { checked: false, indeterminate: false };
+		if (selectedInActiveTabCount === 0) return { checked: false, indeterminate: false };
+		if (selectedInActiveTabCount === activeTabLearners.length)
+			return { checked: true, indeterminate: false };
+		return { checked: false, indeterminate: true };
+	}, [activeTabLearners.length, selectedInActiveTabCount]);
+
 	const handleToggleAll = (checked: boolean | "indeterminate") => {
-		onToggleAll(
-			checked === true ? filteredLearners.map((l: LearnerAnalytics) => l.learnerMapId) : [],
-		);
+		onToggleAll(checked === true, activeTabLearners.map((l: LearnerAnalytics) => l.learnerMapId));
 	};
 
 	const assignmentsForSelect = useMemo(
@@ -232,7 +246,11 @@ export function AnalyticsSidebar({
 									/>
 								</div>
 
-								<Tabs defaultValue="conceptMap" className="w-full">
+								<Tabs
+									value={activeTab}
+									onValueChange={(v) => onTabChange(v as AnalyticsLearnerTab)}
+									className="w-full"
+								>
 									<TabsList variant="line" className="w-full">
 										<TabsTrigger
 											value="conceptMap"

@@ -7,9 +7,11 @@ import {
 	exportAnalyticsData,
 	GetAnalyticsForAssignmentInput,
 	GetLearnerMapForAnalyticsInput,
+	GetLearnerSummaryTextInput,
 	GetMultipleLearnerMapsInput,
 	getAnalyticsForAssignment,
 	getLearnerMapForAnalytics,
+	getLearnerSummaryText,
 	getMultipleLearnerMaps,
 	getTeacherAssignments,
 } from "@/features/analyzer/lib/analytics-service";
@@ -82,6 +84,23 @@ export const getMultipleLearnerMapsRpc = createServerFn()
 		),
 	);
 
+export const getLearnerSummaryTextRpc = createServerFn()
+	.middleware([authMiddleware])
+	.inputValidator((raw) => Schema.decodeUnknownSync(GetLearnerSummaryTextInput)(raw))
+	.handler(({ data }) =>
+		getLearnerSummaryText(data).pipe(
+			Effect.map(Rpc.ok),
+			Effect.withSpan("getLearnerSummaryText"),
+			Effect.tapError(logRpcError("getLearnerSummaryText")),
+			Effect.catchTags({
+				LearnerMapNotFoundError: () => Rpc.notFound("Learner map"),
+			}),
+			Effect.catchAll(() => Rpc.err("Internal server error")),
+			Effect.provide(AppLayer),
+			Effect.runPromise,
+		),
+	);
+
 export const exportAnalyticsDataRpc = createServerFn()
 	.middleware([authMiddleware])
 	.inputValidator((raw) => Schema.decodeUnknownSync(ExportAnalyticsDataInput)(raw))
@@ -117,6 +136,11 @@ export const AnalyticsRpc = {
 		queryOptions({
 			queryKey: [...AnalyticsRpc.analytics(), "learner-maps", ...learnerMapIds],
 			queryFn: () => getMultipleLearnerMapsRpc({ data: { learnerMapIds } }),
+		}),
+	getLearnerSummaryText: (learnerMapId: string) =>
+		queryOptions({
+			queryKey: [...AnalyticsRpc.analytics(), "learner-summary", learnerMapId],
+			queryFn: () => getLearnerSummaryTextRpc({ data: { learnerMapId } }),
 		}),
 	exportAnalyticsData: () =>
 		mutationOptions({
