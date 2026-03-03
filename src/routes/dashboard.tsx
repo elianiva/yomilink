@@ -12,7 +12,7 @@ import {
 } from "@/components/ui/breadcrumb";
 import { Separator } from "@/components/ui/separator";
 import { SidebarInset, SidebarProvider, SidebarTrigger } from "@/components/ui/sidebar";
-import type { AuthUser } from "@/lib/auth";
+
 import { pageTitleAtom } from "@/lib/page-title";
 import { pathToCrumbs } from "@/lib/utils";
 import { getRegistrationFormStatusRpc } from "@/server/rpc/form";

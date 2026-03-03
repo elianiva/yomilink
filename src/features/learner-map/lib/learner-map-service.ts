@@ -216,8 +216,19 @@ export const getAssignmentForStudent = Effect.fn("getAssignmentForStudent")(func
 	const result = results[0];
 	if (!result || !result.kit) return null;
 
-	const kitNodes = Array.isArray(result.kit.nodes) ? result.kit.nodes : [];
-	const kitEdges = Array.isArray(result.kit.edges) ? result.kit.edges : [];
+	const [kitNodes, kitEdges, learnerMapNodes, learnerMapEdges] = yield* Effect.all(
+		[
+			safeParseJson(result.kit.nodes, [], Schema.Array(NodeSchema)),
+			safeParseJson(result.kit.edges, [], Schema.Array(EdgeSchema)),
+			result.learnerMap
+				? safeParseJson(result.learnerMap.nodes, [], Schema.Array(NodeSchema))
+				: Effect.succeed([]),
+			result.learnerMap
+				? safeParseJson(result.learnerMap.edges, [], Schema.Array(EdgeSchema))
+				: Effect.succeed([]),
+		],
+		{ concurrency: "unbounded" },
+	);
 
 	return {
 		assignment: {
@@ -233,8 +244,8 @@ export const getAssignmentForStudent = Effect.fn("getAssignmentForStudent")(func
 		learnerMap: result.learnerMap
 			? {
 					id: result.learnerMap.id,
-					nodes: Array.isArray(result.learnerMap.nodes) ? result.learnerMap.nodes : [],
-					edges: Array.isArray(result.learnerMap.edges) ? result.learnerMap.edges : [],
+					nodes: learnerMapNodes,
+					edges: learnerMapEdges,
 					status: result.learnerMap.status,
 					attempt: result.learnerMap.attempt,
 					controlText: result.learnerMap.controlText,

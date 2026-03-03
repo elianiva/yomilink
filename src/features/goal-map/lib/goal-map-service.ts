@@ -76,6 +76,20 @@ export const SaveGoalMapInput = Schema.Struct({
 
 export type SaveGoalMapInput = typeof SaveGoalMapInput.Type;
 
+/** GoalMap type returned by listGoalMaps */
+export type GoalMap = {
+	id: string;
+	title: string;
+	description: string | null;
+	teacherId: string;
+	topicId: string | null;
+	kitId?: string | null;
+	nodes: Schema.Schema.Type<typeof NodeSchema>[];
+	edges: Schema.Schema.Type<typeof EdgeSchema>[];
+	createdAt: number | undefined;
+	updatedAt: number | undefined;
+};
+
 export const ListGoalMapsByTopicInput = Schema.Struct({
 	topicId: Schema.optionalWith(Schema.NonEmptyString, { nullable: true }),
 });
@@ -113,11 +127,16 @@ export const getGoalMap = Effect.fn("getGoalMap")(function* (input: GetGoalMapIn
 	const row = rows[0];
 	if (!row) return null;
 
-	const nodes = Array.isArray(row.nodes) ? row.nodes : [];
-	const edges = Array.isArray(row.edges) ? row.edges : [];
-	const materialImages = row.materialImages
-		? yield* safeParseJson(row.materialImages as string, [], Schema.Array(Schema.String))
-		: [];
+	const [nodes, edges, materialImages] = yield* Effect.all(
+		[
+			safeParseJson(row.nodes, [], Schema.Array(NodeSchema)),
+			safeParseJson(row.edges, [], Schema.Array(EdgeSchema)),
+			row.materialImages
+				? safeParseJson(row.materialImages, [], Schema.Array(Schema.String))
+				: Effect.succeed([]),
+		],
+		{ concurrency: "unbounded" },
+	);
 
 	return {
 		id: row.id,
@@ -238,18 +257,27 @@ export const listGoalMaps = Effect.fn("listGoalMaps")(function* (userId: string)
 		.where(eq(goalMaps.teacherId, userId))
 		.orderBy(desc(goalMaps.updatedAt));
 
-	return rows.map((row) => {
-		const nodes = Array.isArray(row.nodes) ? row.nodes : [];
-		const edges = Array.isArray(row.edges) ? row.edges : [];
+	return yield* Effect.all(
+		rows.map((row) =>
+			Effect.gen(function* () {
+				const [nodes, edges] = yield* Effect.all(
+					[
+						safeParseJson(row.nodes, [], Schema.Array(NodeSchema)),
+						safeParseJson(row.edges, [], Schema.Array(EdgeSchema)),
+					],
+					{ concurrency: "unbounded" },
+				);
 
-		return {
-			...row,
-			nodes,
-			edges,
-			createdAt: row.createdAt?.getTime(),
-			updatedAt: row.updatedAt?.getTime(),
-		};
-	});
+				return {
+					...row,
+					nodes,
+					edges,
+					createdAt: row.createdAt?.getTime(),
+					updatedAt: row.updatedAt?.getTime(),
+				};
+			}),
+		),
+	);
 });
 
 export const listGoalMapsByTopic = Effect.fn("listGoalMapsByTopic")(function* (

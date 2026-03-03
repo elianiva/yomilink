@@ -123,8 +123,8 @@ export function LearnerMapEditor() {
 
 			if (assignmentData.learnerMap) {
 				// Continue from existing learner map
-				setNodes(assignmentData.learnerMap.nodes);
-				setEdges(assignmentData.learnerMap.edges);
+				setNodes([...assignmentData.learnerMap.nodes]);
+				setEdges([...assignmentData.learnerMap.edges]);
 				setLearnerMapId(assignmentData.learnerMap.id);
 				setStatus(assignmentData.learnerMap.status);
 				setAttempt(assignmentData.learnerMap.attempt);
@@ -138,7 +138,7 @@ export function LearnerMapEditor() {
 				);
 			} else {
 				// New learner map - arrange kit nodes in grid
-				const arrangedNodes = arrangeNodesByType(assignmentData.kit.nodes);
+				const arrangedNodes = arrangeNodesByType([...assignmentData.kit.nodes]);
 				setNodes(arrangedNodes);
 				setEdges([]);
 				setStatus("not_started");

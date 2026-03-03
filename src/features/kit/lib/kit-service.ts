@@ -1,8 +1,19 @@
 import { desc, eq } from "drizzle-orm";
 import { Data, Effect, Schema } from "effect";
 
+import { safeParseJson } from "@/lib/utils";
 import { Database } from "@/server/db/client";
 import { goalMaps, kits } from "@/server/db/schema/app-schema";
+
+/** Permissive schema for kit nodes - allows various node formats */
+const KitNodeSchema = Schema.Record({ key: Schema.String, value: Schema.Any }).pipe(
+	Schema.extend(Schema.Struct({ id: Schema.String })),
+);
+
+/** Permissive schema for kit edges */
+const KitEdgeSchema = Schema.Record({ key: Schema.String, value: Schema.Any }).pipe(
+	Schema.extend(Schema.Struct({ id: Schema.String, source: Schema.String, target: Schema.String })),
+);
 
 export const GetKitInput = Schema.Struct({
 	kitId: Schema.NonEmptyString,
@@ -68,28 +79,13 @@ export const getKit = Effect.fn("getKit")(function* (input: GetKitInput) {
 	const row = rows[0];
 	if (!row) return null;
 
-	const nodes = Array.isArray(row.nodes)
-		? row.nodes
-		: typeof row.nodes === "string"
-			? (() => {
-					try {
-						return JSON.parse(row.nodes);
-					} catch {
-						return [];
-					}
-				})()
-			: [];
-	const edges = Array.isArray(row.edges)
-		? row.edges
-		: typeof row.edges === "string"
-			? (() => {
-					try {
-						return JSON.parse(row.edges);
-					} catch {
-						return [];
-					}
-				})()
-			: [];
+	const [nodes, edges] = yield* Effect.all(
+		[
+			safeParseJson(row.nodes, [], Schema.Array(KitNodeSchema)),
+			safeParseJson(row.edges, [], Schema.Array(KitEdgeSchema)),
+		],
+		{ concurrency: "unbounded" },
+	);
 
 	return {
 		goalMapId: row.goalMapId,
@@ -123,20 +119,10 @@ export const getKitStatus = Effect.fn("getKitStatus")(function* (input: GetKitSt
 	const goalMap = goalMapRows[0];
 
 	const kitNodes = kit
-		? Array.isArray(kit.nodes)
-			? kit.nodes
-			: typeof kit.nodes === "string"
-				? (() => {
-						try {
-							return JSON.parse(kit.nodes);
-						} catch {
-							return [];
-						}
-					})()
-				: []
+		? yield* safeParseJson(kit.nodes, [], Schema.Array(KitNodeSchema))
 		: [];
 	const nodeCount = kitNodes.filter(
-		(n: any) => n?.type === "text" || n?.type === "connector",
+		(n) => n?.type === "text" || n?.type === "connector",
 	).length;
 	const kitUpdatedAt = kit?.updatedAt?.getTime() ?? null;
 	const goalMapUpdatedAt = goalMap?.updatedAt?.getTime() ?? null;

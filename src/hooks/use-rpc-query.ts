@@ -13,7 +13,6 @@ import {
 	type UseQueryOptions,
 	type UseQueryResult,
 } from "@tanstack/react-query";
-import { useMemo } from "react";
 
 import { toast, type ErrorToastOptions } from "@/lib/error-toast";
 import { getErrorDetails, isRetryableError } from "@/lib/error-types";

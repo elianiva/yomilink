@@ -1,6 +1,6 @@
 import { useQueryClient } from "@tanstack/react-query";
 import { Link, useNavigate, getRouteApi } from "@tanstack/react-router";
-import type { Edge, MarkerType, Node } from "@xyflow/react";
+import type { Edge, MarkerType } from "@xyflow/react";
 import { Background, MiniMap, ReactFlow } from "@xyflow/react";
 
 import "@xyflow/react/dist/style.css";
@@ -293,7 +293,7 @@ export function LearnerMapResult() {
 				{/* Map visualization */}
 				<div className="flex-1 relative">
 					<ReactFlow
-						nodes={learnerMap.nodes as Node[]}
+						nodes={[...learnerMap.nodes]}
 						edges={processedEdges}
 						nodeTypes={nodeTypes}
 						edgeTypes={edgeTypes}

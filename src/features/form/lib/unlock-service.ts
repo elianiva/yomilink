@@ -1,6 +1,7 @@
 import { and, eq, isNotNull } from "drizzle-orm";
 import { Data, Effect, Schema } from "effect";
 
+import { safeParseJson } from "@/lib/utils";
 import { Database } from "@/server/db/client";
 import { formProgress, forms, learnerMaps } from "@/server/db/schema/app-schema";
 
@@ -210,7 +211,11 @@ export const checkFormUnlock = Effect.fn("checkFormUnlock")(function* (
 	}
 
 	const form = formRows[0];
-	const unlockConditions = form.unlockConditions as FormUnlockConditionsType | null;
+	const unlockConditions = yield* safeParseJson(
+		form.unlockConditions,
+		null,
+		FormUnlockConditionsNullable,
+	);
 
 	if (!unlockConditions || unlockConditions.conditions.length === 0) {
 		return {

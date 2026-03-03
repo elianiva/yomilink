@@ -91,7 +91,7 @@ export function FormBuilderPage() {
 				type: existingForm.form.type,
 				status: existingForm.form.status,
 			});
-			setQuestions((existingForm.questions as QuestionWithOptions[]) ?? []);
+			setQuestions([...(existingForm.questions ?? []) as unknown as QuestionWithOptions[]]);
 			setHasUnsavedChanges(false);
 		}
 	}, [isEditing, existingForm]);

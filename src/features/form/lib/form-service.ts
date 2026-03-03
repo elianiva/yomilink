@@ -590,9 +590,9 @@ export type LikertOptions = typeof LikertOptions.Type;
 
 export const TextOptions = Schema.Struct({
 	type: Schema.Literal("text"),
-	minLength: Schema.optionalWith(Schema.Int, { nullable: true }),
-	maxLength: Schema.optionalWith(Schema.Int, { nullable: true }),
-	placeholder: Schema.optionalWith(Schema.String, { nullable: true }),
+	minLength: Schema.optional(Schema.Int),
+	maxLength: Schema.optional(Schema.Int),
+	placeholder: Schema.optional(Schema.String),
 });
 
 export type TextOptions = typeof TextOptions.Type;
@@ -880,41 +880,49 @@ export const getStudentForms = Effect.fn("getStudentForms")(function* (userId: s
 
 	const progressMap = new Map(userProgressRows.map((p) => [p.formId, p]));
 
-	// Build response with unlock status
-	const formsWithStatus = publishedForms.map((form) => {
-		const progress = progressMap.get(form.id);
+	// Build response with unlock status - parse unlock conditions for each form
+	const formsWithStatus = yield* Effect.all(
+		publishedForms.map((form) =>
+			Effect.gen(function* () {
+				const progress = progressMap.get(form.id);
 
-		let unlockStatus: "locked" | "available" | "completed" = "locked";
-		let isUnlocked = false;
+				let unlockStatus: "locked" | "available" | "completed" = "locked";
+				let isUnlocked = false;
 
-		// Check unlock conditions
-		const unlockConditions = form.unlockConditions as FormUnlockConditionsType | null;
+				// Check unlock conditions with proper parsing
+				const unlockConditions = yield* safeParseJson(
+					form.unlockConditions,
+					null,
+					FormUnlockConditionsNullable,
+				);
 
-		if (!unlockConditions || unlockConditions.conditions.length === 0) {
-			// No conditions = available by default
-			unlockStatus = progress?.status ?? "available";
-			isUnlocked = true;
-		} else if (progress) {
-			unlockStatus = progress.status;
-			isUnlocked = progress.status === "available" || progress.status === "completed";
-		}
+				if (!unlockConditions || unlockConditions.conditions.length === 0) {
+					// No conditions = available by default
+					unlockStatus = progress?.status ?? "available";
+					isUnlocked = true;
+				} else if (progress) {
+					unlockStatus = progress.status;
+					isUnlocked = progress.status === "available" || progress.status === "completed";
+				}
 
-		return {
-			id: form.id,
-			title: form.title,
-			description: form.description,
-			type: form.type,
-			unlockStatus,
-			isUnlocked,
-			progress: progress
-				? {
-						status: progress.status,
-						unlockedAt: progress.unlockedAt,
-						completedAt: progress.completedAt,
-					}
-				: null,
-		};
-	});
+				return {
+					id: form.id,
+					title: form.title,
+					description: form.description,
+					type: form.type,
+					unlockStatus,
+					isUnlocked,
+					progress: progress
+						? {
+								status: progress.status,
+								unlockedAt: progress.unlockedAt,
+								completedAt: progress.completedAt,
+							}
+						: null,
+				};
+			}),
+		),
+	);
 
 	return formsWithStatus;
 });
