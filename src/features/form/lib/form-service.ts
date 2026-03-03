@@ -1,7 +1,7 @@
 import { and, count, desc, eq } from "drizzle-orm";
 import { Data, Effect, Schema } from "effect";
 
-import { randomString, safeParseJson } from "@/lib/utils";
+import { parseJson, randomString, safeParseJson } from "@/lib/utils";
 import { Database } from "@/server/db/client";
 import { formProgress, formResponses, forms, questions } from "@/server/db/schema/app-schema";
 import { user } from "@/server/db/schema/auth-schema";
@@ -372,16 +372,28 @@ export const getFormResponses = Effect.fn("getFormResponses")(function* (
 	const total = countResult[0]?.total ?? 0;
 	const totalPages = Math.ceil(total / limit);
 
+	// Parse answers for each response to handle both string and object formats
+	const parsedResponses = yield* Effect.all(
+		responseRows.map((row) =>
+			Effect.gen(function* () {
+				const parsedAnswers = yield* parseJson<Record<string, unknown>>(
+					row.response.answers,
+				);
+				return {
+					id: row.response.id,
+					formId: row.response.formId,
+					userId: row.response.userId,
+					answers: parsedAnswers,
+					submittedAt: row.response.submittedAt,
+					timeSpentSeconds: row.response.timeSpentSeconds,
+					user: row.user,
+				};
+			}),
+		),
+	);
+
 	return {
-		responses: responseRows.map((row) => ({
-			id: row.response.id,
-			formId: row.response.formId,
-			userId: row.response.userId,
-			answers: row.response.answers as { [x: string]: {} },
-			submittedAt: row.response.submittedAt,
-			timeSpentSeconds: row.response.timeSpentSeconds,
-			user: row.user,
-		})),
+		responses: parsedResponses,
 		pagination: {
 			page,
 			limit,
