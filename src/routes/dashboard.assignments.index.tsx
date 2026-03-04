@@ -200,12 +200,13 @@ function AssignmentsPage() {
 								)}
 
 								<Button asChild size="sm" className="gap-1 w-full">
-									<a
-										href={
+									<Link
+										to={
 											assignment.status === "submitted"
-												? `/dashboard/learner-map/${assignment.id}/result`
-												: `/dashboard/learner-map/${assignment.id}`
+												? "/dashboard/learner-map/$assignmentId/result"
+												: "/dashboard/learner-map/$assignmentId"
 										}
+										params={{ assignmentId: assignment.id }}
 									>
 										{assignment.status === "not_started"
 											? "Start"
@@ -213,7 +214,7 @@ function AssignmentsPage() {
 												? "View Result"
 												: "Continue"}
 										<ChevronRightIcon className="size-4" />
-									</a>
+									</Link>
 								</Button>
 							</div>
 						);

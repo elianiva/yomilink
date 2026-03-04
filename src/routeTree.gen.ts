@@ -15,7 +15,6 @@ import { Route as IndexRouteImport } from './routes/index'
 import { Route as SignupIndexRouteImport } from './routes/signup.index'
 import { Route as DashboardIndexRouteImport } from './routes/dashboard.index'
 import { Route as DashboardProfileRouteImport } from './routes/dashboard.profile'
-import { Route as DashboardLearnerMapRouteImport } from './routes/dashboard.learner-map'
 import { Route as DashboardGoalMapRouteImport } from './routes/dashboard.goal-map'
 import { Route as DashboardAnalyticsRouteImport } from './routes/dashboard.analytics'
 import { Route as ApiHealthRouteImport } from './routes/api/health'
@@ -66,11 +65,6 @@ const DashboardProfileRoute = DashboardProfileRouteImport.update({
   path: '/profile',
   getParentRoute: () => DashboardRoute,
 } as any)
-const DashboardLearnerMapRoute = DashboardLearnerMapRouteImport.update({
-  id: '/learner-map',
-  path: '/learner-map',
-  getParentRoute: () => DashboardRoute,
-} as any)
 const DashboardGoalMapRoute = DashboardGoalMapRouteImport.update({
   id: '/goal-map',
   path: '/goal-map',
@@ -104,9 +98,9 @@ const DashboardAssignmentsIndexRoute =
   } as any)
 const DashboardLearnerMapAssignmentIdRoute =
   DashboardLearnerMapAssignmentIdRouteImport.update({
-    id: '/$assignmentId',
-    path: '/$assignmentId',
-    getParentRoute: () => DashboardLearnerMapRoute,
+    id: '/learner-map/$assignmentId',
+    path: '/learner-map/$assignmentId',
+    getParentRoute: () => DashboardRoute,
   } as any)
 const DashboardGoalMapGoalMapIdRoute =
   DashboardGoalMapGoalMapIdRouteImport.update({
@@ -183,7 +177,6 @@ export interface FileRoutesByFullPath {
   '/api/health': typeof ApiHealthRoute
   '/dashboard/analytics': typeof DashboardAnalyticsRouteWithChildren
   '/dashboard/goal-map': typeof DashboardGoalMapRouteWithChildren
-  '/dashboard/learner-map': typeof DashboardLearnerMapRouteWithChildren
   '/dashboard/profile': typeof DashboardProfileRoute
   '/dashboard/': typeof DashboardIndexRoute
   '/signup/': typeof SignupIndexRoute
@@ -210,7 +203,6 @@ export interface FileRoutesByTo {
   '/api/health': typeof ApiHealthRoute
   '/dashboard/analytics': typeof DashboardAnalyticsRouteWithChildren
   '/dashboard/goal-map': typeof DashboardGoalMapRouteWithChildren
-  '/dashboard/learner-map': typeof DashboardLearnerMapRouteWithChildren
   '/dashboard/profile': typeof DashboardProfileRoute
   '/dashboard': typeof DashboardIndexRoute
   '/signup': typeof SignupIndexRoute
@@ -239,7 +231,6 @@ export interface FileRoutesById {
   '/api/health': typeof ApiHealthRoute
   '/dashboard/analytics': typeof DashboardAnalyticsRouteWithChildren
   '/dashboard/goal-map': typeof DashboardGoalMapRouteWithChildren
-  '/dashboard/learner-map': typeof DashboardLearnerMapRouteWithChildren
   '/dashboard/profile': typeof DashboardProfileRoute
   '/dashboard/': typeof DashboardIndexRoute
   '/signup/': typeof SignupIndexRoute
@@ -269,7 +260,6 @@ export interface FileRouteTypes {
     | '/api/health'
     | '/dashboard/analytics'
     | '/dashboard/goal-map'
-    | '/dashboard/learner-map'
     | '/dashboard/profile'
     | '/dashboard/'
     | '/signup/'
@@ -296,7 +286,6 @@ export interface FileRouteTypes {
     | '/api/health'
     | '/dashboard/analytics'
     | '/dashboard/goal-map'
-    | '/dashboard/learner-map'
     | '/dashboard/profile'
     | '/dashboard'
     | '/signup'
@@ -324,7 +313,6 @@ export interface FileRouteTypes {
     | '/api/health'
     | '/dashboard/analytics'
     | '/dashboard/goal-map'
-    | '/dashboard/learner-map'
     | '/dashboard/profile'
     | '/dashboard/'
     | '/signup/'
@@ -400,13 +388,6 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof DashboardProfileRouteImport
       parentRoute: typeof DashboardRoute
     }
-    '/dashboard/learner-map': {
-      id: '/dashboard/learner-map'
-      path: '/learner-map'
-      fullPath: '/dashboard/learner-map'
-      preLoaderRoute: typeof DashboardLearnerMapRouteImport
-      parentRoute: typeof DashboardRoute
-    }
     '/dashboard/goal-map': {
       id: '/dashboard/goal-map'
       path: '/goal-map'
@@ -451,10 +432,10 @@ declare module '@tanstack/react-router' {
     }
     '/dashboard/learner-map/$assignmentId': {
       id: '/dashboard/learner-map/$assignmentId'
-      path: '/$assignmentId'
+      path: '/learner-map/$assignmentId'
       fullPath: '/dashboard/learner-map/$assignmentId'
       preLoaderRoute: typeof DashboardLearnerMapAssignmentIdRouteImport
-      parentRoute: typeof DashboardLearnerMapRoute
+      parentRoute: typeof DashboardRoute
     }
     '/dashboard/goal-map/$goalMapId': {
       id: '/dashboard/goal-map/$goalMapId'
@@ -581,6 +562,17 @@ const DashboardGoalMapRouteChildren: DashboardGoalMapRouteChildren = {
 const DashboardGoalMapRouteWithChildren =
   DashboardGoalMapRoute._addFileChildren(DashboardGoalMapRouteChildren)
 
+interface DashboardFormsFormIdRouteChildren {
+  DashboardFormsFormIdResultsRoute: typeof DashboardFormsFormIdResultsRoute
+}
+
+const DashboardFormsFormIdRouteChildren: DashboardFormsFormIdRouteChildren = {
+  DashboardFormsFormIdResultsRoute: DashboardFormsFormIdResultsRoute,
+}
+
+const DashboardFormsFormIdRouteWithChildren =
+  DashboardFormsFormIdRoute._addFileChildren(DashboardFormsFormIdRouteChildren)
+
 interface DashboardLearnerMapAssignmentIdRouteChildren {
   DashboardLearnerMapAssignmentIdResultRoute: typeof DashboardLearnerMapAssignmentIdResultRoute
 }
@@ -596,33 +588,9 @@ const DashboardLearnerMapAssignmentIdRouteWithChildren =
     DashboardLearnerMapAssignmentIdRouteChildren,
   )
 
-interface DashboardLearnerMapRouteChildren {
-  DashboardLearnerMapAssignmentIdRoute: typeof DashboardLearnerMapAssignmentIdRouteWithChildren
-}
-
-const DashboardLearnerMapRouteChildren: DashboardLearnerMapRouteChildren = {
-  DashboardLearnerMapAssignmentIdRoute:
-    DashboardLearnerMapAssignmentIdRouteWithChildren,
-}
-
-const DashboardLearnerMapRouteWithChildren =
-  DashboardLearnerMapRoute._addFileChildren(DashboardLearnerMapRouteChildren)
-
-interface DashboardFormsFormIdRouteChildren {
-  DashboardFormsFormIdResultsRoute: typeof DashboardFormsFormIdResultsRoute
-}
-
-const DashboardFormsFormIdRouteChildren: DashboardFormsFormIdRouteChildren = {
-  DashboardFormsFormIdResultsRoute: DashboardFormsFormIdResultsRoute,
-}
-
-const DashboardFormsFormIdRouteWithChildren =
-  DashboardFormsFormIdRoute._addFileChildren(DashboardFormsFormIdRouteChildren)
-
 interface DashboardRouteChildren {
   DashboardAnalyticsRoute: typeof DashboardAnalyticsRouteWithChildren
   DashboardGoalMapRoute: typeof DashboardGoalMapRouteWithChildren
-  DashboardLearnerMapRoute: typeof DashboardLearnerMapRouteWithChildren
   DashboardProfileRoute: typeof DashboardProfileRoute
   DashboardIndexRoute: typeof DashboardIndexRoute
   DashboardAssignmentsManageRoute: typeof DashboardAssignmentsManageRoute
@@ -630,6 +598,7 @@ interface DashboardRouteChildren {
   DashboardFormsBuilderRoute: typeof DashboardFormsBuilderRoute
   DashboardFormsStudentRoute: typeof DashboardFormsStudentRoute
   DashboardFormsTakeRoute: typeof DashboardFormsTakeRoute
+  DashboardLearnerMapAssignmentIdRoute: typeof DashboardLearnerMapAssignmentIdRouteWithChildren
   DashboardAssignmentsIndexRoute: typeof DashboardAssignmentsIndexRoute
   DashboardFormsIndexRoute: typeof DashboardFormsIndexRoute
   DashboardUsersIndexRoute: typeof DashboardUsersIndexRoute
@@ -638,7 +607,6 @@ interface DashboardRouteChildren {
 const DashboardRouteChildren: DashboardRouteChildren = {
   DashboardAnalyticsRoute: DashboardAnalyticsRouteWithChildren,
   DashboardGoalMapRoute: DashboardGoalMapRouteWithChildren,
-  DashboardLearnerMapRoute: DashboardLearnerMapRouteWithChildren,
   DashboardProfileRoute: DashboardProfileRoute,
   DashboardIndexRoute: DashboardIndexRoute,
   DashboardAssignmentsManageRoute: DashboardAssignmentsManageRoute,
@@ -646,6 +614,8 @@ const DashboardRouteChildren: DashboardRouteChildren = {
   DashboardFormsBuilderRoute: DashboardFormsBuilderRoute,
   DashboardFormsStudentRoute: DashboardFormsStudentRoute,
   DashboardFormsTakeRoute: DashboardFormsTakeRoute,
+  DashboardLearnerMapAssignmentIdRoute:
+    DashboardLearnerMapAssignmentIdRouteWithChildren,
   DashboardAssignmentsIndexRoute: DashboardAssignmentsIndexRoute,
   DashboardFormsIndexRoute: DashboardFormsIndexRoute,
   DashboardUsersIndexRoute: DashboardUsersIndexRoute,
