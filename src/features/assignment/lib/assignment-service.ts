@@ -508,6 +508,42 @@ export const getAssignmentByPreTestFormId = Effect.fn("getAssignmentByPreTestFor
 	return rows[0] ?? null;
 });
 
+export const getAssignmentById = Effect.fn("getAssignmentById")(function* (assignmentId: string) {
+	const db = yield* Database;
+
+	const rows = yield* db
+		.select({
+			id: assignments.id,
+			goalMapId: assignments.goalMapId,
+			kitId: assignments.kitId,
+			title: assignments.title,
+			description: assignments.description,
+			readingMaterial: assignments.readingMaterial,
+			timeLimitMinutes: assignments.timeLimitMinutes,
+			startDate: assignments.startDate,
+			dueAt: assignments.dueAt,
+			preTestFormId: assignments.preTestFormId,
+			postTestFormId: assignments.postTestFormId,
+			delayedPostTestFormId: assignments.delayedPostTestFormId,
+			tamFormId: assignments.tamFormId,
+			delayedPostTestDelayDays: assignments.delayedPostTestDelayDays,
+			createdBy: assignments.createdBy,
+			createdAt: assignments.createdAt,
+			updatedAt: assignments.updatedAt,
+			goalMapTitle: goalMaps.title,
+		})
+		.from(assignments)
+		.leftJoin(goalMaps, eq(assignments.goalMapId, goalMaps.id))
+		.where(eq(assignments.id, assignmentId))
+		.limit(1);
+
+	if (rows.length === 0) {
+		return yield* new AssignmentNotFoundError({ assignmentId });
+	}
+
+	return rows[0];
+});
+
 export const getExperimentCondition = Effect.fn("getExperimentCondition")(function* (
 	assignmentId: string,
 	userId: string,

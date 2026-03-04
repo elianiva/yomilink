@@ -1,18 +1,16 @@
 import { useQueryClient } from "@tanstack/react-query";
-import { createFileRoute } from "@tanstack/react-router";
-import { FlaskConicalIcon, MapIcon } from "lucide-react";
-import * as React from "react";
+import { createFileRoute, Link } from "@tanstack/react-router";
+import { EyeIcon, MapIcon } from "lucide-react";
 
 import { AssignmentCard } from "@/components/assignments/assignment-card";
 import { CreateAssignmentDialog } from "@/components/assignments/create-assignment-dialog";
-import { ExperimentFlowDialog } from "@/components/assignments/experiment-flow-dialog";
 import { Guard } from "@/components/auth/Guard";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
 import { useRpcMutation, useRpcQuery } from "@/hooks/use-rpc-query";
 import { AssignmentRpc } from "@/server/rpc/assignment";
 
-export const Route = createFileRoute("/dashboard/assignments/manage")({
+export const Route = createFileRoute("/dashboard/assignments/manage/")({
 	component: () => (
 		<Guard roles={["teacher", "admin"]}>
 			<ManageAssignmentsPage />
@@ -22,11 +20,6 @@ export const Route = createFileRoute("/dashboard/assignments/manage")({
 
 function ManageAssignmentsPage() {
 	const queryClient = useQueryClient();
-	const [experimentDialogOpen, setExperimentDialogOpen] = React.useState(false);
-	const [selectedAssignment, setSelectedAssignment] = React.useState<{
-		id: string;
-		title: string;
-	} | null>(null);
 
 	const { data: assignments, isLoading } = useRpcQuery(AssignmentRpc.listTeacherAssignments());
 
@@ -34,7 +27,7 @@ function ManageAssignmentsPage() {
 		operation: "delete assignment",
 		showSuccess: true,
 		successMessage: "Assignment deleted successfully",
-	});
+	})
 
 	const handleDelete = (id: string) => {
 		if (confirm("Are you sure you want to delete this assignment?")) {
@@ -45,18 +38,13 @@ function ManageAssignmentsPage() {
 						queryClient.invalidateQueries({ queryKey: ["assignments"] });
 					},
 				},
-			);
+			)
 		}
-	};
+	}
 
 	const handleCreateSuccess = () => {
 		queryClient.invalidateQueries({ queryKey: ["assignments"] });
-	};
-
-	const handleOpenExperimentFlow = (assignment: { id: string; title: string }) => {
-		setSelectedAssignment(assignment);
-		setExperimentDialogOpen(true);
-	};
+	}
 
 	return (
 		<div className="space-y-6">
@@ -77,25 +65,15 @@ function ManageAssignmentsPage() {
 					{assignments.map((assignment) => (
 						<div key={assignment.id} className="space-y-3">
 							<AssignmentCard assignment={assignment} onDelete={handleDelete} />
-							{(assignment.preTestFormId ||
-								assignment.postTestFormId ||
-								assignment.delayedPostTestFormId ||
-								assignment.tamFormId) && (
-								<Button
-									variant="outline"
-									size="sm"
-									className="w-full gap-2"
-									onClick={() =>
-										handleOpenExperimentFlow({
-											id: assignment.id,
-											title: assignment.title,
-										})
-									}
+							<Button variant="outline" size="sm" className="w-full gap-2" asChild>
+								<Link
+									to="/dashboard/assignments/manage/$assignmentId"
+									params={{ assignmentId: assignment.id }}
 								>
-									<FlaskConicalIcon className="size-4" />
-									Manage Experiment Flow
-								</Button>
-							)}
+									<EyeIcon className="size-4" />
+									View Details
+								</Link>
+							</Button>
 						</div>
 					))}
 				</div>
@@ -109,15 +87,6 @@ function ManageAssignmentsPage() {
 					<CreateAssignmentDialog onSuccess={handleCreateSuccess} />
 				</div>
 			)}
-
-			{selectedAssignment && (
-				<ExperimentFlowDialog
-					assignmentId={selectedAssignment.id}
-					assignmentTitle={selectedAssignment.title}
-					open={experimentDialogOpen}
-					onOpenChange={setExperimentDialogOpen}
-				/>
-			)}
 		</div>
-	);
+	)
 }

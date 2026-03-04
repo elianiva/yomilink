@@ -1,5 +1,7 @@
 import { useQueryClient } from "@tanstack/react-query";
+import { createFileRoute, Link } from "@tanstack/react-router";
 import {
+	ArrowLeftIcon,
 	CheckCircle2Icon,
 	ClockIcon,
 	FlaskConicalIcon,
@@ -9,14 +11,9 @@ import {
 } from "lucide-react";
 import * as React from "react";
 
+import { Guard } from "@/components/auth/Guard";
+import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import {
-	Dialog,
-	DialogContent,
-	DialogDescription,
-	DialogHeader,
-	DialogTitle,
-} from "@/components/ui/dialog";
 import { Progress } from "@/components/ui/progress";
 import {
 	Select,
@@ -34,18 +31,19 @@ import {
 	TableRow,
 } from "@/components/ui/table";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { useRpcMutation, useRpcQuery } from "@/hooks/use-rpc-query";
 import type { StudentExperimentStatus } from "@/features/assignment/lib/assignment-service";
-import { AssignmentRpc } from "@/server/rpc/assignment";
-import { cn } from "@/lib/utils";
+import { useRpcMutation, useRpcQuery } from "@/hooks/use-rpc-query";
 import { formatDate } from "@/lib/date-utils";
+import { cn } from "@/lib/utils";
+import { AssignmentRpc } from "@/server/rpc/assignment";
 
-interface ExperimentFlowDialogProps {
-	assignmentId: string;
-	assignmentTitle: string;
-	open: boolean;
-	onOpenChange: (open: boolean) => void;
-}
+export const Route = createFileRoute("/dashboard/assignments/manage/$assignmentId")({
+	component: () => (
+		<Guard roles={["teacher", "admin"]}>
+			<AssignmentDetailPage />
+		</Guard>
+	),
+});
 
 type ExperimentPhase =
 	| "preTest"
@@ -72,13 +70,15 @@ const phases: PhaseConfig[] = [
 	{
 		id: "stratifiedAssignment",
 		label: "Stratified Assignment",
-		description: "Assign students to experiment (concept map) or control (summarizing) groups based on pre-test scores",
+		description:
+			"Assign students to experiment (concept map) or control (summarizing) groups based on pre-test scores",
 		icon: UsersIcon,
 	},
 	{
 		id: "mainAssignment",
 		label: "Main Activity",
-		description: "Core learning activity: Concept Map building for experiment group, Summarizing task for control group",
+		description:
+			"Core learning activity: Concept Map building for experiment group, Summarizing task for control group",
 		icon: LockIcon,
 	},
 	{
@@ -118,26 +118,36 @@ function PhaseStatus({
 				return student.groupAssigned
 					? {
 							status: "completed",
-							label: student.groupCondition === "concept_map" ? "Experiment" : "Control",
+							label:
+								student.groupCondition === "concept_map" ? "Experiment" : "Control",
 						}
 					: { status: "pending", label: "Not Assigned" };
 			case "mainAssignment":
 				if (student.mainAssignment.status === "submitted") {
 					return {
 						status: "completed",
-						label: student.groupCondition === "concept_map" ? "Concept Map Done" : "Summary Done",
+						label:
+							student.groupCondition === "concept_map"
+								? "Concept Map Done"
+								: "Summary Done",
 					};
 				}
 				if (student.mainAssignment.status === "draft") {
 					return {
 						status: "in_progress",
-						label: student.groupCondition === "concept_map" ? "Building Map..." : "Writing...",
+						label:
+							student.groupCondition === "concept_map"
+								? "Building Map..."
+								: "Writing...",
 					};
 				}
 				return student.groupAssigned
 					? {
 							status: "available",
-							label: student.groupCondition === "concept_map" ? "Build Concept Map" : "Write Summary",
+							label:
+								student.groupCondition === "concept_map"
+									? "Build Concept Map"
+									: "Write Summary",
 						}
 					: { status: "locked", label: "Locked" };
 			case "postTest":
@@ -259,8 +269,7 @@ function StratifiedAssignmentTab({
 					<span className="font-medium text-foreground">
 						{studentsCompletedPreTest.length}
 					</span>{" "}
-					of{" "}
-					<span className="font-medium text-foreground">{students.length}</span>{" "}
+					of <span className="font-medium text-foreground">{students.length}</span>{" "}
 					students completed pre-test
 				</div>
 				<Button
@@ -503,67 +512,155 @@ function StudentsProgressTab({ students }: { students: StudentExperimentStatus[]
 	);
 }
 
-import { Badge } from "@/components/ui/badge";
+function AssignmentDetailPage() {
+	const { assignmentId } = Route.useParams();
+	const { data: assignment, isLoading: isLoadingAssignment } = useRpcQuery(
+		AssignmentRpc.getAssignmentById(assignmentId),
+	);
+	const { data: experimentStatus, isLoading: isLoadingStatus } = useRpcQuery(
+		AssignmentRpc.getAssignmentExperimentStatus(assignmentId),
+	);
 
-export function ExperimentFlowDialog({
-	assignmentId,
-	assignmentTitle,
-	open,
-	onOpenChange,
-}: ExperimentFlowDialogProps) {
-	const { data, isLoading } = useRpcQuery({
-		...AssignmentRpc.getAssignmentExperimentStatus(assignmentId),
-		enabled: open,
-	});
+	const isLoading = isLoadingAssignment || isLoadingStatus;
+
+	if (isLoading) {
+		return (
+			<div className="space-y-6">
+				<div className="flex items-center gap-4">
+					<Button variant="ghost" size="icon" disabled>
+						<ArrowLeftIcon className="size-4" />
+					</Button>
+					<div className="h-8 w-64 bg-muted rounded animate-pulse" />
+				</div>
+				<div className="h-96 bg-muted rounded animate-pulse" />
+			</div>
+		);
+	}
+
+	if (!assignment) {
+		return (
+			<div className="text-center py-12">
+				<h2 className="text-xl font-semibold mb-2">Assignment Not Found</h2>
+				<p className="text-muted-foreground mb-4">
+					The assignment you&apos;re looking for doesn&apos;t exist or you don&apos;t have
+					access.
+				</p>
+				<Button asChild>
+					<Link to="/dashboard/assignments/manage">Back to Assignments</Link>
+				</Button>
+			</div>
+		);
+	}
+
+	const hasExperimentFlow =
+		assignment.preTestFormId ||
+		assignment.postTestFormId ||
+		assignment.delayedPostTestFormId ||
+		assignment.tamFormId;
 
 	return (
-		<Dialog open={open} onOpenChange={onOpenChange}>
-			<DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
-				<DialogHeader>
-					<DialogTitle className="flex items-center gap-2">
-						<FlaskConicalIcon className="size-5" />
-						Experiment Flow: {assignmentTitle}
-					</DialogTitle>
-					<DialogDescription>
-						Manage the complete experimental procedure: Pre-test → Stratified
-						Assignment → Main Activity (Concept Map/Summarizing) → Post-test →
-						Questionnaires → Delayed Test
-					</DialogDescription>
-				</DialogHeader>
-
-				{isLoading ? (
-					<div className="py-12 text-center text-muted-foreground">
-						Loading experiment status...
+		<div className="space-y-6">
+			{/* Header */}
+			<div className="flex items-start justify-between">
+				<div className="flex items-center gap-4">
+					<Button variant="ghost" size="icon" asChild>
+						<Link to="/dashboard/assignments/manage">
+							<ArrowLeftIcon className="size-4" />
+						</Link>
+					</Button>
+					<div>
+						<h1 className="text-2xl font-semibold">{assignment.title}</h1>
+						{assignment.description && (
+							<p className="text-muted-foreground">{assignment.description}</p>
+						)}
 					</div>
-				) : data ? (
-					<Tabs defaultValue="overview" className="mt-4">
-						<TabsList className="grid w-full grid-cols-3">
-							<TabsTrigger value="overview">Overview</TabsTrigger>
-							<TabsTrigger value="stratified">Stratified Assignment</TabsTrigger>
-							<TabsTrigger value="students">Student Progress</TabsTrigger>
-						</TabsList>
+				</div>
+			</div>
 
-						<TabsContent value="overview" className="mt-4">
-							<OverviewTab summary={data.summary} />
-						</TabsContent>
-
-						<TabsContent value="stratified" className="mt-4">
-							<StratifiedAssignmentTab
-								students={data.students}
-								assignmentId={assignmentId}
-							/>
-						</TabsContent>
-
-						<TabsContent value="students" className="mt-4">
-							<StudentsProgressTab students={data.students} />
-						</TabsContent>
-					</Tabs>
-				) : (
-					<div className="py-12 text-center text-muted-foreground">
-						Failed to load experiment status
+			{/* Assignment Info Cards */}
+			<div className="grid gap-4 md:grid-cols-4">
+				<div className="p-4 border rounded-lg">
+					<div className="text-sm text-muted-foreground mb-1">Goal Map</div>
+					<div className="font-medium truncate">
+						{assignment.goalMapTitle ?? "Unknown"}
 					</div>
-				)}
-			</DialogContent>
-		</Dialog>
+				</div>
+				<div className="p-4 border rounded-lg">
+					<div className="text-sm text-muted-foreground mb-1">Start Date</div>
+					<div className="font-medium">
+						{assignment.startDate
+							? formatDate(assignment.startDate.getTime())
+							: "Not set"}
+					</div>
+				</div>
+				<div className="p-4 border rounded-lg">
+					<div className="text-sm text-muted-foreground mb-1">Due Date</div>
+					<div className="font-medium">
+						{assignment.dueAt ? formatDate(assignment.dueAt.getTime()) : "No due date"}
+					</div>
+				</div>
+				<div className="p-4 border rounded-lg">
+					<div className="text-sm text-muted-foreground mb-1">Experiment Flow</div>
+					<div className="font-medium">
+						{hasExperimentFlow ? (
+							<span className="flex items-center gap-1 text-green-600">
+								<CheckCircle2Icon className="size-4" />
+								Enabled
+							</span>
+						) : (
+							<span className="text-muted-foreground">Not configured</span>
+						)}
+					</div>
+				</div>
+			</div>
+
+			{/* Experiment Flow Section */}
+			{hasExperimentFlow ? (
+				<div className="space-y-4">
+					<div className="flex items-center gap-2">
+						<FlaskConicalIcon className="size-5 text-primary" />
+						<h2 className="text-lg font-semibold">Experiment Flow</h2>
+					</div>
+
+					{experimentStatus ? (
+						<Tabs defaultValue="overview" className="mt-4">
+							<TabsList className="grid w-full grid-cols-3" variant="line">
+								<TabsTrigger value="overview">Overview</TabsTrigger>
+								<TabsTrigger value="stratified">Stratified Assignment</TabsTrigger>
+								<TabsTrigger value="students">Student Progress</TabsTrigger>
+							</TabsList>
+
+							<TabsContent value="overview" className="mt-4">
+								<OverviewTab summary={experimentStatus.summary} />
+							</TabsContent>
+
+							<TabsContent value="stratified" className="mt-4">
+								<StratifiedAssignmentTab
+									students={experimentStatus.students}
+									assignmentId={assignmentId}
+								/>
+							</TabsContent>
+
+							<TabsContent value="students" className="mt-4">
+								<StudentsProgressTab students={experimentStatus.students} />
+							</TabsContent>
+						</Tabs>
+					) : (
+						<div className="py-12 text-center text-muted-foreground border rounded-lg">
+							Failed to load experiment status
+						</div>
+					)}
+				</div>
+			) : (
+				<div className="p-8 border rounded-lg bg-muted/50 text-center">
+					<FlaskConicalIcon className="size-12 mx-auto text-muted-foreground mb-4" />
+					<h3 className="font-medium mb-2">No Experiment Flow Configured</h3>
+					<p className="text-sm text-muted-foreground max-w-md mx-auto">
+						This assignment doesn&apos;t have any experiment forms configured. Edit the
+						assignment to add pre-test, post-test, TAM survey, or delayed test forms.
+					</p>
+				</div>
+			)}
+		</div>
 	);
 }
