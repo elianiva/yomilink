@@ -16,6 +16,8 @@ import {
 	getAssignmentByPreTestFormId,
 	getExperimentCondition,
 	DeleteAssignmentInput,
+	getAssignmentExperimentStatus,
+	GetExperimentStatusInput,
 } from "@/features/assignment/lib/assignment-service";
 import { requireRoleMiddleware } from "@/middlewares/auth";
 
@@ -170,6 +172,23 @@ export const getExperimentConditionRpc = createServerFn()
 		),
 	);
 
+export const getAssignmentExperimentStatusRpc = createServerFn()
+	.middleware([requireRoleMiddleware("teacher", "admin")])
+	.inputValidator((raw) => Schema.decodeUnknownSync(GetExperimentStatusInput)(raw))
+	.handler(({ data }) =>
+		getAssignmentExperimentStatus(data).pipe(
+			Effect.map(Rpc.ok),
+			Effect.withSpan("getAssignmentExperimentStatus"),
+			Effect.tapError(logRpcError("getAssignmentExperimentStatus")),
+			Effect.catchTags({
+				AssignmentNotFoundError: () => Rpc.notFound("Assignment"),
+			}),
+			Effect.catchAll(() => Rpc.err("Internal server error")),
+			Effect.provide(AppLayer),
+			Effect.runPromise,
+		),
+	);
+
 export const AssignmentRpc = {
 	assignments: () => ["assignments"],
 	createAssignment: () =>
@@ -222,5 +241,10 @@ export const AssignmentRpc = {
 		queryOptions({
 			queryKey: [...AssignmentRpc.assignments(), "condition", assignmentId],
 			queryFn: () => getExperimentConditionRpc({ data: { assignmentId } }),
+		}),
+	getAssignmentExperimentStatus: (assignmentId: string) =>
+		queryOptions({
+			queryKey: [...AssignmentRpc.assignments(), "experimentStatus", assignmentId],
+			queryFn: () => getAssignmentExperimentStatusRpc({ data: { assignmentId } }),
 		}),
 };
