@@ -29,7 +29,11 @@ function AssignmentsPage() {
 	const getStatusBadge = (
 		status: string,
 		isLate?: boolean,
-	): { label: string; variant: "default" | "secondary" | "destructive" | "outline"; icon: React.ElementType } => {
+	): {
+		label: string;
+		variant: "default" | "secondary" | "destructive" | "outline";
+		icon: React.ElementType;
+	} => {
 		if (status === "submitted") {
 			return {
 				label: "Submitted",
@@ -81,7 +85,9 @@ function AssignmentsPage() {
 								<div className="flex items-start justify-between gap-3">
 									<div className="space-y-1 min-w-0">
 										<div className="flex items-center gap-2 flex-wrap">
-											<h3 className="font-medium truncate">{assignment.title}</h3>
+											<h3 className="font-medium truncate">
+												{assignment.title}
+											</h3>
 											<Badge variant={statusBadge.variant} className="gap-1">
 												<StatusIcon className="size-3" />
 												{statusBadge.label}

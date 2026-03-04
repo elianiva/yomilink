@@ -159,7 +159,11 @@ export function AggregatedResponses({ responses, questions }: AggregatedResponse
 											width={100}
 											tick={{ fontSize: 12 }}
 										/>
-										<Bar dataKey="percentage" fill="oklch(0.63 0.11 28)" radius={4} />
+										<Bar
+											dataKey="percentage"
+											fill="oklch(0.63 0.11 28)"
+											radius={4}
+										/>
 									</BarChart>
 								</ResponsiveContainer>
 							</div>
@@ -199,7 +203,11 @@ export function AggregatedResponses({ responses, questions }: AggregatedResponse
 											}
 										/>
 										<YAxis />
-										<Bar dataKey="count" fill="oklch(0.63 0.11 28)" radius={4} />
+										<Bar
+											dataKey="count"
+											fill="oklch(0.63 0.11 28)"
+											radius={4}
+										/>
 									</BarChart>
 								</ResponsiveContainer>
 							</div>

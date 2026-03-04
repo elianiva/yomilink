@@ -7,8 +7,8 @@ import { Button } from "@/components/ui/button";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { AggregatedResponses } from "@/features/form/components/aggregated-responses";
 import { IndividualResponsesTable } from "@/features/form/components/individual-responses-table";
-import type { FormResponseOutput, QuestionOutput } from "@/features/form/lib/form-service";
 import { StratifiedGrouping } from "@/features/form/components/stratified-grouping";
+import type { FormResponseOutput, QuestionOutput } from "@/features/form/lib/form-service";
 import { useRpcQuery } from "@/hooks/use-rpc-query";
 import { FormRpc } from "@/server/rpc/form";
 

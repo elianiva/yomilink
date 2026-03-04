@@ -9,10 +9,10 @@
 // Additionally, you should also exclude this file from your linter and/or formatter to prevent it from being checked or modified.
 
 import { Route as rootRouteImport } from './routes/__root'
-import { Route as SignupRouteImport } from './routes/signup'
 import { Route as LoginRouteImport } from './routes/login'
 import { Route as DashboardRouteImport } from './routes/dashboard'
 import { Route as IndexRouteImport } from './routes/index'
+import { Route as SignupIndexRouteImport } from './routes/signup.index'
 import { Route as DashboardIndexRouteImport } from './routes/dashboard.index'
 import { Route as DashboardProfileRouteImport } from './routes/dashboard.profile'
 import { Route as DashboardLearnerMapRouteImport } from './routes/dashboard.learner-map'
@@ -36,11 +36,6 @@ import { Route as DashboardFormsFormIdResultsRouteImport } from './routes/dashbo
 import { Route as DashboardAnalyticsAssignmentIdMetricsRouteImport } from './routes/dashboard.analytics.$assignmentId.metrics'
 import { Route as ApiMaterialsImagesGoalMapIdImageIdRouteImport } from './routes/api/materials/images/$goalMapId/$imageId'
 
-const SignupRoute = SignupRouteImport.update({
-  id: '/signup',
-  path: '/signup',
-  getParentRoute: () => rootRouteImport,
-} as any)
 const LoginRoute = LoginRouteImport.update({
   id: '/login',
   path: '/login',
@@ -54,6 +49,11 @@ const DashboardRoute = DashboardRouteImport.update({
 const IndexRoute = IndexRouteImport.update({
   id: '/',
   path: '/',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const SignupIndexRoute = SignupIndexRouteImport.update({
+  id: '/signup/',
+  path: '/signup/',
   getParentRoute: () => rootRouteImport,
 } as any)
 const DashboardIndexRoute = DashboardIndexRouteImport.update({
@@ -180,13 +180,13 @@ export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/dashboard': typeof DashboardRouteWithChildren
   '/login': typeof LoginRoute
-  '/signup': typeof SignupRoute
   '/api/health': typeof ApiHealthRoute
   '/dashboard/analytics': typeof DashboardAnalyticsRouteWithChildren
   '/dashboard/goal-map': typeof DashboardGoalMapRouteWithChildren
   '/dashboard/learner-map': typeof DashboardLearnerMapRouteWithChildren
   '/dashboard/profile': typeof DashboardProfileRoute
   '/dashboard/': typeof DashboardIndexRoute
+  '/signup/': typeof SignupIndexRoute
   '/api/auth/$': typeof ApiAuthSplatRoute
   '/dashboard/analytics/$assignmentId': typeof DashboardAnalyticsAssignmentIdRouteWithChildren
   '/dashboard/assignments/manage': typeof DashboardAssignmentsManageRoute
@@ -207,13 +207,13 @@ export interface FileRoutesByFullPath {
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/login': typeof LoginRoute
-  '/signup': typeof SignupRoute
   '/api/health': typeof ApiHealthRoute
   '/dashboard/analytics': typeof DashboardAnalyticsRouteWithChildren
   '/dashboard/goal-map': typeof DashboardGoalMapRouteWithChildren
   '/dashboard/learner-map': typeof DashboardLearnerMapRouteWithChildren
   '/dashboard/profile': typeof DashboardProfileRoute
   '/dashboard': typeof DashboardIndexRoute
+  '/signup': typeof SignupIndexRoute
   '/api/auth/$': typeof ApiAuthSplatRoute
   '/dashboard/analytics/$assignmentId': typeof DashboardAnalyticsAssignmentIdRouteWithChildren
   '/dashboard/assignments/manage': typeof DashboardAssignmentsManageRoute
@@ -236,13 +236,13 @@ export interface FileRoutesById {
   '/': typeof IndexRoute
   '/dashboard': typeof DashboardRouteWithChildren
   '/login': typeof LoginRoute
-  '/signup': typeof SignupRoute
   '/api/health': typeof ApiHealthRoute
   '/dashboard/analytics': typeof DashboardAnalyticsRouteWithChildren
   '/dashboard/goal-map': typeof DashboardGoalMapRouteWithChildren
   '/dashboard/learner-map': typeof DashboardLearnerMapRouteWithChildren
   '/dashboard/profile': typeof DashboardProfileRoute
   '/dashboard/': typeof DashboardIndexRoute
+  '/signup/': typeof SignupIndexRoute
   '/api/auth/$': typeof ApiAuthSplatRoute
   '/dashboard/analytics/$assignmentId': typeof DashboardAnalyticsAssignmentIdRouteWithChildren
   '/dashboard/assignments/manage': typeof DashboardAssignmentsManageRoute
@@ -266,13 +266,13 @@ export interface FileRouteTypes {
     | '/'
     | '/dashboard'
     | '/login'
-    | '/signup'
     | '/api/health'
     | '/dashboard/analytics'
     | '/dashboard/goal-map'
     | '/dashboard/learner-map'
     | '/dashboard/profile'
     | '/dashboard/'
+    | '/signup/'
     | '/api/auth/$'
     | '/dashboard/analytics/$assignmentId'
     | '/dashboard/assignments/manage'
@@ -293,13 +293,13 @@ export interface FileRouteTypes {
   to:
     | '/'
     | '/login'
-    | '/signup'
     | '/api/health'
     | '/dashboard/analytics'
     | '/dashboard/goal-map'
     | '/dashboard/learner-map'
     | '/dashboard/profile'
     | '/dashboard'
+    | '/signup'
     | '/api/auth/$'
     | '/dashboard/analytics/$assignmentId'
     | '/dashboard/assignments/manage'
@@ -321,13 +321,13 @@ export interface FileRouteTypes {
     | '/'
     | '/dashboard'
     | '/login'
-    | '/signup'
     | '/api/health'
     | '/dashboard/analytics'
     | '/dashboard/goal-map'
     | '/dashboard/learner-map'
     | '/dashboard/profile'
     | '/dashboard/'
+    | '/signup/'
     | '/api/auth/$'
     | '/dashboard/analytics/$assignmentId'
     | '/dashboard/assignments/manage'
@@ -350,21 +350,14 @@ export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   DashboardRoute: typeof DashboardRouteWithChildren
   LoginRoute: typeof LoginRoute
-  SignupRoute: typeof SignupRoute
   ApiHealthRoute: typeof ApiHealthRoute
+  SignupIndexRoute: typeof SignupIndexRoute
   ApiAuthSplatRoute: typeof ApiAuthSplatRoute
   ApiMaterialsImagesGoalMapIdImageIdRoute: typeof ApiMaterialsImagesGoalMapIdImageIdRoute
 }
 
 declare module '@tanstack/react-router' {
   interface FileRoutesByPath {
-    '/signup': {
-      id: '/signup'
-      path: '/signup'
-      fullPath: '/signup'
-      preLoaderRoute: typeof SignupRouteImport
-      parentRoute: typeof rootRouteImport
-    }
     '/login': {
       id: '/login'
       path: '/login'
@@ -384,6 +377,13 @@ declare module '@tanstack/react-router' {
       path: '/'
       fullPath: '/'
       preLoaderRoute: typeof IndexRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/signup/': {
+      id: '/signup/'
+      path: '/signup'
+      fullPath: '/signup/'
+      preLoaderRoute: typeof SignupIndexRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/dashboard/': {
@@ -659,8 +659,8 @@ const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   DashboardRoute: DashboardRouteWithChildren,
   LoginRoute: LoginRoute,
-  SignupRoute: SignupRoute,
   ApiHealthRoute: ApiHealthRoute,
+  SignupIndexRoute: SignupIndexRoute,
   ApiAuthSplatRoute: ApiAuthSplatRoute,
   ApiMaterialsImagesGoalMapIdImageIdRoute:
     ApiMaterialsImagesGoalMapIdImageIdRoute,

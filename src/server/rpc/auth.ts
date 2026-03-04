@@ -13,7 +13,9 @@ import { Rpc, logRpcError, type RpcResult } from "../rpc-helper";
 
 export const JlptLevelSchema = Schema.Union(Schema.Literal("N5", "N4", "N3", "N2", "N1", "None"));
 
-export const StudyGroupSchema = Schema.Union(Schema.Literal("experiment", "control"));
+export const StudyGroupSchema = Schema.NullOr(
+	Schema.Union(Schema.Literal("experiment", "control")),
+);
 
 export const SignUpInput = Schema.Struct({
 	name: Schema.NonEmptyString,

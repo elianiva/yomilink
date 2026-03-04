@@ -12,7 +12,9 @@ const KitNodeSchema = Schema.Record({ key: Schema.String, value: Schema.Any }).p
 
 /** Permissive schema for kit edges */
 const KitEdgeSchema = Schema.Record({ key: Schema.String, value: Schema.Any }).pipe(
-	Schema.extend(Schema.Struct({ id: Schema.String, source: Schema.String, target: Schema.String })),
+	Schema.extend(
+		Schema.Struct({ id: Schema.String, source: Schema.String, target: Schema.String }),
+	),
 );
 
 export const GetKitInput = Schema.Struct({
@@ -118,12 +120,8 @@ export const getKitStatus = Effect.fn("getKitStatus")(function* (input: GetKitSt
 	const kit = kitRows[0];
 	const goalMap = goalMapRows[0];
 
-	const kitNodes = kit
-		? yield* safeParseJson(kit.nodes, [], Schema.Array(KitNodeSchema))
-		: [];
-	const nodeCount = kitNodes.filter(
-		(n) => n?.type === "text" || n?.type === "connector",
-	).length;
+	const kitNodes = kit ? yield* safeParseJson(kit.nodes, [], Schema.Array(KitNodeSchema)) : [];
+	const nodeCount = kitNodes.filter((n) => n?.type === "text" || n?.type === "connector").length;
 	const kitUpdatedAt = kit?.updatedAt?.getTime() ?? null;
 	const goalMapUpdatedAt = goalMap?.updatedAt?.getTime() ?? null;
 

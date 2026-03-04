@@ -297,7 +297,8 @@ function AnalyticsCanvasInner({
 							},
 							data: {
 								...classification.edge.data,
-								createdBy: classification.createdBy ?? currentLearnerMaps[0]?.userName,
+								createdBy:
+									classification.createdBy ?? currentLearnerMaps[0]?.userName,
 							},
 						});
 					}
@@ -424,7 +425,8 @@ function AnalyticsCanvasInner({
 							},
 							data: {
 								...classification.edge.data,
-								createdBy: classification.createdBy ?? currentLearnerMaps[0]?.userName,
+								createdBy:
+									classification.createdBy ?? currentLearnerMaps[0]?.userName,
 							},
 						});
 					}

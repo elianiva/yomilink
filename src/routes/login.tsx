@@ -80,7 +80,8 @@ function LoginPage() {
 				const me = await getMe();
 				if (me.success) {
 					// Redirect students to assignments, others to dashboard
-					const target = me.data.role === "student" ? "/dashboard/assignments" : "/dashboard";
+					const target =
+						me.data.role === "student" ? "/dashboard/assignments" : "/dashboard";
 					navigate({ to: target });
 				} else {
 					// Fallback if user fetch fails
