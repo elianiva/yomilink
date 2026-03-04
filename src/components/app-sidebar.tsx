@@ -81,18 +81,21 @@ const NAVBAR_ITEMS: NavItemWithRoles[] = [
 type AppSidebarProps = React.ComponentProps<typeof Sidebar>;
 
 export function AppSidebar(props: AppSidebarProps) {
-	const { data } = useRpcQuery(ProfileRpc.getMe());
-	const me = data!; // this will never be null because we preload the data in dashboard layout
+	const { data: me } = useRpcQuery(ProfileRpc.getMe());
 
 	// Filter navbar items based on user role
 	const filteredItems = useMemo(() => {
+		// If no user data yet, show items visible to all (no roles restriction)
+		if (!me) {
+			return NAVBAR_ITEMS.filter((item) => !item.roles);
+		}
 		return NAVBAR_ITEMS.filter((item) => {
 			// If no roles specified, show to everyone
 			if (!item.roles) return true;
 			// Check if user's role is in the allowed roles
 			return item.roles.includes(me.role);
-		}).map((item) => item); // Remove roles from the item before passing to NavMain
-	}, [me.role]);
+		});
+	}, [me]);
 
 	return (
 		<Sidebar collapsible="icon" {...props}>
@@ -113,13 +116,23 @@ export function AppSidebar(props: AppSidebarProps) {
 				<NavMain items={filteredItems} />
 			</SidebarContent>
 			<SidebarFooter>
-				<NavUser
-					user={{
-						name: me.name ?? "User",
-						email: me.email ?? "user@example.com",
-						avatar: me.image ?? "",
-					}}
-				/>
+				{me ? (
+					<NavUser
+						user={{
+							name: me.name ?? "User",
+							email: me.email ?? "user@example.com",
+							avatar: me.image ?? "",
+						}}
+					/>
+				) : (
+					<div className="flex items-center gap-2 px-2 py-1.5">
+						<div className="size-8 rounded-lg bg-muted animate-pulse" />
+						<div className="group-data-[collapsible=icon]:hidden space-y-1.5 flex-1 min-w-0">
+							<div className="h-4 w-20 bg-muted animate-pulse rounded" />
+							<div className="h-3 w-28 bg-muted animate-pulse rounded" />
+						</div>
+					</div>
+				)}
 			</SidebarFooter>
 			<SidebarRail />
 		</Sidebar>

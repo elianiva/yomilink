@@ -64,212 +64,249 @@ function ProfilePage() {
 	}
 
 	return (
-		<div className="flex flex-1 items-center justify-center p-6">
-			<div className="w-full max-w-md rounded-2xl border border-border/60 bg-white shadow-sm">
-				<div className="p-8 space-y-6">
-					<div className="flex items-center gap-4">
-						<Avatar className="h-14 w-14 rounded-xl ring-4 ring-primary/10">
-							<AvatarImage src={me.image ?? ""} alt={me.name ?? me.email ?? "User"} />
-							<AvatarFallback className="rounded-xl bg-primary/90 text-primary-foreground text-lg font-bold">
-								{((me.name ?? me.email ?? "U")[0] ?? "U").toUpperCase()}
-							</AvatarFallback>
-						</Avatar>
-						<div className="min-w-0">
-							<h1 className="text-xl font-semibold truncate">{me.name ?? "User"}</h1>
-							<p className="text-sm text-muted-foreground truncate">
-								{me.email ?? ""}
-							</p>
+		<div className="flex flex-1 p-4 lg:p-6">
+			<div className="w-full max-w-6xl mx-auto">
+				<div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
+					{/* Left sidebar - Profile summary */}
+					<div className="lg:col-span-4 space-y-6">
+						{/* Profile Card */}
+						<div className="rounded-2xl border border-border/60 bg-white shadow-sm p-6">
+							<div className="flex items-center gap-4">
+								<Avatar className="h-16 w-16 rounded-2xl ring-4 ring-primary/10">
+									<AvatarImage src={me.image ?? ""} alt={me.name ?? me.email ?? "User"} />
+									<AvatarFallback className="rounded-2xl bg-primary/90 text-primary-foreground text-xl font-bold">
+										{((me.name ?? me.email ?? "U")[0] ?? "U").toUpperCase()}
+									</AvatarFallback>
+								</Avatar>
+								<div className="min-w-0">
+									<h1 className="text-lg font-semibold truncate">{me.name ?? "User"}</h1>
+									<p className="text-sm text-muted-foreground truncate">
+										{me.email ?? ""}
+									</p>
+								</div>
+							</div>
+
+							<div className="mt-6 pt-6 border-t space-y-4">
+								<div>
+									<Label className="text-xs text-muted-foreground uppercase tracking-wide">Email</Label>
+									<p className="text-sm font-medium">{me.email}</p>
+								</div>
+								<div>
+									<Label className="text-xs text-muted-foreground uppercase tracking-wide">Role</Label>
+									<p className="text-sm font-medium capitalize">{me.role}</p>
+								</div>
+								{me.jlptLevel && me.jlptLevel !== "None" && (
+									<div>
+										<Label className="text-xs text-muted-foreground uppercase tracking-wide">JLPT Level</Label>
+										<p className="text-sm font-medium">{me.jlptLevel}</p>
+									</div>
+								)}
+							</div>
 						</div>
+
+						{/* Sign Out Card */}
+						<div className="rounded-2xl border border-border/60 bg-white shadow-sm p-6">
+							<Button variant="destructive" className="w-full" onClick={handleSignOut}>
+								Sign out
+							</Button>
+						</div>
+
+						{/* Back Button */}
+						<Button asChild variant="outline" className="w-full">
+							<Link to="/dashboard" preload="intent">
+								Back to Dashboard
+							</Link>
+						</Button>
 					</div>
 
-					<form
-						onSubmit={(e) => {
-							e.preventDefault();
-							e.stopPropagation();
-							form.handleSubmit();
-						}}
-						className="space-y-5"
-					>
-						<form.Field name="name">
-							{(field) => (
-								<div className="space-y-1.5">
-									<Label htmlFor="name">Name</Label>
-									<Input
-										id="name"
-										placeholder="Your name"
-										value={field.state.value}
-										onChange={(e) => field.handleChange(e.target.value)}
-										onBlur={field.handleBlur}
-										autoComplete="name"
-									/>
-									<FieldInfo field={field} />
-								</div>
-							)}
-						</form.Field>
+					{/* Right content - Edit form */}
+					<div className="lg:col-span-8">
+						<div className="rounded-2xl border border-border/60 bg-white shadow-sm">
+							<div className="p-6 border-b">
+								<h2 className="text-lg font-semibold">Edit Profile</h2>
+								<p className="text-sm text-muted-foreground">Update your personal information and learning preferences</p>
+							</div>
 
-						<div className="grid grid-cols-2 gap-4">
-							<form.Field name="age">
-								{(field) => (
-									<div className="space-y-1.5">
-										<Label htmlFor="age">Age</Label>
-										<Input
-											id="age"
-											type="number"
-											value={field.state.value ?? ""}
-											onChange={(e) =>
-												field.handleChange(
-													e.target.value ? Number(e.target.value) : null,
-												)
-											}
-										/>
-									</div>
-								)}
-							</form.Field>
-
-							<form.Field name="jlptLevel">
-								{(field) => (
-									<div className="space-y-1.5">
-										<Label htmlFor="jlptLevel">JLPT Level</Label>
-										<select
-											id="jlptLevel"
-											className="w-full h-10 rounded-md border border-input bg-background px-3 py-2 text-sm"
-											value={field.state.value ?? "None"}
-											onChange={(e) =>
-												field.handleChange(e.target.value as JlptLevel)
-											}
-										>
-											<option value="None">None</option>
-											<option value="N5">N5</option>
-											<option value="N4">N4</option>
-											<option value="N3">N3</option>
-											<option value="N2">N2</option>
-											<option value="N1">N1</option>
-										</select>
-									</div>
-								)}
-							</form.Field>
-						</div>
-
-						<form.Field name="japaneseLearningDuration">
-							{(field) => (
-								<div className="space-y-1.5">
-									<Label htmlFor="duration">Learning Duration (months)</Label>
-									<Input
-										id="duration"
-										type="number"
-										value={field.state.value ?? ""}
-										onChange={(e) =>
-											field.handleChange(
-												e.target.value ? Number(e.target.value) : null,
-											)
-										}
-									/>
-								</div>
-							)}
-						</form.Field>
-
-						<form.Field name="previousJapaneseScore">
-							{(field) => (
-								<div className="space-y-1.5">
-									<Label htmlFor="prevScore">
-										Previous Japanese Score (0-100)
-									</Label>
-									<Input
-										id="prevScore"
-										type="number"
-										step="0.1"
-										value={field.state.value ?? ""}
-										onChange={(e) =>
-											field.handleChange(
-												e.target.value ? Number(e.target.value) : null,
-											)
-										}
-									/>
-								</div>
-							)}
-						</form.Field>
-
-						<form.Field name="mediaConsumption">
-							{(field) => (
-								<div className="space-y-1.5">
-									<Label htmlFor="media">Media Consumption (hours/week)</Label>
-									<Input
-										id="media"
-										type="number"
-										step="0.1"
-										value={field.state.value ?? ""}
-										onChange={(e) =>
-											field.handleChange(
-												e.target.value ? Number(e.target.value) : null,
-											)
-										}
-									/>
-								</div>
-							)}
-						</form.Field>
-
-						<form.Field name="motivation">
-							{(field) => (
-								<div className="space-y-1.5">
-									<Label htmlFor="motivation">Learning Motivation</Label>
-									<Textarea
-										id="motivation"
-										value={field.state.value ?? ""}
-										onChange={(e) => field.handleChange(e.target.value)}
-										placeholder="What motivates you to learn Japanese?"
-										rows={3}
-									/>
-								</div>
-							)}
-						</form.Field>
-
-						<div className="space-y-1.5">
-							<Label htmlFor="email">Email</Label>
-							<Input
-								id="email"
-								value={me.email ?? ""}
-								disabled
-								className="bg-muted/50"
-							/>
-							<p className="text-xs text-muted-foreground">Email cannot be changed</p>
-						</div>
-
-						<div className="space-y-1.5">
-							<Label htmlFor="role">Role</Label>
-							<Input
-								id="role"
-								value={me.role}
-								disabled
-								className="bg-muted/50 capitalize"
-							/>
-						</div>
-
-						<div className="flex gap-2 pt-2">
-							<Button asChild variant="outline" className="flex-1">
-								<Link to="/dashboard" preload="intent">
-									Back
-								</Link>
-							</Button>
-							<form.Subscribe
-								selector={(s) => [s.canSubmit, s.isSubmitting] as const}
+							<form
+								onSubmit={(e) => {
+									e.preventDefault();
+									e.stopPropagation();
+									form.handleSubmit();
+								}}
+								className="p-6 space-y-6"
 							>
-								{([canSubmit, isSubmitting]) => (
-									<Button
-										type="submit"
-										disabled={!canSubmit || isSubmitting}
-										className="flex-1"
-									>
-										{isSubmitting ? "Saving..." : "Save changes"}
-									</Button>
-								)}
-							</form.Subscribe>
-						</div>
-					</form>
+								{/* Personal Information Section */}
+								<div>
+									<h3 className="text-sm font-medium text-muted-foreground uppercase tracking-wide mb-4">Personal Information</h3>
+									<div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+										<form.Field name="name">
+											{(field) => (
+												<div className="space-y-1.5">
+													<Label htmlFor="name">Name</Label>
+													<Input
+														id="name"
+														placeholder="Your name"
+														value={field.state.value}
+														onChange={(e) => field.handleChange(e.target.value)}
+														onBlur={field.handleBlur}
+														autoComplete="name"
+													/>
+													<FieldInfo field={field} />
+												</div>
+											)}
+										</form.Field>
 
-					<div className="border-t pt-4">
-						<Button variant="destructive" className="w-full" onClick={handleSignOut}>
-							Sign out
-						</Button>
+										<form.Field name="age">
+											{(field) => (
+												<div className="space-y-1.5">
+													<Label htmlFor="age">Age</Label>
+													<Input
+														id="age"
+														type="number"
+														value={field.state.value ?? ""}
+														onChange={(e) =>
+															field.handleChange(
+																e.target.value ? Number(e.target.value) : null,
+															)
+														}
+													/>
+												</div>
+											)}
+										</form.Field>
+									</div>
+								</div>
+
+								{/* Learning Profile Section */}
+								<div className="pt-4 border-t">
+									<h3 className="text-sm font-medium text-muted-foreground uppercase tracking-wide mb-4">Learning Profile</h3>
+									<div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+										<form.Field name="jlptLevel">
+											{(field) => (
+												<div className="space-y-1.5">
+													<Label htmlFor="jlptLevel">JLPT Level</Label>
+													<select
+														id="jlptLevel"
+														className="w-full h-10 rounded-md border border-input bg-background px-3 py-2 text-sm"
+														value={field.state.value ?? "None"}
+														onChange={(e) =>
+															field.handleChange(e.target.value as JlptLevel)
+														}
+													>
+														<option value="None">None</option>
+														<option value="N5">N5</option>
+														<option value="N4">N4</option>
+														<option value="N3">N3</option>
+														<option value="N2">N2</option>
+														<option value="N1">N1</option>
+													</select>
+												</div>
+											)}
+										</form.Field>
+
+										<form.Field name="japaneseLearningDuration">
+											{(field) => (
+												<div className="space-y-1.5">
+													<Label htmlFor="duration">Duration (months)</Label>
+													<Input
+														id="duration"
+														type="number"
+														placeholder="e.g., 12"
+														value={field.state.value ?? ""}
+														onChange={(e) =>
+															field.handleChange(
+																e.target.value ? Number(e.target.value) : null,
+															)
+														}
+													/>
+												</div>
+											)}
+										</form.Field>
+
+										<form.Field name="previousJapaneseScore">
+											{(field) => (
+												<div className="space-y-1.5">
+													<Label htmlFor="prevScore">Previous Score (0-100)</Label>
+													<Input
+														id="prevScore"
+														type="number"
+														step="0.1"
+														placeholder="e.g., 75.5"
+														value={field.state.value ?? ""}
+														onChange={(e) =>
+															field.handleChange(
+																e.target.value ? Number(e.target.value) : null,
+															)
+														}
+													/>
+												</div>
+											)}
+										</form.Field>
+									</div>
+
+									<div className="mt-4">
+										<form.Field name="mediaConsumption">
+											{(field) => (
+												<div className="space-y-1.5">
+													<Label htmlFor="media">Media Consumption (hours/week)</Label>
+													<Input
+														id="media"
+														type="number"
+														step="0.1"
+														placeholder="e.g., 5.5"
+														value={field.state.value ?? ""}
+														onChange={(e) =>
+															field.handleChange(
+																e.target.value ? Number(e.target.value) : null,
+															)
+														}
+													/>
+												</div>
+											)}
+										</form.Field>
+									</div>
+
+									<div className="mt-4">
+										<form.Field name="motivation">
+											{(field) => (
+												<div className="space-y-1.5">
+													<Label htmlFor="motivation">Learning Motivation</Label>
+													<Textarea
+														id="motivation"
+														value={field.state.value ?? ""}
+														onChange={(e) => field.handleChange(e.target.value)}
+														placeholder="What motivates you to learn Japanese? Share your goals and aspirations..."
+														rows={4}
+														className="resize-none"
+													/>
+												</div>
+											)}
+										</form.Field>
+									</div>
+								</div>
+
+								{/* Action Buttons */}
+								<div className="flex gap-3 pt-4 border-t">
+									<Button asChild variant="outline">
+										<Link to="/dashboard" preload="intent">
+											Cancel
+										</Link>
+									</Button>
+									<div className="flex-1" />
+									<form.Subscribe
+										selector={(s) => [s.canSubmit, s.isSubmitting] as const}
+									>
+										{([canSubmit, isSubmitting]) => (
+											<Button
+												type="submit"
+												disabled={!canSubmit || isSubmitting}
+											>
+												{isSubmitting ? "Saving..." : "Save changes"}
+											</Button>
+										)}
+									</form.Subscribe>
+								</div>
+							</form>
+						</div>
 					</div>
 				</div>
 			</div>
