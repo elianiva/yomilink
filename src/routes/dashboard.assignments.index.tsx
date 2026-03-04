@@ -9,6 +9,7 @@ import {
 } from "lucide-react";
 
 import { Guard } from "@/components/auth/Guard";
+import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { useRpcQuery } from "@/hooks/use-rpc-query";
 import { formatDate } from "@/lib/date-utils";
@@ -25,28 +26,28 @@ export const Route = createFileRoute("/dashboard/assignments/")({
 function AssignmentsPage() {
 	const { data: assignments } = useRpcQuery(LearnerMapRpc.listStudentAssignments());
 
-	const getStatusInfo = (
+	const getStatusBadge = (
 		status: string,
 		isLate?: boolean,
-	): { label: string; color: string; icon: React.ElementType } => {
+	): { label: string; variant: "default" | "secondary" | "destructive" | "outline"; icon: React.ElementType } => {
 		if (status === "submitted") {
 			return {
 				label: "Submitted",
-				color: "text-green-600 bg-green-50",
+				variant: "secondary",
 				icon: CheckCircleIcon,
 			};
 		}
 		if (status === "draft") {
 			return {
 				label: isLate ? "In Progress (Late)" : "In Progress",
-				color: isLate ? "text-amber-600 bg-amber-50" : "text-blue-600 bg-blue-50",
+				variant: isLate ? "destructive" : "default",
 				icon: ClockIcon,
 			};
 		}
 		// not_started
 		return {
 			label: isLate ? "Not Started (Late)" : "Not Started",
-			color: isLate ? "text-red-600 bg-red-50" : "text-gray-600 bg-gray-50",
+			variant: isLate ? "destructive" : "outline",
 			icon: isLate ? AlertCircleIcon : ClockIcon,
 		};
 	};
@@ -64,58 +65,59 @@ function AssignmentsPage() {
 			</div>
 
 			{assignments && assignments.length > 0 ? (
-				<div className="grid gap-4 md:grid-cols-2">
+				<div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
 					{assignments.map((assignment) => {
-						const statusInfo = getStatusInfo(
+						const statusBadge = getStatusBadge(
 							assignment.status,
 							assignment.isLate ?? false,
 						);
-						const StatusIcon = statusInfo.icon;
+						const StatusIcon = statusBadge.icon;
 
 						return (
 							<div
 								key={assignment.id}
-								className="rounded-lg border bg-card p-4 space-y-3 hover:shadow-md transition-shadow"
+								className="rounded-lg border bg-card p-4 space-y-4"
 							>
-								<div className="flex items-start justify-between">
-									<div className="flex-1">
-										<h3 className="font-medium">{assignment.title}</h3>
+								<div className="flex items-start justify-between gap-3">
+									<div className="space-y-1 min-w-0">
+										<div className="flex items-center gap-2 flex-wrap">
+											<h3 className="font-medium truncate">{assignment.title}</h3>
+											<Badge variant={statusBadge.variant} className="gap-1">
+												<StatusIcon className="size-3" />
+												{statusBadge.label}
+											</Badge>
+										</div>
 										{assignment.description && (
-											<p className="text-sm text-muted-foreground line-clamp-2 mt-1">
+											<p className="text-sm text-muted-foreground line-clamp-2">
 												{assignment.description}
 											</p>
 										)}
 									</div>
-									<span
-										className={`flex items-center gap-1 px-2 py-1 rounded-full text-xs font-medium ${statusInfo.color}`}
-									>
-										<StatusIcon className="size-3" />
-										{statusInfo.label}
-									</span>
 								</div>
 
-								<div className="flex items-center justify-between">
-									<div className="flex items-center gap-4 text-sm text-muted-foreground">
-										{assignment.goalMapTitle && (
-											<span>{assignment.goalMapTitle}</span>
-										)}
-										{assignment.dueAt && (
-											<div className="flex items-center gap-1">
-												<CalendarIcon className="size-4" />
-												<span>Due {formatDate(assignment.dueAt)}</span>
-											</div>
-										)}
-										{assignment.attempt > 0 && (
-											<span>Attempt {assignment.attempt}</span>
-										)}
-									</div>
+								<div className="flex items-center gap-4 text-sm text-muted-foreground flex-wrap">
+									{assignment.goalMapTitle && (
+										<span>{assignment.goalMapTitle}</span>
+									)}
+									{assignment.dueAt && (
+										<div className="flex items-center gap-1">
+											<CalendarIcon className="size-4" />
+											<span>Due {formatDate(assignment.dueAt)}</span>
+										</div>
+									)}
+									{assignment.attempt > 0 && (
+										<span>Attempt {assignment.attempt}</span>
+									)}
+								</div>
 
-									{/* Related Forms for the Assignment */}
-									{(assignment.preTestFormId ||
-										assignment.postTestFormId ||
-										assignment.delayedPostTestFormId ||
-										assignment.tamFormId) && (
-										<div className="flex flex-wrap gap-2 pt-2">
+								{/* Related Forms for the Assignment */}
+								{(assignment.preTestFormId ||
+									assignment.postTestFormId ||
+									assignment.delayedPostTestFormId ||
+									assignment.tamFormId) && (
+									<div className="rounded-md border p-3 space-y-2">
+										<p className="text-sm font-medium">Available Forms</p>
+										<div className="flex flex-wrap gap-2">
 											{assignment.preTestFormId && (
 												<Button
 													asChild
@@ -188,25 +190,25 @@ function AssignmentsPage() {
 													</Button>
 												)}
 										</div>
-									)}
+									</div>
+								)}
 
-									<Button asChild size="sm" className="gap-1">
-										<a
-											href={
-												assignment.status === "submitted"
-													? `/dashboard/learner-map/${assignment.id}/result`
-													: `/dashboard/learner-map/${assignment.id}`
-											}
-										>
-											{assignment.status === "not_started"
-												? "Start"
-												: assignment.status === "submitted"
-													? "View Result"
-													: "Continue"}
-											<ChevronRightIcon className="size-4" />
-										</a>
-									</Button>
-								</div>
+								<Button asChild size="sm" className="gap-1 w-full">
+									<a
+										href={
+											assignment.status === "submitted"
+												? `/dashboard/learner-map/${assignment.id}/result`
+												: `/dashboard/learner-map/${assignment.id}`
+										}
+									>
+										{assignment.status === "not_started"
+											? "Start"
+											: assignment.status === "submitted"
+												? "View Result"
+												: "Continue"}
+										<ChevronRightIcon className="size-4" />
+									</a>
+								</Button>
 							</div>
 						);
 					})}
