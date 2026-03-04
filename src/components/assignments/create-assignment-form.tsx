@@ -369,13 +369,13 @@ export function CreateAssignmentForm({ onSuccess, onCancel }: CreateAssignmentFo
 					</div>
 					<FormSelect
 						id="tamSurvey"
-						label="TAM Survey"
+						label="Questionnaires (TAM/Surveys)"
 						value={state.procedure.tamFormId}
 						onChange={(v) =>
 							dispatch({ type: "SET_PROCEDURE", field: "tamFormId", value: v })
 						}
 						forms={tamForms}
-						placeholder="Select a TAM survey form"
+						placeholder="Select a questionnaire form (e.g., TAM)"
 					/>
 				</div>
 			)}

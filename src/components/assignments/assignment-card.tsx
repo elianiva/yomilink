@@ -149,7 +149,7 @@ export function AssignmentCard({ assignment, onDelete }: AssignmentCardProps) {
 						total={totalStudents}
 					/>
 					<FormProgress
-						label="TAM"
+						label="Questionnaires"
 						submitted={assignment.tamSubmitted}
 						total={totalStudents}
 					/>

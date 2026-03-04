@@ -66,37 +66,37 @@ const phases: PhaseConfig[] = [
 	{
 		id: "preTest",
 		label: "Pre-Test",
-		description: "Baseline knowledge assessment",
+		description: "Baseline knowledge assessment before the experiment",
 		icon: FlaskConicalIcon,
 	},
 	{
 		id: "stratifiedAssignment",
 		label: "Stratified Assignment",
-		description: "Assign students to groups based on pre-test",
+		description: "Assign students to experiment (concept map) or control (summarizing) groups based on pre-test scores",
 		icon: UsersIcon,
 	},
 	{
 		id: "mainAssignment",
-		label: "Main Assignment",
-		description: "Concept map building activity",
+		label: "Main Activity",
+		description: "Core learning activity: Concept Map building for experiment group, Summarizing task for control group",
 		icon: LockIcon,
 	},
 	{
 		id: "postTest",
 		label: "Post-Test",
-		description: "Immediate learning assessment",
+		description: "Immediate learning assessment after the main activity",
 		icon: CheckCircle2Icon,
 	},
 	{
 		id: "tamSurvey",
-		label: "TAM Survey",
-		description: "Technology acceptance questionnaire",
+		label: "Questionnaires",
+		description: "TAM (Technology Acceptance Model) and other survey questionnaires",
 		icon: UnlockIcon,
 	},
 	{
 		id: "delayedTest",
 		label: "Delayed Test",
-		description: "Retention assessment (7+ days)",
+		description: "Retention assessment to measure long-term learning (typically 7+ days after)",
 		icon: ClockIcon,
 	},
 ];
@@ -123,13 +123,22 @@ function PhaseStatus({
 					: { status: "pending", label: "Not Assigned" };
 			case "mainAssignment":
 				if (student.mainAssignment.status === "submitted") {
-					return { status: "completed", label: "Completed" };
+					return {
+						status: "completed",
+						label: student.groupCondition === "concept_map" ? "Concept Map Done" : "Summary Done",
+					};
 				}
 				if (student.mainAssignment.status === "draft") {
-					return { status: "in_progress", label: "In Progress" };
+					return {
+						status: "in_progress",
+						label: student.groupCondition === "concept_map" ? "Building Map..." : "Writing...",
+					};
 				}
 				return student.groupAssigned
-					? { status: "available", label: "Available" }
+					? {
+							status: "available",
+							label: student.groupCondition === "concept_map" ? "Build Concept Map" : "Write Summary",
+						}
 					: { status: "locked", label: "Locked" };
 			case "postTest":
 				return student.postTest.completed
@@ -516,8 +525,9 @@ export function ExperimentFlowDialog({
 						Experiment Flow: {assignmentTitle}
 					</DialogTitle>
 					<DialogDescription>
-						Manage the experimental procedure from pre-test through delayed
-						post-test
+						Manage the complete experimental procedure: Pre-test → Stratified
+						Assignment → Main Activity (Concept Map/Summarizing) → Post-test →
+						Questionnaires → Delayed Test
 					</DialogDescription>
 				</DialogHeader>
 
