@@ -8,6 +8,7 @@ import {
 	kits,
 } from "@/server/db/schema/app-schema";
 import { cohortMembers, cohorts, user } from "@/server/db/schema/auth-schema";
+import { GOAL_MAP_TO_MATERIAL } from "../data/materials.js";
 import { DEMO_STUDENTS } from "../data/users.js";
 
 export function seedDemoData(
@@ -95,12 +96,12 @@ export function seedDemoData(
 			{ concurrency: 10 },
 		);
 
-		yield* Effect.log("Creating kit for Japanese Daily Life...");
-		const dailyLifeGoalMapId = goalMapIdsByTitle["Japanese Daily Life"];
-		const dailyLifeData = goalMapDataByTitle["Japanese Daily Life"];
+		yield* Effect.log("Creating kit for Tanaka's Daily Life...");
+		const dailyLifeGoalMapId = goalMapIdsByTitle["Tanaka's Daily Life"];
+		const dailyLifeData = goalMapDataByTitle["Tanaka's Daily Life"];
 
 		if (!dailyLifeGoalMapId || !dailyLifeData) {
-			yield* Effect.log("Japanese Daily Life goal map not found!");
+			yield* Effect.log("Tanaka's Daily Life goal map not found!");
 			return null;
 		}
 
@@ -112,7 +113,7 @@ export function seedDemoData(
 
 		const dailyLifeTextId = dailyLifeGoalMap[0]?.textId || null;
 
-		const kitName = "Japanese Daily Life Kit";
+		const kitName = "Tanaka's Daily Life Kit";
 		const existingKit = yield* db
 			.select()
 			.from(kits)
@@ -141,7 +142,9 @@ export function seedDemoData(
 		}
 
 		yield* Effect.log("Creating assignment...");
-		const assignmentTitle = "Japanese Daily Life Quiz";
+		const assignmentTitle = "Tanaka's Daily Life Quiz";
+		const tanakaMaterial = GOAL_MAP_TO_MATERIAL["Tanaka's Daily Life"];
+		const readingMaterialContent = tanakaMaterial?.content || "";
 
 		const existingAssignment = yield* db
 			.select()
@@ -165,6 +168,7 @@ export function seedDemoData(
 					delayedPostTestFormId: formIds.delayedTestFormId,
 					tamFormId: formIds.tamFormId,
 					createdBy: teacherId,
+					readingMaterial: readingMaterialContent,
 				})
 				.where(eq(assignments.id, demoAssignmentId));
 			yield* Effect.log(`  Assignment "${assignmentTitle}" already exists, updated form links and owner`);
@@ -178,6 +182,7 @@ export function seedDemoData(
 				title: assignmentTitle,
 				description:
 					"Learn about daily routines in Japan by creating a concept map.",
+				readingMaterial: readingMaterialContent,
 				timeLimitMinutes: 30,
 				startDate: twoWeeksAgo,
 				dueAt: oneWeekAgo,

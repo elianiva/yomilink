@@ -44,7 +44,7 @@ export const LEARNER_MAP_CONFIGS: LearnerMapConfig[] = [
 			"e1", "e2", "e3", "e4", "e5", "e6", "e7", "e8", "e9", "e10",
 			"e11",
 		],
-		excessiveEdges: [{ source: "daily-life", target: "commute" }],
+		excessiveEdges: [{ source: "tanaka", target: "lunch" }],
 		expectedScore: 0.73,
 	},
 	{
@@ -53,7 +53,7 @@ export const LEARNER_MAP_CONFIGS: LearnerMapConfig[] = [
 		correctEdgeIds: [
 			"e1", "e2", "e3", "e4", "e5", "e6", "e7", "e8", "e9",
 		],
-		excessiveEdges: [{ source: "morning", target: "sleep" }],
+		excessiveEdges: [{ source: "weekday", target: "sleep" }],
 		expectedScore: 0.6,
 	},
 	{
@@ -81,7 +81,7 @@ export const LEARNER_MAP_CONFIGS: LearnerMapConfig[] = [
 		correctEdgeIds: [
 			"e1", "e2", "e3", "e4", "e5", "e6", "e7", "e8",
 		],
-		excessiveEdges: [{ source: "work", target: "sleep" }],
+		excessiveEdges: [{ source: "work", target: "study" }],
 		expectedScore: 0.53,
 	},
 	{
@@ -91,8 +91,8 @@ export const LEARNER_MAP_CONFIGS: LearnerMapConfig[] = [
 			"e1", "e2", "e3", "e4", "e5", "e6",
 		],
 		excessiveEdges: [
-			{ source: "daily-life", target: "sleep" },
-			{ source: "morning", target: "free-time" },
+			{ source: "tanaka", target: "sleep" },
+			{ source: "weekday", target: "sunday" },
 		],
 		expectedScore: 0.4,
 	},

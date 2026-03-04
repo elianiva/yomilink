@@ -49,7 +49,7 @@ const program = Effect.gen(function* () {
 	);
 
 	if (!demoData) {
-		yield* Effect.log("Failed to create demo data - Japanese Daily Life goal map not found");
+		yield* Effect.log("Failed to create demo data - Tanaka's Daily Life goal map not found");
 		return;
 	}
 

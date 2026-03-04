@@ -79,7 +79,7 @@ export const TOPICS = [
 	{
 		title: "Daily Life & Culture",
 		description: "Learn about daily routines and seasonal traditions in Japan",
-		goalMapTitles: ["Japanese Daily Life", "Japanese Seasons"],
+		goalMapTitles: ["Japanese Daily Life", "Japanese Seasons", "Tanaka's Daily Life"],
 	},
 	{
 		title: "Basic Grammar Patterns",
