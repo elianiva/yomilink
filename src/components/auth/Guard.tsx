@@ -1,6 +1,8 @@
-import { Navigate, useLocation } from "@tanstack/react-router";
+import { Link, Navigate, useLocation } from "@tanstack/react-router";
+import { ShieldAlert } from "lucide-react";
 import type { ReactNode } from "react";
 
+import { Button } from "@/components/ui/button";
 import { useRpcQuery } from "@/hooks/use-rpc-query";
 import { ProfileRpc } from "@/server/rpc/profile";
 
@@ -51,5 +53,23 @@ export function Guard({ roles, children, fallback, redirectTo = "/dashboard" }: 
 		return <Navigate to={redirectTo} />;
 	}
 
-	return <div className="p-4 text-sm text-muted-foreground">Access restricted.</div>;
+	// Full-page access denied UI when already at redirect target
+	return (
+		<div className="flex flex-col items-center justify-center min-h-[60vh] p-6">
+			<div className="rounded-2xl border border-border/60 bg-white shadow-sm p-8 max-w-md w-full text-center">
+				<div className="mx-auto h-16 w-16 rounded-full bg-destructive/10 flex items-center justify-center mb-4">
+					<ShieldAlert className="h-8 w-8 text-destructive" />
+				</div>
+				<h1 className="text-xl font-semibold mb-2">Access Restricted</h1>
+				<p className="text-sm text-muted-foreground mb-6">
+					You don&apos;t have permission to access this page.
+				</p>
+				<Button asChild variant="outline">
+					<Link to="/dashboard" preload="intent">
+						Go to Dashboard
+					</Link>
+				</Button>
+			</div>
+		</div>
+	);
 }

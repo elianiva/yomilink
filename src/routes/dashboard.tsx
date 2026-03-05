@@ -28,23 +28,20 @@ export const Route = createFileRoute("/dashboard")({
 
 			// Check if result is an error response
 			if (!result.success) {
-				// Error checking registration status
-				// TODO: figure out what to do here, for now just redirect
+				// Error checking registration status - allow through to avoid loop
+				// The form will be accessible, worst case they see an error
+				return { me };
+			}
+			// If there's a registration form and it's not completed, redirect to it
+			if (
+				result.data.hasRegistrationForm &&
+				!result.data.isCompleted &&
+				result.data.formId
+			) {
 				throw redirect({
-					to: "/dashboard",
+					to: "/dashboard/forms/take",
+					search: { formId: result.data.formId },
 				});
-			} else {
-				// If there's a registration form and it's not completed, redirect to it
-				if (
-					result.data.hasRegistrationForm &&
-					!result.data.isCompleted &&
-					result.data.formId
-				) {
-					throw redirect({
-						to: "/dashboard/forms/take",
-						search: { formId: result.data.formId },
-					});
-				}
 			}
 		}
 

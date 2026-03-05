@@ -1,7 +1,8 @@
-import { Link, createFileRoute, redirect } from "@tanstack/react-router";
+import { Link, createFileRoute } from "@tanstack/react-router";
 import { Plus } from "lucide-react";
 import { useMemo, useState } from "react";
 
+import { Guard } from "@/components/auth/Guard";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
 import { NewTopicDialog } from "@/features/analyzer/components/new-topic-dialog";
@@ -13,13 +14,11 @@ import { GoalMapRpc } from "@/server/rpc/goal-map";
 import { TopicRpc } from "@/server/rpc/topic";
 
 export const Route = createFileRoute("/dashboard/")({
-	beforeLoad: async ({ context }) => {
-		// Students should not access the concept maps page
-		if (context.me?.data?.role === "student") {
-			throw redirect({ to: "/dashboard/assignments" });
-		}
-	},
-	component: DashboardHome,
+	component: () => (
+		<Guard roles={["teacher", "admin"]} redirectTo="/dashboard/assignments">
+			<DashboardHome />
+		</Guard>
+	),
 });
 
 function DashboardHome() {
