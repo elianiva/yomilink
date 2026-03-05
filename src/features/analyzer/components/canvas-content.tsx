@@ -39,6 +39,8 @@ export function CanvasContent({
 		showMissingEdges: boolean;
 		showExcessiveEdges: boolean;
 		showNeutralEdges: boolean;
+		consolidatedView: boolean;
+		showNamesOnHover: boolean;
 	};
 }) {
 	const mappedLearnerMaps = useMemo(

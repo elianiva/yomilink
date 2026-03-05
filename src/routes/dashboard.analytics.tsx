@@ -38,6 +38,8 @@ function AnalyticsPage() {
 		showMissingEdges: true,
 		showExcessiveEdges: true,
 		showNeutralEdges: true,
+		consolidatedView: true,
+		showNamesOnHover: false,
 	});
 
 	const handleVisibilityChange = useCallback((updates: Partial<typeof visibility>) => {

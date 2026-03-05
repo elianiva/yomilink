@@ -15,6 +15,8 @@ interface VisibilityState {
 	showMissingEdges: boolean;
 	showExcessiveEdges: boolean;
 	showNeutralEdges: boolean;
+	consolidatedView: boolean;
+	showNamesOnHover: boolean;
 }
 
 interface AnalyticsCanvasWrapperProps {

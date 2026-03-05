@@ -43,6 +43,7 @@ export function FloatingEdge({ id, source, target, markerEnd, style, data }: Edg
 		.filter(Boolean)
 		.filter((name, index, arr) => arr.indexOf(name) === index)
 		.join("\n");
+	const showNamesOnHover = Boolean(data?.showNamesOnHover);
 
 	const [straightPath] = getStraightPath({
 		sourceX: sx,
@@ -75,7 +76,7 @@ export function FloatingEdge({ id, source, target, markerEnd, style, data }: Edg
 					y={badgePoint.y - 10}
 					className="overflow-visible"
 				>
-					{createdBy ? (
+					{createdBy && showNamesOnHover ? (
 						<Tooltip handle={tooltipHandle}>
 							<div className="relative inline-flex items-center justify-center pointer-events-auto">
 								<TooltipTrigger

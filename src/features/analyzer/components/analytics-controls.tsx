@@ -19,6 +19,8 @@ interface VisibilityState {
 	showMissingEdges: boolean;
 	showExcessiveEdges: boolean;
 	showNeutralEdges: boolean;
+	consolidatedView: boolean;
+	showNamesOnHover: boolean;
 }
 
 interface AnalyticsControlsProps {
@@ -84,6 +86,26 @@ export function AnalyticsControls({ visibility, onChange }: AnalyticsControlsPro
 					/>
 					<LegendDot color="var(--edge-neutral)" />
 					<span>Neutral</span>
+				</div>
+			</div>
+
+			<div className="flex items-center justify-between pt-2 border-t-[0.5px]">
+				<SectionTitle>Display Options</SectionTitle>
+			</div>
+			<div className="flex items-center gap-4 flex-wrap">
+				<div className="flex items-center gap-2 text-xs">
+					<Switch
+						checked={visibility.consolidatedView}
+						onCheckedChange={(v) => onChange({ consolidatedView: v })}
+					/>
+					<span>Consolidated View</span>
+				</div>
+				<div className="flex items-center gap-2 text-xs">
+					<Switch
+						checked={visibility.showNamesOnHover}
+						onCheckedChange={(v) => onChange({ showNamesOnHover: v })}
+					/>
+					<span>Show Names on Hover</span>
 				</div>
 			</div>
 		</div>
