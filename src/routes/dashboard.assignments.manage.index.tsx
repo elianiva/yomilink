@@ -1,12 +1,23 @@
 import { useQueryClient } from "@tanstack/react-query";
-import { createFileRoute, Link } from "@tanstack/react-router";
-import { EyeIcon, MapIcon } from "lucide-react";
+import { createFileRoute, useNavigate } from "@tanstack/react-router";
+import { ClipboardListIcon, Loader2 } from "lucide-react";
+import { useState } from "react";
 
-import { AssignmentCard } from "@/components/assignments/assignment-card";
 import { CreateAssignmentDialog } from "@/components/assignments/create-assignment-dialog";
 import { Guard } from "@/components/auth/Guard";
 import { Button } from "@/components/ui/button";
-import { Skeleton } from "@/components/ui/skeleton";
+import {
+	Dialog,
+	DialogContent,
+	DialogDescription,
+	DialogFooter,
+	DialogHeader,
+	DialogTitle,
+} from "@/components/ui/dialog";
+import {
+	AssignmentList,
+	type AssignmentListItem,
+} from "@/features/assignment/components/assignment-list";
 import { useRpcMutation, useRpcQuery } from "@/hooks/use-rpc-query";
 import { AssignmentRpc } from "@/server/rpc/assignment";
 
@@ -19,74 +30,125 @@ export const Route = createFileRoute("/dashboard/assignments/manage/")({
 });
 
 function ManageAssignmentsPage() {
+	const navigate = useNavigate();
 	const queryClient = useQueryClient();
+	const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
+	const [assignmentToDelete, setAssignmentToDelete] = useState<string | null>(null);
 
-	const { data: assignments, isLoading } = useRpcQuery(AssignmentRpc.listTeacherAssignments());
+	const { data, isLoading } = useRpcQuery(AssignmentRpc.listTeacherAssignments());
+
+	const assignments: AssignmentListItem[] = Array.isArray(data)
+		? data.map((a) => ({
+				id: a.id,
+				title: a.title,
+				description: a.description,
+				goalMapTitle: a.goalMapTitle,
+				startDate: a.startDate,
+				dueAt: a.dueAt,
+				createdAt: a.createdAt,
+				totalStudents: a.totalStudents ?? 0,
+				submittedStudents: a.submittedStudents ?? 0,
+				allSubmitted: a.allSubmitted ?? false,
+				preTestFormId: a.preTestFormId,
+				postTestFormId: a.postTestFormId,
+				delayedPostTestFormId: a.delayedPostTestFormId,
+				tamFormId: a.tamFormId,
+				preTestSubmitted: a.preTestSubmitted ?? null,
+				postTestSubmitted: a.postTestSubmitted ?? null,
+				delayedPostTestSubmitted: a.delayedPostTestSubmitted ?? null,
+				tamSubmitted: a.tamSubmitted ?? null,
+				assignedCohortCount: a.assignedCohorts?.length ?? 0,
+				assignedDirectUserCount: a.assignedUsers?.length ?? 0,
+			}))
+		: [];
 
 	const deleteMutation = useRpcMutation(AssignmentRpc.deleteAssignment(), {
 		operation: "delete assignment",
 		showSuccess: true,
 		successMessage: "Assignment deleted successfully",
-	})
+		onSuccess: () => {
+			setDeleteDialogOpen(false);
+			setAssignmentToDelete(null);
+			queryClient.invalidateQueries({ queryKey: ["assignments"] });
+		},
+	});
 
 	const handleDelete = (id: string) => {
-		if (confirm("Are you sure you want to delete this assignment?")) {
-			deleteMutation.mutate(
-				{ id },
-				{
-					onSuccess: () => {
-						queryClient.invalidateQueries({ queryKey: ["assignments"] });
-					},
-				},
-			)
+		setAssignmentToDelete(id);
+		setDeleteDialogOpen(true);
+	};
+
+	const confirmDelete = () => {
+		if (assignmentToDelete) {
+			deleteMutation.mutate({ id: assignmentToDelete });
 		}
-	}
+	};
 
 	const handleCreateSuccess = () => {
 		queryClient.invalidateQueries({ queryKey: ["assignments"] });
-	}
+	};
+
+	const handleViewDetails = (assignment: AssignmentListItem) => {
+		navigate({
+			to: "/dashboard/assignments/manage/$assignmentId",
+			params: { assignmentId: assignment.id },
+		});
+	};
 
 	return (
 		<div className="space-y-6">
 			<div className="flex items-center justify-between">
-				<div>
-					<h1 className="text-2xl font-semibold">Manage Assignments</h1>
-					<p className="text-muted-foreground">
-						Create and manage assignments for your students
-					</p>
+				<div className="flex items-center gap-3">
+					<ClipboardListIcon className="size-6 text-primary" />
+					<div>
+						<h1 className="text-2xl font-semibold">Manage Assignments</h1>
+						<p className="text-muted-foreground">
+							Create and manage assignments for your students
+						</p>
+					</div>
 				</div>
 				<CreateAssignmentDialog onSuccess={handleCreateSuccess} />
 			</div>
 
 			{isLoading ? (
-				<Skeleton className="h-full w-full" />
-			) : assignments && assignments.length > 0 ? (
-				<div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
-					{assignments.map((assignment) => (
-						<div key={assignment.id} className="space-y-3">
-							<AssignmentCard assignment={assignment} onDelete={handleDelete} />
-							<Button variant="outline" size="sm" className="w-full gap-2" asChild>
-								<Link
-									to="/dashboard/assignments/manage/$assignmentId"
-									params={{ assignmentId: assignment.id }}
-								>
-									<EyeIcon className="size-4" />
-									View Details
-								</Link>
-							</Button>
-						</div>
-					))}
+				<div className="flex items-center justify-center py-12">
+					<Loader2 className="h-8 w-8 animate-spin text-muted-foreground" />
 				</div>
 			) : (
-				<div className="text-center py-12 border rounded-lg bg-card">
-					<MapIcon className="size-12 mx-auto text-muted-foreground mb-4" />
-					<h3 className="font-medium mb-1">No assignments yet</h3>
-					<p className="text-sm text-muted-foreground mb-4">
-						Create your first assignment to get started
-					</p>
-					<CreateAssignmentDialog onSuccess={handleCreateSuccess} />
-				</div>
+				<AssignmentList
+					assignments={assignments}
+					viewMode="teacher"
+					onViewDetails={handleViewDetails}
+					onDelete={handleDelete}
+					onClick={handleViewDetails}
+				/>
 			)}
+
+			<Dialog open={deleteDialogOpen} onOpenChange={setDeleteDialogOpen}>
+				<DialogContent>
+					<DialogHeader>
+						<DialogTitle>Delete Assignment</DialogTitle>
+						<DialogDescription>
+							Are you sure you want to delete this assignment? This action cannot be undone.
+						</DialogDescription>
+					</DialogHeader>
+					<DialogFooter>
+						<Button variant="outline" onClick={() => setDeleteDialogOpen(false)}>
+							Cancel
+						</Button>
+						<Button
+							variant="destructive"
+							onClick={confirmDelete}
+							disabled={deleteMutation.isPending}
+						>
+							{deleteMutation.isPending && (
+								<Loader2 className="mr-2 h-4 w-4 animate-spin" />
+							)}
+							Delete
+						</Button>
+					</DialogFooter>
+				</DialogContent>
+			</Dialog>
 		</div>
-	)
+	);
 }
