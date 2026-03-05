@@ -30,6 +30,7 @@ export const SignUpInput = Schema.Struct({
 	previousJapaneseScore: Schema.NullOr(Schema.Number),
 	mediaConsumption: Schema.NullOr(Schema.Number),
 	motivation: Schema.NullOr(Schema.String),
+	consentGiven: Schema.Boolean,
 });
 
 export type SignUpInput = typeof SignUpInput.Type;
@@ -78,6 +79,7 @@ export const signUpRpc = createServerFn()
 							mediaConsumption: data.mediaConsumption ?? undefined,
 							motivation: data.motivation ?? undefined,
 							studyGroup: data.studyGroup,
+							consentGiven: data.consentGiven,
 						},
 					}),
 				catch: (e) => new SignUpFailedError({ message: getFriendlySignUpError(e) }),

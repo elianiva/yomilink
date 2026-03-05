@@ -71,6 +71,10 @@ export class Auth extends Effect.Service<Auth>()("Auth", {
 						type: "string",
 						required: false,
 					},
+					consentGiven: {
+						type: "boolean",
+						required: false,
+					},
 				},
 			},
 			logger: { disabled: false },
@@ -107,6 +111,7 @@ export const AuthUser = Schema.Struct({
 	studyGroup: Schema.optionalWith(Schema.Union(Schema.Literal("experiment", "control")), {
 		nullable: true,
 	}),
+	consentGiven: Schema.optionalWith(Schema.Boolean, { nullable: true }),
 });
 
 export function getServerUser(headers: Headers) {

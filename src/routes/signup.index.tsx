@@ -8,6 +8,7 @@ import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { AcademicStep } from "@/features/auth/components/academic-step";
 import { AccountStep } from "@/features/auth/components/account-step";
+import { ConsentStep } from "@/features/auth/components/consent-step";
 import { PersonalStep } from "@/features/auth/components/personal-step";
 import { stepVariants, steps, SignUpSchema } from "@/features/auth/types";
 import { useRpcMutation, useRpcQuery } from "@/hooks/use-rpc-query";
@@ -56,6 +57,7 @@ function SignUpPage() {
 			previousJapaneseScore: null as unknown as number | null,
 			mediaConsumption: null as unknown as number | null,
 			motivation: null as unknown as string | null,
+			consentGiven: false,
 		},
 		validators: {
 			onChange: Schema.standardSchemaV1(SignUpSchema),
@@ -75,6 +77,7 @@ function SignUpPage() {
 				previousJapaneseScore: value.previousJapaneseScore,
 				mediaConsumption: value.mediaConsumption,
 				motivation: value.motivation,
+				consentGiven: value.consentGiven,
 			});
 		},
 	});
@@ -99,6 +102,7 @@ function SignUpPage() {
 		<AccountStep key="account" form={form} />,
 		<PersonalStep key="personal" form={form} />,
 		<AcademicStep key="academic" form={form} cohorts={cohorts} />,
+		<ConsentStep key="consent" form={form} />,
 	];
 
 	return (
@@ -261,6 +265,11 @@ function SignUpPage() {
 												errors:
 													state.fieldMeta.cohortId?.errors.length ?? 0,
 											},
+											step3: {
+												filled: state.values.consentGiven === true,
+												errors:
+													state.fieldMeta.consentGiven?.errors.length ?? 0,
+											},
 										};
 									}}
 								>
@@ -277,6 +286,9 @@ function SignUpPage() {
 										} else if (currentStep === 2) {
 											canProceed =
 												state.step2.filled && state.step2.errors === 0;
+										} else if (currentStep === 3) {
+											canProceed =
+												state.step3.filled && state.step3.errors === 0;
 										}
 
 										return (

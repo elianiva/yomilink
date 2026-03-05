@@ -30,6 +30,7 @@ export const user = sqliteTable("user", {
 	studyGroup: text("study_group", {
 		enum: ["experiment", "control"],
 	}),
+	consentGiven: integer("consent_given", { mode: "boolean" }).default(false),
 });
 
 export const session = sqliteTable(

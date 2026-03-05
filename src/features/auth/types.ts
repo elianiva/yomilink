@@ -1,5 +1,5 @@
 import { Schema } from "effect";
-import { UserIcon, BookOpenIcon, SchoolIcon } from "lucide-react";
+import { UserIcon, BookOpenIcon, SchoolIcon, CheckCircleIcon } from "lucide-react";
 
 import { JlptLevelSchema, StudyGroupSchema } from "@/server/rpc/auth";
 
@@ -37,14 +37,18 @@ export const SignUpSchema = Schema.Struct({
 	studyGroup: StudyGroupSchema,
 	mediaConsumption: Schema.NullOr(Schema.Number),
 	motivation: Schema.NullOr(Schema.String),
+	consentGiven: Schema.Boolean,
 }).pipe(
 	Schema.filter((data) => data.password === data.confirmPassword, {
 		message: () => "Passwords do not match",
 	}),
+	Schema.filter((data) => data.consentGiven === true, {
+		message: () => "You must give consent to participate in this research",
+	}),
 );
 
 export type Step = {
-	id: "account" | "personal" | "academic";
+	id: "account" | "personal" | "academic" | "consent";
 	title: string;
 	description: string;
 	icon: typeof UserIcon;
@@ -68,6 +72,12 @@ export const steps: Step[] = [
 		title: "Academic Information",
 		description: "Your academic details and cohort assignment",
 		icon: SchoolIcon,
+	},
+	{
+		id: "consent",
+		title: "Consent",
+		description: "Research participation agreement",
+		icon: CheckCircleIcon,
 	},
 ];
 
