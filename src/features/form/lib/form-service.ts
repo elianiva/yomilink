@@ -402,6 +402,7 @@ export const getFormResponses = Effect.fn("getFormResponses")(function* (
 					id: user.id,
 					name: user.name,
 					email: user.email,
+					previousJapaneseScore: user.previousJapaneseScore,
 				},
 			})
 			.from(formResponses)
@@ -799,6 +800,7 @@ export const ResponseUserSchema = Schema.Struct({
 	id: Schema.String,
 	name: Schema.NullOr(Schema.String),
 	email: Schema.String,
+	previousJapaneseScore: Schema.NullOr(Schema.Number),
 });
 
 export const FormResponseOutputSchema = Schema.Struct({

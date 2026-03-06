@@ -53,7 +53,7 @@ export function StratifiedGrouping({ responses, questions, formId }: StratifiedG
 		showSuccess: true,
 	});
 
-	const calculateScore = (response: FormResponse) => {
+	const calculatePreTestScore = (response: FormResponse) => {
 		let score = 0;
 		for (const question of questions) {
 			if (question.type === "mcq") {
@@ -77,6 +77,19 @@ export function StratifiedGrouping({ responses, questions, formId }: StratifiedG
 		return score;
 	};
 
+	const calculateCombinedScore = (response: FormResponse) => {
+		const preTestScore = calculatePreTestScore(response);
+		const previousScore = response.user.previousJapaneseScore;
+
+		// If no previous score, use pre-test score only
+		if (previousScore === null) {
+			return preTestScore;
+		}
+
+		// Average the two scores
+		return (preTestScore + previousScore) / 2;
+	};
+
 	const assignGroups = () => {
 		if (responses.length === 0) return;
 
@@ -90,9 +103,9 @@ export function StratifiedGrouping({ responses, questions, formId }: StratifiedG
 			leftover = students.splice(randomIndex, 1)[0];
 		}
 
-		// Calculate scores and sort
+		// Calculate combined scores (average of pre-test and previous Japanese score) and sort
 		const scoredStudents = students
-			.map((s) => ({ student: s, score: calculateScore(s) }))
+			.map((s) => ({ student: s, score: calculateCombinedScore(s) }))
 			.sort((a, b) => a.score - b.score);
 		const lowHalf = scoredStudents.slice(0, halfway);
 		const highHalf = scoredStudents.slice(halfway);
@@ -155,7 +168,8 @@ export function StratifiedGrouping({ responses, questions, formId }: StratifiedG
 				<div>
 					<h2 className="text-lg font-semibold">Stratified Grouping</h2>
 					<p className="text-sm text-muted-foreground">
-						Assign students into pairs based on their pre-test scores.
+						Assign students into pairs based on combined scores (average of pre-test
+						and previous Japanese score).
 					</p>
 				</div>
 				<Button onClick={assignGroups} className="gap-2">
@@ -184,7 +198,9 @@ export function StratifiedGrouping({ responses, questions, formId }: StratifiedG
 							"Group",
 							"Student Name",
 							"Email",
-							"Score",
+							"Pre-Test Score",
+							"Previous Japanese Score",
+							"Combined Score",
 							"Condition",
 						];
 						const exportRows: string[][] = [];
@@ -194,7 +210,9 @@ export function StratifiedGrouping({ responses, questions, formId }: StratifiedG
 									`Group ${g.id}`,
 									m.user.name || "",
 									m.user.email,
-									calculateScore(m).toString(),
+									calculatePreTestScore(m).toString(),
+									m.user.previousJapaneseScore?.toString() ?? "N/A",
+									calculateCombinedScore(m).toFixed(2),
 									g.condition === "concept_map" ? "Concept Map" : "Summarizing",
 								]);
 							});
@@ -204,7 +222,9 @@ export function StratifiedGrouping({ responses, questions, formId }: StratifiedG
 								"Random",
 								randomStudent.student.user.name || "",
 								randomStudent.student.user.email,
-								calculateScore(randomStudent.student).toString(),
+								calculatePreTestScore(randomStudent.student).toString(),
+								randomStudent.student.user.previousJapaneseScore?.toString() ?? "N/A",
+								calculateCombinedScore(randomStudent.student).toFixed(2),
 								randomStudent.condition === "concept_map"
 									? "Concept Map"
 									: "Summarizing",
@@ -272,9 +292,13 @@ export function StratifiedGrouping({ responses, questions, formId }: StratifiedG
 								<TableRow>
 									<TableHead className="w-24">Group</TableHead>
 									<TableHead>Student 1</TableHead>
-									<TableHead>Score 1</TableHead>
+									<TableHead className="text-right">Pre</TableHead>
+									<TableHead className="text-right">Prev</TableHead>
+									<TableHead className="text-right">Comb</TableHead>
 									<TableHead>Student 2</TableHead>
-									<TableHead>Score 2</TableHead>
+									<TableHead className="text-right">Pre</TableHead>
+									<TableHead className="text-right">Prev</TableHead>
+									<TableHead className="text-right">Comb</TableHead>
 									<TableHead>Condition</TableHead>
 								</TableRow>
 							</TableHeader>
@@ -288,12 +312,28 @@ export function StratifiedGrouping({ responses, questions, formId }: StratifiedG
 											{group.members[0].user.name ||
 												group.members[0].user.email}
 										</TableCell>
-										<TableCell>{calculateScore(group.members[0])}</TableCell>
+										<TableCell className="text-right">
+											{calculatePreTestScore(group.members[0])}
+										</TableCell>
+										<TableCell className="text-right">
+											{group.members[0].user.previousJapaneseScore ?? "—"}
+										</TableCell>
+										<TableCell className="text-right font-medium">
+											{calculateCombinedScore(group.members[0]).toFixed(1)}
+										</TableCell>
 										<TableCell>
 											{group.members[1].user.name ||
 												group.members[1].user.email}
 										</TableCell>
-										<TableCell>{calculateScore(group.members[1])}</TableCell>
+										<TableCell className="text-right">
+											{calculatePreTestScore(group.members[1])}
+										</TableCell>
+										<TableCell className="text-right">
+											{group.members[1].user.previousJapaneseScore ?? "—"}
+										</TableCell>
+										<TableCell className="text-right font-medium">
+											{calculateCombinedScore(group.members[1]).toFixed(1)}
+										</TableCell>
 										<TableCell>
 											<span
 												className={`inline-flex items-center px-2 py-1 rounded-full text-xs font-medium ${
@@ -312,10 +352,18 @@ export function StratifiedGrouping({ responses, questions, formId }: StratifiedG
 								{randomStudent && (
 									<TableRow className="bg-muted/50">
 										<TableCell className="font-medium italic">Random</TableCell>
-										<TableCell colSpan={3}>
+										<TableCell colSpan={4}>
 											{randomStudent.student.user.name ||
-												randomStudent.student.user.email}{" "}
-											(Score: {calculateScore(randomStudent.student)})
+												randomStudent.student.user.email}
+										</TableCell>
+										<TableCell className="text-right">
+											{calculatePreTestScore(randomStudent.student)}
+										</TableCell>
+										<TableCell className="text-right">
+											{randomStudent.student.user.previousJapaneseScore ?? "—"}
+										</TableCell>
+										<TableCell className="text-right font-medium">
+											{calculateCombinedScore(randomStudent.student).toFixed(1)}
 										</TableCell>
 										<TableCell>
 											<span
@@ -324,11 +372,11 @@ export function StratifiedGrouping({ responses, questions, formId }: StratifiedG
 														? "bg-blue-100 text-blue-800 dark:bg-blue-900/30 dark:text-blue-300"
 														: "bg-orange-100 text-orange-800 dark:bg-orange-900/30 dark:text-orange-300"
 												}`}
-											>
-												{randomStudent.condition === "concept_map"
-													? "Concept Map"
-													: "Summarizing"}
-											</span>
+												>
+													{randomStudent.condition === "concept_map"
+														? "Concept Map"
+														: "Summarizing"}
+												</span>
 										</TableCell>
 									</TableRow>
 								)}
