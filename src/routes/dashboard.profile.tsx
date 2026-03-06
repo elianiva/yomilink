@@ -73,13 +73,18 @@ function ProfilePage() {
 						<div className="rounded-2xl border border-border/60 bg-white shadow-sm p-6">
 							<div className="flex items-center gap-4">
 								<Avatar className="h-16 w-16 rounded-2xl ring-4 ring-primary/10">
-									<AvatarImage src={me.image ?? ""} alt={me.name ?? me.email ?? "User"} />
+									<AvatarImage
+										src={me.image ?? ""}
+										alt={me.name ?? me.email ?? "User"}
+									/>
 									<AvatarFallback className="rounded-2xl bg-primary/90 text-primary-foreground text-xl font-bold">
 										{((me.name ?? me.email ?? "U")[0] ?? "U").toUpperCase()}
 									</AvatarFallback>
 								</Avatar>
 								<div className="min-w-0">
-									<h1 className="text-lg font-semibold truncate">{me.name ?? "User"}</h1>
+									<h1 className="text-lg font-semibold truncate">
+										{me.name ?? "User"}
+									</h1>
 									<p className="text-sm text-muted-foreground truncate">
 										{me.email ?? ""}
 									</p>
@@ -88,16 +93,22 @@ function ProfilePage() {
 
 							<div className="mt-6 pt-6 border-t space-y-4">
 								<div>
-									<Label className="text-xs text-muted-foreground uppercase tracking-wide">Email</Label>
+									<Label className="text-xs text-muted-foreground uppercase tracking-wide">
+										Email
+									</Label>
 									<p className="text-sm font-medium">{me.email}</p>
 								</div>
 								<div>
-									<Label className="text-xs text-muted-foreground uppercase tracking-wide">Role</Label>
+									<Label className="text-xs text-muted-foreground uppercase tracking-wide">
+										Role
+									</Label>
 									<p className="text-sm font-medium capitalize">{me.role}</p>
 								</div>
 								{me.jlptLevel && me.jlptLevel !== "None" && (
 									<div>
-										<Label className="text-xs text-muted-foreground uppercase tracking-wide">JLPT Level</Label>
+										<Label className="text-xs text-muted-foreground uppercase tracking-wide">
+											JLPT Level
+										</Label>
 										<p className="text-sm font-medium">{me.jlptLevel}</p>
 									</div>
 								)}
@@ -106,7 +117,11 @@ function ProfilePage() {
 
 						{/* Sign Out Card */}
 						<div className="rounded-2xl border border-border/60 bg-white shadow-sm p-6">
-							<Button variant="destructive" className="w-full" onClick={handleSignOut}>
+							<Button
+								variant="destructive"
+								className="w-full"
+								onClick={handleSignOut}
+							>
 								Sign out
 							</Button>
 						</div>
@@ -124,7 +139,9 @@ function ProfilePage() {
 						<div className="rounded-2xl border border-border/60 bg-white shadow-sm">
 							<div className="p-6 border-b">
 								<h2 className="text-lg font-semibold">Edit Profile</h2>
-								<p className="text-sm text-muted-foreground">Update your personal information and learning preferences</p>
+								<p className="text-sm text-muted-foreground">
+									Update your personal information and learning preferences
+								</p>
 							</div>
 
 							<form
@@ -137,7 +154,9 @@ function ProfilePage() {
 							>
 								{/* Personal Information Section */}
 								<div>
-									<h3 className="text-sm font-medium text-muted-foreground uppercase tracking-wide mb-4">Personal Information</h3>
+									<h3 className="text-sm font-medium text-muted-foreground uppercase tracking-wide mb-4">
+										Personal Information
+									</h3>
 									<div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
 										<form.Field name="name">
 											{(field) => (
@@ -147,7 +166,9 @@ function ProfilePage() {
 														id="name"
 														placeholder="Your name"
 														value={field.state.value}
-														onChange={(e) => field.handleChange(e.target.value)}
+														onChange={(e) =>
+															field.handleChange(e.target.value)
+														}
 														onBlur={field.handleBlur}
 														autoComplete="name"
 													/>
@@ -166,7 +187,9 @@ function ProfilePage() {
 														value={field.state.value ?? ""}
 														onChange={(e) =>
 															field.handleChange(
-																e.target.value ? Number(e.target.value) : null,
+																e.target.value
+																	? Number(e.target.value)
+																	: null,
 															)
 														}
 													/>
@@ -178,7 +201,9 @@ function ProfilePage() {
 
 								{/* Learning Profile Section */}
 								<div className="pt-4 border-t">
-									<h3 className="text-sm font-medium text-muted-foreground uppercase tracking-wide mb-4">Learning Profile</h3>
+									<h3 className="text-sm font-medium text-muted-foreground uppercase tracking-wide mb-4">
+										Learning Profile
+									</h3>
 									<div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
 										<form.Field name="jlptLevel">
 											{(field) => (
@@ -189,7 +214,9 @@ function ProfilePage() {
 														className="w-full h-10 rounded-md border border-input bg-background px-3 py-2 text-sm"
 														value={field.state.value ?? "None"}
 														onChange={(e) =>
-															field.handleChange(e.target.value as JlptLevel)
+															field.handleChange(
+																e.target.value as JlptLevel,
+															)
 														}
 													>
 														<option value="None">None</option>
@@ -206,7 +233,9 @@ function ProfilePage() {
 										<form.Field name="japaneseLearningDuration">
 											{(field) => (
 												<div className="space-y-1.5">
-													<Label htmlFor="duration">Duration (months)</Label>
+													<Label htmlFor="duration">
+														Duration (months)
+													</Label>
 													<Input
 														id="duration"
 														type="number"
@@ -214,7 +243,9 @@ function ProfilePage() {
 														value={field.state.value ?? ""}
 														onChange={(e) =>
 															field.handleChange(
-																e.target.value ? Number(e.target.value) : null,
+																e.target.value
+																	? Number(e.target.value)
+																	: null,
 															)
 														}
 													/>
@@ -225,7 +256,9 @@ function ProfilePage() {
 										<form.Field name="previousJapaneseScore">
 											{(field) => (
 												<div className="space-y-1.5">
-													<Label htmlFor="prevScore">Previous Score (0-100)</Label>
+													<Label htmlFor="prevScore">
+														Previous Score (0-100)
+													</Label>
 													<Input
 														id="prevScore"
 														type="number"
@@ -234,7 +267,9 @@ function ProfilePage() {
 														value={field.state.value ?? ""}
 														onChange={(e) =>
 															field.handleChange(
-																e.target.value ? Number(e.target.value) : null,
+																e.target.value
+																	? Number(e.target.value)
+																	: null,
 															)
 														}
 													/>
@@ -247,7 +282,9 @@ function ProfilePage() {
 										<form.Field name="mediaConsumption">
 											{(field) => (
 												<div className="space-y-1.5">
-													<Label htmlFor="media">Media Consumption (hours/week)</Label>
+													<Label htmlFor="media">
+														Media Consumption (hours/week)
+													</Label>
 													<Input
 														id="media"
 														type="number"
@@ -256,7 +293,9 @@ function ProfilePage() {
 														value={field.state.value ?? ""}
 														onChange={(e) =>
 															field.handleChange(
-																e.target.value ? Number(e.target.value) : null,
+																e.target.value
+																	? Number(e.target.value)
+																	: null,
 															)
 														}
 													/>
@@ -269,11 +308,15 @@ function ProfilePage() {
 										<form.Field name="motivation">
 											{(field) => (
 												<div className="space-y-1.5">
-													<Label htmlFor="motivation">Learning Motivation</Label>
+													<Label htmlFor="motivation">
+														Learning Motivation
+													</Label>
 													<Textarea
 														id="motivation"
 														value={field.state.value ?? ""}
-														onChange={(e) => field.handleChange(e.target.value)}
+														onChange={(e) =>
+															field.handleChange(e.target.value)
+														}
 														placeholder="What motivates you to learn Japanese? Share your goals and aspirations..."
 														rows={4}
 														className="resize-none"

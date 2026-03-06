@@ -33,11 +33,7 @@ export const Route = createFileRoute("/dashboard")({
 				return { me };
 			}
 			// If there's a registration form and it's not completed, redirect to it
-			if (
-				result.data.hasRegistrationForm &&
-				!result.data.isCompleted &&
-				result.data.formId
-			) {
+			if (result.data.hasRegistrationForm && !result.data.isCompleted && result.data.formId) {
 				throw redirect({
 					to: "/dashboard/forms/take",
 					search: { formId: result.data.formId },

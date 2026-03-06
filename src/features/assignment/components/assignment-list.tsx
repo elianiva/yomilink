@@ -63,7 +63,12 @@ interface AssignmentListProps {
 }
 
 type TeacherStatus = "upcoming" | "active" | "overdue" | "completed";
-type StudentStatus = "not_started" | "in_progress" | "submitted" | "late_not_started" | "late_in_progress";
+type StudentStatus =
+	| "not_started"
+	| "in_progress"
+	| "submitted"
+	| "late_not_started"
+	| "late_in_progress";
 
 function getTeacherStatus(assignment: AssignmentListItem): TeacherStatus {
 	if (assignment.allSubmitted) return "completed";
@@ -91,10 +96,7 @@ function formatDueDate(dueAt: number | undefined): string {
 	});
 }
 
-const teacherStatusConfig: Record<
-	TeacherStatus,
-	{ label: string; dot: string; badge: string }
-> = {
+const teacherStatusConfig: Record<TeacherStatus, { label: string; dot: string; badge: string }> = {
 	upcoming: {
 		label: "Upcoming",
 		dot: "bg-blue-400",
@@ -117,10 +119,7 @@ const teacherStatusConfig: Record<
 	},
 };
 
-const studentStatusConfig: Record<
-	StudentStatus,
-	{ label: string; dot: string; badge: string }
-> = {
+const studentStatusConfig: Record<StudentStatus, { label: string; dot: string; badge: string }> = {
 	not_started: {
 		label: "Not Started",
 		dot: "bg-stone-400",
@@ -190,7 +189,11 @@ function ProgressBar({
 	current,
 	total,
 	className,
-}: { current: number; total: number; className?: string }) {
+}: {
+	current: number;
+	total: number;
+	className?: string;
+}) {
 	const percentage = total > 0 ? Math.round((current / total) * 100) : 0;
 	return (
 		<div className={cn("flex items-center gap-2", className)}>
@@ -246,7 +249,9 @@ function TeacherCard({
 
 					<div className="min-w-0 flex-1">
 						<div className="flex items-center gap-2 flex-wrap">
-							<h3 className="truncate font-medium text-stone-800">{assignment.title}</h3>
+							<h3 className="truncate font-medium text-stone-800">
+								{assignment.title}
+							</h3>
 							<span
 								className={cn(
 									"inline-flex items-center gap-1.5 px-2 py-0.5 rounded-full text-xs font-medium border shrink-0",
@@ -259,7 +264,9 @@ function TeacherCard({
 						</div>
 
 						{assignment.description && (
-							<p className="truncate text-sm text-stone-500 mt-1">{assignment.description}</p>
+							<p className="truncate text-sm text-stone-500 mt-1">
+								{assignment.description}
+							</p>
 						)}
 
 						<div className="mt-1.5 flex flex-wrap items-center gap-2">
@@ -297,7 +304,9 @@ function TeacherCard({
 									<span className="text-sm font-medium text-stone-700">
 										{assignment.submittedStudents ?? 0}
 									</span>
-									<span className="text-sm text-stone-400">/{assignment.totalStudents ?? 0}</span>
+									<span className="text-sm text-stone-400">
+										/{assignment.totalStudents ?? 0}
+									</span>
 								</div>
 								<ProgressBar
 									current={assignment.submittedStudents ?? 0}
@@ -399,7 +408,9 @@ function StudentCard({
 
 					<div className="min-w-0 flex-1">
 						<div className="flex items-center gap-2 flex-wrap">
-							<h3 className="truncate font-medium text-stone-800">{assignment.title}</h3>
+							<h3 className="truncate font-medium text-stone-800">
+								{assignment.title}
+							</h3>
 							<span
 								className={cn(
 									"inline-flex items-center gap-1.5 px-2 py-0.5 rounded-full text-xs font-medium border shrink-0",
@@ -412,7 +423,9 @@ function StudentCard({
 						</div>
 
 						{assignment.description && (
-							<p className="truncate text-sm text-stone-500 mt-1">{assignment.description}</p>
+							<p className="truncate text-sm text-stone-500 mt-1">
+								{assignment.description}
+							</p>
 						)}
 
 						<div className="mt-1.5 flex flex-wrap items-center gap-2">

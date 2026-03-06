@@ -129,7 +129,8 @@ function ManageAssignmentsPage() {
 					<DialogHeader>
 						<DialogTitle>Delete Assignment</DialogTitle>
 						<DialogDescription>
-							Are you sure you want to delete this assignment? This action cannot be undone.
+							Are you sure you want to delete this assignment? This action cannot be
+							undone.
 						</DialogDescription>
 					</DialogHeader>
 					<DialogFooter>

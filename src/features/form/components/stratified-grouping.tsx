@@ -168,8 +168,8 @@ export function StratifiedGrouping({ responses, questions, formId }: StratifiedG
 				<div>
 					<h2 className="text-lg font-semibold">Stratified Grouping</h2>
 					<p className="text-sm text-muted-foreground">
-						Assign students into pairs based on combined scores (average of pre-test
-						and previous Japanese score).
+						Assign students into pairs based on combined scores (average of pre-test and
+						previous Japanese score).
 					</p>
 				</div>
 				<Button onClick={assignGroups} className="gap-2">
@@ -223,7 +223,8 @@ export function StratifiedGrouping({ responses, questions, formId }: StratifiedG
 								randomStudent.student.user.name || "",
 								randomStudent.student.user.email,
 								calculatePreTestScore(randomStudent.student).toString(),
-								randomStudent.student.user.previousJapaneseScore?.toString() ?? "N/A",
+								randomStudent.student.user.previousJapaneseScore?.toString() ??
+									"N/A",
 								calculateCombinedScore(randomStudent.student).toFixed(2),
 								randomStudent.condition === "concept_map"
 									? "Concept Map"
@@ -360,10 +361,13 @@ export function StratifiedGrouping({ responses, questions, formId }: StratifiedG
 											{calculatePreTestScore(randomStudent.student)}
 										</TableCell>
 										<TableCell className="text-right">
-											{randomStudent.student.user.previousJapaneseScore ?? "—"}
+											{randomStudent.student.user.previousJapaneseScore ??
+												"—"}
 										</TableCell>
 										<TableCell className="text-right font-medium">
-											{calculateCombinedScore(randomStudent.student).toFixed(1)}
+											{calculateCombinedScore(randomStudent.student).toFixed(
+												1,
+											)}
 										</TableCell>
 										<TableCell>
 											<span
@@ -372,11 +376,11 @@ export function StratifiedGrouping({ responses, questions, formId }: StratifiedG
 														? "bg-blue-100 text-blue-800 dark:bg-blue-900/30 dark:text-blue-300"
 														: "bg-orange-100 text-orange-800 dark:bg-orange-900/30 dark:text-orange-300"
 												}`}
-												>
-													{randomStudent.condition === "concept_map"
-														? "Concept Map"
-														: "Summarizing"}
-												</span>
+											>
+												{randomStudent.condition === "concept_map"
+													? "Concept Map"
+													: "Summarizing"}
+											</span>
 										</TableCell>
 									</TableRow>
 								)}

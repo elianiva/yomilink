@@ -1,0 +1,56 @@
+version: '3.8'
+
+services:
+  app:
+    build:
+      context: .
+      dockerfile: Dockerfile
+      args:
+        - BUILD_TARGET=bun
+    ports:
+      - "3000:3000"
+    environment:
+      # Use local SQLite instead of Turso
+      DATABASE_MODE: local
+      TURSO_DATABASE_URL: file:/app/data/yomilink.sqlite
+      # Generate a secret for production
+      BETTER_AUTH_SECRET: ${BETTER_AUTH_SECRET:-your-secret-key-min-32-characters-long}
+      BETTER_AUTH_URL: ${BETTER_AUTH_URL:-http://localhost:3000}
+      SITE_URL: ${SITE_URL:-http://localhost:3000}
+      NODE_ENV: production
+      # Nitro configuration
+      NITRO_PORT: 3000
+      NITRO_HOST: 0.0.0.0
+      # Optional: Disable Sentry in local Docker
+      SENTRY_DSN: ${SENTRY_DSN:-}
+    volumes:
+      # Persist SQLite database
+      - ./data:/app/data
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "bun", "-e", "fetch('http://localhost:3000/health').then(r => r.ok ? process.exit(0) : process.exit(1)).catch(() => process.exit(1))"]
+      interval: 30s
+      timeout: 3s
+      retries: 3
+      start_period: 10s
+
+  # Optional: Run database migrations
+  migrate:
+    build:
+      context: .
+      dockerfile: Dockerfile
+      args:
+        - BUILD_TARGET=bun
+    environment:
+      DATABASE_MODE: local
+      TURSO_DATABASE_URL: file:/app/data/yomilink.sqlite
+      TURSO_AUTH_TOKEN: ""
+    volumes:
+      - ./data:/app/data
+    command: >
+      sh -c "
+        echo 'Running migrations...' &&
+        bunx drizzle-kit migrate --config drizzle.config.ts
+      "
+    profiles:
+      - migrate

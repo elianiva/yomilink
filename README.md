@@ -132,6 +132,88 @@ src/
     └── telemetry.ts    # OpenTelemetry config
 ```
 
+## Docker Deployment
+
+The Docker setup uses **Nitro** with `node-server` preset running on Bun runtime. This provides a self-contained container that can use either local SQLite or Turso.
+
+### Quick Start
+
+```bash
+# Build the image (automatically uses Bun/Nitro target)
+docker build -t yomilink .
+
+# Run with local SQLite (self-contained)
+docker run -p 3000:3000 \
+  -e DATABASE_MODE=local \
+  -e TURSO_DATABASE_URL=file:/app/data/yomilink.sqlite \
+  -e BETTER_AUTH_SECRET=your-secret-key-min-32-characters \
+  -v $(pwd)/data:/app/data \
+  yomilink
+
+# Run with Turso (cloud database)
+docker run -p 3000:3000 \
+  -e DATABASE_MODE=remote \
+  -e TURSO_DATABASE_URL=libsql://your-db.turso.io \
+  -e TURSO_AUTH_TOKEN=your-token \
+  -e BETTER_AUTH_SECRET=your-secret-key \
+  yomilink
+```
+
+### Docker Compose
+
+Use docker-compose for easier local development:
+
+```bash
+# Create environment file
+cp .env.example .env.docker
+
+# Run with local SQLite
+docker-compose up
+
+# Run database migrations (if needed)
+docker-compose --profile migrate run --rm migrate
+```
+
+### Build Configuration
+
+The Docker build uses `BUILD_TARGET=bun` which configures:
+- **Vite**: Uses Nitro plugin with `node-server` preset instead of Cloudflare
+- **Runtime**: Bun instead of Node.js
+- **Output**: `.output/server/index.mjs` (Nitro standard)
+
+| Build Target | Use Case | Command |
+|--------------|----------|---------|
+| `cloudflare` | Edge deployment (default) | `bun run build` |
+| `bun` | Container deployment | `BUILD_TARGET=bun bun run build` |
+
+## Local SQLite (Self-Hosted)
+
+To use a local SQLite file instead of Turso:
+
+1. Set `DATABASE_MODE=local` in your environment
+2. Set `TURSO_DATABASE_URL=file:./data/yomilink.sqlite` (or any path)
+3. Run migrations: `DATABASE_MODE=local bunx drizzle-kit migrate`
+
+This is useful for:
+- Local development without Turso credentials
+- Self-hosted deployments
+- Offline-first environments
+- Testing and CI/CD
+
+### Database Mode Configuration
+
+| Mode | `DATABASE_MODE` | `TURSO_DATABASE_URL` | Description |
+|------|-----------------|---------------------|-------------|
+| Remote | `remote` (default) | `libsql://...` | Uses Turso cloud database |
+| Local | `local` | `file:./path/to/db` | Uses local SQLite file |
+
+## CI/CD
+
+GitHub Actions workflows are configured for:
+
+- **CI** (`.github/workflows/ci.yml`): Runs lint, format check, and typecheck on push/PR
+- **Docker** (`.github/workflows/docker.yml`): Builds and pushes Docker images to GitHub Container Registry
+
 ## License
 
 See [LICENSE](./LICENSE)

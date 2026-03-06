@@ -5,6 +5,7 @@ dist-ssr
 *.local
 count.txt
 .env
+.env.local
 .nitro
 .tanstack
 .output
@@ -13,3 +14,9 @@ todos.json
 .opencode
 kbfira_docs
 coverage
+
+# Local SQLite databases
+data/*.sqlite
+data/*.sqlite3
+*.db
+*.db-journal

@@ -604,274 +604,48 @@ export type StudentExperimentStatus = {
 	};
 };
 
-export const getAssignmentExperimentStatus = Effect.fn("getAssignmentExperimentStatus")(
-	function* (input: GetExperimentStatusInput) {
-		const db = yield* Database;
+export const getAssignmentExperimentStatus = Effect.fn("getAssignmentExperimentStatus")(function* (
+	input: GetExperimentStatusInput,
+) {
+	const db = yield* Database;
 
-		// Get assignment details
-		const assignmentRows = yield* db
-			.select()
-			.from(assignments)
-			.where(eq(assignments.id, input.assignmentId))
-			.limit(1);
+	// Get assignment details
+	const assignmentRows = yield* db
+		.select()
+		.from(assignments)
+		.where(eq(assignments.id, input.assignmentId))
+		.limit(1);
 
-		const assignment = assignmentRows[0];
-		if (!assignment) {
-			return yield* new AssignmentNotFoundError({ assignmentId: input.assignmentId });
-		}
+	const assignment = assignmentRows[0];
+	if (!assignment) {
+		return yield* new AssignmentNotFoundError({ assignmentId: input.assignmentId });
+	}
 
-		// Get all assigned users
-		const targets = yield* db
-			.select({
-				userId: assignmentTargets.userId,
-				cohortId: assignmentTargets.cohortId,
-			})
-			.from(assignmentTargets)
-			.where(eq(assignmentTargets.assignmentId, input.assignmentId));
+	// Get all assigned users
+	const targets = yield* db
+		.select({
+			userId: assignmentTargets.userId,
+			cohortId: assignmentTargets.cohortId,
+		})
+		.from(assignmentTargets)
+		.where(eq(assignmentTargets.assignmentId, input.assignmentId));
 
-		const directUserIds = targets
-			.map((t) => t.userId)
-			.filter((id): id is string => id !== null);
-		const cohortIds = targets
-			.map((t) => t.cohortId)
-			.filter((id): id is string => id !== null);
+	const directUserIds = targets.map((t) => t.userId).filter((id): id is string => id !== null);
+	const cohortIds = targets.map((t) => t.cohortId).filter((id): id is string => id !== null);
 
-		// Get cohort members
-		const cohortMemberRows =
-			cohortIds.length > 0
-				? yield* db
-						.select({ userId: cohortMembers.userId, cohortId: cohortMembers.cohortId })
-						.from(cohortMembers)
-						.where(inArray(cohortMembers.cohortId, cohortIds))
-				: [];
-
-		const cohortUserIds = cohortMemberRows.map((m) => m.userId);
-		const allUserIds = Array.from(new Set([...directUserIds, ...cohortUserIds]));
-
-		if (allUserIds.length === 0) {
-			return {
-				assignment: {
-					id: assignment.id,
-					title: assignment.title,
-					preTestFormId: assignment.preTestFormId,
-					postTestFormId: assignment.postTestFormId,
-					delayedPostTestFormId: assignment.delayedPostTestFormId,
-					tamFormId: assignment.tamFormId,
-					delayedPostTestDelayDays: assignment.delayedPostTestDelayDays,
-				},
-				students: [] as StudentExperimentStatus[],
-				summary: {
-					totalStudents: 0,
-					preTestCompleted: 0,
-					groupsAssigned: 0,
-					mainAssignmentCompleted: 0,
-					postTestCompleted: 0,
-					tamCompleted: 0,
-					delayedTestCompleted: 0,
-				},
-			};
-		}
-
-		// Get user details
-		const users = yield* db
-			.select({
-				id: user.id,
-				name: user.name,
-				email: user.email,
-				studyGroup: user.studyGroup,
-			})
-			.from(user)
-			.where(inArray(user.id, allUserIds));
-
-		const userMap = new Map(users.map((u) => [u.id, u]));
-
-		// Get pre-test responses
-		const preTestResponses = assignment.preTestFormId
+	// Get cohort members
+	const cohortMemberRows =
+		cohortIds.length > 0
 			? yield* db
-					.select({
-						userId: formResponses.userId,
-						submittedAt: formResponses.submittedAt,
-						answers: formResponses.answers,
-					})
-					.from(formResponses)
-					.where(
-						and(
-							eq(formResponses.formId, assignment.preTestFormId),
-							inArray(formResponses.userId, allUserIds),
-						),
-					)
+					.select({ userId: cohortMembers.userId, cohortId: cohortMembers.cohortId })
+					.from(cohortMembers)
+					.where(inArray(cohortMembers.cohortId, cohortIds))
 			: [];
 
-		const preTestMap = new Map(
-			preTestResponses.map((r) => [
-				r.userId,
-				{
-					completedAt: r.submittedAt?.getTime() ?? null,
-					answers: r.answers as Array<{ questionId: string; answer: string }>,
-				},
-			]),
-		);
+	const cohortUserIds = cohortMemberRows.map((m) => m.userId);
+	const allUserIds = Array.from(new Set([...directUserIds, ...cohortUserIds]));
 
-		// Get post-test responses
-		const postTestResponses = assignment.postTestFormId
-			? yield* db
-					.select({
-						userId: formResponses.userId,
-						submittedAt: formResponses.submittedAt,
-					})
-					.from(formResponses)
-					.where(
-						and(
-							eq(formResponses.formId, assignment.postTestFormId),
-							inArray(formResponses.userId, allUserIds),
-						),
-					)
-			: [];
-
-		const postTestMap = new Map(
-			postTestResponses.map((r) => [r.userId, { completedAt: r.submittedAt?.getTime() ?? null }]),
-		);
-
-		// Get TAM responses
-		const tamResponses = assignment.tamFormId
-			? yield* db
-					.select({
-						userId: formResponses.userId,
-						submittedAt: formResponses.submittedAt,
-					})
-					.from(formResponses)
-					.where(
-						and(
-							eq(formResponses.formId, assignment.tamFormId),
-							inArray(formResponses.userId, allUserIds),
-						),
-					)
-			: [];
-
-		const tamMap = new Map(
-			tamResponses.map((r) => [r.userId, { completedAt: r.submittedAt?.getTime() ?? null }]),
-		);
-
-		// Get delayed test responses
-		const delayedTestResponses = assignment.delayedPostTestFormId
-			? yield* db
-					.select({
-						userId: formResponses.userId,
-						submittedAt: formResponses.submittedAt,
-					})
-					.from(formResponses)
-					.where(
-						and(
-							eq(formResponses.formId, assignment.delayedPostTestFormId),
-							inArray(formResponses.userId, allUserIds),
-						),
-					)
-			: [];
-
-		const delayedTestMap = new Map(
-			delayedTestResponses.map((r) => [r.userId, { completedAt: r.submittedAt?.getTime() ?? null }]),
-		);
-
-		// Get learner maps (main assignment status)
-		const learnerMapRows = yield* db
-			.select({
-				userId: learnerMaps.userId,
-				status: learnerMaps.status,
-				submittedAt: learnerMaps.submittedAt,
-			})
-			.from(learnerMaps)
-			.where(
-				and(
-					eq(learnerMaps.assignmentId, input.assignmentId),
-					inArray(learnerMaps.userId, allUserIds),
-				),
-			);
-
-		const learnerMapMap = new Map(
-			learnerMapRows.map((r) => [
-				r.userId,
-				{
-					status: r.status,
-					submittedAt: r.submittedAt?.getTime() ?? null,
-				},
-			]),
-		);
-
-		// Calculate scores for pre-test (count correct answers if MCQ)
-		const calculateScore = (answers: Array<{ questionId: string; answer: string }> | null) => {
-			if (!answers || !Array.isArray(answers)) return null;
-			// Simple scoring: count non-empty answers for now
-			// TODO: Compare against correct answers when available
-			const answered = answers.filter((a) => a.answer && a.answer.trim().length > 0).length;
-			return answered;
-		};
-
-		// Build student statuses
-		const students: StudentExperimentStatus[] = allUserIds.map((userId) => {
-			const userInfo = userMap.get(userId);
-			const preTest = preTestMap.get(userId);
-			const postTest = postTestMap.get(userId);
-			const tam = tamMap.get(userId);
-			const delayedTest = delayedTestMap.get(userId);
-			const learnerMap = learnerMapMap.get(userId);
-
-			const groupCondition = userInfo?.studyGroup
-				? userInfo.studyGroup === "experiment"
-					? "concept_map"
-					: "summarizing"
-				: null;
-
-			// Calculate delayed test unlock time
-			let delayedTestUnlocksAt: number | null = null;
-			if (assignment.delayedPostTestDelayDays && learnerMap?.submittedAt) {
-				const unlockDate = new Date(learnerMap.submittedAt);
-				unlockDate.setDate(unlockDate.getDate() + assignment.delayedPostTestDelayDays);
-				delayedTestUnlocksAt = unlockDate.getTime();
-			}
-
-			return {
-				userId,
-				userName: userInfo?.name ?? "Unknown",
-				userEmail: userInfo?.email ?? "",
-				preTest: {
-					completed: !!preTest,
-					score: preTest ? calculateScore(preTest.answers) : null,
-					completedAt: preTest?.completedAt ?? null,
-				},
-				groupAssigned: !!groupCondition,
-				groupCondition,
-				mainAssignment: {
-					status: learnerMap?.status ?? "not_started",
-					submittedAt: learnerMap?.submittedAt ?? null,
-				},
-				postTest: {
-					completed: !!postTest,
-					completedAt: postTest?.completedAt ?? null,
-				},
-				tamSurvey: {
-					completed: !!tam,
-					completedAt: tam?.completedAt ?? null,
-				},
-				delayedTest: {
-					completed: !!delayedTest,
-					unlocksAt: delayedTestUnlocksAt,
-					completedAt: delayedTest?.completedAt ?? null,
-				},
-			};
-		});
-
-		// Calculate summary
-		const summary = {
-			totalStudents: students.length,
-			preTestCompleted: students.filter((s) => s.preTest.completed).length,
-			groupsAssigned: students.filter((s) => s.groupAssigned).length,
-			mainAssignmentCompleted: students.filter((s) => s.mainAssignment.status === "submitted")
-				.length,
-			postTestCompleted: students.filter((s) => s.postTest.completed).length,
-			tamCompleted: students.filter((s) => s.tamSurvey.completed).length,
-			delayedTestCompleted: students.filter((s) => s.delayedTest.completed).length,
-		};
-
+	if (allUserIds.length === 0) {
 		return {
 			assignment: {
 				id: assignment.id,
@@ -882,8 +656,233 @@ export const getAssignmentExperimentStatus = Effect.fn("getAssignmentExperimentS
 				tamFormId: assignment.tamFormId,
 				delayedPostTestDelayDays: assignment.delayedPostTestDelayDays,
 			},
-			students,
-			summary,
+			students: [] as StudentExperimentStatus[],
+			summary: {
+				totalStudents: 0,
+				preTestCompleted: 0,
+				groupsAssigned: 0,
+				mainAssignmentCompleted: 0,
+				postTestCompleted: 0,
+				tamCompleted: 0,
+				delayedTestCompleted: 0,
+			},
 		};
-	},
-);
+	}
+
+	// Get user details
+	const users = yield* db
+		.select({
+			id: user.id,
+			name: user.name,
+			email: user.email,
+			studyGroup: user.studyGroup,
+		})
+		.from(user)
+		.where(inArray(user.id, allUserIds));
+
+	const userMap = new Map(users.map((u) => [u.id, u]));
+
+	// Get pre-test responses
+	const preTestResponses = assignment.preTestFormId
+		? yield* db
+				.select({
+					userId: formResponses.userId,
+					submittedAt: formResponses.submittedAt,
+					answers: formResponses.answers,
+				})
+				.from(formResponses)
+				.where(
+					and(
+						eq(formResponses.formId, assignment.preTestFormId),
+						inArray(formResponses.userId, allUserIds),
+					),
+				)
+		: [];
+
+	const preTestMap = new Map(
+		preTestResponses.map((r) => [
+			r.userId,
+			{
+				completedAt: r.submittedAt?.getTime() ?? null,
+				answers: r.answers as Array<{ questionId: string; answer: string }>,
+			},
+		]),
+	);
+
+	// Get post-test responses
+	const postTestResponses = assignment.postTestFormId
+		? yield* db
+				.select({
+					userId: formResponses.userId,
+					submittedAt: formResponses.submittedAt,
+				})
+				.from(formResponses)
+				.where(
+					and(
+						eq(formResponses.formId, assignment.postTestFormId),
+						inArray(formResponses.userId, allUserIds),
+					),
+				)
+		: [];
+
+	const postTestMap = new Map(
+		postTestResponses.map((r) => [r.userId, { completedAt: r.submittedAt?.getTime() ?? null }]),
+	);
+
+	// Get TAM responses
+	const tamResponses = assignment.tamFormId
+		? yield* db
+				.select({
+					userId: formResponses.userId,
+					submittedAt: formResponses.submittedAt,
+				})
+				.from(formResponses)
+				.where(
+					and(
+						eq(formResponses.formId, assignment.tamFormId),
+						inArray(formResponses.userId, allUserIds),
+					),
+				)
+		: [];
+
+	const tamMap = new Map(
+		tamResponses.map((r) => [r.userId, { completedAt: r.submittedAt?.getTime() ?? null }]),
+	);
+
+	// Get delayed test responses
+	const delayedTestResponses = assignment.delayedPostTestFormId
+		? yield* db
+				.select({
+					userId: formResponses.userId,
+					submittedAt: formResponses.submittedAt,
+				})
+				.from(formResponses)
+				.where(
+					and(
+						eq(formResponses.formId, assignment.delayedPostTestFormId),
+						inArray(formResponses.userId, allUserIds),
+					),
+				)
+		: [];
+
+	const delayedTestMap = new Map(
+		delayedTestResponses.map((r) => [
+			r.userId,
+			{ completedAt: r.submittedAt?.getTime() ?? null },
+		]),
+	);
+
+	// Get learner maps (main assignment status)
+	const learnerMapRows = yield* db
+		.select({
+			userId: learnerMaps.userId,
+			status: learnerMaps.status,
+			submittedAt: learnerMaps.submittedAt,
+		})
+		.from(learnerMaps)
+		.where(
+			and(
+				eq(learnerMaps.assignmentId, input.assignmentId),
+				inArray(learnerMaps.userId, allUserIds),
+			),
+		);
+
+	const learnerMapMap = new Map(
+		learnerMapRows.map((r) => [
+			r.userId,
+			{
+				status: r.status,
+				submittedAt: r.submittedAt?.getTime() ?? null,
+			},
+		]),
+	);
+
+	// Calculate scores for pre-test (count correct answers if MCQ)
+	const calculateScore = (answers: Array<{ questionId: string; answer: string }> | null) => {
+		if (!answers || !Array.isArray(answers)) return null;
+		// Simple scoring: count non-empty answers for now
+		// TODO: Compare against correct answers when available
+		const answered = answers.filter((a) => a.answer && a.answer.trim().length > 0).length;
+		return answered;
+	};
+
+	// Build student statuses
+	const students: StudentExperimentStatus[] = allUserIds.map((userId) => {
+		const userInfo = userMap.get(userId);
+		const preTest = preTestMap.get(userId);
+		const postTest = postTestMap.get(userId);
+		const tam = tamMap.get(userId);
+		const delayedTest = delayedTestMap.get(userId);
+		const learnerMap = learnerMapMap.get(userId);
+
+		const groupCondition = userInfo?.studyGroup
+			? userInfo.studyGroup === "experiment"
+				? "concept_map"
+				: "summarizing"
+			: null;
+
+		// Calculate delayed test unlock time
+		let delayedTestUnlocksAt: number | null = null;
+		if (assignment.delayedPostTestDelayDays && learnerMap?.submittedAt) {
+			const unlockDate = new Date(learnerMap.submittedAt);
+			unlockDate.setDate(unlockDate.getDate() + assignment.delayedPostTestDelayDays);
+			delayedTestUnlocksAt = unlockDate.getTime();
+		}
+
+		return {
+			userId,
+			userName: userInfo?.name ?? "Unknown",
+			userEmail: userInfo?.email ?? "",
+			preTest: {
+				completed: !!preTest,
+				score: preTest ? calculateScore(preTest.answers) : null,
+				completedAt: preTest?.completedAt ?? null,
+			},
+			groupAssigned: !!groupCondition,
+			groupCondition,
+			mainAssignment: {
+				status: learnerMap?.status ?? "not_started",
+				submittedAt: learnerMap?.submittedAt ?? null,
+			},
+			postTest: {
+				completed: !!postTest,
+				completedAt: postTest?.completedAt ?? null,
+			},
+			tamSurvey: {
+				completed: !!tam,
+				completedAt: tam?.completedAt ?? null,
+			},
+			delayedTest: {
+				completed: !!delayedTest,
+				unlocksAt: delayedTestUnlocksAt,
+				completedAt: delayedTest?.completedAt ?? null,
+			},
+		};
+	});
+
+	// Calculate summary
+	const summary = {
+		totalStudents: students.length,
+		preTestCompleted: students.filter((s) => s.preTest.completed).length,
+		groupsAssigned: students.filter((s) => s.groupAssigned).length,
+		mainAssignmentCompleted: students.filter((s) => s.mainAssignment.status === "submitted")
+			.length,
+		postTestCompleted: students.filter((s) => s.postTest.completed).length,
+		tamCompleted: students.filter((s) => s.tamSurvey.completed).length,
+		delayedTestCompleted: students.filter((s) => s.delayedTest.completed).length,
+	};
+
+	return {
+		assignment: {
+			id: assignment.id,
+			title: assignment.title,
+			preTestFormId: assignment.preTestFormId,
+			postTestFormId: assignment.postTestFormId,
+			delayedPostTestFormId: assignment.delayedPostTestFormId,
+			tamFormId: assignment.tamFormId,
+			delayedPostTestDelayDays: assignment.delayedPostTestDelayDays,
+		},
+		students,
+		summary,
+	};
+});

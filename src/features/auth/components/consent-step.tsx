@@ -1,8 +1,8 @@
 import type { AnyFieldApi } from "@tanstack/react-form";
 import { FileTextIcon, ShieldIcon } from "lucide-react";
 
-import { FieldInfo } from "@/components/ui/field-info";
 import { Checkbox } from "@/components/ui/checkbox";
+import { FieldInfo } from "@/components/ui/field-info";
 
 interface ConsentStepProps {
 	// biome-ignore lint/suspicious/noExplicitAny: <explanation>
@@ -19,36 +19,36 @@ export function ConsentStep({ form }: ConsentStepProps) {
 					</div>
 					<div>
 						<h3 className="font-medium">Research Information</h3>
-						<p className="text-sm text-muted-foreground">
-							KitBuild Research Study
-						</p>
+						<p className="text-sm text-muted-foreground">KitBuild Research Study</p>
 					</div>
 				</div>
 
 				<div className="space-y-3 text-sm text-muted-foreground">
 					<p>
-						Your participation in this research study is entirely voluntary. 
-						By checking the box below, you acknowledge and agree to the following:
+						Your participation in this research study is entirely voluntary. By checking
+						the box below, you acknowledge and agree to the following:
 					</p>
 					<ul className="space-y-2 pl-4 list-disc">
 						<li>
-							Your data (including learning activity, assessment results, and questionnaire responses) 
-							will be collected and used for research purposes to evaluate the effectiveness 
-							of the Kit-Build Concept Map method in Japanese language learning.
+							Your data (including learning activity, assessment results, and
+							questionnaire responses) will be collected and used for research
+							purposes to evaluate the effectiveness of the Kit-Build Concept Map
+							method in Japanese language learning.
 						</li>
 						<li>
-							Your personal information will be kept confidential and will only be used 
-							for research analysis. Individual identities will not be disclosed in any 
-							publications or presentations resulting from this study.
+							Your personal information will be kept confidential and will only be
+							used for research analysis. Individual identities will not be disclosed
+							in any publications or presentations resulting from this study.
 						</li>
 						<li>
-							You may withdraw from this study at any time without penalty. 
-							If you choose to withdraw, your data will be excluded from the research analysis.
+							You may withdraw from this study at any time without penalty. If you
+							choose to withdraw, your data will be excluded from the research
+							analysis.
 						</li>
 						<li>
-							The research findings may be published in academic journals or presented 
-							at conferences to contribute to the advancement of educational technology 
-							in language learning.
+							The research findings may be published in academic journals or presented
+							at conferences to contribute to the advancement of educational
+							technology in language learning.
 						</li>
 					</ul>
 				</div>
@@ -60,9 +60,9 @@ export function ConsentStep({ form }: ConsentStepProps) {
 					<div>
 						<h3 className="font-medium">Data Protection</h3>
 						<p className="text-sm text-muted-foreground">
-							Your data is stored securely and will only be accessible to the research team.
-							We follow ethical research guidelines and data protection regulations 
-							to ensure your privacy is protected throughout the study.
+							Your data is stored securely and will only be accessible to the research
+							team. We follow ethical research guidelines and data protection
+							regulations to ensure your privacy is protected throughout the study.
 						</p>
 					</div>
 				</div>
@@ -82,9 +82,9 @@ export function ConsentStep({ form }: ConsentStepProps) {
 								htmlFor="consentGiven"
 								className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70 cursor-pointer"
 							>
-								I have read and understood the information above. I voluntarily agree 
-								to participate in this research study and consent to the collection 
-								and use of my data for research purposes.
+								I have read and understood the information above. I voluntarily
+								agree to participate in this research study and consent to the
+								collection and use of my data for research purposes.
 							</label>
 						</div>
 						<FieldInfo field={field} />

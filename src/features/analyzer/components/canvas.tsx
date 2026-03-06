@@ -262,7 +262,10 @@ function AnalyticsCanvasInner({
 								},
 								data: {
 									badge: data[type].count.toString(),
-									curveOffset: getSymmetricCurveOffset(index, visibleTypes.length),
+									curveOffset: getSymmetricCurveOffset(
+										index,
+										visibleTypes.length,
+									),
 									badgeT: getBadgeT(index, visibleTypes.length),
 									useCurvedPath: true,
 									createdBy: creatorList || undefined,
@@ -466,7 +469,10 @@ function AnalyticsCanvasInner({
 								},
 								data: {
 									badge: data[type].count.toString(),
-									curveOffset: getSymmetricCurveOffset(index, visibleTypes.length),
+									curveOffset: getSymmetricCurveOffset(
+										index,
+										visibleTypes.length,
+									),
 									badgeT: getBadgeT(index, visibleTypes.length),
 									useCurvedPath: true,
 									createdBy: creatorList || undefined,

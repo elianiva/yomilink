@@ -268,7 +268,8 @@ function SignUpPage() {
 											step3: {
 												filled: state.values.consentGiven === true,
 												errors:
-													state.fieldMeta.consentGiven?.errors.length ?? 0,
+													state.fieldMeta.consentGiven?.errors.length ??
+													0,
 											},
 										};
 									}}
