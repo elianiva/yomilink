@@ -1,8 +1,6 @@
 import * as SqliteDrizzle from "@effect/sql-drizzle/Sqlite";
 import { LibsqlClient } from "@effect/sql-libsql";
-import { SqliteClient } from "@effect/sql-sqlite-node";
 import { Config, ConfigProvider, Effect, Layer } from "effect";
-
 import { ServerConfig } from "@/config";
 
 // Remote Turso/LibSQL (production)
@@ -24,9 +22,7 @@ const SqlLocal = Layer.unwrapEffect(
         const dbPath = databaseUrl.startsWith("file:")
             ? databaseUrl.slice(5) // Remove "file:" prefix
             : databaseUrl;
-        return SqliteClient.layer({
-            filename: dbPath,
-        });
+        return LibsqlClient.layer({ url: dbPath });
     }).pipe(Effect.withConfigProvider(ConfigProvider.fromEnv())),
 );
 
@@ -52,14 +48,10 @@ const SqlLive = Layer.unwrapEffect(
 );
 
 const DrizzleLive = SqliteDrizzle.layer.pipe(Layer.provide(SqlLive));
-const DrizzleRemote = SqliteDrizzle.layer.pipe(Layer.provide(SqlRemote));
-const DrizzleLocal = SqliteDrizzle.layer.pipe(Layer.provide(SqlLocal));
 const DrizzleTest = SqliteDrizzle.layer.pipe(Layer.provide(SqlTest));
 
 // Combined layers for different environments
 export const DatabaseLive = Layer.mergeAll(SqlLive, DrizzleLive);
-export const DatabaseRemote = Layer.mergeAll(SqlRemote, DrizzleRemote);
-export const DatabaseLocal = Layer.mergeAll(SqlLocal, DrizzleLocal);
 export const DatabaseTest = Layer.mergeAll(SqlTest, DrizzleTest);
 
 // re-export for convenience when switching db
