@@ -6,7 +6,7 @@ services:
             context: .
             dockerfile: Dockerfile
             args:
-                - BUILD_TARGET=bun
+                - BUILD_TARGET=node
         ports:
             - "3000:3000"
         environment:
@@ -31,7 +31,7 @@ services:
             test:
                 [
                     "CMD",
-                    "bun",
+                    "node",
                     "-e",
                     "fetch('http://localhost:3000/health').then(r => r.ok ? process.exit(0) : process.exit(1)).catch(() => process.exit(1))",
                 ]
@@ -46,7 +46,7 @@ services:
             context: .
             dockerfile: Dockerfile
             args:
-                - BUILD_TARGET=bun
+                - BUILD_TARGET=node
         environment:
             DATABASE_MODE: local
             TURSO_DATABASE_URL: file:/app/data/yomilink.sqlite
@@ -56,7 +56,7 @@ services:
         command: >
             sh -c "
               echo 'Running migrations...' &&
-              bunx drizzle-kit migrate --config drizzle.config.ts
+              vp exec drizzle-kit migrate --config drizzle.config.ts
             "
         profiles:
             - migrate

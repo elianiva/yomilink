@@ -1,9 +1,8 @@
 import { defineNitroConfig } from "nitro/config";
 
 export default defineNitroConfig({
-	// Node server preset for Bun compatibility
-	// Note: 'bun' preset has static asset issues, using 'node-server' instead
-	preset: process.env.BUILD_TARGET === "bun" ? "node-server" : undefined,
+	// Node server preset for Node.js container compatibility
+	preset: process.env.BUILD_TARGET === "node" ? "node-server" : undefined,
 
 	// Output directory
 	output: {

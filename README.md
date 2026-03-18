@@ -63,7 +63,8 @@ This approach reduces cognitive load by focusing on structure rather than termin
 
 ### Development
 
-- **Package Manager**: Bun
+- **Package Manager**: pnpm (managed by Vite+)
+- **Toolchain**: Vite+ (`vp` CLI)
 - **Lint/Format**: oxlint + oxfmt
 - **Testing**: Vitest + Testing Library + jsdom
 - **Build**: Vite
@@ -72,20 +73,20 @@ This approach reduces cognitive load by focusing on structure rather than termin
 
 ```bash
 # Install dependencies
-bun install
+vp install
 
 # Configure environment
 cp .env.example .env
 # Edit .env with your Turso and Cloudflare credentials
 
 # Push database schema
-bunx drizzle-kit push
+npx drizzle-kit push
 
 # Seed sample data (optional)
-bun run seed
+vp run db:seed
 
 # Start dev server
-bun run dev
+vp dev
 ```
 
 Visit http://localhost:5173
@@ -100,17 +101,17 @@ Seed data creates:
 
 | Command                  | Description                    |
 | ------------------------ | ------------------------------ |
-| `bun run dev`            | Start development server       |
-| `bun run build`          | Build for production           |
-| `bun run deploy`         | Deploy to Cloudflare Workers   |
-| `bun run test`           | Run all tests                  |
-| `bun run test:watch`     | Run tests in watch mode        |
-| `bun run coverage`       | Generate coverage report       |
-| `bun run lint`           | Run Biome linter               |
-| `bun run format`         | Format code                    |
-| `bun run typecheck`      | Run TypeScript checking        |
-| `bun run seed`           | Seed database with sample data |
-| `bun ui add <component>` | Add shadcn/ui component        |
+| `vp dev`                  | Start development server       |
+| `vp build`                | Build for production           |
+| `vp run deploy`           | Deploy to Cloudflare Workers   |
+| `vp test`                 | Run all tests                  |
+| `vp test --watch`         | Run tests in watch mode        |
+| `vp test --coverage`      | Generate coverage report       |
+| `vp lint`                 | Run linter with auto-fix       |
+| `vp fmt`                  | Format code                    |
+| `vp run typecheck`        | Run TypeScript checking        |
+| `vp run db:seed`          | Seed database with sample data |
+| `npx shadcn@canary add <component>` | Add shadcn/ui component |
 
 ## Project Structure
 
@@ -138,12 +139,12 @@ src/
 
 ## Docker Deployment
 
-The Docker setup uses **Nitro** with `node-server` preset running on Bun runtime. This provides a self-contained container that can use either local SQLite or Turso.
+The Docker setup uses **Nitro** with `node-server` preset running on Node.js runtime. This provides a self-contained container that can use either local SQLite or Turso.
 
 ### Quick Start
 
 ```bash
-# Build the image (automatically uses Bun/Nitro target)
+# Build the image (automatically uses Node/Nitro target)
 docker build -t yomilink .
 
 # Run with local SQLite (self-contained)
@@ -180,16 +181,16 @@ docker-compose --profile migrate run --rm migrate
 
 ### Build Configuration
 
-The Docker build uses `BUILD_TARGET=bun` which configures:
+The Docker build uses `BUILD_TARGET=node` which configures:
 
 - **Vite**: Uses Nitro plugin with `node-server` preset instead of Cloudflare
-- **Runtime**: Bun instead of Node.js
+- **Runtime**: Node.js
 - **Output**: `.output/server/index.mjs` (Nitro standard)
 
 | Build Target | Use Case                  | Command                          |
 | ------------ | ------------------------- | -------------------------------- |
-| `cloudflare` | Edge deployment (default) | `bun run build`                  |
-| `bun`        | Container deployment      | `BUILD_TARGET=bun bun run build` |
+| `cloudflare` | Edge deployment (default) | `vp build`                       |
+| `node`       | Container deployment      | `BUILD_TARGET=node vp build`     |
 
 ## Local SQLite (Self-Hosted)
 
@@ -197,7 +198,7 @@ To use a local SQLite file instead of Turso:
 
 1. Set `DATABASE_MODE=local` in your environment
 2. Set `TURSO_DATABASE_URL=file:./data/yomilink.sqlite` (or any path)
-3. Run migrations: `DATABASE_MODE=local bunx drizzle-kit migrate`
+3. Run migrations: `DATABASE_MODE=local npx drizzle-kit migrate`
 
 This is useful for:
 
@@ -223,3 +224,16 @@ GitHub Actions workflows are configured for:
 ## License
 
 See [LICENSE](./LICENSE)
+ENSE)
+LICENSE)
+E)
+NSE)
+E)
+Container Registry
+
+## License
+
+See [LICENSE](./LICENSE)
+ENSE)
+LICENSE)
+E)

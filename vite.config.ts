@@ -8,7 +8,7 @@ import { defineConfig, type PluginOption } from "vite-plus";
 
 // Determine build target from environment
 const buildTarget = process.env.BUILD_TARGET || "cloudflare";
-const isBun = buildTarget === "bun";
+const isNode = buildTarget === "node";
 
 export default defineConfig({
 	staged: {
@@ -71,14 +71,12 @@ export default defineConfig({
 		},
 	},
 	plugins: [
-		// Use Nitro for Bun container, Cloudflare for edge deployment
-		// Note: using 'node-server' preset as 'bun' preset has issues with static assets
-		// See: https://github.com/TanStack/router/issues/3475
-		isBun ? nitro({ preset: "node-server" }) : cloudflare({ viteEnvironment: { name: "ssr" } }),
+		// Use Nitro for Node container, Cloudflare for edge deployment
+		isNode ? nitro({ preset: "node-server" }) : cloudflare({ viteEnvironment: { name: "ssr" } }),
 		tailwindcss(),
 		tanstackStart(),
 		viteReact(),
-		// Disable Sentry in Bun container builds or when no auth token
+		// Disable Sentry in Node container builds or when no auth token
 		...(process.env.SENTRY_AUTH_TOKEN
 			? [
 					sentryTanstackStart({

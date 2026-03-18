@@ -1,29 +1,29 @@
 # Agent Guidelines for Yomilink
 
-Yomilink is a personalized Japanese learning path platform built with **TanStack Start**, **Effect-TS**, and **Cloudflare**. Package manager: **bun**.
+Yomilink is a personalized Japanese learning path platform built with **TanStack Start**, **Effect-TS**, and **Cloudflare**. Uses **Vite+** toolchain (`vp` CLI).
 
 ## Commands
 
 ```bash
 # Development
-bun run dev              # Start dev server
-bun run typecheck        # Check TypeScript
-bun run lint             # Lint with auto-fix (oxlint)
-bun run format           # Format code (oxfmt)
+vp dev                    # Start dev server
+vp run typecheck          # Check TypeScript
+vp lint                   # Lint with auto-fix (oxlint)
+vp fmt                    # Format code (oxfmt)
 
 # Testing
-bun run test             # Run all tests (UI + service)
-bun run test:ui          # UI tests only (.test.tsx)
-bun run test:service     # Service tests only (.test.ts)
-bun run test:watch       # Watch mode for UI tests
+vp test                   # Run all tests (UI + service)
+vp test -c vitest.ui.config.ts      # UI tests only (.test.tsx)
+vp test -c vitest.service.config.ts # Service tests only (.test.ts)
+vp test --watch           # Watch mode for UI tests
 
 # Single test file
-bun run test:ui -- src/components/Button.test.tsx
-bun run test:service -- src/features/topic/lib/topic-service.test.ts
+vp test -- src/components/Button.test.tsx
+vp test -- src/features/topic/lib/topic-service.test.ts
 
 # Production
-bun run build            # Build for production
-bun run deploy           # Deploy to Cloudflare
+vp build                  # Build for production
+vp run deploy             # Deploy to Cloudflare
 ```
 
 ## Code Style

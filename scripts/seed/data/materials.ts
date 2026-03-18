@@ -1,9 +1,6 @@
 import { readdirSync, readFileSync } from "node:fs";
 import { join } from "node:path";
-
-const YAML: { parse: (input: string) => unknown } =
-	// @ts-expect-error - Bun global is available at runtime
-	globalThis.Bun.YAML;
+import YAML from "yaml";
 
 export interface MaterialData {
 	title: string;
