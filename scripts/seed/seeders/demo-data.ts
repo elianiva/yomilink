@@ -1,13 +1,11 @@
 import { eq } from "drizzle-orm";
 import { Effect } from "effect";
+
 import { randomString } from "@/lib/utils";
 import { Database } from "@/server/db/client";
-import {
-	assignments,
-	assignmentTargets,
-	kits,
-} from "@/server/db/schema/app-schema";
+import { assignments, assignmentTargets, kits } from "@/server/db/schema/app-schema";
 import { cohortMembers, cohorts, user } from "@/server/db/schema/auth-schema";
+
 import { GOAL_MAP_TO_MATERIAL } from "../data/materials.js";
 import { DEMO_STUDENTS } from "../data/users.js";
 
@@ -15,7 +13,10 @@ export function seedDemoData(
 	userIdsByEmail: Record<string, string>,
 	teacherId: string,
 	goalMapIdsByTitle: Record<string, string>,
-	goalMapDataByTitle: Record<string, { nodes: unknown[]; edges: Array<{ id: string; source: string; target: string }> }>,
+	goalMapDataByTitle: Record<
+		string,
+		{ nodes: unknown[]; edges: Array<{ id: string; source: string; target: string }> }
+	>,
 	formIds: {
 		tamFormId: string;
 		feedbackFormId: string;
@@ -57,9 +58,7 @@ export function seedDemoData(
 			.from(cohortMembers)
 			.where(eq(cohortMembers.cohortId, demoCohortId));
 
-		const existingMemberIds = new Set(
-			existingMembers.map((m) => m.userId),
-		);
+		const existingMemberIds = new Set(existingMembers.map((m) => m.userId));
 
 		const studentConditionMap: Record<string, "concept_map" | "summarizing"> = {};
 
@@ -68,9 +67,7 @@ export function seedDemoData(
 				Effect.gen(function* () {
 					const studentId = userIdsByEmail[student.email];
 					if (!studentId) {
-						yield* Effect.log(
-							`  Student ${student.email} not found, skipping...`,
-						);
+						yield* Effect.log(`  Student ${student.email} not found, skipping...`);
 						return;
 					}
 
@@ -79,9 +76,7 @@ export function seedDemoData(
 					studentConditionMap[student.email] = condition;
 
 					if (existingMemberIds.has(studentId)) {
-						yield* Effect.log(
-							`  ${student.email} already in cohort`,
-						);
+						yield* Effect.log(`  ${student.email} already in cohort`);
 					} else {
 						yield* db.insert(cohortMembers).values({
 							id: randomString(),
@@ -114,11 +109,7 @@ export function seedDemoData(
 		const dailyLifeTextId = dailyLifeGoalMap[0]?.textId || null;
 
 		const kitName = "Tanaka's Daily Life Kit";
-		const existingKit = yield* db
-			.select()
-			.from(kits)
-			.where(eq(kits.name, kitName))
-			.limit(1);
+		const existingKit = yield* db.select().from(kits).where(eq(kits.name, kitName)).limit(1);
 
 		let demoKitId: string;
 		if (existingKit[0]) {
@@ -152,9 +143,7 @@ export function seedDemoData(
 			.where(eq(assignments.title, assignmentTitle))
 			.limit(1);
 
-		const twoWeeksAgo = new Date(
-			Date.now() - 14 * 24 * 60 * 60 * 1000,
-		);
+		const twoWeeksAgo = new Date(Date.now() - 14 * 24 * 60 * 60 * 1000);
 		const oneWeekAgo = new Date(Date.now() - 7 * 24 * 60 * 60 * 1000);
 
 		let demoAssignmentId: string;
@@ -171,7 +160,9 @@ export function seedDemoData(
 					readingMaterial: readingMaterialContent,
 				})
 				.where(eq(assignments.id, demoAssignmentId));
-			yield* Effect.log(`  Assignment "${assignmentTitle}" already exists, updated form links and owner`);
+			yield* Effect.log(
+				`  Assignment "${assignmentTitle}" already exists, updated form links and owner`,
+			);
 		} else {
 			demoAssignmentId = randomString();
 
@@ -180,8 +171,7 @@ export function seedDemoData(
 				goalMapId: dailyLifeGoalMapId,
 				kitId: demoKitId,
 				title: assignmentTitle,
-				description:
-					"Learn about daily routines in Japan by creating a concept map.",
+				description: "Learn about daily routines in Japan by creating a concept map.",
 				readingMaterial: readingMaterialContent,
 				timeLimitMinutes: 30,
 				startDate: twoWeeksAgo,
@@ -219,15 +209,15 @@ export function seedDemoData(
 		}
 
 		yield* Effect.log("Seeding experiment groups...");
-		const existingStudents = yield* db
-			.select()
-			.from(user)
-			.where(eq(user.role, "student"));
+		const existingStudents = yield* db.select().from(user).where(eq(user.role, "student"));
 
 		for (const s of existingStudents) {
 			const condition = studentConditionMap[s.email];
 			if (condition) {
-				yield* db.update(user).set({ studyGroup: condition === "concept_map" ? "experiment" : "control" }).where(eq(user.id, s.id));
+				yield* db
+					.update(user)
+					.set({ studyGroup: condition === "concept_map" ? "experiment" : "control" })
+					.where(eq(user.id, s.id));
 			}
 		}
 		yield* Effect.log("  Seeded experiment groups (studyGroup on user)");

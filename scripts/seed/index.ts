@@ -1,6 +1,8 @@
 import { Layer, Logger, Effect } from "effect";
-import { AppLayer } from "@/server/app-layer";
+
 import { Auth } from "@/lib/auth";
+import { AppLayer } from "@/server/app-layer";
+
 import {
 	seedUsers,
 	seedCohorts,
@@ -21,17 +23,11 @@ const program = Effect.gen(function* () {
 	yield* seedCohorts();
 
 	// Step 2: Seed topics and goal maps
-	const { goalMapIdsByTitle, goalMapDataByTitle } =
-		yield* seedGoalMaps(teacherId);
+	const { goalMapIdsByTitle, goalMapDataByTitle } = yield* seedGoalMaps(teacherId);
 
 	// Step 3: Seed forms
-	const {
-		tamFormId,
-		feedbackFormId,
-		preTestFormId,
-		postTestFormId,
-		delayedTestFormId,
-	} = yield* seedForms(teacherId);
+	const { tamFormId, feedbackFormId, preTestFormId, postTestFormId, delayedTestFormId } =
+		yield* seedForms(teacherId);
 
 	// Step 4: Create demo data (cohort, kit, assignment)
 	const demoData = yield* seedDemoData(
@@ -93,8 +89,6 @@ const program = Effect.gen(function* () {
 			"    - tanaka, suzuki, yamamoto, watanabe, takahashi\n" +
 			"    - ito, nakamura, kobayashi, kato, matsumoto\n",
 	);
-}).pipe(
-	Effect.provide(Layer.mergeAll(AppLayer, Auth.Default, Logger.pretty)),
-);
+}).pipe(Effect.provide(Layer.mergeAll(AppLayer, Auth.Default, Logger.pretty)));
 
 Effect.runPromise(program);

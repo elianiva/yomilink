@@ -2,7 +2,7 @@ import * as ReactQuery from "@tanstack/react-query";
 import { render, screen, waitFor } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import "@testing-library/jest-dom";
-import { beforeEach, describe, it, expect, vi } from "vitest";
+import { beforeEach, describe, it, expect, vi } from "vite-plus/test";
 
 import { ManualUnlockButton } from "./manual-unlock-button";
 

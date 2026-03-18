@@ -2,116 +2,116 @@
 title: "Tanaka's Daily Life"
 description: "A student's daily routine in Japan"
 nodes:
-  - id: "tanaka"
-    type: "text"
-    position: { x: 340, y: 40 }
-    data: { label: "田中さん", color: "green" }
-  - id: "weekday"
-    type: "text"
-    position: { x: 200, y: 170 }
-    data: { label: "平日", color: "blue" }
-  - id: "weekend"
-    type: "text"
-    position: { x: 480, y: 170 }
-    data: { label: "週末", color: "blue" }
-  - id: "wake-up"
-    type: "text"
-    position: { x: 80, y: 330 }
-    data: { label: "起きる", color: "amber" }
-  - id: "school"
-    type: "text"
-    position: { x: 200, y: 330 }
-    data: { label: "学校", color: "amber" }
-  - id: "study"
-    type: "text"
-    position: { x: 320, y: 330 }
-    data: { label: "勉強", color: "amber" }
-  - id: "lunch"
-    type: "text"
-    position: { x: 80, y: 470 }
-    data: { label: "昼ご飯", color: "amber" }
-  - id: "afternoon"
-    type: "text"
-    position: { x: 200, y: 470 }
-    data: { label: "午後", color: "amber" }
-  - id: "dinner"
-    type: "text"
-    position: { x: 320, y: 470 }
-    data: { label: "晩ご飯", color: "amber" }
-  - id: "sleep"
-    type: "text"
-    position: { x: 440, y: 330 }
-    data: { label: "寝る", color: "amber" }
-  - id: "saturday"
-    type: "text"
-    position: { x: 440, y: 330 }
-    data: { label: "土曜日", color: "purple" }
-  - id: "sunday"
-    type: "text"
-    position: { x: 560, y: 330 }
-    data: { label: "日曜日", color: "purple" }
-  - id: "work"
-    type: "text"
-    position: { x: 440, y: 470 }
-    data: { label: "アルバイト", color: "amber" }
-  - id: "fun"
-    type: "text"
-    position: { x: 560, y: 470 }
-    data: { label: "たのしい", color: "amber" }
-  - id: "conn-weekday"
-    type: "connector"
-    position: { x: 200, y: 250 }
-    data: { label: "の生活" }
-  - id: "conn-weekend"
-    type: "connector"
-    position: { x: 480, y: 250 }
-    data: { label: "は" }
+    - id: "tanaka"
+      type: "text"
+      position: { x: 340, y: 40 }
+      data: { label: "田中さん", color: "green" }
+    - id: "weekday"
+      type: "text"
+      position: { x: 200, y: 170 }
+      data: { label: "平日", color: "blue" }
+    - id: "weekend"
+      type: "text"
+      position: { x: 480, y: 170 }
+      data: { label: "週末", color: "blue" }
+    - id: "wake-up"
+      type: "text"
+      position: { x: 80, y: 330 }
+      data: { label: "起きる", color: "amber" }
+    - id: "school"
+      type: "text"
+      position: { x: 200, y: 330 }
+      data: { label: "学校", color: "amber" }
+    - id: "study"
+      type: "text"
+      position: { x: 320, y: 330 }
+      data: { label: "勉強", color: "amber" }
+    - id: "lunch"
+      type: "text"
+      position: { x: 80, y: 470 }
+      data: { label: "昼ご飯", color: "amber" }
+    - id: "afternoon"
+      type: "text"
+      position: { x: 200, y: 470 }
+      data: { label: "午後", color: "amber" }
+    - id: "dinner"
+      type: "text"
+      position: { x: 320, y: 470 }
+      data: { label: "晩ご飯", color: "amber" }
+    - id: "sleep"
+      type: "text"
+      position: { x: 440, y: 330 }
+      data: { label: "寝る", color: "amber" }
+    - id: "saturday"
+      type: "text"
+      position: { x: 440, y: 330 }
+      data: { label: "土曜日", color: "purple" }
+    - id: "sunday"
+      type: "text"
+      position: { x: 560, y: 330 }
+      data: { label: "日曜日", color: "purple" }
+    - id: "work"
+      type: "text"
+      position: { x: 440, y: 470 }
+      data: { label: "アルバイト", color: "amber" }
+    - id: "fun"
+      type: "text"
+      position: { x: 560, y: 470 }
+      data: { label: "たのしい", color: "amber" }
+    - id: "conn-weekday"
+      type: "connector"
+      position: { x: 200, y: 250 }
+      data: { label: "の生活" }
+    - id: "conn-weekend"
+      type: "connector"
+      position: { x: 480, y: 250 }
+      data: { label: "は" }
 edges:
-  - id: "e1"
-    source: "tanaka"
-    target: "conn-weekday"
-  - id: "e2"
-    source: "conn-weekday"
-    target: "weekday"
-  - id: "e3"
-    source: "tanaka"
-    target: "conn-weekend"
-  - id: "e4"
-    source: "conn-weekend"
-    target: "weekend"
-  - id: "e5"
-    source: "weekday"
-    target: "wake-up"
-  - id: "e6"
-    source: "weekday"
-    target: "school"
-  - id: "e7"
-    source: "weekday"
-    target: "study"
-  - id: "e8"
-    source: "weekday"
-    target: "sleep"
-  - id: "e9"
-    source: "weekday"
-    target: "lunch"
-  - id: "e10"
-    source: "weekday"
-    target: "afternoon"
-  - id: "e11"
-    source: "weekday"
-    target: "dinner"
-  - id: "e12"
-    source: "weekend"
-    target: "saturday"
-  - id: "e13"
-    source: "weekend"
-    target: "sunday"
-  - id: "e14"
-    source: "saturday"
-    target: "work"
-  - id: "e15"
-    source: "sunday"
-    target: "fun"
+    - id: "e1"
+      source: "tanaka"
+      target: "conn-weekday"
+    - id: "e2"
+      source: "conn-weekday"
+      target: "weekday"
+    - id: "e3"
+      source: "tanaka"
+      target: "conn-weekend"
+    - id: "e4"
+      source: "conn-weekend"
+      target: "weekend"
+    - id: "e5"
+      source: "weekday"
+      target: "wake-up"
+    - id: "e6"
+      source: "weekday"
+      target: "school"
+    - id: "e7"
+      source: "weekday"
+      target: "study"
+    - id: "e8"
+      source: "weekday"
+      target: "sleep"
+    - id: "e9"
+      source: "weekday"
+      target: "lunch"
+    - id: "e10"
+      source: "weekday"
+      target: "afternoon"
+    - id: "e11"
+      source: "weekday"
+      target: "dinner"
+    - id: "e12"
+      source: "weekend"
+      target: "saturday"
+    - id: "e13"
+      source: "weekend"
+      target: "sunday"
+    - id: "e14"
+      source: "saturday"
+      target: "work"
+    - id: "e15"
+      source: "sunday"
+      target: "fun"
 ---
 
 田中さんは日本の学生です。毎日とても忙しいです。

@@ -2,144 +2,144 @@
 title: "Japanese Seasons"
 description: "Learn about the four seasons and seasonal activities in Japan"
 nodes:
-  - id: "seasons"
-    type: "text"
-    position: { x: 320, y: 40 }
-    data: { label: "四季", color: "green" }
-  - id: "spring"
-    type: "text"
-    position: { x: 80, y: 180 }
-    data: { label: "春", color: "pink" }
-  - id: "summer"
-    type: "text"
-    position: { x: 260, y: 180 }
-    data: { label: "夏", color: "red" }
-  - id: "autumn"
-    type: "text"
-    position: { x: 440, y: 180 }
-    data: { label: "秋", color: "amber" }
-  - id: "winter"
-    type: "text"
-    position: { x: 620, y: 180 }
-    data: { label: "冬", color: "blue" }
-  - id: "cherry-blossom"
-    type: "text"
-    position: { x: 40, y: 350 }
-    data: { label: "桜", color: "pink" }
-  - id: "hanami"
-    type: "text"
-    position: { x: 160, y: 350 }
-    data: { label: "花見", color: "pink" }
-  - id: "festival"
-    type: "text"
-    position: { x: 240, y: 350 }
-    data: { label: "祭り", color: "red" }
-  - id: "fireworks"
-    type: "text"
-    position: { x: 360, y: 350 }
-    data: { label: "花火", color: "red" }
-  - id: "leaves"
-    type: "text"
-    position: { x: 440, y: 350 }
-    data: { label: "紅葉", color: "amber" }
-  - id: "new-year"
-    type: "text"
-    position: { x: 620, y: 350 }
-    data: { label: "お正月", color: "blue" }
-  - id: "weather"
-    type: "text"
-    position: { x: 240, y: 520 }
-    data: { label: "天気", color: "purple" }
-  - id: "food"
-    type: "text"
-    position: { x: 520, y: 520 }
-    data: { label: "旬の食べ物", color: "purple" }
-  - id: "conn-seasons"
-    type: "connector"
-    position: { x: 320, y: 110 }
-    data: { label: "には" }
-  - id: "conn-spring"
-    type: "connector"
-    position: { x: 100, y: 260 }
-    data: { label: "の代表は" }
-  - id: "conn-summer"
-    type: "connector"
-    position: { x: 280, y: 260 }
-    data: { label: "の行事は" }
-  - id: "conn-autumn"
-    type: "connector"
-    position: { x: 440, y: 260 }
-    data: { label: "の特徴は" }
-  - id: "conn-winter"
-    type: "connector"
-    position: { x: 620, y: 260 }
-    data: { label: "の行事は" }
-  - id: "conn-weather"
-    type: "connector"
-    position: { x: 300, y: 430 }
-    data: { label: "は" }
-  - id: "conn-food"
-    type: "connector"
-    position: { x: 520, y: 430 }
-    data: { label: "がある" }
+    - id: "seasons"
+      type: "text"
+      position: { x: 320, y: 40 }
+      data: { label: "四季", color: "green" }
+    - id: "spring"
+      type: "text"
+      position: { x: 80, y: 180 }
+      data: { label: "春", color: "pink" }
+    - id: "summer"
+      type: "text"
+      position: { x: 260, y: 180 }
+      data: { label: "夏", color: "red" }
+    - id: "autumn"
+      type: "text"
+      position: { x: 440, y: 180 }
+      data: { label: "秋", color: "amber" }
+    - id: "winter"
+      type: "text"
+      position: { x: 620, y: 180 }
+      data: { label: "冬", color: "blue" }
+    - id: "cherry-blossom"
+      type: "text"
+      position: { x: 40, y: 350 }
+      data: { label: "桜", color: "pink" }
+    - id: "hanami"
+      type: "text"
+      position: { x: 160, y: 350 }
+      data: { label: "花見", color: "pink" }
+    - id: "festival"
+      type: "text"
+      position: { x: 240, y: 350 }
+      data: { label: "祭り", color: "red" }
+    - id: "fireworks"
+      type: "text"
+      position: { x: 360, y: 350 }
+      data: { label: "花火", color: "red" }
+    - id: "leaves"
+      type: "text"
+      position: { x: 440, y: 350 }
+      data: { label: "紅葉", color: "amber" }
+    - id: "new-year"
+      type: "text"
+      position: { x: 620, y: 350 }
+      data: { label: "お正月", color: "blue" }
+    - id: "weather"
+      type: "text"
+      position: { x: 240, y: 520 }
+      data: { label: "天気", color: "purple" }
+    - id: "food"
+      type: "text"
+      position: { x: 520, y: 520 }
+      data: { label: "旬の食べ物", color: "purple" }
+    - id: "conn-seasons"
+      type: "connector"
+      position: { x: 320, y: 110 }
+      data: { label: "には" }
+    - id: "conn-spring"
+      type: "connector"
+      position: { x: 100, y: 260 }
+      data: { label: "の代表は" }
+    - id: "conn-summer"
+      type: "connector"
+      position: { x: 280, y: 260 }
+      data: { label: "の行事は" }
+    - id: "conn-autumn"
+      type: "connector"
+      position: { x: 440, y: 260 }
+      data: { label: "の特徴は" }
+    - id: "conn-winter"
+      type: "connector"
+      position: { x: 620, y: 260 }
+      data: { label: "の行事は" }
+    - id: "conn-weather"
+      type: "connector"
+      position: { x: 300, y: 430 }
+      data: { label: "は" }
+    - id: "conn-food"
+      type: "connector"
+      position: { x: 520, y: 430 }
+      data: { label: "がある" }
 edges:
-  - id: "e1"
-    source: "seasons"
-    target: "conn-seasons"
-  - id: "e2"
-    source: "conn-seasons"
-    target: "spring"
-  - id: "e3"
-    source: "conn-seasons"
-    target: "summer"
-  - id: "e4"
-    source: "conn-seasons"
-    target: "autumn"
-  - id: "e5"
-    source: "conn-seasons"
-    target: "winter"
-  - id: "e6"
-    source: "spring"
-    target: "conn-spring"
-  - id: "e7"
-    source: "conn-spring"
-    target: "cherry-blossom"
-  - id: "e8"
-    source: "conn-spring"
-    target: "hanami"
-  - id: "e9"
-    source: "summer"
-    target: "conn-summer"
-  - id: "e10"
-    source: "conn-summer"
-    target: "festival"
-  - id: "e11"
-    source: "conn-summer"
-    target: "fireworks"
-  - id: "e12"
-    source: "autumn"
-    target: "conn-autumn"
-  - id: "e13"
-    source: "conn-autumn"
-    target: "leaves"
-  - id: "e14"
-    source: "winter"
-    target: "conn-winter"
-  - id: "e15"
-    source: "conn-winter"
-    target: "new-year"
-  - id: "e16"
-    source: "autumn"
-    target: "conn-food"
-  - id: "e17"
-    source: "conn-food"
-    target: "food"
-  - id: "e18"
-    source: "winter"
-    target: "conn-weather"
-  - id: "e19"
-    source: "conn-weather"
-    target: "weather"
+    - id: "e1"
+      source: "seasons"
+      target: "conn-seasons"
+    - id: "e2"
+      source: "conn-seasons"
+      target: "spring"
+    - id: "e3"
+      source: "conn-seasons"
+      target: "summer"
+    - id: "e4"
+      source: "conn-seasons"
+      target: "autumn"
+    - id: "e5"
+      source: "conn-seasons"
+      target: "winter"
+    - id: "e6"
+      source: "spring"
+      target: "conn-spring"
+    - id: "e7"
+      source: "conn-spring"
+      target: "cherry-blossom"
+    - id: "e8"
+      source: "conn-spring"
+      target: "hanami"
+    - id: "e9"
+      source: "summer"
+      target: "conn-summer"
+    - id: "e10"
+      source: "conn-summer"
+      target: "festival"
+    - id: "e11"
+      source: "conn-summer"
+      target: "fireworks"
+    - id: "e12"
+      source: "autumn"
+      target: "conn-autumn"
+    - id: "e13"
+      source: "conn-autumn"
+      target: "leaves"
+    - id: "e14"
+      source: "winter"
+      target: "conn-winter"
+    - id: "e15"
+      source: "conn-winter"
+      target: "new-year"
+    - id: "e16"
+      source: "autumn"
+      target: "conn-food"
+    - id: "e17"
+      source: "conn-food"
+      target: "food"
+    - id: "e18"
+      source: "winter"
+      target: "conn-weather"
+    - id: "e19"
+      source: "conn-weather"
+      target: "weather"
 ---
 
 日本には四つの季節があります。春、夏、秋、冬です。日本人は季節をとても大切にしています。季節によって、食べ物や行事が変わります。それぞれの季節には、特別な楽しみがあります。

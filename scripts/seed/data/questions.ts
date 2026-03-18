@@ -17,17 +17,20 @@ export const TAM_QUESTIONS = [
 		options: LIKERT_SCALE_5,
 	},
 	{
-		questionText: "Kit-Build is helpful for understanding the structure and relationships within a text.",
+		questionText:
+			"Kit-Build is helpful for understanding the structure and relationships within a text.",
 		type: "likert" as const,
 		options: LIKERT_SCALE_5,
 	},
 	{
-		questionText: "Using Kit-Build makes it easier to organize information from what I have read.",
+		questionText:
+			"Using Kit-Build makes it easier to organize information from what I have read.",
 		type: "likert" as const,
 		options: LIKERT_SCALE_5,
 	},
 	{
-		questionText: "I think using Kit-Build is more effective for learning Japanese reading than traditional methods.",
+		questionText:
+			"I think using Kit-Build is more effective for learning Japanese reading than traditional methods.",
 		type: "likert" as const,
 		options: LIKERT_SCALE_5,
 	},
@@ -184,18 +187,14 @@ export const READING_COMPREHENSION_QUESTIONS: ReadingQuestion[] = [
 	},
 	{
 		questionText: "田中さんはどこで晩ごはんを食べますか？",
-		options: createMcqOptions(7, [
-			"学校",
-			"一人でレストラン",
-			"家で家族と一緒に",
-			"友達の家",
-		]),
+		options: createMcqOptions(7, ["学校", "一人でレストラン", "家で家族と一緒に", "友達の家"]),
 		correctOptionId: generateOptionId(7, 2),
 		bloomLevel: "L2-Understanding",
 		targetInfo: "ばんごはんはいつもうちでかぞくといっしょにたべます",
 	},
 	{
-		questionText: "もし田中さんの朝の授業が午前8時に始まる場合、どのような問題が考えられますか？",
+		questionText:
+			"もし田中さんの朝の授業が午前8時に始まる場合、どのような問題が考えられますか？",
 		options: createMcqOptions(8, [
 			"彼は午前6時に起きる",
 			"通常は午前6時に起きるが、土曜日は午前9時に起きる",
@@ -207,7 +206,8 @@ export const READING_COMPREHENSION_QUESTIONS: ReadingQuestion[] = [
 		targetInfo: "Apply weekday schedule to hypothetical scenario",
 	},
 	{
-		questionText: "田中さんの友達が土曜日の朝に映画に誘いました。田中さんが誘いを受けるにはどうすればいいですか？",
+		questionText:
+			"田中さんの友達が土曜日の朝に映画に誘いました。田中さんが誘いを受けるにはどうすればいいですか？",
 		options: createMcqOptions(9, [
 			"いつもより早く起きる",
 			"朝ごはんを抜く",
@@ -219,7 +219,8 @@ export const READING_COMPREHENSION_QUESTIONS: ReadingQuestion[] = [
 		targetInfo: "どようびのあさは９じごろまでねます - needs to wake up earlier",
 	},
 	{
-		questionText: "本文に基づくと、田中さんが火曜日の午後7時にいない可能性が高い場所はどこですか？",
+		questionText:
+			"本文に基づくと、田中さんが火曜日の午後7時にいない可能性が高い場所はどこですか？",
 		options: createMcqOptions(10, [
 			"図書館",
 			"家（晩ごはんを食べている）",
@@ -231,7 +232,8 @@ export const READING_COMPREHENSION_QUESTIONS: ReadingQuestion[] = [
 		targetInfo: "ばんごはんはいつもうちで - implies home for dinner, not out",
 	},
 	{
-		questionText: "新しい学生が田中さんのように勉強したいと考えています。平日はどのようなスケジュールに従うべきですか？",
+		questionText:
+			"新しい学生が田中さんのように勉強したいと考えています。平日はどのようなスケジュールに従うべきですか？",
 		options: createMcqOptions(11, [
 			"9時に起き、学食で食べ、10時に寝る",
 			"6時に起き、家で食べ、4時間勉強し、11時に寝る",
@@ -315,7 +317,8 @@ export const READING_COMPREHENSION_QUESTIONS: ReadingQuestion[] = [
 		targetInfo: "Evaluate Saturday balance: Rest, Work, Study, Play",
 	},
 	{
-		questionText: "田中さんがこのライフスタイルを維持するために最も重要な要素は何だと考えられますか？",
+		questionText:
+			"田中さんがこのライフスタイルを維持するために最も重要な要素は何だと考えられますか？",
 		options: createMcqOptions(18, [
 			"高価な食事をとること",
 			"勉強、仕事、休息の間の適切な時間管理",
@@ -327,7 +330,8 @@ export const READING_COMPREHENSION_QUESTIONS: ReadingQuestion[] = [
 		targetInfo: "Evaluate key requirement: Time management",
 	},
 	{
-		questionText: "最後の文に基づくと、田中さんは自分のライフスタイルについてどのように感じていると思われますか？",
+		questionText:
+			"最後の文に基づくと、田中さんは自分のライフスタイルについてどのように感じていると思われますか？",
 		options: createMcqOptions(19, [
 			"疲れていて変えたいと思っている",
 			"忙しいが満足している",
@@ -339,7 +343,8 @@ export const READING_COMPREHENSION_QUESTIONS: ReadingQuestion[] = [
 		targetInfo: "たのしいです - evaluate sentiment despite いそがしい",
 	},
 	{
-		questionText: "もし田中さんに新しい恋人ができた場合、スケジュールの変更として最も可能性が高いのはどれですか？",
+		questionText:
+			"もし田中さんに新しい恋人ができた場合、スケジュールの変更として最も可能性が高いのはどれですか？",
 		options: createMcqOptions(20, [
 			"学校に行くのをやめる",
 			"日曜日の活動を調整して、パートナーと過ごす時間を作る",
@@ -351,7 +356,8 @@ export const READING_COMPREHENSION_QUESTIONS: ReadingQuestion[] = [
 		targetInfo: "Synthesize: Sunday is free time -> Can adjust for social life",
 	},
 	{
-		questionText: "田中さんの活動の週間サマリーを作成してください。どのようなパターンが見られますか？",
+		questionText:
+			"田中さんの活動の週間サマリーを作成してください。どのようなパターンが見られますか？",
 		options: createMcqOptions(21, [
 			"彼はパターンのないランダムな活動をしている",
 			"平日：構造化された学校のスケジュール。週末：仕事、勉強、社交時間を伴う柔軟なスケジュール",
@@ -375,11 +381,10 @@ export const QUESTION_CORRECT_ANSWERS: Record<number, string> =
 	);
 
 // Export a map of question index to all option IDs for response seeding
-export const QUESTION_OPTION_IDS: Record<number, string[]> =
-	READING_COMPREHENSION_QUESTIONS.reduce(
-		(acc, q, idx) => {
-			acc[idx] = q.options.map((o) => o.id);
-			return acc;
-		},
-		{} as Record<number, string[]>,
-	);
+export const QUESTION_OPTION_IDS: Record<number, string[]> = READING_COMPREHENSION_QUESTIONS.reduce(
+	(acc, q, idx) => {
+		acc[idx] = q.options.map((o) => o.id);
+		return acc;
+	},
+	{} as Record<number, string[]>,
+);

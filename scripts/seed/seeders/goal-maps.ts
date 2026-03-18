@@ -1,30 +1,22 @@
 import { eq } from "drizzle-orm";
 import { Effect } from "effect";
+
 import { randomString } from "@/lib/utils";
 import { Database } from "@/server/db/client";
-import {
-	goalMaps,
-	texts,
-	topics,
-} from "@/server/db/schema/app-schema";
-import {
-	GOAL_MAP_TO_MATERIAL,
-	MATERIALS,
-	TOPICS,
-} from "../data/materials.js";
+import { goalMaps, texts, topics } from "@/server/db/schema/app-schema";
+
+import { GOAL_MAP_TO_MATERIAL, MATERIALS, TOPICS } from "../data/materials.js";
 
 export function seedGoalMaps(teacherId: string) {
 	return Effect.gen(function* () {
 		const db = yield* Database;
 
-		yield* Effect.log(
-			`Seeding ${TOPICS.length} topics with ${MATERIALS.length} goal maps...`,
-		);
+		yield* Effect.log(`Seeding ${TOPICS.length} topics with ${MATERIALS.length} goal maps...`);
 
-	const goalMapIdsByTitle: Record<string, string> = {};
+		const goalMapIdsByTitle: Record<string, string> = {};
 		const goalMapDataByTitle: Record<
 			string,
-			{ nodes: unknown[]; edges: Array<{ id: string; source: string; target: string }>; }
+			{ nodes: unknown[]; edges: Array<{ id: string; source: string; target: string }> }
 		> = {};
 
 		const topicResults = yield* Effect.all(
@@ -57,13 +49,10 @@ export function seedGoalMaps(teacherId: string) {
 					const goalMapResults = yield* Effect.all(
 						topicData.goalMapTitles.map((mapTitle) =>
 							Effect.gen(function* () {
-								const material =
-									GOAL_MAP_TO_MATERIAL[mapTitle];
+								const material = GOAL_MAP_TO_MATERIAL[mapTitle];
 
 								if (!material) {
-									yield* Effect.log(
-										`No material found for: ${mapTitle}`,
-									);
+									yield* Effect.log(`No material found for: ${mapTitle}`);
 									return null;
 								}
 
@@ -106,9 +95,7 @@ export function seedGoalMaps(teacherId: string) {
 											edges: material.edges,
 										})
 										.where(eq(goalMaps.id, goalMapId));
-									yield* Effect.log(
-										`  Updated goal map: ${material.title}`,
-									);
+									yield* Effect.log(`  Updated goal map: ${material.title}`);
 								} else {
 									goalMapId = randomString();
 									yield* db.insert(goalMaps).values({
@@ -121,9 +108,7 @@ export function seedGoalMaps(teacherId: string) {
 										topicId: topicId,
 										textId: textId,
 									});
-									yield* Effect.log(
-										`  Created goal map: ${material.title}`,
-									);
+									yield* Effect.log(`  Created goal map: ${material.title}`);
 								}
 
 								return {
@@ -151,7 +136,11 @@ export function seedGoalMaps(teacherId: string) {
 					goalMapIdsByTitle[result.title] = result.goalMapId;
 					goalMapDataByTitle[result.title] = {
 						nodes: result.material.nodes,
-						edges: result.material.edges as Array<{ id: string; source: string; target: string }>,
+						edges: result.material.edges as Array<{
+							id: string;
+							source: string;
+							target: string;
+						}>,
 					};
 				}
 			}

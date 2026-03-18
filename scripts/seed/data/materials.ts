@@ -83,8 +83,7 @@ export const TOPICS = [
 	},
 	{
 		title: "Basic Grammar Patterns",
-		description:
-			"Fundamental Japanese grammar structures and sentence patterns",
+		description: "Fundamental Japanese grammar structures and sentence patterns",
 		goalMapTitles: ["Desu/Masu Forms", "Particles Wa and Ga"],
 	},
 ];

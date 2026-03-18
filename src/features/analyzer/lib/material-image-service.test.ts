@@ -1,6 +1,6 @@
 import { assert, describe, it, beforeEach } from "@effect/vitest";
 import { Effect, Either } from "effect";
-import { vi } from "vitest";
+import { vi } from "vite-plus/test";
 
 import { uploadMaterialImage } from "./material-image-service";
 

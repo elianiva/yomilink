@@ -1,20 +1,20 @@
 {
-  "version": "7",
-  "dialect": "sqlite",
-  "entries": [
-    {
-      "idx": 0,
-      "version": "6",
-      "when": 1772488617842,
-      "tag": "0000_previous_agent_brand",
-      "breakpoints": true
-    },
-    {
-      "idx": 1,
-      "version": "6",
-      "when": 1773827977499,
-      "tag": "0001_shallow_ultron",
-      "breakpoints": true
-    }
-  ]
+	"version": "7",
+	"dialect": "sqlite",
+	"entries": [
+		{
+			"idx": 0,
+			"version": "6",
+			"when": 1772488617842,
+			"tag": "0000_previous_agent_brand",
+			"breakpoints": true
+		},
+		{
+			"idx": 1,
+			"version": "6",
+			"when": 1773827977499,
+			"tag": "0001_shallow_ultron",
+			"breakpoints": true
+		}
+	]
 }

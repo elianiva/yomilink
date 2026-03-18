@@ -1,5 +1,5 @@
 import type { Node } from "@xyflow/react";
-import { describe, expect, it } from "vitest";
+import { describe, expect, it } from "vite-plus/test";
 
 import {
 	arrangeNodesInGrid,

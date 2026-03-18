@@ -5,9 +5,7 @@ const env = process.env || import.meta.env;
 export const ClientConfig = Config.all({
 	sentryDsn: Config.redacted("SENTRY_DSN"),
 }).pipe(
-	Effect.withConfigProvider(
-		ConfigProvider.fromJson(env).pipe(ConfigProvider.nested("VITE_")),
-	),
+	Effect.withConfigProvider(ConfigProvider.fromJson(env).pipe(ConfigProvider.nested("VITE_"))),
 );
 
 export const ServerConfig = Config.all({

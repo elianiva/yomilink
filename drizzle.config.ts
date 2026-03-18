@@ -1,7 +1,7 @@
 import { defineConfig } from "drizzle-kit";
 
-const isLocal = process.env.DATABASE_MODE === "local" || 
-  process.env.TURSO_DATABASE_URL?.startsWith("file:");
+const isLocal =
+	process.env.DATABASE_MODE === "local" || process.env.TURSO_DATABASE_URL?.startsWith("file:");
 
 export default defineConfig({
 	schema: "./src/server/db/schema/*",

@@ -1,6 +1,6 @@
 import { format } from "date-fns";
 import { Effect } from "effect";
-import { describe, expect, it } from "vitest";
+import { describe, expect, it } from "vite-plus/test";
 
 import { calculateDelayedUnlock } from "./unlock-service";
 

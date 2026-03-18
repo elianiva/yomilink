@@ -1,8 +1,10 @@
 import { eq } from "drizzle-orm";
 import { Effect } from "effect";
+
 import { randomString } from "@/lib/utils";
 import { Database } from "@/server/db/client";
 import { forms, questions } from "@/server/db/schema/app-schema";
+
 import {
 	FEEDBACK_QUESTIONS,
 	READING_COMPREHENSION_QUESTIONS,
@@ -119,9 +121,7 @@ export function seedForms(teacherId: string) {
 			.where(eq(questions.formId, feedbackFormId));
 
 		if (existingFeedbackQuestions.length === 0) {
-			yield* Effect.log(
-				`  Creating ${FEEDBACK_QUESTIONS.length} feedback questions...`,
-			);
+			yield* Effect.log(`  Creating ${FEEDBACK_QUESTIONS.length} feedback questions...`);
 			yield* Effect.all(
 				FEEDBACK_QUESTIONS.map((q, index) =>
 					Effect.gen(function* () {
@@ -138,9 +138,7 @@ export function seedForms(teacherId: string) {
 				),
 				{ concurrency: 10 },
 			);
-			yield* Effect.log(
-				`  Created ${FEEDBACK_QUESTIONS.length} feedback questions`,
-			);
+			yield* Effect.log(`  Created ${FEEDBACK_QUESTIONS.length} feedback questions`);
 		} else {
 			yield* Effect.log(`  Feedback questions already exist`);
 		}

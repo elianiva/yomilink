@@ -1,8 +1,10 @@
 import { asc, eq, and } from "drizzle-orm";
 import { Effect } from "effect";
+
 import { randomString } from "@/lib/utils";
 import { Database } from "@/server/db/client";
 import { formProgress, formResponses, questions } from "@/server/db/schema/app-schema";
+
 import { READING_COMPREHENSION_QUESTIONS } from "../data/questions.js";
 import {
 	DEMO_DELAYEDTEST_SCORES,
@@ -35,18 +37,10 @@ export function seedResponses(
 			feedbackFormId,
 		];
 
-		const preTestDate = new Date(
-			dates.twoWeeksAgo.getTime() - 2 * 24 * 60 * 60 * 1000,
-		);
-		const postTestDate = new Date(
-			dates.oneWeekAgo.getTime() - 4 * 60 * 60 * 1000,
-		);
-		const tamDate = new Date(
-			dates.oneWeekAgo.getTime() - 2 * 60 * 60 * 1000,
-		);
-		const feedbackDate = new Date(
-			dates.oneWeekAgo.getTime() - 1 * 60 * 60 * 1000,
-		);
+		const preTestDate = new Date(dates.twoWeeksAgo.getTime() - 2 * 24 * 60 * 60 * 1000);
+		const postTestDate = new Date(dates.oneWeekAgo.getTime() - 4 * 60 * 60 * 1000);
+		const tamDate = new Date(dates.oneWeekAgo.getTime() - 2 * 60 * 60 * 1000);
+		const feedbackDate = new Date(dates.oneWeekAgo.getTime() - 1 * 60 * 60 * 1000);
 		const delayedTestDate = new Date(Date.now() - 1 * 24 * 60 * 60 * 1000);
 
 		const formDates: Record<string, Date> = {
@@ -95,9 +89,7 @@ export function seedResponses(
 			.from(formResponses)
 			.where(eq(formResponses.formId, tamFormId));
 
-		const existingTamUserIds = new Set(
-			existingTamResponses.map((r) => r.userId),
-		);
+		const existingTamUserIds = new Set(existingTamResponses.map((r) => r.userId));
 
 		yield* Effect.all(
 			DEMO_STUDENTS.map((student) =>
@@ -105,9 +97,7 @@ export function seedResponses(
 					const studentId = userIdsByEmail[student.email];
 					if (!studentId) return;
 					if (existingTamUserIds.has(studentId)) {
-						yield* Effect.log(
-							`  TAM response for ${student.email} already exists`,
-						);
+						yield* Effect.log(`  TAM response for ${student.email} already exists`);
 						return;
 					}
 
@@ -146,9 +136,7 @@ export function seedResponses(
 			.from(formResponses)
 			.where(eq(formResponses.formId, feedbackFormId));
 
-		const existingFeedbackUserIds = new Set(
-			existingFeedbackResponses.map((r) => r.userId),
-		);
+		const existingFeedbackUserIds = new Set(existingFeedbackResponses.map((r) => r.userId));
 
 		yield* Effect.all(
 			DEMO_STUDENTS.map((student) =>
@@ -186,9 +174,7 @@ export function seedResponses(
 						submittedAt: feedbackDate,
 						timeSpentSeconds: 300,
 					});
-					yield* Effect.log(
-						`  Created feedback response for ${student.email}`,
-					);
+					yield* Effect.log(`  Created feedback response for ${student.email}`);
 				}),
 			),
 			{ concurrency: 10 },
@@ -243,7 +229,9 @@ export function seedResponses(
 										.filter((opt) => opt.id !== q.correctOptionId)
 										.map((opt) => opt.id);
 									selectedOptionId =
-										wrongOptionIds[Math.floor(Math.random() * wrongOptionIds.length)] || q.options[0].id;
+										wrongOptionIds[
+											Math.floor(Math.random() * wrongOptionIds.length)
+										] || q.options[0].id;
 								}
 								// USE QUESTION ID AS KEY, OPTION ID AS VALUE
 								answers[testQuestions[i].id] = selectedOptionId;
@@ -261,7 +249,9 @@ export function seedResponses(
 								submittedAt: submissionDate,
 								timeSpentSeconds: 600 + Math.floor(Math.random() * 300),
 							});
-							yield* Effect.log(`  Created ${formName} response for ${student.email}`);
+							yield* Effect.log(
+								`  Created ${formName} response for ${student.email}`,
+							);
 						}),
 					),
 					{ concurrency: 10 },
@@ -269,15 +259,8 @@ export function seedResponses(
 			});
 		}
 
-		yield* seedTestResponses(
-			preTestFormId,
-			"Pre-Test",
-			DEMO_PRETEST_SCORES,
-			preTestDate,
-		).pipe(
-			Effect.tapError((e) =>
-				Effect.logError("Failed to seed pre-test responses:", e),
-			),
+		yield* seedTestResponses(preTestFormId, "Pre-Test", DEMO_PRETEST_SCORES, preTestDate).pipe(
+			Effect.tapError((e) => Effect.logError("Failed to seed pre-test responses:", e)),
 			Effect.catchAll(() => Effect.void),
 		);
 
@@ -287,9 +270,7 @@ export function seedResponses(
 			DEMO_POSTTEST_SCORES,
 			postTestDate,
 		).pipe(
-			Effect.tapError((e) =>
-				Effect.logError("Failed to seed post-test responses:", e),
-			),
+			Effect.tapError((e) => Effect.logError("Failed to seed post-test responses:", e)),
 			Effect.catchAll(() => Effect.void),
 		);
 
@@ -299,9 +280,7 @@ export function seedResponses(
 			DEMO_DELAYEDTEST_SCORES,
 			delayedTestDate,
 		).pipe(
-			Effect.tapError((e) =>
-				Effect.logError("Failed to seed delayed-test responses:", e),
-			),
+			Effect.tapError((e) => Effect.logError("Failed to seed delayed-test responses:", e)),
 			Effect.catchAll(() => Effect.void),
 		);
 	});

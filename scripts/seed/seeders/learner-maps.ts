@@ -1,8 +1,10 @@
 import { eq } from "drizzle-orm";
 import { Effect } from "effect";
+
 import { randomString } from "@/lib/utils";
 import { Database } from "@/server/db/client";
 import { diagnoses, learnerMaps } from "@/server/db/schema/app-schema";
+
 import { LEARNER_MAP_CONFIGS } from "../data/learner-maps.js";
 import { DEMO_SUMMARIES } from "../data/summaries.js";
 
@@ -11,7 +13,10 @@ export function seedLearnerMaps(
 	demoAssignmentId: string,
 	dailyLifeGoalMapId: string,
 	demoKitId: string,
-	dailyLifeData: { nodes: unknown[]; edges: Array<{ id: string; source: string; target: string }> },
+	dailyLifeData: {
+		nodes: unknown[];
+		edges: Array<{ id: string; source: string; target: string }>;
+	},
 	oneWeekAgo: Date,
 	studentConditionMap: Record<string, "concept_map" | "summarizing">,
 ) {
@@ -35,9 +40,7 @@ export function seedLearnerMaps(
 			existingLearnerMaps.map((lm) => `${lm.userId}:${lm.attempt}`),
 		);
 
-		const submissionDate = new Date(
-			oneWeekAgo.getTime() - 3 * 60 * 60 * 1000,
-		);
+		const submissionDate = new Date(oneWeekAgo.getTime() - 3 * 60 * 60 * 1000);
 
 		yield* Effect.all(
 			LEARNER_MAP_CONFIGS.map((config) =>
@@ -78,9 +81,7 @@ export function seedLearnerMaps(
 							attempt: config.attempt,
 							submittedAt: submissionDate,
 						});
-						yield* Effect.log(
-							`  Created summary for ${config.studentEmail}`,
-						);
+						yield* Effect.log(`  Created summary for ${config.studentEmail}`);
 						return;
 					}
 
@@ -129,8 +130,7 @@ export function seedLearnerMaps(
 
 					const correctCount = config.correctEdgeIds.length;
 					const totalGoalEdges = 15;
-					const score =
-						Math.round((correctCount / totalGoalEdges) * 100) / 100;
+					const score = Math.round((correctCount / totalGoalEdges) * 100) / 100;
 
 					const perLink = {
 						correct: config.correctEdgeIds.map((edgeId) => {

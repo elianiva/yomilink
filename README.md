@@ -43,6 +43,7 @@ This approach reduces cognitive load by focusing on structure rather than termin
 ## Tech Stack
 
 ### Frontend
+
 - **Framework**: TanStack Start (React 19 with SSR)
 - **Routing**: TanStack Router (file-based)
 - **State**: TanStack Query + Jotai atoms
@@ -52,6 +53,7 @@ This approach reduces cognitive load by focusing on structure rather than termin
 - **Auth**: Better Auth
 
 ### Backend
+
 - **Runtime**: Cloudflare Workers
 - **Language**: TypeScript (strict mode)
 - **HTTP/Tele**: Effect-TS with OpenTelemetry
@@ -60,6 +62,7 @@ This approach reduces cognitive load by focusing on structure rather than termin
 - **Observability**: Sentry
 
 ### Development
+
 - **Package Manager**: Bun
 - **Lint/Format**: oxlint + oxfmt
 - **Testing**: Vitest + Testing Library + jsdom
@@ -88,25 +91,26 @@ bun run dev
 Visit http://localhost:5173
 
 Seed data creates:
+
 - `admin@yomilink.local` / `admin123`
 - `teacher@yomilink.local` / `teacher123`
 - `student@yomilink.local` / `student123`
 
 ## Available Scripts
 
-| Command | Description |
-|---------|-------------|
-| `bun run dev` | Start development server |
-| `bun run build` | Build for production |
-| `bun run deploy` | Deploy to Cloudflare Workers |
-| `bun run test` | Run all tests |
-| `bun run test:watch` | Run tests in watch mode |
-| `bun run coverage` | Generate coverage report |
-| `bun run lint` | Run Biome linter |
-| `bun run format` | Format code |
-| `bun run typecheck` | Run TypeScript checking |
-| `bun run seed` | Seed database with sample data |
-| `bun ui add <component>` | Add shadcn/ui component |
+| Command                  | Description                    |
+| ------------------------ | ------------------------------ |
+| `bun run dev`            | Start development server       |
+| `bun run build`          | Build for production           |
+| `bun run deploy`         | Deploy to Cloudflare Workers   |
+| `bun run test`           | Run all tests                  |
+| `bun run test:watch`     | Run tests in watch mode        |
+| `bun run coverage`       | Generate coverage report       |
+| `bun run lint`           | Run Biome linter               |
+| `bun run format`         | Format code                    |
+| `bun run typecheck`      | Run TypeScript checking        |
+| `bun run seed`           | Seed database with sample data |
+| `bun ui add <component>` | Add shadcn/ui component        |
 
 ## Project Structure
 
@@ -177,14 +181,15 @@ docker-compose --profile migrate run --rm migrate
 ### Build Configuration
 
 The Docker build uses `BUILD_TARGET=bun` which configures:
+
 - **Vite**: Uses Nitro plugin with `node-server` preset instead of Cloudflare
 - **Runtime**: Bun instead of Node.js
 - **Output**: `.output/server/index.mjs` (Nitro standard)
 
-| Build Target | Use Case | Command |
-|--------------|----------|---------|
-| `cloudflare` | Edge deployment (default) | `bun run build` |
-| `bun` | Container deployment | `BUILD_TARGET=bun bun run build` |
+| Build Target | Use Case                  | Command                          |
+| ------------ | ------------------------- | -------------------------------- |
+| `cloudflare` | Edge deployment (default) | `bun run build`                  |
+| `bun`        | Container deployment      | `BUILD_TARGET=bun bun run build` |
 
 ## Local SQLite (Self-Hosted)
 
@@ -195,6 +200,7 @@ To use a local SQLite file instead of Turso:
 3. Run migrations: `DATABASE_MODE=local bunx drizzle-kit migrate`
 
 This is useful for:
+
 - Local development without Turso credentials
 - Self-hosted deployments
 - Offline-first environments
@@ -202,10 +208,10 @@ This is useful for:
 
 ### Database Mode Configuration
 
-| Mode | `DATABASE_MODE` | `TURSO_DATABASE_URL` | Description |
-|------|-----------------|---------------------|-------------|
-| Remote | `remote` (default) | `libsql://...` | Uses Turso cloud database |
-| Local | `local` | `file:./path/to/db` | Uses local SQLite file |
+| Mode   | `DATABASE_MODE`    | `TURSO_DATABASE_URL` | Description               |
+| ------ | ------------------ | -------------------- | ------------------------- |
+| Remote | `remote` (default) | `libsql://...`       | Uses Turso cloud database |
+| Local  | `local`            | `file:./path/to/db`  | Uses local SQLite file    |
 
 ## CI/CD
 
