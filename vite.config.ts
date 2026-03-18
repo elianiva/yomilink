@@ -35,7 +35,6 @@ export default defineConfig({
 		rules: {},
 		settings: {
 			"jsx-a11y": {
-				polymorphicPropName: null,
 				components: {},
 				attributes: {},
 			},
@@ -47,7 +46,6 @@ export default defineConfig({
 						attributes: ["to"],
 					},
 				],
-				version: null,
 				componentWrapperFunctions: [],
 			},
 			vitest: {
@@ -72,7 +70,9 @@ export default defineConfig({
 	},
 	plugins: [
 		// Use Nitro for Node container, Cloudflare for edge deployment
-		isNode ? nitro({ preset: "node-server" }) : cloudflare({ viteEnvironment: { name: "ssr" } }),
+		isNode
+			? nitro({ preset: "node-server" })
+			: cloudflare({ viteEnvironment: { name: "ssr" } }),
 		tailwindcss(),
 		tanstackStart(),
 		viteReact(),
