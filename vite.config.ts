@@ -15,7 +15,7 @@ export default defineConfig({
 		"*": "vp check --fix",
 	},
 	fmt: {
-		ignorePatterns: [],
+		ignorePatterns: ["routeTree.gen.ts"],
 		tabWidth: 4,
 		useTabs: true,
 		sortImports: {},

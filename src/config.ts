@@ -1,6 +1,7 @@
+import { env as cfEnv } from "cloudflare:workers";
 import { Config, ConfigProvider, Effect } from "effect";
 
-const env = process.env || import.meta.env;
+const env = cfEnv || process.env || import.meta.env;
 
 export const ClientConfig = Config.all({
 	sentryDsn: Config.redacted("SENTRY_DSN"),

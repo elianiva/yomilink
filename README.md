@@ -99,19 +99,19 @@ Seed data creates:
 
 ## Available Scripts
 
-| Command                  | Description                    |
-| ------------------------ | ------------------------------ |
-| `vp dev`                  | Start development server       |
-| `vp build`                | Build for production           |
-| `vp run deploy`           | Deploy to Cloudflare Workers   |
-| `vp test`                 | Run all tests                  |
-| `vp test --watch`         | Run tests in watch mode        |
-| `vp test --coverage`      | Generate coverage report       |
-| `vp lint`                 | Run linter with auto-fix       |
-| `vp fmt`                  | Format code                    |
-| `vp run typecheck`        | Run TypeScript checking        |
-| `vp run db:seed`          | Seed database with sample data |
-| `npx shadcn@canary add <component>` | Add shadcn/ui component |
+| Command                             | Description                    |
+| ----------------------------------- | ------------------------------ |
+| `vp dev`                            | Start development server       |
+| `vp build`                          | Build for production           |
+| `vp run deploy`                     | Deploy to Cloudflare Workers   |
+| `vp test`                           | Run all tests                  |
+| `vp test --watch`                   | Run tests in watch mode        |
+| `vp test --coverage`                | Generate coverage report       |
+| `vp lint`                           | Run linter with auto-fix       |
+| `vp fmt`                            | Format code                    |
+| `vp run typecheck`                  | Run TypeScript checking        |
+| `vp run db:seed`                    | Seed database with sample data |
+| `npx shadcn@canary add <component>` | Add shadcn/ui component        |
 
 ## Project Structure
 
@@ -187,10 +187,10 @@ The Docker build uses `BUILD_TARGET=node` which configures:
 - **Runtime**: Node.js
 - **Output**: `.output/server/index.mjs` (Nitro standard)
 
-| Build Target | Use Case                  | Command                          |
-| ------------ | ------------------------- | -------------------------------- |
-| `cloudflare` | Edge deployment (default) | `vp build`                       |
-| `node`       | Container deployment      | `BUILD_TARGET=node vp build`     |
+| Build Target | Use Case                  | Command                      |
+| ------------ | ------------------------- | ---------------------------- |
+| `cloudflare` | Edge deployment (default) | `vp build`                   |
+| `node`       | Container deployment      | `BUILD_TARGET=node vp build` |
 
 ## Local SQLite (Self-Hosted)
 
