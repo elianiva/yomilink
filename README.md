@@ -1,75 +1,81 @@
 # Yomilink
 
-A modern educational assessment platform combining KitBuild concept mapping with customizable questionnaires for comprehensive student understanding evaluation.
+A modern reimplementation of the **KitBuild Concept Map** system for educational research.
 
-## Overview
+---
 
-Yomilink enables teachers to create diverse learning assessments and students to demonstrate their understanding through interactive activities. The platform supports two main assessment modalities:
+## What is Yomilink?
 
-1. **KitBuild Concept Mapping** - Students reconstruct expert concept maps from disassembled components
-2. **Form-based Assessments** - Customizable questionnaires with MCQ, text, and Likert scale questions
+Yomilink is a modern, researcher-friendly rebuild of the [KitBuild Concept Map](https://collab.kit-build.net/) platform originally developed by the [Learning Engineering Laboratory at Hiroshima University](https://lel.main.jp/kb/).
+
+The original KitBuild system (operational since 2009) pioneered automatic diagnosis of concept maps for formative assessment. Yomilink aims to:
+
+- Provide a **cleaner, more accessible interface** for researchers and educators
+- Run on **modern web infrastructure** (edge deployment, responsive design)
+- Support **extended research workflows** with enhanced analytics and flexible assessment tools
+
+**All core assessment methods—automatic map diagnosis, kit generation algorithms, and feedback frameworks—come directly from the original KitBuild research.** Yomilink does not introduce new pedagogical approaches; it reimplements the proven ones in a more maintainable, extensible form.
+
+---
+
+## About KitBuild
+
+KitBuild is a pedagogical approach developed by **Tsukasa Hirashima** and colleagues at Hiroshima University. The original system has been used across 1,700+ institutions worldwide for:
+
+- Automatic diagnosis of student understanding through concept map reconstruction
+- Formative assessment in large classroom settings
+- Visualizing gaps between instructor expectations and student comprehension
+
+### Original System
+
+- **Live System:** [collab.kit-build.net](https://collab.kit-build.net/)
+- **Homepage:** [lel.main.jp/kb](https://lel.main.jp/kb)
+- **Maintainer:** Learning Engineering Laboratory, Hiroshima University
+- **Active since:** 2009
+
+### Foundational Research
+
+The KitBuild methodology is backed by extensive peer-reviewed research:
+
+| Paper | Authors | Year |
+|-------|---------|------|
+| [Framework of Kit-Build Concept Map for Automatic Diagnosis](https://telrp.springeropen.com/articles/10.1186/s41039-015-0018-9) | Hirashima et al. | 2015 |
+| [The Practical Use of Kit-Build Concept Map on Formative Assessment](https://telrp.springeropen.com/articles/10.1186/s41039-017-0060-x) | Pailai et al. | 2017 |
+| [Collaborative Concept Mapping with Reciprocal Kit-Build](https://link.springer.com/article/10.1186/s41039-020-00136-6) | Hayashi & Hirashima | 2020 |
+| [Evaluating the Kit-Build Process Using Sub-Map Scoring](https://rptel.apsce.net/index.php/RPTEL/article/view/2024-19021) | Rismanto et al. | 2024 |
+
+---
+
+## How It Works
+
+The KitBuild method follows a 4-step cycle:
+
+1. **Goal Map** — Instructor creates an expert concept map showing correct relationships
+2. **Kit Generation** — System disassembles the goal map into components (concepts + links)
+3. **Reconstruction** — Students rebuild the map from the kit, demonstrating their understanding
+4. **Automatic Diagnosis** — System compares student maps against the goal map and identifies misconceptions
+
+This approach reduces cognitive load on students (no need to invent terminology) while giving instructors precise, actionable data about understanding gaps.
+
+---
 
 ## Features
 
-### For Teachers
+Yomilink reimplements the core KitBuild workflow with modern tooling:
 
-- **Concept Map Editor**: Create expert concept maps with bi-directional and multi-link support
-- **Kit Generation**: Auto-generate assignment kits with configurable layouts from goal maps
-- **Form Builder**: Design questionnaires with multiple question types (MCQ, text, Likert scale)
-- **Assignment Management**: Distribute activities with time limits and deadlines
-- **Automated Diagnosis**: Compare learner maps against expert maps with detailed analysis
-- **Analytics Dashboard**: Track student progress and performance metrics
-- **Feedback System**: Provide personalized feedback with visibility controls
+| Feature | Description |
+|---------|-------------|
+| **Concept Map Editor** | Visual editor for creating goal maps with bi-directional/multi-link support |
+| **Automatic Kit Generation** | Disassembles goal maps into student-ready activity kits |
+| **Map Diagnosis** | Automatic comparison of learner maps against goal maps |
+| **Extended Assessments** | Quiz builder for MCQ, text, and Likert-scale questions (research extension) |
+| **Assignment Management** | Deadlines, time limits, access controls |
+| **Research Dashboard** | Analytics and exportable data for research analysis |
+| **Feedback System** | Targeted feedback based on diagnosis results |
 
-### For Students
+---
 
-- **Interactive Map Reconstruction**: Drag-and-drop interface for building concept maps from kits
-- **Form Taking**: Complete questionnaires with various question types
-- **Progress Tracking**: View immediate diagnostic feedback and attempt history
-- **Assignment Access**: Centralized view of all assigned activities
-
-## KitBuild Methodology
-
-KitBuild is a pedagogical approach where students reconstruct concept maps from pre-defined components:
-
-1. Teacher creates a **Goal Map** (expert concept map)
-2. System generates a **Kit** with disassembled concepts and links
-3. Students receive the kit and **reconstruct** the map
-4. System performs **automatic diagnosis** by comparing with the expert map
-5. **Feedback** is generated based on structural accuracy
-
-This approach reduces cognitive load by focusing on structure rather than terminology, enabling precise assessment of understanding.
-
-## Tech Stack
-
-### Frontend
-
-- **Framework**: TanStack Start (React 19 with SSR)
-- **Routing**: TanStack Router (file-based)
-- **State**: TanStack Query + Jotai atoms
-- **UI**: shadcn/ui + Radix UI primitives + Tailwind CSS 4
-- **Graphs**: @xyflow/react (React Flow)
-- **Forms**: TanStack Form
-- **Auth**: Better Auth
-
-### Backend
-
-- **Runtime**: Cloudflare Workers
-- **Language**: TypeScript (strict mode)
-- **HTTP/Tele**: Effect-TS with OpenTelemetry
-- **ORM**: Drizzle ORM with LibSQL/Turso
-- **Storage**: Cloudflare R2 for images
-- **Observability**: Sentry
-
-### Development
-
-- **Package Manager**: pnpm (managed by Vite+)
-- **Toolchain**: Vite+ (`vp` CLI)
-- **Lint/Format**: oxlint + oxfmt
-- **Testing**: Vitest + Testing Library + jsdom
-- **Build**: Vite
-
-## Quick Start
+## Quick Start (Development)
 
 ```bash
 # Install dependencies
@@ -77,163 +83,136 @@ vp install
 
 # Configure environment
 cp .env.example .env
-# Edit .env with your Turso and Cloudflare credentials
+# Edit .env with your credentials
 
 # Push database schema
 npx drizzle-kit push
 
-# Seed sample data (optional)
-vp run db:seed
-
-# Start dev server
+# Start development server
 vp dev
 ```
 
 Visit http://localhost:5173
 
-Seed data creates:
+---
 
-- `admin@yomilink.local` / `admin123`
-- `teacher@yomilink.local` / `teacher123`
-- `student@yomilink.local` / `student123`
+## Deploying to Cloudflare Workers
 
-## Available Scripts
+### Prerequisites
 
-| Command                             | Description                    |
-| ----------------------------------- | ------------------------------ |
-| `vp dev`                            | Start development server       |
-| `vp build`                          | Build for production           |
-| `vp run deploy`                     | Deploy to Cloudflare Workers   |
-| `vp test`                           | Run all tests                  |
-| `vp test --watch`                   | Run tests in watch mode        |
-| `vp test --coverage`                | Generate coverage report       |
-| `vp lint`                           | Run linter with auto-fix       |
-| `vp fmt`                            | Format code                    |
-| `vp run typecheck`                  | Run TypeScript checking        |
-| `vp run db:seed`                    | Seed database with sample data |
-| `npx shadcn@canary add <component>` | Add shadcn/ui component        |
+- [Cloudflare account](https://dash.cloudflare.com/sign-up)
+- [Turso database](https://turso.tech) (SQLite at the edge)
+- [Wrangler CLI](https://developers.cloudflare.com/workers/wrangler/install-and-update/) authenticated
 
-## Project Structure
-
-```
-src/
-├── components/          # Reusable UI components
-├── features/           # Feature modules
-│   ├── analyzer/       # Map comparison and diagnosis
-│   ├── assignment/     # Assignment management
-│   ├── form/           # Form taking and components
-│   ├── form-builder/   # Form creation interface
-│   ├── goal-map/       # Concept map editor (teachers)
-│   ├── kit/            # Kit generation logic
-│   ├── kitbuild/       # Student kit interface
-│   ├── learner-map/    # Student map submissions
-│   └── profile/        # User profile management
-├── hooks/              # Custom React hooks
-├── lib/                # Utilities
-├── routes/             # TanStack Router file-based routes
-└── server/             # Server-side code
-    ├── db/             # Drizzle schema and client
-    ├── rpc/            # Feature RPC handlers
-    └── telemetry.ts    # OpenTelemetry config
-```
-
-## Docker Deployment
-
-The Docker setup uses **Nitro** with `node-server` preset running on Node.js runtime. This provides a self-contained container that can use either local SQLite or Turso.
-
-### Quick Start
+### 1. Create Turso Database
 
 ```bash
-# Build the image (automatically uses Node/Nitro target)
-docker build -t yomilink .
+# Install Turso CLI
+curl -sSfL https://get.tur.so/install.sh | bash
+turso auth login
 
-# Run with local SQLite (self-contained)
+# Create database
+turso db create yomilink
+
+# Get connection details
+turso db show yomilink --url
+turso db tokens create yomilink
+```
+
+### 2. Configure Environment
+
+Create `.env`:
+
+```bash
+DATABASE_MODE=remote
+TURSO_DATABASE_URL=libsql://your-db.turso.io
+TURSO_AUTH_TOKEN=your-turso-token
+BETTER_AUTH_SECRET=your-random-secret-min-32-chars
+BETTER_AUTH_URL=https://your-domain.com
+SITE_URL=https://your-domain.com
+VITE_SENTRY_DSN=https://your-sentry-dsn  # optional
+```
+
+### 3. Configure Wrangler
+
+Edit `wrangler.json`:
+
+```json
+{
+  "name": "yomilink",
+  "compatibility_date": "2025-09-02",
+  "compatibility_flags": ["nodejs_compat"],
+  "main": "@tanstack/react-start/server-entry",
+  "r2_buckets": [
+    {
+      "binding": "MATERIAL_IMAGES",
+      "bucket_name": "yomilink-materials"
+    }
+  ]
+}
+```
+
+### 4. Create R2 Bucket & Deploy
+
+```bash
+# Create storage bucket
+wrangler r2 bucket create yomilink-materials
+
+# Push database schema
+export DATABASE_MODE=remote
+export TURSO_DATABASE_URL=libsql://your-db.turso.io
+export TURSO_AUTH_TOKEN=your-turso-token
+npx drizzle-kit push
+
+# Deploy
+vp run deploy
+```
+
+### Environment Reference
+
+| Variable | Type | Purpose |
+|----------|------|---------|
+| `DATABASE_MODE` | env | `remote` (Turso) or `local` (SQLite file) |
+| `TURSO_DATABASE_URL` | env | Database connection string |
+| `TURSO_AUTH_TOKEN` | secret | Turso authentication |
+| `BETTER_AUTH_SECRET` | secret | Session signing key (32+ chars) |
+| `BETTER_AUTH_URL` | env | Auth callback URL |
+| `SITE_URL` | env | Canonical site URL |
+| `MATERIAL_IMAGES` | R2 binding | Image storage bucket |
+
+---
+
+## Docker Deployment (Self-Hosted)
+
+```bash
+# Build for containerized deployment
+BUILD_TARGET=node docker build -t yomilink .
+
+# Run with local SQLite
 docker run -p 3000:3000 \
   -e DATABASE_MODE=local \
   -e TURSO_DATABASE_URL=file:/app/data/yomilink.sqlite \
-  -e BETTER_AUTH_SECRET=your-secret-key-min-32-characters \
+  -e BETTER_AUTH_SECRET=your-secret \
   -v $(pwd)/data:/app/data \
   yomilink
-
-# Run with Turso (cloud database)
-docker run -p 3000:3000 \
-  -e DATABASE_MODE=remote \
-  -e TURSO_DATABASE_URL=libsql://your-db.turso.io \
-  -e TURSO_AUTH_TOKEN=your-token \
-  -e BETTER_AUTH_SECRET=your-secret-key \
-  yomilink
 ```
 
-### Docker Compose
+---
 
-Use docker-compose for easier local development:
+## Attribution
 
-```bash
-# Create environment file
-cp .env.example .env.docker
+Yomilink is an independent reimplementation of the KitBuild Concept Map system developed by:
 
-# Run with local SQLite
-docker-compose up
+**Learning Engineering Laboratory
+Graduate School of Engineering, Hiroshima University**
 
-# Run database migrations (if needed)
-docker-compose --profile migrate run --rm migrate
-```
+- Original research and algorithms: Tsukasa Hirashima and colleagues
+- Original system: [collab.kit-build.net](https://collab.kit-build.net/)
 
-### Build Configuration
+If you use Yomilink for research, please cite the original KitBuild papers to acknowledge the foundational work.
 
-The Docker build uses `BUILD_TARGET=node` which configures:
-
-- **Vite**: Uses Nitro plugin with `node-server` preset instead of Cloudflare
-- **Runtime**: Node.js
-- **Output**: `.output/server/index.mjs` (Nitro standard)
-
-| Build Target | Use Case                  | Command                      |
-| ------------ | ------------------------- | ---------------------------- |
-| `cloudflare` | Edge deployment (default) | `vp build`                   |
-| `node`       | Container deployment      | `BUILD_TARGET=node vp build` |
-
-## Local SQLite (Self-Hosted)
-
-To use a local SQLite file instead of Turso:
-
-1. Set `DATABASE_MODE=local` in your environment
-2. Set `TURSO_DATABASE_URL=file:./data/yomilink.sqlite` (or any path)
-3. Run migrations: `DATABASE_MODE=local npx drizzle-kit migrate`
-
-This is useful for:
-
-- Local development without Turso credentials
-- Self-hosted deployments
-- Offline-first environments
-- Testing and CI/CD
-
-### Database Mode Configuration
-
-| Mode   | `DATABASE_MODE`    | `TURSO_DATABASE_URL` | Description               |
-| ------ | ------------------ | -------------------- | ------------------------- |
-| Remote | `remote` (default) | `libsql://...`       | Uses Turso cloud database |
-| Local  | `local`            | `file:./path/to/db`  | Uses local SQLite file    |
-
-## CI/CD
-
-GitHub Actions workflows are configured for:
-
-- **CI** (`.github/workflows/ci.yml`): Runs lint, format check, and typecheck on push/PR
-- **Docker** (`.github/workflows/docker.yml`): Builds and pushes Docker images to GitHub Container Registry
+---
 
 ## License
 
 See [LICENSE](./LICENSE)
-ENSE)
-LICENSE)
-E)
-NSE)
-E)
-Container Registry
-
-## License
-
-See [LICENSE](./LICENSE)
-ENSE)
-LICENSE)
-E)
