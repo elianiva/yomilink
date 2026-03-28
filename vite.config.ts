@@ -3,12 +3,7 @@ import { sentryTanstackStart } from "@sentry/tanstackstart-react/vite";
 import tailwindcss from "@tailwindcss/vite";
 import { tanstackStart } from "@tanstack/react-start/plugin/vite";
 import viteReact from "@vitejs/plugin-react";
-import { nitro } from "nitro/vite";
 import { defineConfig, type PluginOption } from "vite-plus";
-
-// Determine build target from environment
-const buildTarget = process.env.BUILD_TARGET || "cloudflare";
-const isNode = buildTarget === "node";
 
 export default defineConfig({
 	staged: {
@@ -69,14 +64,10 @@ export default defineConfig({
 		},
 	},
 	plugins: [
-		// Use Nitro for Node container, Cloudflare for edge deployment
-		isNode
-			? nitro({ preset: "node-server" })
-			: cloudflare({ viteEnvironment: { name: "ssr" } }),
+		cloudflare({ viteEnvironment: { name: "ssr" } }),
 		tailwindcss(),
 		tanstackStart(),
 		viteReact(),
-		// Disable Sentry in Node container builds or when no auth token
 		...(process.env.SENTRY_AUTH_TOKEN
 			? [
 					sentryTanstackStart({

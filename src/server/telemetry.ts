@@ -1,33 +1,59 @@
-import { NodeSdk, WebSdk } from "@effect/opentelemetry";
+import { WebSdk } from "@effect/opentelemetry";
 import { SentrySpanProcessor } from "@sentry/opentelemetry";
+import * as Sentry from "@sentry/tanstackstart-react";
 
 const resource = { serviceName: "yomilink" };
 
+// Initialize Sentry for Cloudflare Workers environment
+const env = globalThis.process?.env || (globalThis as unknown as Record<string, string>);
+
+Sentry.init({
+	dsn: env.SENTRY_DSN,
+	sendDefaultPii: true,
+	tracesSampleRate: 1.0,
+	profilesSampleRate: 1.0,
+	beforeSend(event) {
+		// Filter out health check requests
+		if (event.request?.url?.includes("/health")) {
+			return null;
+		}
+		// Redact sensitive headers
+		if (event.request?.headers) {
+			const headers = event.request.headers;
+			delete headers["authorization"];
+			delete headers["cookie"];
+			delete headers["x-auth-token"];
+		}
+		return event;
+	},
+	beforeSendTransaction(event) {
+		// Filter out health check transactions
+		if (event.contexts?.trace?.data?.url?.includes("/health")) {
+			return null;
+		}
+		return event;
+	},
+	integrations: [
+		Sentry.captureConsoleIntegration({
+			levels: ["log", "info", "warn", "error", "debug"],
+		}),
+		Sentry.httpIntegration(),
+	],
+});
+
 /**
- * Effect OpenTelemetry layer for Node.js environment.
+ * Effect OpenTelemetry layer for Cloudflare Workers environment.
+ * Uses WebSdk since Workers runs in a V8 isolate (similar to browser).
  * Uses SentrySpanProcessor to send spans to Sentry.
- *
- * Note: This is used alongside Sentry's native SDK initialization
- * in instrument.server.mjs. The SentrySpanProcessor bridges Effect's
- * OpenTelemetry spans to Sentry's tracing system.
  */
-const SentryTelemetry = NodeSdk.layer(() => ({
+const SentryTelemetry = WebSdk.layer(() => ({
 	resource,
 	spanProcessor: new SentrySpanProcessor(),
 }));
 
 /**
- * Effect OpenTelemetry layer for Web/Browser environment.
- * Uses SentrySpanProcessor to send spans to Sentry.
- */
-const SentryWebTelemetry = WebSdk.layer(() => ({
-	resource,
-	spanProcessor: new SentrySpanProcessor(),
-}));
-
-/**
- * Server-side telemetry layer - provide this in server entry points
- * along with LoggerLive for full observability.
+ * Server-side telemetry layer for Cloudflare Workers.
+ * Provide this in server entry points along with LoggerLive.
  *
  * @example
  * ```ts
@@ -39,10 +65,9 @@ export const ServerTelemetry = SentryTelemetry;
 /**
  * Web/browser telemetry layer - used for client-side Effect programs.
  */
-export const WebTelemetry = SentryWebTelemetry;
+export const WebTelemetry = SentryTelemetry;
 
 /**
- * Auto-detects environment and provides appropriate telemetry layer.
- * Prefer using ServerTelemetry or WebTelemetry explicitly in production.
+ * Unified telemetry layer - Cloudflare Workers uses WebSdk for both environments.
  */
-export const Telemetry = typeof window !== "undefined" ? WebTelemetry : ServerTelemetry;
+export const Telemetry = SentryTelemetry;

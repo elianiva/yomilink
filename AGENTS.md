@@ -245,7 +245,7 @@ For GitHub Actions, consider using [`voidzero-dev/setup-vp`](https://github.com/
 ```yaml
 - uses: voidzero-dev/setup-vp@v1
   with:
-      cache: true
+    cache: true
 - run: vp check
 - run: vp test
 ```
@@ -254,4 +254,4 @@ For GitHub Actions, consider using [`voidzero-dev/setup-vp`](https://github.com/
 
 - [ ] Run `vp install` after pulling remote changes and before getting started.
 - [ ] Run `vp check` and `vp test` to validate changes.
-  <!--VITE PLUS END-->
+<!--VITE PLUS END-->
