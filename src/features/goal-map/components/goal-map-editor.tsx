@@ -274,7 +274,6 @@ export function GoalMapEditor() {
 		[getNodeType, graphEdges, onConnect],
 	);
 
-	// Handle connection drag end without valid target - close context menu to clean up
 	const onConnectEnd = useCallback(() => {
 		setContextMenu(null);
 	}, [setContextMenu]);

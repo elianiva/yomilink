@@ -102,7 +102,6 @@ export function LearnerMapEditor() {
 			? experimentGroup.condition
 			: "concept_map";
 
-	// Mutations
 	const saveMutation = useRpcMutation(LearnerMapRpc.saveLearnerMap(), {
 		operation: "save learner map",
 	});
@@ -110,19 +109,16 @@ export function LearnerMapEditor() {
 		operation: "submit learner map",
 	});
 
-	// Initialize from query data
 	useEffect(() => {
 		if (assignmentData && !isHydrated) {
 			setAssignment(assignmentData.assignment);
 			setMaterialText(assignmentData.materialText || "");
 
-			// Initialize timer if time limit exists
 			if (assignmentData.assignment.timeLimitMinutes && status === "not_started") {
 				setTimeRemaining(assignmentData.assignment.timeLimitMinutes * 60);
 			}
 
 			if (assignmentData.learnerMap) {
-				// Continue from existing learner map
 				setNodes([...assignmentData.learnerMap.nodes]);
 				setEdges([...assignmentData.learnerMap.edges]);
 				setLearnerMapId(assignmentData.learnerMap.id);
@@ -205,7 +201,6 @@ export function LearnerMapEditor() {
 		return () => clearInterval(timer);
 	}, [timeRemaining, isSubmitted]);
 
-	// Handle node click - show context menu for connector nodes
 	const onNodeClick: NodeMouseHandler = useCallback(
 		(_event, node) => {
 			if (isSubmitted) return;
@@ -255,12 +250,10 @@ export function LearnerMapEditor() {
 		[nodes, edges, setEdges, isSubmitted],
 	);
 
-	// Handle connection drag end without valid target - close context menu to clean up
 	const onConnectEnd = useCallback(() => {
 		setContextMenu(null);
 	}, [setContextMenu]);
 
-	// Validate connection during drag (prevents visual feedback for invalid connections)
 	const isValidConnectionHandler = useCallback(
 		(params: { source: string; target: string }) => {
 			if (isSubmitted) return false;

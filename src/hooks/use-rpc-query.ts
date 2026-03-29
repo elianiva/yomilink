@@ -153,21 +153,17 @@ export function useRpcMutation<TData, TVariables, TContext = unknown>(
 					});
 				}
 			} else {
-				// Success case
 				if (showSuccess) {
 					toast.success(successMessage ?? "Operation completed successfully");
 				}
-				// Call config onSuccess for non-error responses
 				const unwrapped = unwrap(data);
 				if (unwrapped === null) return;
 				configOnSuccess?.(unwrapped);
 			}
 
-			// Call original onSuccess
 			options.onSuccess?.(data, variables, onMutateResult, context);
 		},
 		onError: (error, variables, onMutateResult, context) => {
-			// Handle non-RPC errors (network errors, etc.)
 			if (showError) {
 				toast.error(error, {
 					...errorToastOptions,
@@ -176,12 +172,10 @@ export function useRpcMutation<TData, TVariables, TContext = unknown>(
 				});
 			}
 
-			// Call original onError
 			options.onError?.(error, variables, onMutateResult, context);
 		},
 	});
 
-	// Compute RPC error state using shared extraction
 	const extracted = extractRpcResult(mutationResult.data);
 	return {
 		...mutationResult,

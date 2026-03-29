@@ -85,7 +85,6 @@ export function LearnerMapResult() {
 			};
 		});
 
-		// Add missing edges as dashed lines
 		const missingEdges: Edge[] = data.diagnosis.missing.map((missing, index) => {
 			const style = getEdgeStyleByType("missing");
 			return {

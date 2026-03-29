@@ -47,7 +47,6 @@ function FormTakerPage() {
 		);
 	}
 
-	// Handle error response
 	if (error || !data) {
 		return (
 			<div className="flex flex-col items-center justify-center py-12">
@@ -59,7 +58,6 @@ function FormTakerPage() {
 		);
 	}
 
-	// Transform data to match expected types
 	const formData: FormData = {
 		id: data.form.id,
 		title: data.form.title,
@@ -69,7 +67,6 @@ function FormTakerPage() {
 	};
 
 	const questionData: QuestionWithOptions[] = data.questions.map((q) => {
-		// Transform options based on question type
 		let transformedOptions: QuestionWithOptions["options"];
 
 		if (q.type === "mcq" && Array.isArray(q.options)) {
@@ -101,7 +98,6 @@ function FormTakerPage() {
 		};
 	});
 
-	// Handle submit
 	const handleSubmit = () => {
 		navigate({ to: "/dashboard/forms/student" });
 	};

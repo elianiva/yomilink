@@ -46,14 +46,12 @@ function AnalyticsPage() {
 		setVisibility((prev) => ({ ...prev, ...updates }));
 	}, []);
 
-	// Get analytics data for toolbar export and selected learner stats
 	const { data: analyticsData } = useRpcQuery({
 		...AnalyticsRpc.getAnalyticsForAssignment(selectedAssignmentId ?? ""),
 		enabled: !!selectedAssignmentId,
 		refetchOnWindowFocus: false,
 	});
 
-	// Get selected learners for stats bar
 	const selectedLearners = useMemo(() => {
 		if (!analyticsData) return [];
 		return analyticsData.learners.filter((l: LearnerAnalytics) =>

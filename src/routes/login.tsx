@@ -39,7 +39,6 @@ export const Route = createFileRoute("/login")({
 	beforeLoad: async () => {
 		const me = await getMe();
 		if (me.success) {
-			// Redirect students to assignments, others to dashboard
 			const target = me.data.role === "student" ? "/dashboard/assignments" : "/dashboard";
 			throw redirect({ to: target });
 		}
@@ -76,15 +75,12 @@ function LoginPage() {
 				if (error) {
 					throw new Error(error.message ?? "Sign in failed");
 				}
-				// Fetch user info to determine redirect target
 				const me = await getMe();
 				if (me.success) {
-					// Redirect students to assignments, others to dashboard
 					const target =
 						me.data.role === "student" ? "/dashboard/assignments" : "/dashboard";
 					navigate({ to: target });
 				} else {
-					// Fallback if user fetch fails
 					navigate({ to: "/dashboard" });
 				}
 			} catch (e: unknown) {

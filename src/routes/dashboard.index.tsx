@@ -32,7 +32,6 @@ function DashboardHome() {
 		rpcError: topicsError,
 	} = useRpcQuery(TopicRpc.listTopics());
 
-	// Ensure topics is always an array
 	const topics = useMemo(() => {
 		if (Array.isArray(topicsData)) return topicsData;
 		return [];
@@ -44,7 +43,6 @@ function DashboardHome() {
 		rpcError: goalMapsError,
 	} = useRpcQuery(GoalMapRpc.listGoalMapsByTopic({ topicId: selectedTopic?.id }));
 
-	// Ensure goal maps is always an array
 	const goalMaps = useMemo(() => {
 		if (Array.isArray(goalMapsData)) return goalMapsData;
 		return [];

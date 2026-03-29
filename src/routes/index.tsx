@@ -8,7 +8,6 @@ export const Route = createFileRoute("/")({
 	beforeLoad: async () => {
 		const me = await getMe();
 		if (me.success) {
-			// Redirect students to assignments, others to dashboard
 			const target = me.data.role === "student" ? "/dashboard/assignments" : "/dashboard";
 			throw redirect({ to: target });
 		}

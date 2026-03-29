@@ -43,7 +43,6 @@ export function FormBuilderPage() {
 	const { formId } = useSearch({ from: "/dashboard/forms/builder" });
 	const isEditing = Boolean(formId);
 
-	// State
 	const [metadata, setMetadata] = useState<FormMetadata>(defaultMetadata);
 	const [questions, setQuestions] = useState<QuestionWithOptions[]>([]);
 	const [editorMode, setEditorMode] = useState<EditorMode>("edit");
@@ -62,7 +61,6 @@ export function FormBuilderPage() {
 		enabled: isEditing,
 	});
 
-	// Load draft from localStorage on mount (only for new forms)
 	useEffect(() => {
 		if (isEditing || isDraftLoaded) return;
 
@@ -82,7 +80,6 @@ export function FormBuilderPage() {
 		setIsDraftLoaded(true);
 	}, [isEditing, isDraftLoaded]);
 
-	// Load existing form data when editing
 	useEffect(() => {
 		if (isEditing && existingForm) {
 			setMetadata({
@@ -126,7 +123,6 @@ export function FormBuilderPage() {
 					),
 				);
 			}
-			// Clear draft after successful save
 			localStorage.removeItem(STORAGE_KEY);
 			toast.success("Form created successfully");
 			queryClient.invalidateQueries({ queryKey: FormRpc.forms() });

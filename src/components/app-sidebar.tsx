@@ -83,16 +83,13 @@ type AppSidebarProps = React.ComponentProps<typeof Sidebar>;
 export function AppSidebar(props: AppSidebarProps) {
 	const { data: me } = useRpcQuery(ProfileRpc.getMe());
 
-	// Filter navbar items based on user role
 	const filteredItems = useMemo(() => {
 		// If no user data yet, show items visible to all (no roles restriction)
 		if (!me) {
 			return NAVBAR_ITEMS.filter((item) => !item.roles);
 		}
 		return NAVBAR_ITEMS.filter((item) => {
-			// If no roles specified, show to everyone
 			if (!item.roles) return true;
-			// Check if user's role is in the allowed roles
 			return item.roles.includes(me.role);
 		});
 	}, [me]);

@@ -77,7 +77,6 @@ function NodeContextMenuImpl({
 		}
 	}, []);
 
-	// Handle keyboard navigation
 	const handleKeyDown = useCallback(
 		(e: React.KeyboardEvent) => {
 			const menuItems =

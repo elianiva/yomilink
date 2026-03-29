@@ -27,29 +27,23 @@ export const Route = createFileRoute("/dashboard/users/")({
 function UsersPage() {
 	const queryClient = useQueryClient();
 
-	// Get current user for role checks
 	const { data: me } = useRpcQuery(ProfileRpc.getMe());
 	const isAdmin = me?.role === "admin";
 	const currentUserId = me?.id ?? "";
 
-	// Filters state
 	const [filters, setFilters] = useState<Partial<UserFilterInput>>({
 		page: 1,
 		pageSize: 20,
 	});
 
-	// Selection state
 	const [selectedIds, setSelectedIds] = useState<string[]>([]);
 
-	// Sheet state
 	const [selectedUser, setSelectedUser] = useState<UserWithCohorts | null>(null);
 	const [sheetOpen, setSheetOpen] = useState(false);
 
-	// Dialog state
 	const [bulkDialogOpen, setBulkDialogOpen] = useState(false);
 	const [bulkAction, setBulkAction] = useState<"assign" | "ban">("assign");
 
-	// Queries
 	const { data: usersResult, isLoading } = useRpcQuery(UserRpc.listUsers(filters));
 	const { data: cohortsData } = useRpcQuery(AssignmentRpc.getAvailableCohorts());
 
@@ -59,7 +53,6 @@ function UsersPage() {
 	const page = usersResult?.page ?? 1;
 	const totalPages = usersResult?.totalPages ?? 1;
 
-	// Mutations
 	const updateMutation = useRpcMutation(UserRpc.updateUser(), {
 		operation: "update user",
 		showSuccess: true,
@@ -99,7 +92,6 @@ function UsersPage() {
 		queryClient.invalidateQueries({ queryKey: UserRpc.users() });
 	};
 
-	// Handlers
 	const handleUserClick = (user: UserWithCohorts) => {
 		setSelectedUser(user);
 		setSheetOpen(true);

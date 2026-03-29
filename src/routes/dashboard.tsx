@@ -22,11 +22,9 @@ export const Route = createFileRoute("/dashboard")({
 		const me = await getMe();
 		if (!me.success) throw redirect({ to: "/login" });
 
-		// Check registration form completion for students
 		if (me.data.role === "student") {
 			const result = await getRegistrationFormStatusRpc();
 
-			// Check if result is an error response
 			if (!result.success) {
 				// Error checking registration status - allow through to avoid loop
 				// The form will be accessible, worst case they see an error
