@@ -16,53 +16,67 @@ jobs:
         runs-on: ubuntu-latest
         steps:
             - name: Checkout repository
-              uses: actions/checkout@v4
+              uses: actions/checkout@v6
 
-            - name: Setup Bun
-              uses: oven-sh/setup-bun@v2
+            - name: Setup Vite+
+              uses: voidzero-dev/setup-vp@v1
               with:
-                  bun-version: latest
-
-            - name: Install dependencies
-              run: bun install --frozen-lockfile
+                  node-version-file: ".nvmrc"
+                  cache: true
+                  run-install: true
 
             - name: Run linter
-              run: bun run lint
+              run: vp lint
 
     format:
         name: Format Check
         runs-on: ubuntu-latest
         steps:
             - name: Checkout repository
-              uses: actions/checkout@v4
+              uses: actions/checkout@v6
 
-            - name: Setup Bun
-              uses: oven-sh/setup-bun@v2
+            - name: Setup Vite+
+              uses: voidzero-dev/setup-vp@v1
               with:
-                  bun-version: latest
-
-            - name: Install dependencies
-              run: bun install --frozen-lockfile
+                  node-version-file: ".nvmrc"
+                  cache: true
+                  run-install: true
 
             - name: Check formatting
               run: |
-                  bun run format
-                  git diff --exit-code || (echo "::error::Code is not formatted. Run 'bun run format' locally and commit the changes." && exit 1)
+                  vp fmt
+                  git diff --exit-code || (echo "::error::Code is not formatted. Run 'vp fmt' locally and commit the changes." && exit 1)
 
     typecheck:
         name: Type Check
         runs-on: ubuntu-latest
         steps:
             - name: Checkout repository
-              uses: actions/checkout@v4
+              uses: actions/checkout@v6
 
-            - name: Setup Bun
-              uses: oven-sh/setup-bun@v2
+            - name: Setup Vite+
+              uses: voidzero-dev/setup-vp@v1
               with:
-                  bun-version: latest
-
-            - name: Install dependencies
-              run: bun install --frozen-lockfile
+                  node-version-file: ".nvmrc"
+                  cache: true
+                  run-install: true
 
             - name: Run type check
-              run: bun run typecheck
+              run: vp run typecheck
+
+    test:
+        name: Test
+        runs-on: ubuntu-latest
+        steps:
+            - name: Checkout repository
+              uses: actions/checkout@v6
+
+            - name: Setup Vite+
+              uses: voidzero-dev/setup-vp@v1
+              with:
+                  node-version-file: ".nvmrc"
+                  cache: true
+                  run-install: true
+
+            - name: Run tests
+              run: vp test
