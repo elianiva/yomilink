@@ -63,6 +63,43 @@ export const CloneFormInput = Schema.Struct({
 
 export type CloneFormInput = typeof CloneFormInput.Type;
 
+// Input schemas for RPC layer - co-located with service
+export const GetFormByIdInput = Schema.Struct({
+	formId: Schema.NonEmptyString,
+});
+
+export type GetFormByIdInput = typeof GetFormByIdInput.Type;
+
+export const UpdateFormInput = Schema.Struct({
+	formId: Schema.NonEmptyString,
+	title: Schema.optionalWith(Schema.NonEmptyString, { nullable: true }),
+	description: Schema.optionalWith(Schema.String, { nullable: true }),
+	type: Schema.optionalWith(
+		Schema.Union(
+			Schema.Literal("pre_test"),
+			Schema.Literal("post_test"),
+			Schema.Literal("delayed_test"),
+			Schema.Literal("registration"),
+			Schema.Literal("tam"),
+			Schema.Literal("control"),
+		),
+		{ nullable: true },
+	),
+	status: Schema.optionalWith(
+		Schema.Union(Schema.Literal("draft"), Schema.Literal("published")),
+		{ nullable: true },
+	),
+	unlockConditions: Schema.optionalWith(FormUnlockConditionsNullable, { nullable: true }),
+});
+
+export type UpdateFormInput = typeof UpdateFormInput.Type;
+
+export const GetQuestionByIdInput = Schema.Struct({
+	id: Schema.NonEmptyString,
+});
+
+export type GetQuestionByIdInput = typeof GetQuestionByIdInput.Type;
+
 export const createForm = Effect.fn("createForm")(function* (
 	userId: string,
 	data: CreateFormInput,

@@ -1,6 +1,11 @@
 import { and, count, eq, ilike, inArray, or, sql } from "drizzle-orm";
 import { Data, Effect, Schema } from "effect";
 
+import {
+	buildWhereClause,
+	calculateOffset,
+	createFuzzyPattern,
+} from "@/lib/db-query-builder";
 import { Database } from "@/server/db/client";
 import { cohorts, cohortMembers, user, verification } from "@/server/db/schema/auth-schema";
 
@@ -118,23 +123,8 @@ export const listUsers = Effect.fn("listUsers")((input: UserFilterInput) =>
 
 		const { search, role: roleFilter, banned: bannedFilter, cohortId, page, pageSize } = input;
 
-		const offset = (page - 1) * pageSize;
-
-		// Build where conditions
-		const conditions: ReturnType<typeof and>[] = [];
-
-		if (search) {
-			conditions.push(or(ilike(user.name, `%${search}%`), ilike(user.email, `%${search}%`)));
-		}
-
-		if (roleFilter) {
-			conditions.push(eq(user.role, roleFilter));
-		}
-
-		if (bannedFilter !== undefined) {
-			conditions.push(eq(user.banned, bannedFilter));
-		}
-
+		// Handle cohort filtering first (special case)
+		let userIdFilter: string[] | undefined;
 		if (cohortId) {
 			const memberIds = yield* db
 				.select({ userId: cohortMembers.userId })
@@ -142,24 +132,25 @@ export const listUsers = Effect.fn("listUsers")((input: UserFilterInput) =>
 				.where(eq(cohortMembers.cohortId, cohortId));
 
 			if (memberIds.length === 0) {
-				return { users: [], total: 0, page, pageSize, totalPages: 0 };
+				return { users: [], total: 0, page, pageSize, totalPages: 0 } satisfies UserListResult;
 			}
-
-			conditions.push(
-				inArray(
-					user.id,
-					memberIds.map((m) => m.userId),
-				),
-			);
+			userIdFilter = memberIds.map((m) => m.userId);
 		}
 
-		const whereClause = conditions.length > 0 ? and(...conditions) : undefined;
+		// Build where conditions using query builder
+		const whereClause = buildWhereClause([
+			search ? or(ilike(user.name, createFuzzyPattern(search)), ilike(user.email, createFuzzyPattern(search))) : null,
+			roleFilter ? eq(user.role, roleFilter) : null,
+			bannedFilter !== undefined ? eq(user.banned, bannedFilter) : null,
+			userIdFilter ? inArray(user.id, userIdFilter) : null,
+		]);
 
 		// Get total count
 		const countRows = yield* db.select({ total: count() }).from(user).where(whereClause);
 		const total = countRows[0]?.total ?? 0;
 
 		// Get users with cohort info
+		const offset = calculateOffset({ page, pageSize });
 		const users_ = yield* db
 			.select({
 				id: user.id,

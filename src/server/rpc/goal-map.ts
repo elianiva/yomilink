@@ -13,7 +13,6 @@ import {
 	SaveGoalMapInput,
 	saveGoalMap,
 } from "@/features/goal-map/lib/goal-map-service";
-import { requireGoalMapOwner } from "@/lib/auth-authorization";
 import { authMiddleware } from "@/middlewares/auth";
 
 import { AppLayer } from "../app-layer";
@@ -34,22 +33,19 @@ export const getGoalMapRpc = createServerFn()
 	);
 
 export const saveGoalMapRpc = createServerFn()
-	.middleware([authMiddleware])
+	.middleware([authMiddleware]) // Only check authentication, not authorization
 	.inputValidator((raw) => Schema.decodeUnknownSync(SaveGoalMapInput)(raw))
 	.handler(({ data, context }) =>
-		Effect.gen(function* () {
-			if (data.goalMapId !== "new") {
-				yield* requireGoalMapOwner(context.user.id, data.goalMapId);
-			}
-			return yield* saveGoalMap(context.user.id, data);
-		}).pipe(
+		saveGoalMap(context.user.id, data).pipe(
 			Effect.map(Rpc.ok),
 			Effect.withSpan("saveGoalMap"),
 			Effect.tapError(logRpcError("saveGoalMap")),
 			Effect.catchTags({
-				GoalMapValidationError: (e) => Rpc.err(`Validation failed: ${e.errors.join(", ")}`),
+				GoalMapValidationError: (e: { errors: string[] }) =>
+					Rpc.err(`Validation failed: ${e.errors.join(", ")}`),
 				GoalMapNotFoundError: () => Rpc.notFound("Goal map"),
-				ForbiddenError: (e) => Rpc.forbidden(e.message),
+				GoalMapAccessDeniedError: (e: { goalMapId: string }) =>
+					Rpc.forbidden(`Access denied to goal map ${e.goalMapId}`),
 			}),
 			Effect.catchAll(() => Rpc.err("Internal server error")),
 			Effect.provide(AppLayer),
@@ -92,7 +88,8 @@ export const deleteGoalMapRpc = createServerFn()
 			Effect.tapError(logRpcError("deleteGoalMap")),
 			Effect.catchTags({
 				GoalMapNotFoundError: () => Rpc.notFound("Goal map"),
-				ForbiddenError: (e) => Rpc.forbidden(e.message),
+				GoalMapAccessDeniedError: (e: { goalMapId: string }) =>
+					Rpc.forbidden(`Access denied to goal map ${e.goalMapId}`),
 			}),
 			Effect.catchAll(() => Rpc.err("Internal server error")),
 			Effect.provide(AppLayer),

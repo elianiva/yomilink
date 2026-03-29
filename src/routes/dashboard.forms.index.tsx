@@ -64,7 +64,7 @@ function AdminFormsPage() {
 
 	const confirmDelete = () => {
 		if (formToDelete) {
-			deleteMutation.mutate({ id: formToDelete });
+			deleteMutation.mutate({ formId: formToDelete });
 		}
 	};
 

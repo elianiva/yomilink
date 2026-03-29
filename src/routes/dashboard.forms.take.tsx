@@ -20,7 +20,7 @@ function FormTakerPage() {
 	const formId = (searchParams as { formId?: string }).formId;
 
 	const { data, isLoading, error } = useRpcQuery({
-		...FormRpc.getFormById({ id: formId ?? "" }),
+		...FormRpc.getFormById(formId ?? ""),
 		enabled: !!formId,
 	});
 

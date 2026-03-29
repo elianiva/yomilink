@@ -2,7 +2,6 @@ import { desc, eq, isNull } from "drizzle-orm";
 import { Data, Effect, Schema } from "effect";
 
 import { validateNodes } from "@/features/goal-map/lib/validator";
-import { requireGoalMapOwner } from "@/lib/auth-authorization";
 import { safeParseJson } from "@/lib/utils";
 import { Database } from "@/server/db/client";
 import { goalMaps, kits, texts } from "@/server/db/schema/app-schema";
@@ -54,6 +53,16 @@ class GoalMapValidationError extends Data.TaggedError("GoalMapValidationError")<
 	errors: string[];
 	warnings: string[];
 }> {}
+
+export class GoalMapNotFoundError extends Data.TaggedError("GoalMapNotFoundError")<{
+	readonly goalMapId: string;
+}> {}
+
+export class GoalMapAccessDeniedError extends Data.TaggedError("GoalMapAccessDeniedError")<{
+	readonly goalMapId: string;
+	readonly userId: string;
+}> {}
+
 export const GetGoalMapInput = Schema.Struct({
 	goalMapId: Schema.NonEmptyString,
 });
@@ -158,8 +167,26 @@ export const saveGoalMap = Effect.fn("saveGoalMap")(function* (
 ) {
 	const db = yield* Database;
 
+	// Authorization check INSIDE the service
 	if (data.goalMapId !== NEW_GOAL_MAP_ID) {
-		yield* requireGoalMapOwner(userId, data.goalMapId);
+		const goalMap = yield* Effect.tryPromise(() =>
+			db
+				.select({ teacherId: goalMaps.teacherId })
+				.from(goalMaps)
+				.where(eq(goalMaps.id, data.goalMapId))
+				.get(),
+		);
+
+		if (!goalMap) {
+			return yield* new GoalMapNotFoundError({ goalMapId: data.goalMapId });
+		}
+
+		if (goalMap.teacherId !== userId) {
+			return yield* new GoalMapAccessDeniedError({
+				goalMapId: data.goalMapId,
+				userId,
+			});
+		}
 	}
 
 	const validationResult = validateNodes(data.nodes, data.edges);
@@ -327,7 +354,27 @@ export const deleteGoalMap = Effect.fn("deleteGoalMap")(function* (
 	input: DeleteGoalMapInput,
 ) {
 	const db = yield* Database;
-	yield* requireGoalMapOwner(userId, input.goalMapId);
-	yield* db.delete(goalMaps).where(eq(goalMaps.id, input.goalMapId));
+
+	// Authorization check INSIDE the service
+	const goalMap = yield* Effect.tryPromise(() =>
+		db
+			.select({ teacherId: goalMaps.teacherId })
+			.from(goalMaps)
+			.where(eq(goalMaps.id, input.goalMapId))
+			.get(),
+	);
+
+	if (!goalMap) {
+		return yield* new GoalMapNotFoundError({ goalMapId: input.goalMapId });
+	}
+
+	if (goalMap.teacherId !== userId) {
+		return yield* new GoalMapAccessDeniedError({
+			goalMapId: input.goalMapId,
+			userId,
+		});
+	}
+
+	yield* Effect.tryPromise(() => db.delete(goalMaps).where(eq(goalMaps.id, input.goalMapId)));
 	return true;
 });

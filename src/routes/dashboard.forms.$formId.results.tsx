@@ -31,7 +31,7 @@ function FormResultsPage() {
 		isLoading: formLoading,
 		isRpcError: isFormError,
 		rpcError: formError,
-	} = useRpcQuery(FormRpc.getFormById({ id: formId }));
+	} = useRpcQuery(FormRpc.getFormById(formId));
 
 	const { data: responsesData, isLoading: responsesLoading } = useRpcQuery(
 		FormRpc.getFormResponses({

@@ -6,6 +6,9 @@ import {
 	CloneFormInput,
 	CreateFormInput,
 	CreateQuestionInput,
+	GetFormByIdInput,
+	GetQuestionByIdInput,
+	UpdateFormInput,
 	cloneForm,
 	createForm,
 	createQuestion,
@@ -30,7 +33,6 @@ import {
 import {
 	CheckFormUnlockInput,
 	checkFormUnlock,
-	FormUnlockConditionsSchema,
 	UnlockFormInput,
 	unlockForm,
 } from "@/features/form/lib/unlock-service";
@@ -38,12 +40,6 @@ import { requireRoleMiddleware } from "@/middlewares/auth";
 
 import { AppLayer } from "../app-layer";
 import { Rpc, logRpcError } from "../rpc-helper";
-
-const GetFormByIdInput = Schema.Struct({
-	id: Schema.NonEmptyString,
-});
-
-type GetFormByIdInput = typeof GetFormByIdInput.Type;
 
 export const createFormRpc = createServerFn()
 	.middleware([requireRoleMiddleware("teacher", "admin")])
@@ -63,7 +59,7 @@ export const getFormByIdRpc = createServerFn()
 	.middleware([requireRoleMiddleware("teacher", "admin")])
 	.inputValidator((raw) => Schema.decodeUnknownSync(GetFormByIdInput)(raw))
 	.handler(({ data }) =>
-		getFormById(data.id).pipe(
+		getFormById(data.formId).pipe(
 			Effect.map(Rpc.ok),
 			Effect.withSpan("getFormById"),
 			Effect.tapError(logRpcError("getFormById")),
@@ -106,7 +102,7 @@ export const deleteFormRpc = createServerFn()
 	.middleware([requireRoleMiddleware("teacher", "admin")])
 	.inputValidator((raw) => Schema.decodeUnknownSync(GetFormByIdInput)(raw))
 	.handler(({ data }) =>
-		deleteForm(data.id).pipe(
+		deleteForm(data.formId).pipe(
 			Effect.map(() => Rpc.ok(true)),
 			Effect.withSpan("deleteForm"),
 			Effect.tapError(logRpcError("deleteForm")),
@@ -123,7 +119,7 @@ export const publishFormRpc = createServerFn()
 	.middleware([requireRoleMiddleware("teacher", "admin")])
 	.inputValidator((raw) => Schema.decodeUnknownSync(GetFormByIdInput)(raw))
 	.handler(({ data }) =>
-		publishForm(data.id).pipe(
+		publishForm(data.formId).pipe(
 			Effect.map(() => Rpc.ok(true)),
 			Effect.withSpan("publishForm"),
 			Effect.tapError(logRpcError("publishForm")),
@@ -140,7 +136,7 @@ export const unpublishFormRpc = createServerFn()
 	.middleware([requireRoleMiddleware("teacher", "admin")])
 	.inputValidator((raw) => Schema.decodeUnknownSync(GetFormByIdInput)(raw))
 	.handler(({ data }) =>
-		unpublishForm(data.id).pipe(
+		unpublishForm(data.formId).pipe(
 			Effect.map(() => Rpc.ok(true)),
 			Effect.withSpan("unpublishForm"),
 			Effect.tapError(logRpcError("unpublishForm")),
@@ -152,30 +148,6 @@ export const unpublishFormRpc = createServerFn()
 			Effect.runPromise,
 		),
 	);
-
-const UpdateFormInput = Schema.Struct({
-	formId: Schema.NonEmptyString,
-	title: Schema.optionalWith(Schema.NonEmptyString, { nullable: true }),
-	description: Schema.optionalWith(Schema.String, { nullable: true }),
-	type: Schema.optionalWith(
-		Schema.Union(
-			Schema.Literal("pre_test"),
-			Schema.Literal("post_test"),
-			Schema.Literal("delayed_test"),
-			Schema.Literal("registration"),
-			Schema.Literal("tam"),
-			Schema.Literal("control"),
-		),
-		{ nullable: true },
-	),
-	status: Schema.optionalWith(
-		Schema.Union(Schema.Literal("draft"), Schema.Literal("published")),
-		{ nullable: true },
-	),
-	unlockConditions: Schema.optionalWith(FormUnlockConditionsSchema, { nullable: true }),
-});
-
-type UpdateFormInput = typeof UpdateFormInput.Type;
 
 export const updateFormRpc = createServerFn()
 	.middleware([requireRoleMiddleware("teacher", "admin")])
@@ -293,12 +265,6 @@ export const createQuestionRpc = createServerFn()
 		),
 	);
 
-const GetQuestionByIdInput = Schema.Struct({
-	id: Schema.NonEmptyString,
-});
-
-type GetQuestionByIdInput = typeof GetQuestionByIdInput.Type;
-
 export const updateQuestionRpc = createServerFn()
 	.middleware([requireRoleMiddleware("teacher", "admin")])
 	.inputValidator((raw) => Schema.decodeUnknownSync(UpdateQuestionInput)(raw))
@@ -386,10 +352,10 @@ export const FormRpc = {
 			mutationKey: [...FormRpc.forms(), "create"],
 			mutationFn: (data: CreateFormInput) => createFormRpc({ data }),
 		}),
-	getFormById: (input: GetFormByIdInput) =>
+	getFormById: (formId: string) =>
 		queryOptions({
-			queryKey: [...FormRpc.forms(), "byId", input.id],
-			queryFn: () => getFormByIdRpc({ data: input }),
+			queryKey: [...FormRpc.forms(), "byId", formId],
+			queryFn: () => getFormByIdRpc({ data: { formId } }),
 		}),
 	listForms: () =>
 		queryOptions({

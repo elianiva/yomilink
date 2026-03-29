@@ -58,7 +58,7 @@ export function FormBuilderPage() {
 	const [showDraftDialog, setShowDraftDialog] = useState(false);
 
 	const { data: existingForm, isLoading: isLoadingForm } = useRpcQuery({
-		...FormRpc.getFormById({ id: formId ?? "" }),
+		...FormRpc.getFormById(formId ?? ""),
 		enabled: isEditing,
 	});
 
@@ -444,8 +444,8 @@ export function FormBuilderPage() {
 				unpublishMutation={unpublishFormMutation}
 				onBack={handleBack}
 				onSave={handleSaveForm}
-				onPublish={() => formId && publishFormMutation.mutate({ id: formId })}
-				onUnpublish={() => formId && unpublishFormMutation.mutate({ id: formId })}
+				onPublish={() => formId && publishFormMutation.mutate({ formId })}
+				onUnpublish={() => formId && unpublishFormMutation.mutate({ formId })}
 				onClearDraft={handleClearDraft}
 			/>
 

@@ -1,4 +1,4 @@
-import { Cause, type Data, Effect } from "effect";
+import { Cause, Effect } from "effect";
 
 /**
  * Standardized RPC success response format.
@@ -28,11 +28,11 @@ export type RpcResult<T> = RpcSuccess<T> | RpcError;
  */
 export const logRpcError =
 	(operationName: string) =>
-	<TError = typeof Data.TaggedError>(error: TError) =>
+	<TError>(error: TError) =>
 		Effect.logError("RPC operation failed", Cause.fail(error)).pipe(
 			Effect.annotateLogs({
 				operation: operationName,
-				errorTag: (error as { _tag?: string })?._tag ?? "Unknown",
+				errorTag: (error as { _tag?: string })._tag ?? "Unknown",
 			}),
 		);
 
@@ -75,5 +75,27 @@ export const Rpc = {
 			success: false,
 			error: message,
 			code: "FORBIDDEN",
+		} as const),
+
+	/**
+	 * Create a "bad request" error response for validation failures.
+	 * @param message - Validation error message
+	 */
+	badRequest: (message: string): Effect.Effect<RpcError> =>
+		Effect.succeed({
+			success: false,
+			error: message,
+			code: "BAD_REQUEST",
+		} as const),
+
+	/**
+	 * Create an "unauthorized" error response.
+	 * @param message - Optional custom message
+	 */
+	unauthorized: (message = "Authentication required"): Effect.Effect<RpcError> =>
+		Effect.succeed({
+			success: false,
+			error: message,
+			code: "UNAUTHORIZED",
 		} as const),
 };
