@@ -38,7 +38,7 @@ export function NavUser({
 		try {
 			await authClient.signOut();
 			toast.success("You have been logged out");
-			navigate({ to: "/login" });
+			void navigate({ to: "/login" });
 		} catch {
 			toast.error("Failed to log out");
 		}

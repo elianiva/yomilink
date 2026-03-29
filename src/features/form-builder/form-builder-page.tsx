@@ -125,7 +125,7 @@ export function FormBuilderPage() {
 			}
 			localStorage.removeItem(STORAGE_KEY);
 			toast.success("Form created successfully");
-			queryClient.invalidateQueries({ queryKey: FormRpc.forms() });
+			void queryClient.invalidateQueries({ queryKey: FormRpc.forms() });
 			void navigate({
 				to: "/dashboard/forms/builder",
 				search: { formId: result.id },
@@ -139,7 +139,7 @@ export function FormBuilderPage() {
 		successMessage: "Form saved successfully",
 		onSuccess: () => {
 			setHasUnsavedChanges(false);
-			queryClient.invalidateQueries({ queryKey: FormRpc.forms() });
+			void queryClient.invalidateQueries({ queryKey: FormRpc.forms() });
 		},
 	});
 
@@ -148,7 +148,7 @@ export function FormBuilderPage() {
 		showSuccess: false,
 		onSuccess: () => {
 			if (formId) {
-				queryClient.invalidateQueries({
+				void queryClient.invalidateQueries({
 					queryKey: [...FormRpc.forms(), "byId", formId],
 				});
 			}
@@ -161,7 +161,7 @@ export function FormBuilderPage() {
 		successMessage: "Question updated",
 		onSuccess: () => {
 			if (formId) {
-				queryClient.invalidateQueries({
+				void queryClient.invalidateQueries({
 					queryKey: [...FormRpc.forms(), "byId", formId],
 				});
 			}
@@ -174,7 +174,7 @@ export function FormBuilderPage() {
 		successMessage: "Question deleted",
 		onSuccess: () => {
 			if (formId) {
-				queryClient.invalidateQueries({
+				void queryClient.invalidateQueries({
 					queryKey: [...FormRpc.forms(), "byId", formId],
 				});
 			}
@@ -185,7 +185,7 @@ export function FormBuilderPage() {
 		operation: "reorder questions",
 		onSuccess: () => {
 			if (formId) {
-				queryClient.invalidateQueries({
+				void queryClient.invalidateQueries({
 					queryKey: [...FormRpc.forms(), "byId", formId],
 				});
 			}
@@ -199,7 +199,7 @@ export function FormBuilderPage() {
 		onSuccess: () => {
 			setMetadata((prev) => ({ ...prev, status: "published" }));
 			if (formId) {
-				queryClient.invalidateQueries({
+				void queryClient.invalidateQueries({
 					queryKey: [...FormRpc.forms(), "byId", formId],
 				});
 			}
@@ -213,7 +213,7 @@ export function FormBuilderPage() {
 		onSuccess: () => {
 			setMetadata((prev) => ({ ...prev, status: "draft" }));
 			if (formId) {
-				queryClient.invalidateQueries({
+				void queryClient.invalidateQueries({
 					queryKey: [...FormRpc.forms(), "byId", formId],
 				});
 			}

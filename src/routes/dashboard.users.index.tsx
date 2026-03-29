@@ -89,7 +89,7 @@ function UsersPage() {
 	});
 
 	const invalidateUsers = () => {
-		queryClient.invalidateQueries({ queryKey: UserRpc.users() });
+		void queryClient.invalidateQueries({ queryKey: UserRpc.users() });
 	};
 
 	const handleUserClick = (user: UserWithCohorts) => {

@@ -91,4 +91,4 @@ const program = Effect.gen(function* () {
 	);
 }).pipe(Effect.provide(Layer.mergeAll(AppLayer, Auth.Default, Logger.pretty)));
 
-Effect.runPromise(program);
+void Effect.runPromise(program);

@@ -83,7 +83,7 @@ export function PreTestGateway({
 	// Blocked state - show gateway UI
 	const handleTakePreTest = () => {
 		if (assignmentId) {
-			navigate({
+			void navigate({
 				to: "/dashboard/forms/take",
 				search: {
 					formId: preTestFormId,
@@ -91,7 +91,7 @@ export function PreTestGateway({
 				},
 			});
 		} else {
-			navigate({
+			void navigate({
 				to: "/dashboard/forms/take",
 				search: { formId: preTestFormId },
 			});

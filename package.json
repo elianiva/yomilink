@@ -38,6 +38,7 @@
 		"@dnd-kit/sortable": "^10.0.0",
 		"@dnd-kit/utilities": "^3.2.2",
 		"@effect/opentelemetry": "^0.63.0",
+		"@effect/sql": "^0.51.0",
 		"@effect/sql-drizzle": "^0.50.0",
 		"@effect/sql-libsql": "^0.41.0",
 		"@effect/vitest": "^0.29.0",

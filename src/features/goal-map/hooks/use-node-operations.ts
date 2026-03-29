@@ -69,7 +69,7 @@ export function useNodeOperations() {
 		const node = nodes.find((n) => n.id === nodeId);
 		if (node) {
 			// Center on the node
-			setCenter(node.position.x + 75, node.position.y + 25, {
+			void setCenter(node.position.x + 75, node.position.y + 25, {
 				zoom: 1.5,
 				duration: 500,
 			});

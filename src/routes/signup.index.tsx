@@ -38,7 +38,7 @@ function SignUpPage() {
 		successMessage: "Account created successfully!",
 		showError: true,
 		onSuccess: () => {
-			navigate({ to: "/login" });
+			void navigate({ to: "/login" });
 		},
 	});
 
@@ -182,7 +182,7 @@ function SignUpPage() {
 						onSubmit={(e) => {
 							e.preventDefault();
 							e.stopPropagation();
-							form.handleSubmit();
+							void form.handleSubmit();
 						}}
 						className="flex flex-col flex-1"
 					>

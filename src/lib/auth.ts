@@ -87,7 +87,10 @@ export class Auth extends Effect.Service<Auth>()("Auth", {
 export const auth = Auth.pipe(Effect.provide(Auth.Default), Effect.runSync);
 
 export const Role = Schema.Literal("teacher", "admin", "student").annotations({
-	message: (issue) => ({ message: `Invalid role: ${issue}`, override: true }),
+	message: (issue) => ({
+		message: `Invalid role: ${JSON.stringify(issue.actual)}`,
+		override: true,
+	}),
 });
 
 export const AuthUser = Schema.Struct({

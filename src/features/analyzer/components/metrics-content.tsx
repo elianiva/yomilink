@@ -187,7 +187,7 @@ export function MetricsContent({ assignmentId }: MetricsContentProps) {
 	}, [analyticsData]);
 
 	const handleBack = () => {
-		router.navigate({ to: "/dashboard/analytics" });
+		void router.navigate({ to: "/dashboard/analytics" });
 	};
 
 	if (isLoading) {

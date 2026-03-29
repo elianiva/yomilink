@@ -41,7 +41,7 @@ export function UserFilterBar({
 			}
 		}, 300);
 		return () => clearTimeout(timer);
-	}, [search]);
+	}, [search, filters, onFiltersChange]);
 
 	const handleRoleChange = (role: string) => {
 		onFiltersChange({

@@ -267,9 +267,9 @@ export function LearnerMapEditor() {
 	);
 
 	// Toolbar actions
-	const zoomIn = () => rfZoomIn();
-	const zoomOut = () => rfZoomOut();
-	const fit = () => fitView({ padding: 0.2 });
+	const zoomIn = () => void rfZoomIn();
+	const zoomOut = () => void rfZoomOut();
+	const fit = () => void fitView({ padding: 0.2 });
 
 	const autoLayout = () => {
 		if (isSubmitted) return;
@@ -280,13 +280,13 @@ export function LearnerMapEditor() {
 		);
 		setNodes(layoutedNodes);
 		setEdges(layoutedEdges);
-		setTimeout(() => fitView({ padding: 0.2 }), 50);
+		setTimeout(() => void fitView({ padding: 0.2 }), 50);
 	};
 
 	const selectNode = (nodeId: string) => {
 		const node = nodes.find((n) => n.id === nodeId);
 		if (node) {
-			fitView({
+			void fitView({
 				nodes: [node],
 				padding: 0.5,
 				duration: 500,
@@ -312,11 +312,11 @@ export function LearnerMapEditor() {
 		if (submitResult.success) {
 			setSubmitDialogOpen(false);
 			setStatus("submitted");
-			queryClient.invalidateQueries({
+			void queryClient.invalidateQueries({
 				queryKey: LearnerMapRpc.learnerMaps(),
 			});
 			// Navigate to result page
-			navigate({
+			void navigate({
 				to: `/dashboard/learner-map/${assignmentId}/result`,
 			});
 			toast.success("Map submitted successfully");
@@ -556,7 +556,7 @@ function SummarizingEditor({
 		if (result.success) {
 			setLastSavedSnapshot(controlText);
 			setStatus("submitted");
-			queryClient.invalidateQueries({
+			void queryClient.invalidateQueries({
 				queryKey: LearnerMapRpc.learnerMaps(),
 			});
 		}

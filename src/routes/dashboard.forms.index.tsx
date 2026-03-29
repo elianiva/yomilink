@@ -42,16 +42,16 @@ function AdminFormsPage() {
 		onSuccess: () => {
 			setDeleteDialogOpen(false);
 			setFormToDelete(null);
-			queryClient.invalidateQueries({ queryKey: FormRpc.listForms().queryKey });
+			void queryClient.invalidateQueries({ queryKey: FormRpc.listForms().queryKey });
 		},
 	});
 
 	const handleEdit = (form: FormListItem) => {
-		navigate({ to: "/dashboard/forms/builder", search: { formId: form.id } });
+		void navigate({ to: "/dashboard/forms/builder", search: { formId: form.id } });
 	};
 
 	const handleViewResults = (form: FormListItem) => {
-		navigate({
+		void navigate({
 			to: "/dashboard/forms/$formId/results",
 			params: { formId: form.id },
 		});
@@ -69,7 +69,7 @@ function AdminFormsPage() {
 	};
 
 	const handleCreateNew = () => {
-		navigate({ to: "/dashboard/forms/builder" });
+		void navigate({ to: "/dashboard/forms/builder" });
 	};
 
 	const mappedForms: FormListItem[] = forms.map((form) => ({

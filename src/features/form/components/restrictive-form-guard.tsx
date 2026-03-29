@@ -43,7 +43,7 @@ export function RestrictiveFormGuard({
 
 		if (status && !status.isUnlocked && redirectUrl) {
 			setHasRedirected(true);
-			navigate({ to: redirectUrl });
+			void navigate({ to: redirectUrl });
 		}
 	}, [status, redirectUrl, navigate, enabled, formId, hasRedirected]);
 

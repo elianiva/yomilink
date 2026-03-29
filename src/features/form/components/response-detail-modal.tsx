@@ -46,11 +46,11 @@ export function ResponseDetailModal({
 				const options = question.options as {
 					options: Array<{ id: string; text: string }>;
 				} | null;
-				if (!options?.options) return String(answer);
+				if (!options?.options) return typeof answer === "string" ? answer : JSON.stringify(answer);
 				return (
 					<McqOptionsDisplay
 						options={options.options}
-						selectedOptionId={String(answer)}
+						selectedOptionId={typeof answer === "string" ? answer : JSON.stringify(answer)}
 					/>
 				);
 			}
@@ -60,7 +60,7 @@ export function ResponseDetailModal({
 					labels: Record<string, string>;
 				} | null;
 				const value = Number(answer);
-				if (!options?.labels || Number.isNaN(value)) return String(answer);
+				if (!options?.labels || Number.isNaN(value)) return typeof answer === "string" ? answer : JSON.stringify(answer);
 				return (
 					<LikertScaleDisplay
 						scaleSize={options.scaleSize}
@@ -70,9 +70,9 @@ export function ResponseDetailModal({
 				);
 			}
 			case "text":
-				return <div className="whitespace-pre-wrap">{String(answer)}</div>;
+				return <div className="whitespace-pre-wrap">{typeof answer === "string" ? answer : JSON.stringify(answer)}</div>;
 			default:
-				return String(answer);
+				return typeof answer === "string" ? answer : JSON.stringify(answer);
 		}
 	};
 

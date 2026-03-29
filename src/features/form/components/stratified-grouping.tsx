@@ -157,7 +157,7 @@ export function StratifiedGrouping({ responses, questions, formId }: StratifiedG
 			groups: payloadGroups,
 		});
 
-		queryClient.invalidateQueries({
+		void queryClient.invalidateQueries({
 			queryKey: AssignmentRpc.assignments(),
 		});
 	};

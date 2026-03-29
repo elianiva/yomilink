@@ -64,7 +64,7 @@ export function AnalyticsToolbar({
 			toast.warning("Please select an assignment first");
 			return;
 		}
-		navigate({
+		void navigate({
 			to: "/dashboard/analytics/$assignmentId/metrics",
 			params: { assignmentId: selectedAssignmentId },
 		});

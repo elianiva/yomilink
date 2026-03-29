@@ -50,7 +50,7 @@ function ProfilePage() {
 
 	const handleSignOut = async () => {
 		await authClient.signOut();
-		navigate({ to: "/login" });
+		void navigate({ to: "/login" });
 	};
 
 	if (me === null || me === undefined) {
@@ -148,7 +148,7 @@ function ProfilePage() {
 								onSubmit={(e) => {
 									e.preventDefault();
 									e.stopPropagation();
-									form.handleSubmit();
+									void form.handleSubmit();
 								}}
 								className="p-6 space-y-6"
 							>

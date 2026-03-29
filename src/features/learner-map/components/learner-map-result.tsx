@@ -52,10 +52,10 @@ export function LearnerMapResult() {
 		const result = await newAttemptMutation.mutateAsync({ assignmentId });
 
 		if (result.success) {
-			queryClient.invalidateQueries({
+			void queryClient.invalidateQueries({
 				queryKey: LearnerMapRpc.learnerMaps(),
 			});
-			navigate({
+			void navigate({
 				to: `/dashboard/learner-map/${assignmentId}`,
 			});
 		}

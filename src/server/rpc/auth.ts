@@ -40,7 +40,12 @@ export class SignUpFailedError extends Data.TaggedError("SignUpFailedError")<{
 }> {}
 
 function getFriendlySignUpError(err: unknown): string {
-	const raw = err instanceof Error ? err.message : String(err ?? "");
+	const raw =
+		err instanceof Error
+			? err.message
+			: typeof err === "string"
+				? err
+				: "Unknown error";
 	const msg = raw.toLowerCase();
 
 	if (msg.includes("already exists") || msg.includes("duplicate")) {

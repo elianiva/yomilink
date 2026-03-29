@@ -157,7 +157,7 @@ export function GoalMapEditor() {
 				onSuccess: () => {
 					setLastSavedSnapshot(JSON.stringify({ nodes: graphNodes, edges: graphEdges }));
 					if (isCreatingNewMap) {
-						navigate({
+						void navigate({
 							to: "/dashboard/goal-map/$goalMapId",
 							params: { goalMapId: targetGoalMapId },
 							replace: goalMapId === "new",
@@ -174,7 +174,7 @@ export function GoalMapEditor() {
 							JSON.stringify({ nodes: graphNodes, edges: graphEdges }),
 						);
 						if (isCreatingNewMap) {
-							navigate({
+							void navigate({
 								to: "/dashboard/goal-map/$goalMapId",
 								params: { goalMapId: targetGoalMapId },
 								replace: goalMapId === "new",

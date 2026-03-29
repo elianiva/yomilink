@@ -6,10 +6,13 @@ import { beforeEach, describe, it, expect, vi } from "vite-plus/test";
 
 import { ManualUnlockButton } from "./manual-unlock-button";
 
-vi.mock("@tanstack/react-query", () => ({
-	...vi.importActual("@tanstack/react-query"),
-	useMutation: vi.fn(),
-}));
+vi.mock("@tanstack/react-query", async () => {
+	const actual = await vi.importActual<typeof ReactQuery>("@tanstack/react-query");
+	return {
+		...actual,
+		useMutation: vi.fn(),
+	};
+});
 
 vi.mock("@/server/rpc/form", () => ({
 	FormRpc: {

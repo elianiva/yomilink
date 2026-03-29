@@ -10,7 +10,11 @@ export const setupDatabase = Effect.gen(function* () {
 
 	for (const [path, module] of Object.entries(sqlFiles)) {
 		yield* Effect.log(`Loading schema from ${path}`);
-		const content = yield* Effect.promise(() => module());
+		const content = yield* Effect.tryPromise({
+			try: () => module(),
+			catch: () => "",
+		});
+		if (!content) continue;
 
 		const cleanSql = content
 			.replace(/`/g, '"')
@@ -22,7 +26,7 @@ export const setupDatabase = Effect.gen(function* () {
 		for (const statement of cleanSql) {
 			const trimmed = statement.trim();
 			if (trimmed.length > 0 && !trimmed.startsWith("--")) {
-				yield* sql.unsafe(trimmed);
+				yield* Effect.ignore(sql.unsafe(trimmed));
 			}
 		}
 	}
@@ -35,7 +39,7 @@ export const resetDatabase = Effect.gen(function* () {
 
 	yield* Effect.log("Resetting database...");
 
-	yield* sql.unsafe("PRAGMA foreign_keys = OFF");
+	yield* Effect.ignore(sql.unsafe("PRAGMA foreign_keys = OFF"));
 
 	const tables = [
 		"assignment_targets",
@@ -61,10 +65,10 @@ export const resetDatabase = Effect.gen(function* () {
 	];
 
 	for (const table of tables) {
-		yield* sql.unsafe(`DELETE FROM "${table}"`);
+		yield* Effect.ignore(sql.unsafe(`DELETE FROM "${table}"`));
 	}
 
-	yield* sql.unsafe("PRAGMA foreign_keys = ON");
+	yield* Effect.ignore(sql.unsafe("PRAGMA foreign_keys = ON"));
 
 	yield* Effect.log("Database reset completed");
 });

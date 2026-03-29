@@ -37,7 +37,7 @@ function StudentFormsPage() {
 
 	const handleFormClick = (form: StudentForm) => {
 		if (form.isUnlocked) {
-			navigate({ to: "/dashboard/forms/take", search: { formId: form.id } });
+			void navigate({ to: "/dashboard/forms/take", search: { formId: form.id } });
 		}
 	};
 

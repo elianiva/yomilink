@@ -42,12 +42,15 @@ importers:
       '@effect/opentelemetry':
         specifier: ^0.63.0
         version: 0.63.0(@effect/platform@0.95.0(effect@3.21.0))(@opentelemetry/api@1.9.1)(@opentelemetry/resources@2.6.1(@opentelemetry/api@1.9.1))(@opentelemetry/sdk-logs@0.214.0(@opentelemetry/api@1.9.1))(@opentelemetry/sdk-metrics@2.6.1(@opentelemetry/api@1.9.1))(@opentelemetry/sdk-trace-base@2.6.1(@opentelemetry/api@1.9.1))(@opentelemetry/sdk-trace-node@2.6.1(@opentelemetry/api@1.9.1))(@opentelemetry/sdk-trace-web@2.6.1(@opentelemetry/api@1.9.1))(@opentelemetry/semantic-conventions@1.40.0)(effect@3.21.0)
+      '@effect/sql':
+        specifier: ^0.51.0
+        version: 0.51.0(@effect/experimental@0.59.0(@effect/platform@0.95.0(effect@3.21.0))(effect@3.21.0))(@effect/platform@0.95.0(effect@3.21.0))(effect@3.21.0)
       '@effect/sql-drizzle':
         specifier: ^0.50.0
-        version: 0.50.0(@effect/sql@0.50.0(@effect/experimental@0.59.0(@effect/platform@0.95.0(effect@3.21.0))(effect@3.21.0))(@effect/platform@0.95.0(effect@3.21.0))(effect@3.21.0))(drizzle-orm@0.45.2(@libsql/client@0.17.2)(@opentelemetry/api@1.9.1)(@types/pg@8.15.6)(kysely@0.28.14))(effect@3.21.0)
+        version: 0.50.0(@effect/sql@0.51.0(@effect/experimental@0.59.0(@effect/platform@0.95.0(effect@3.21.0))(effect@3.21.0))(@effect/platform@0.95.0(effect@3.21.0))(effect@3.21.0))(drizzle-orm@0.45.2(@libsql/client@0.17.2)(@opentelemetry/api@1.9.1)(@types/pg@8.15.6)(kysely@0.28.14))(effect@3.21.0)
       '@effect/sql-libsql':
         specifier: ^0.41.0
-        version: 0.41.0(@effect/experimental@0.59.0(@effect/platform@0.95.0(effect@3.21.0))(effect@3.21.0))(@effect/platform@0.95.0(effect@3.21.0))(@effect/sql@0.50.0(@effect/experimental@0.59.0(@effect/platform@0.95.0(effect@3.21.0))(effect@3.21.0))(@effect/platform@0.95.0(effect@3.21.0))(effect@3.21.0))(effect@3.21.0)
+        version: 0.41.0(@effect/experimental@0.59.0(@effect/platform@0.95.0(effect@3.21.0))(effect@3.21.0))(@effect/platform@0.95.0(effect@3.21.0))(@effect/sql@0.51.0(@effect/experimental@0.59.0(@effect/platform@0.95.0(effect@3.21.0))(effect@3.21.0))(@effect/platform@0.95.0(effect@3.21.0))(effect@3.21.0))(effect@3.21.0)
       '@effect/vitest':
         specifier: ^0.29.0
         version: 0.29.0(@voidzero-dev/vite-plus-test@0.1.12(@opentelemetry/api@1.9.1)(@types/node@25.5.0)(@voidzero-dev/vite-plus-core@0.1.12(@types/node@25.5.0)(esbuild@0.27.4)(jiti@2.6.1)(tsx@4.21.0)(typescript@6.0.2)(yaml@2.8.3))(esbuild@0.27.4)(jiti@2.6.1)(jsdom@29.0.1(@noble/hashes@2.0.1))(tsx@4.21.0)(typescript@6.0.2)(yaml@2.8.3))(effect@3.21.0)
@@ -690,12 +693,12 @@ packages:
       '@effect/sql': ^0.51.0
       effect: ^3.21.0
 
-  '@effect/sql@0.50.0':
-    resolution: {integrity: sha512-sOTzsC+ICASgSmX1RITYo6ut7ZbkX+hMG6YagJEyhtptxco9MgSflpF/ix/L92haJ+YTS5Zur/Dm2bDNfVes4w==}
+  '@effect/sql@0.51.0':
+    resolution: {integrity: sha512-e7hWe46QD15eMCr4kNBMVdItIVK/WLHJG+d8DLL1FjVf5Ra82k2mwUYIXplJewVbHjt3my6GSKPPd1ZrQjVd5A==}
     peerDependencies:
-      '@effect/experimental': ^0.59.0
-      '@effect/platform': ^0.95.0
-      effect: ^3.20.0
+      '@effect/experimental': ^0.60.0
+      '@effect/platform': ^0.96.0
+      effect: ^3.21.0
 
   '@effect/vitest@0.29.0':
     resolution: {integrity: sha512-DvWr1aeEcaZ8mtu8hNVb4e3rEYvGEwQSr7wsNrW53t6nKYjkmjRICcvVEsXUhjoCblRHSxRsRV0TOt0+UmcvaQ==}
@@ -6527,24 +6530,24 @@ snapshots:
       msgpackr: 1.11.9
       multipasta: 0.2.7
 
-  '@effect/sql-drizzle@0.50.0(@effect/sql@0.50.0(@effect/experimental@0.59.0(@effect/platform@0.95.0(effect@3.21.0))(effect@3.21.0))(@effect/platform@0.95.0(effect@3.21.0))(effect@3.21.0))(drizzle-orm@0.45.2(@libsql/client@0.17.2)(@opentelemetry/api@1.9.1)(@types/pg@8.15.6)(kysely@0.28.14))(effect@3.21.0)':
+  '@effect/sql-drizzle@0.50.0(@effect/sql@0.51.0(@effect/experimental@0.59.0(@effect/platform@0.95.0(effect@3.21.0))(effect@3.21.0))(@effect/platform@0.95.0(effect@3.21.0))(effect@3.21.0))(drizzle-orm@0.45.2(@libsql/client@0.17.2)(@opentelemetry/api@1.9.1)(@types/pg@8.15.6)(kysely@0.28.14))(effect@3.21.0)':
     dependencies:
-      '@effect/sql': 0.50.0(@effect/experimental@0.59.0(@effect/platform@0.95.0(effect@3.21.0))(effect@3.21.0))(@effect/platform@0.95.0(effect@3.21.0))(effect@3.21.0)
+      '@effect/sql': 0.51.0(@effect/experimental@0.59.0(@effect/platform@0.95.0(effect@3.21.0))(effect@3.21.0))(@effect/platform@0.95.0(effect@3.21.0))(effect@3.21.0)
       drizzle-orm: 0.45.2(@libsql/client@0.17.2)(@opentelemetry/api@1.9.1)(@types/pg@8.15.6)(kysely@0.28.14)
       effect: 3.21.0
 
-  '@effect/sql-libsql@0.41.0(@effect/experimental@0.59.0(@effect/platform@0.95.0(effect@3.21.0))(effect@3.21.0))(@effect/platform@0.95.0(effect@3.21.0))(@effect/sql@0.50.0(@effect/experimental@0.59.0(@effect/platform@0.95.0(effect@3.21.0))(effect@3.21.0))(@effect/platform@0.95.0(effect@3.21.0))(effect@3.21.0))(effect@3.21.0)':
+  '@effect/sql-libsql@0.41.0(@effect/experimental@0.59.0(@effect/platform@0.95.0(effect@3.21.0))(effect@3.21.0))(@effect/platform@0.95.0(effect@3.21.0))(@effect/sql@0.51.0(@effect/experimental@0.59.0(@effect/platform@0.95.0(effect@3.21.0))(effect@3.21.0))(@effect/platform@0.95.0(effect@3.21.0))(effect@3.21.0))(effect@3.21.0)':
     dependencies:
       '@effect/experimental': 0.59.0(@effect/platform@0.95.0(effect@3.21.0))(effect@3.21.0)
       '@effect/platform': 0.95.0(effect@3.21.0)
-      '@effect/sql': 0.50.0(@effect/experimental@0.59.0(@effect/platform@0.95.0(effect@3.21.0))(effect@3.21.0))(@effect/platform@0.95.0(effect@3.21.0))(effect@3.21.0)
+      '@effect/sql': 0.51.0(@effect/experimental@0.59.0(@effect/platform@0.95.0(effect@3.21.0))(effect@3.21.0))(@effect/platform@0.95.0(effect@3.21.0))(effect@3.21.0)
       '@libsql/client': 0.12.0
       effect: 3.21.0
     transitivePeerDependencies:
       - bufferutil
       - utf-8-validate
 
-  '@effect/sql@0.50.0(@effect/experimental@0.59.0(@effect/platform@0.95.0(effect@3.21.0))(effect@3.21.0))(@effect/platform@0.95.0(effect@3.21.0))(effect@3.21.0)':
+  '@effect/sql@0.51.0(@effect/experimental@0.59.0(@effect/platform@0.95.0(effect@3.21.0))(effect@3.21.0))(@effect/platform@0.95.0(effect@3.21.0))(effect@3.21.0)':
     dependencies:
       '@effect/experimental': 0.59.0(@effect/platform@0.95.0(effect@3.21.0))(effect@3.21.0)
       '@effect/platform': 0.95.0(effect@3.21.0)

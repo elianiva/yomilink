@@ -25,7 +25,7 @@ function FormTakerPage() {
 	});
 
 	const handleBack = () => {
-		navigate({ to: "/dashboard/forms/student" });
+		void navigate({ to: "/dashboard/forms/student" });
 	};
 
 	if (!formId) {
@@ -99,7 +99,7 @@ function FormTakerPage() {
 	});
 
 	const handleSubmit = () => {
-		navigate({ to: "/dashboard/forms/student" });
+		void navigate({ to: "/dashboard/forms/student" });
 	};
 
 	return (

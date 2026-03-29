@@ -44,7 +44,7 @@ function AssignmentsPage() {
 			assignment.status === "submitted"
 				? "/dashboard/learner-map/$assignmentId/result"
 				: "/dashboard/learner-map/$assignmentId";
-		navigate({ to: path, params: { assignmentId: assignment.id } });
+		void navigate({ to: path, params: { assignmentId: assignment.id } });
 	};
 
 	return (

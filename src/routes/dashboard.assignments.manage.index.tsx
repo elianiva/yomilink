@@ -69,7 +69,7 @@ function ManageAssignmentsPage() {
 		onSuccess: () => {
 			setDeleteDialogOpen(false);
 			setAssignmentToDelete(null);
-			queryClient.invalidateQueries({ queryKey: ["assignments"] });
+			void queryClient.invalidateQueries({ queryKey: ["assignments"] });
 		},
 	});
 
@@ -85,11 +85,11 @@ function ManageAssignmentsPage() {
 	};
 
 	const handleCreateSuccess = () => {
-		queryClient.invalidateQueries({ queryKey: ["assignments"] });
+		void queryClient.invalidateQueries({ queryKey: ["assignments"] });
 	};
 
 	const handleViewDetails = (assignment: AssignmentListItem) => {
-		navigate({
+		void navigate({
 			to: "/dashboard/assignments/manage/$assignmentId",
 			params: { assignmentId: assignment.id },
 		});

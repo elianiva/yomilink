@@ -15,19 +15,19 @@ export function useViewportControls() {
 	const { zoomIn: rfZoomIn, zoomOut: rfZoomOut, fitView } = useReactFlow();
 
 	const zoomIn = useCallback(() => {
-		rfZoomIn();
+		void rfZoomIn();
 	}, [rfZoomIn]);
 
 	const zoomOut = useCallback(() => {
-		rfZoomOut();
+		void rfZoomOut();
 	}, [rfZoomOut]);
 
 	const fit = useCallback(() => {
-		fitView({ padding: FIT_PADDING });
+		void fitView({ padding: FIT_PADDING });
 	}, [fitView]);
 
 	const centerMap = useCallback(() => {
-		fitView({ padding: FIT_PADDING });
+		void fitView({ padding: FIT_PADDING });
 	}, [fitView]);
 
 	const autoLayout = useCallback(() => {
@@ -39,7 +39,7 @@ export function useViewportControls() {
 		setNodes(layoutedNodes);
 		setEdges(layoutedEdges);
 		setTimeout(() => {
-			fitView({ padding: FIT_PADDING });
+			void fitView({ padding: FIT_PADDING });
 		}, LAYOUT_TIMEOUT_MS);
 	}, [nodes, edges, setNodes, setEdges, fitView]);
 

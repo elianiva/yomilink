@@ -12,7 +12,12 @@ import { getMe } from "@/server/rpc/profile";
 import { authClient } from "../lib/auth-client";
 
 function getFriendlyAuthErrorMessage(err: unknown) {
-	const raw = err instanceof Error ? err.message : String(err ?? "");
+	const raw =
+		err instanceof Error
+			? err.message
+			: typeof err === "string"
+				? err
+				: "Unknown error";
 	const msg = raw.toLowerCase();
 	if (msg.includes("invalidsecret") || msg.includes("invalid secret")) {
 		return "Incorrect email or password.";
@@ -79,9 +84,9 @@ function LoginPage() {
 				if (me.success) {
 					const target =
 						me.data.role === "student" ? "/dashboard/assignments" : "/dashboard";
-					navigate({ to: target });
+					void navigate({ to: target });
 				} else {
-					navigate({ to: "/dashboard" });
+					void navigate({ to: "/dashboard" });
 				}
 			} catch (e: unknown) {
 				setError(getFriendlyAuthErrorMessage(e));
@@ -112,7 +117,7 @@ function LoginPage() {
 					onSubmit={(e) => {
 						e.preventDefault();
 						e.stopPropagation();
-						form.handleSubmit();
+						void form.handleSubmit();
 					}}
 					className="space-y-5"
 				>
