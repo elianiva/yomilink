@@ -7,9 +7,8 @@ Yomilink is a personalized Japanese learning path platform built with **TanStack
 ```bash
 # Development
 vp dev                    # Start dev server
-vp run typecheck          # Check TypeScript
-vp lint                   # Lint with auto-fix (oxlint)
-vp fmt                    # Format code (oxfmt)
+vp check                  # Format + lint + typecheck (combines all 3)
+vp check --type-aware     # Above with type-aware linting (slower, more accurate)
 
 # Testing
 vp test                   # Run all tests (UI + service)
@@ -253,5 +252,5 @@ For GitHub Actions, consider using [`voidzero-dev/setup-vp`](https://github.com/
 ## Review Checklist for Agents
 
 - [ ] Run `vp install` after pulling remote changes and before getting started.
-- [ ] Run `vp check` and `vp test` to validate changes.
+- [ ] Run `vp check --type-aware` and `vp test` to validate changes.
   <!--VITE PLUS END-->
