@@ -1,11 +1,7 @@
 import { and, count, eq, ilike, inArray, or, sql } from "drizzle-orm";
 import { Data, Effect, Schema } from "effect";
 
-import {
-	buildWhereClause,
-	calculateOffset,
-	createFuzzyPattern,
-} from "@/lib/db-query-builder";
+import { buildWhereClause, calculateOffset, createFuzzyPattern } from "@/lib/db-query-builder";
 import { Database } from "@/server/db/client";
 import { cohorts, cohortMembers, user, verification } from "@/server/db/schema/auth-schema";
 
@@ -132,14 +128,25 @@ export const listUsers = Effect.fn("listUsers")((input: UserFilterInput) =>
 				.where(eq(cohortMembers.cohortId, cohortId));
 
 			if (memberIds.length === 0) {
-				return { users: [], total: 0, page, pageSize, totalPages: 0 } satisfies UserListResult;
+				return {
+					users: [],
+					total: 0,
+					page,
+					pageSize,
+					totalPages: 0,
+				} satisfies UserListResult;
 			}
 			userIdFilter = memberIds.map((m) => m.userId);
 		}
 
 		// Build where conditions using query builder
 		const whereClause = buildWhereClause([
-			search ? or(ilike(user.name, createFuzzyPattern(search)), ilike(user.email, createFuzzyPattern(search))) : null,
+			search
+				? or(
+						ilike(user.name, createFuzzyPattern(search)),
+						ilike(user.email, createFuzzyPattern(search)),
+					)
+				: null,
 			roleFilter ? eq(user.role, roleFilter) : null,
 			bannedFilter !== undefined ? eq(user.banned, bannedFilter) : null,
 			userIdFilter ? inArray(user.id, userIdFilter) : null,

@@ -1,12 +1,11 @@
 // Assignment Detail Page - Presentational Component
 
-
-
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { Badge } from "@/components/ui/badge";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { CalendarIcon, UsersIcon, BookOpenIcon, ClipboardListIcon } from "lucide-react";
 import { formatDistanceToNow } from "date-fns";
+import { CalendarIcon, UsersIcon, BookOpenIcon, ClipboardListIcon } from "lucide-react";
+
+import { Badge } from "@/components/ui/badge";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 
 export interface AssignmentDetailPageProps {
 	assignment: {
@@ -79,7 +78,9 @@ export function AssignmentDetailPage({ assignment }: AssignmentDetailPageProps) 
 					<CardContent>
 						<div className="text-2xl font-bold">{formattedStartDate}</div>
 						<p className="text-xs text-muted-foreground">
-							{assignment.startDate ? "Assignment starts" : "Immediately when published"}
+							{assignment.startDate
+								? "Assignment starts"
+								: "Immediately when published"}
 						</p>
 					</CardContent>
 				</Card>
@@ -111,17 +112,23 @@ export function AssignmentDetailPage({ assignment }: AssignmentDetailPageProps) 
 					<Card>
 						<CardHeader>
 							<CardTitle>Assignment Overview</CardTitle>
-							<CardDescription>Summary of the assignment configuration</CardDescription>
+							<CardDescription>
+								Summary of the assignment configuration
+							</CardDescription>
 						</CardHeader>
 						<CardContent className="space-y-4">
 							<div className="grid gap-4 md:grid-cols-2">
 								<div className="space-y-2">
 									<p className="text-sm font-medium">Assignment ID</p>
-									<p className="text-sm text-muted-foreground font-mono">{assignment.id}</p>
+									<p className="text-sm text-muted-foreground font-mono">
+										{assignment.id}
+									</p>
 								</div>
 								<div className="space-y-2">
 									<p className="text-sm font-medium">Goal Map ID</p>
-									<p className="text-sm text-muted-foreground font-mono">{assignment.goalMapId}</p>
+									<p className="text-sm text-muted-foreground font-mono">
+										{assignment.goalMapId}
+									</p>
 								</div>
 							</div>
 						</CardContent>
@@ -140,7 +147,9 @@ export function AssignmentDetailPage({ assignment }: AssignmentDetailPageProps) 
 									<div className="flex items-center justify-between">
 										<div className="space-y-1">
 											<p className="text-sm font-medium">Pre-Test Form</p>
-											<p className="text-xs text-muted-foreground font-mono">{assignment.preTestFormId}</p>
+											<p className="text-xs text-muted-foreground font-mono">
+												{assignment.preTestFormId}
+											</p>
 										</div>
 										<Badge variant="secondary">Required</Badge>
 									</div>
@@ -149,13 +158,17 @@ export function AssignmentDetailPage({ assignment }: AssignmentDetailPageProps) 
 									<div className="flex items-center justify-between">
 										<div className="space-y-1">
 											<p className="text-sm font-medium">Post-Test Form</p>
-											<p className="text-xs text-muted-foreground font-mono">{assignment.postTestFormId}</p>
+											<p className="text-xs text-muted-foreground font-mono">
+												{assignment.postTestFormId}
+											</p>
 										</div>
 										<Badge variant="secondary">Required</Badge>
 									</div>
 								)}
 								{!assignment.preTestFormId && !assignment.postTestFormId && (
-									<p className="text-sm text-muted-foreground">No forms attached to this assignment</p>
+									<p className="text-sm text-muted-foreground">
+										No forms attached to this assignment
+									</p>
 								)}
 							</div>
 						</CardContent>
@@ -167,7 +180,9 @@ export function AssignmentDetailPage({ assignment }: AssignmentDetailPageProps) 
 						<CardHeader className="flex flex-row items-center justify-between">
 							<div>
 								<CardTitle>Assigned Students</CardTitle>
-								<CardDescription>Students participating in this assignment</CardDescription>
+								<CardDescription>
+									Students participating in this assignment
+								</CardDescription>
 							</div>
 							<UsersIcon className="h-5 w-5 text-muted-foreground" />
 						</CardHeader>

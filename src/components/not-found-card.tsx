@@ -17,7 +17,8 @@ export function NotFoundCard({ resource = "Resource", onBack }: NotFoundCardProp
 					<CardTitle>{resource} Not Found</CardTitle>
 				</div>
 				<CardDescription>
-					The {resource.toLowerCase()} you are looking for does not exist or has been removed.
+					The {resource.toLowerCase()} you are looking for does not exist or has been
+					removed.
 				</CardDescription>
 			</CardHeader>
 			{onBack && (

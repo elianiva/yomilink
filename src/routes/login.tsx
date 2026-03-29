@@ -13,11 +13,7 @@ import { authClient } from "../lib/auth-client";
 
 function getFriendlyAuthErrorMessage(err: unknown) {
 	const raw =
-		err instanceof Error
-			? err.message
-			: typeof err === "string"
-				? err
-				: "Unknown error";
+		err instanceof Error ? err.message : typeof err === "string" ? err : "Unknown error";
 	const msg = raw.toLowerCase();
 	if (msg.includes("invalidsecret") || msg.includes("invalid secret")) {
 		return "Incorrect email or password.";

@@ -5,10 +5,7 @@ export interface DetailPageSkeletonProps {
 	tabCount?: number;
 }
 
-export function DetailPageSkeleton({
-	showTabs = true,
-	tabCount = 4,
-}: DetailPageSkeletonProps) {
+export function DetailPageSkeleton({ showTabs = true, tabCount = 4 }: DetailPageSkeletonProps) {
 	return (
 		<div className="space-y-6">
 			{/* Header */}

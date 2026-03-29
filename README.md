@@ -34,12 +34,12 @@ KitBuild is a pedagogical approach developed by Tsukasa Hirashima and colleagues
 
 The KitBuild methodology is backed by extensive peer-reviewed research:
 
-| Paper | Authors | Year |
-|-------|---------|------|
-| [Framework of Kit-Build Concept Map for Automatic Diagnosis](https://telrp.springeropen.com/articles/10.1186/s41039-015-0018-9) | Hirashima et al. | 2015 |
-| [The Practical Use of Kit-Build Concept Map on Formative Assessment](https://telrp.springeropen.com/articles/10.1186/s41039-017-0060-x) | Pailai et al. | 2017 |
-| [Collaborative Concept Mapping with Reciprocal Kit-Build](https://link.springer.com/article/10.1186/s41039-020-00136-6) | Hayashi & Hirashima | 2020 |
-| [Evaluating the Kit-Build Process Using Sub-Map Scoring](https://rptel.apsce.net/index.php/RPTEL/article/view/2024-19021) | Rismanto et al. | 2024 |
+| Paper                                                                                                                                   | Authors             | Year |
+| --------------------------------------------------------------------------------------------------------------------------------------- | ------------------- | ---- |
+| [Framework of Kit-Build Concept Map for Automatic Diagnosis](https://telrp.springeropen.com/articles/10.1186/s41039-015-0018-9)         | Hirashima et al.    | 2015 |
+| [The Practical Use of Kit-Build Concept Map on Formative Assessment](https://telrp.springeropen.com/articles/10.1186/s41039-017-0060-x) | Pailai et al.       | 2017 |
+| [Collaborative Concept Mapping with Reciprocal Kit-Build](https://link.springer.com/article/10.1186/s41039-020-00136-6)                 | Hayashi & Hirashima | 2020 |
+| [Evaluating the Kit-Build Process Using Sub-Map Scoring](https://rptel.apsce.net/index.php/RPTEL/article/view/2024-19021)               | Rismanto et al.     | 2024 |
 
 ---
 
@@ -60,15 +60,15 @@ This approach reduces cognitive load on students (no need to invent terminology)
 
 Yomilink reimplements the core KitBuild workflow with modern tooling:
 
-| Feature | Description |
-|---------|-------------|
-| Concept Map Editor | Visual editor for creating goal maps with bi-directional/multi-link support |
-| Automatic Kit Generation | Disassembles goal maps into student-ready activity kits |
-| Map Diagnosis | Automatic comparison of learner maps against goal maps |
-| Extended Assessments | Quiz builder for MCQ, text, and Likert-scale questions (research extension) |
-| Assignment Management | Deadlines, time limits, access controls |
-| Research Dashboard | Analytics and exportable data for research analysis |
-| Feedback System | Targeted feedback based on diagnosis results |
+| Feature                  | Description                                                                 |
+| ------------------------ | --------------------------------------------------------------------------- |
+| Concept Map Editor       | Visual editor for creating goal maps with bi-directional/multi-link support |
+| Automatic Kit Generation | Disassembles goal maps into student-ready activity kits                     |
+| Map Diagnosis            | Automatic comparison of learner maps against goal maps                      |
+| Extended Assessments     | Quiz builder for MCQ, text, and Likert-scale questions (research extension) |
+| Assignment Management    | Deadlines, time limits, access controls                                     |
+| Research Dashboard       | Analytics and exportable data for research analysis                         |
+| Feedback System          | Targeted feedback based on diagnosis results                                |
 
 ---
 
@@ -92,6 +92,7 @@ vp dev
 Visit http://localhost:5173
 
 This project is using these tech stack, so check their respective documentations for further information:
+
 - [Tanstack Start](https://tanstack.com/start/latest)
 - [Vite+](https://viteplus.dev)
 - [Drizzle](https://orm.drizzle.team/)
@@ -143,16 +144,16 @@ Edit `wrangler.json`:
 
 ```json
 {
-  "name": "yomilink",
-  "compatibility_date": "2025-09-02",
-  "compatibility_flags": ["nodejs_compat"],
-  "main": "@tanstack/react-start/server-entry",
-  "r2_buckets": [
-    {
-      "binding": "MATERIAL_IMAGES",
-      "bucket_name": "yomilink-materials"
-    }
-  ]
+	"name": "yomilink",
+	"compatibility_date": "2025-09-02",
+	"compatibility_flags": ["nodejs_compat"],
+	"main": "@tanstack/react-start/server-entry",
+	"r2_buckets": [
+		{
+			"binding": "MATERIAL_IMAGES",
+			"bucket_name": "yomilink-materials"
+		}
+	]
 }
 ```
 
@@ -174,15 +175,15 @@ vp run deploy
 
 ### Environment Reference
 
-| Variable | Type | Purpose |
-|----------|------|---------|
-| `DATABASE_MODE` | env | `remote` (Turso) or `local` (SQLite file) |
-| `TURSO_DATABASE_URL` | env | Database connection string |
-| `TURSO_AUTH_TOKEN` | secret | Turso authentication |
-| `BETTER_AUTH_SECRET` | secret | Session signing key (32+ chars) |
-| `BETTER_AUTH_URL` | env | Auth callback URL |
-| `SITE_URL` | env | Canonical site URL |
-| `MATERIAL_IMAGES` | R2 binding | Image storage bucket |
+| Variable             | Type       | Purpose                                   |
+| -------------------- | ---------- | ----------------------------------------- |
+| `DATABASE_MODE`      | env        | `remote` (Turso) or `local` (SQLite file) |
+| `TURSO_DATABASE_URL` | env        | Database connection string                |
+| `TURSO_AUTH_TOKEN`   | secret     | Turso authentication                      |
+| `BETTER_AUTH_SECRET` | secret     | Session signing key (32+ chars)           |
+| `BETTER_AUTH_URL`    | env        | Auth callback URL                         |
+| `SITE_URL`           | env        | Canonical site URL                        |
+| `MATERIAL_IMAGES`    | R2 binding | Image storage bucket                      |
 
 ---
 

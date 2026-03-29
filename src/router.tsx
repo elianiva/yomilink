@@ -7,63 +7,63 @@ import { ErrorPage } from "./components/error-page";
 import { routeTree } from "./routeTree.gen";
 
 const queryClient = new QueryClient({
-    mutationCache: new MutationCache({
-        onSuccess: (_data, _variables, _context, mutation) => {
-            if (mutation.options.mutationKey) {
-                void queryClient.invalidateQueries({
-                    queryKey: mutation.options.mutationKey,
-                });
-            } else {
-                void queryClient.invalidateQueries();
-            }
-        },
-    }),
+	mutationCache: new MutationCache({
+		onSuccess: (_data, _variables, _context, mutation) => {
+			if (mutation.options.mutationKey) {
+				void queryClient.invalidateQueries({
+					queryKey: mutation.options.mutationKey,
+				});
+			} else {
+				void queryClient.invalidateQueries();
+			}
+		},
+	}),
 });
 
 export const getRouter = () => {
-    const router = createRouter({
-        routeTree,
-        context: { queryClient },
-        defaultPreload: "intent",
-        defaultErrorComponent: ErrorPage,
-    });
+	const router = createRouter({
+		routeTree,
+		context: { queryClient },
+		defaultPreload: "intent",
+		defaultErrorComponent: ErrorPage,
+	});
 
-    setupRouterSsrQueryIntegration({
-        router,
-        queryClient,
-    });
+	setupRouterSsrQueryIntegration({
+		router,
+		queryClient,
+	});
 
-    if (!router.isServer) {
-        Sentry.init({
-            dsn: import.meta.env.DEV ? undefined : import.meta.env.VITE_SENTRY_DSN,
-            sendDefaultPii: true,
-            tracesSampleRate: import.meta.env.DEV ? 1.0 : 0.1,
-            profilesSampleRate: import.meta.env.DEV ? 1.0 : 0.1,
-            replaysSessionSampleRate: import.meta.env.DEV ? 1.0 : 0.05,
-            replaysOnErrorSampleRate: 1.0,
-            beforeSend(event: { request?: { url?: string } }) {
-                // Filter out health check requests
-                if (event.request?.url?.includes("/health")) {
-                    return null;
-                }
-                // Filter out specific errors if needed
-                return event;
-            },
-            beforeSendTransaction(event: { contexts?: { trace?: { data?: { url?: string } } } }) {
-                // Filter out health check transactions
-                if (event.contexts?.trace?.data?.url?.includes("/health")) {
-                    return null;
-                }
-                return event;
-            },
-            integrations: [
-                Sentry.tanstackRouterBrowserTracingIntegration(router),
-                Sentry.captureConsoleIntegration({
-                    levels: ["log", "info", "warn", "error", "debug"],
-                }),
-            ],
-        } as unknown as Sentry.BrowserOptions);
-    }
+	if (!router.isServer) {
+		Sentry.init({
+			dsn: import.meta.env.DEV ? undefined : import.meta.env.VITE_SENTRY_DSN,
+			sendDefaultPii: true,
+			tracesSampleRate: import.meta.env.DEV ? 1.0 : 0.1,
+			profilesSampleRate: import.meta.env.DEV ? 1.0 : 0.1,
+			replaysSessionSampleRate: import.meta.env.DEV ? 1.0 : 0.05,
+			replaysOnErrorSampleRate: 1.0,
+			beforeSend(event: { request?: { url?: string } }) {
+				// Filter out health check requests
+				if (event.request?.url?.includes("/health")) {
+					return null;
+				}
+				// Filter out specific errors if needed
+				return event;
+			},
+			beforeSendTransaction(event: { contexts?: { trace?: { data?: { url?: string } } } }) {
+				// Filter out health check transactions
+				if (event.contexts?.trace?.data?.url?.includes("/health")) {
+					return null;
+				}
+				return event;
+			},
+			integrations: [
+				Sentry.tanstackRouterBrowserTracingIntegration(router),
+				Sentry.captureConsoleIntegration({
+					levels: ["log", "info", "warn", "error", "debug"],
+				}),
+			],
+		} as unknown as Sentry.BrowserOptions);
+	}
 
-    return router;
+	return router;
 };

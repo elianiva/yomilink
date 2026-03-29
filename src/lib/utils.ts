@@ -15,9 +15,7 @@ export class ParseJsonError extends Data.TaggedError("ParseJsonError")<{
 	readonly message: string;
 }> {}
 
-export function parseJson<A = unknown>(
-	input: unknown,
-): Effect.Effect<A, ParseJsonError, never>;
+export function parseJson<A = unknown>(input: unknown): Effect.Effect<A, ParseJsonError, never>;
 export function parseJson<S extends Schema.Schema<any, any, any>>(
 	input: unknown,
 	schema: S,

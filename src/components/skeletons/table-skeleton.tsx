@@ -26,7 +26,10 @@ export function TableSkeleton({
 			)}
 			<div className="rounded-xl border">
 				{showHeader && (
-					<div className="border-b p-4 grid gap-4" style={{ gridTemplateColumns: `repeat(${columns}, 1fr)` }}>
+					<div
+						className="border-b p-4 grid gap-4"
+						style={{ gridTemplateColumns: `repeat(${columns}, 1fr)` }}
+					>
 						{Array.from({ length: columns }).map((_, i) => (
 							<Skeleton key={i} className="h-5" />
 						))}
@@ -40,7 +43,11 @@ export function TableSkeleton({
 							style={{ gridTemplateColumns: `repeat(${columns}, 1fr)` }}
 						>
 							{Array.from({ length: columns }).map((_, colIdx) => (
-								<Skeleton key={colIdx} className="h-4" style={{ width: colIdx === 0 ? "80%" : "60%" }} />
+								<Skeleton
+									key={colIdx}
+									className="h-4"
+									style={{ width: colIdx === 0 ? "80%" : "60%" }}
+								/>
 							))}
 						</div>
 					))}

@@ -8,10 +8,7 @@ export function CardSkeleton({ count = 1 }: CardSkeletonProps) {
 	return (
 		<div className="space-y-4">
 			{Array.from({ length: count }).map((_, i) => (
-				<div
-					key={i}
-					className="rounded-xl border bg-card p-6 space-y-4"
-				>
+				<div key={i} className="rounded-xl border bg-card p-6 space-y-4">
 					<div className="flex items-center gap-4">
 						<Skeleton className="h-12 w-12 rounded-lg" />
 						<div className="space-y-2 flex-1">

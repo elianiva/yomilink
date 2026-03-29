@@ -1,5 +1,5 @@
-import { FileQuestion } from "lucide-react";
 import { Link } from "@tanstack/react-router";
+import { FileQuestion } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
@@ -24,8 +24,8 @@ export function NotFoundCard({
 			</div>
 			<h3 className="text-xl font-semibold">{resource} Not Found</h3>
 			<p className="mt-2 text-sm text-muted-foreground">
-				The {resource.toLowerCase()} you&apos;re looking for doesn&apos;t exist or you don&apos;t have
-				access to it.
+				The {resource.toLowerCase()} you&apos;re looking for doesn&apos;t exist or you
+				don&apos;t have access to it.
 			</p>
 			<Button asChild variant="outline" className="mt-6">
 				<Link to={backTo}>{backLabel}</Link>

@@ -22,9 +22,7 @@ export function ErrorCard({ title, description, onRetry, className }: ErrorCardP
 				<AlertCircle className="h-6 w-6 text-destructive" />
 			</div>
 			<h3 className="text-lg font-semibold text-destructive">{title}</h3>
-			{description && (
-				<p className="mt-2 text-sm text-muted-foreground">{description}</p>
-			)}
+			{description && <p className="mt-2 text-sm text-muted-foreground">{description}</p>}
 			{onRetry && (
 				<Button onClick={onRetry} variant="outline" className="mt-4">
 					Retry

@@ -23,7 +23,9 @@ import { and, type SQL } from "drizzle-orm";
 export function buildWhereClause(conditions: (SQL | null | undefined)[]): SQL | undefined {
 	const validConditions = conditions.filter((c): c is SQL => c !== null && c !== undefined);
 	if (validConditions.length === 0) return undefined;
-	return validConditions.length === 1 ? validConditions[0] : and(...validConditions as [SQL, ...SQL[]]);
+	return validConditions.length === 1
+		? validConditions[0]
+		: and(...(validConditions as [SQL, ...SQL[]]));
 }
 
 /**

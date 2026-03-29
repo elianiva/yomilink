@@ -1,9 +1,9 @@
 import { atom } from "jotai";
 
 import type { Edge, Node } from "@/features/learner-map/lib/comparator";
-import type { 
-  ContextMenuState as LibContextMenuState, 
-  ConnectionModeState as LibConnectionModeState 
+import type {
+	ContextMenuState as LibContextMenuState,
+	ConnectionModeState as LibConnectionModeState,
 } from "@/lib/react-flow-types";
 
 // ============================================
@@ -85,9 +85,7 @@ export interface HistoryEntry {
 }
 
 /** Full history stack for undo/redo functionality */
-export const historyAtom = atom<HistoryEntry[]>([
-	{ nodes: [], edges: [] },
-]);
+export const historyAtom = atom<HistoryEntry[]>([{ nodes: [], edges: [] }]);
 
 // Backward compatible export
 export { historyAtom as historyAtomWithPointer };
