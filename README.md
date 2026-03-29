@@ -1,6 +1,6 @@
 # Yomilink
 
-A modern reimplementation of the **KitBuild Concept Map** system for educational research.
+A modern reimplementation of the **KitBuild Concept Map** system for educational research. This was made as part of my bachelor thesis.
 
 ---
 
@@ -10,17 +10,16 @@ Yomilink is a modern, researcher-friendly rebuild of the [KitBuild Concept Map](
 
 The original KitBuild system (operational since 2009) pioneered automatic diagnosis of concept maps for formative assessment. Yomilink aims to:
 
-- Provide a **cleaner, more accessible interface** for researchers and educators
-- Run on **modern web infrastructure** (edge deployment, responsive design)
-- Support **extended research workflows** with enhanced analytics and flexible assessment tools
+- Provide a cleaner, more accessible interface for researchers and educators. Everything is managed in a single place: pre-test, post-test, delayed-test, questionnaires, so there's no need for an external platform like google forms needed anymore.
+- Run on modern web infrastructure. The system is deployed on Cloudflare Workers and uses Turso as the database. This makes it easy for anyone to deploy without needing to have a VPS.
 
-**All core assessment methods—automatic map diagnosis, kit generation algorithms, and feedback frameworks—come directly from the original KitBuild research.** Yomilink does not introduce new pedagogical approaches; it reimplements the proven ones in a more maintainable, extensible form.
+All core assessment methods like automatic map diagnosis, kit generation algorithms, and feedback frameworks come directly from the original KitBuild research. Yomilink **does not** introduce new pedagogical approaches; it reimplements the proven ones in a more maintainable, extensible form. All credits belongs to the original researchers.
 
 ---
 
 ## About KitBuild
 
-KitBuild is a pedagogical approach developed by **Tsukasa Hirashima** and colleagues at Hiroshima University. The original system has been used across 1,700+ institutions worldwide for:
+KitBuild is a pedagogical approach developed by Tsukasa Hirashima and colleagues at Hiroshima University. The original system has been used across 1700+ institutions worldwide for:
 
 - Automatic diagnosis of student understanding through concept map reconstruction
 - Formative assessment in large classroom settings
@@ -28,10 +27,8 @@ KitBuild is a pedagogical approach developed by **Tsukasa Hirashima** and collea
 
 ### Original System
 
-- **Live System:** [collab.kit-build.net](https://collab.kit-build.net/)
-- **Homepage:** [lel.main.jp/kb](https://lel.main.jp/kb)
-- **Maintainer:** Learning Engineering Laboratory, Hiroshima University
-- **Active since:** 2009
+- Live System: [collab.kit-build.net](https://collab.kit-build.net/)
+- Homepage: [lel.main.jp/kb](https://lel.main.jp/kb)
 
 ### Foundational Research
 
@@ -50,10 +47,10 @@ The KitBuild methodology is backed by extensive peer-reviewed research:
 
 The KitBuild method follows a 4-step cycle:
 
-1. **Goal Map** — Instructor creates an expert concept map showing correct relationships
-2. **Kit Generation** — System disassembles the goal map into components (concepts + links)
-3. **Reconstruction** — Students rebuild the map from the kit, demonstrating their understanding
-4. **Automatic Diagnosis** — System compares student maps against the goal map and identifies misconceptions
+1. Goal Map: Instructor creates an expert concept map showing correct relationships
+2. Kit Generation: System disassembles the goal map into components (concepts + links)
+3. Reconstruction: Students rebuild the map from the kit, demonstrating their understanding
+4. Automatic Diagnosis: System compares student maps against the goal map and identifies misconceptions
 
 This approach reduces cognitive load on students (no need to invent terminology) while giving instructors precise, actionable data about understanding gaps.
 
@@ -65,13 +62,13 @@ Yomilink reimplements the core KitBuild workflow with modern tooling:
 
 | Feature | Description |
 |---------|-------------|
-| **Concept Map Editor** | Visual editor for creating goal maps with bi-directional/multi-link support |
-| **Automatic Kit Generation** | Disassembles goal maps into student-ready activity kits |
-| **Map Diagnosis** | Automatic comparison of learner maps against goal maps |
-| **Extended Assessments** | Quiz builder for MCQ, text, and Likert-scale questions (research extension) |
-| **Assignment Management** | Deadlines, time limits, access controls |
-| **Research Dashboard** | Analytics and exportable data for research analysis |
-| **Feedback System** | Targeted feedback based on diagnosis results |
+| Concept Map Editor | Visual editor for creating goal maps with bi-directional/multi-link support |
+| Automatic Kit Generation | Disassembles goal maps into student-ready activity kits |
+| Map Diagnosis | Automatic comparison of learner maps against goal maps |
+| Extended Assessments | Quiz builder for MCQ, text, and Likert-scale questions (research extension) |
+| Assignment Management | Deadlines, time limits, access controls |
+| Research Dashboard | Analytics and exportable data for research analysis |
+| Feedback System | Targeted feedback based on diagnosis results |
 
 ---
 
@@ -86,13 +83,20 @@ cp .env.example .env
 # Edit .env with your credentials
 
 # Push database schema
-npx drizzle-kit push
+vpx drizzle-kit push
 
 # Start development server
 vp dev
 ```
 
 Visit http://localhost:5173
+
+This project is using these tech stack, so check their respective documentations for further information:
+- [Tanstack Start](https://tanstack.com/start/latest)
+- [Vite+](https://viteplus.dev)
+- [Drizzle](https://orm.drizzle.team/)
+- [TailwindCSS](https://tailwindcss.com/)
+- [Effect](https://effect.website)
 
 ---
 
@@ -162,7 +166,7 @@ wrangler r2 bucket create yomilink-materials
 export DATABASE_MODE=remote
 export TURSO_DATABASE_URL=libsql://your-db.turso.io
 export TURSO_AUTH_TOKEN=your-turso-token
-npx drizzle-kit push
+vpx drizzle-kit push
 
 # Deploy
 vp run deploy
@@ -182,36 +186,12 @@ vp run deploy
 
 ---
 
-## Docker Deployment (Self-Hosted)
-
-```bash
-# Build for containerized deployment
-BUILD_TARGET=node docker build -t yomilink .
-
-# Run with local SQLite
-docker run -p 3000:3000 \
-  -e DATABASE_MODE=local \
-  -e TURSO_DATABASE_URL=file:/app/data/yomilink.sqlite \
-  -e BETTER_AUTH_SECRET=your-secret \
-  -v $(pwd)/data:/app/data \
-  yomilink
-```
-
----
-
 ## Attribution
-
-Yomilink is an independent reimplementation of the KitBuild Concept Map system developed by:
-
-**Learning Engineering Laboratory
-Graduate School of Engineering, Hiroshima University**
 
 - Original research and algorithms: Tsukasa Hirashima and colleagues
 - Original system: [collab.kit-build.net](https://collab.kit-build.net/)
 
 If you use Yomilink for research, please cite the original KitBuild papers to acknowledge the foundational work.
-
----
 
 ## License
 
