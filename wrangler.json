@@ -11,7 +11,7 @@
 			"invocation_logs": true
 		}
 	},
-	"main": "./src/server.ts",
+	"main": "@tanstack/react-start/server-entry",
 	"r2_buckets": [
 		{
 			"binding": "MATERIAL_IMAGES",
