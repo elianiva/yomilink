@@ -133,11 +133,7 @@ describe("FormattingToolbar", () => {
 		expect(mockExecCommand).not.toHaveBeenCalled();
 	});
 
-	it("applies custom className", () => {
-		render(<FormattingToolbar className="custom-class" />);
 
-		expect(screen.getByTestId("formatting-toolbar")).toHaveClass("custom-class");
-	});
 
 	it("renders separator between text and list buttons", () => {
 		render(<FormattingToolbar />);

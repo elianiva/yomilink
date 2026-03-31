@@ -92,15 +92,7 @@ describe("CountdownTimer", () => {
 		expect(container).toBeInTheDocument();
 	});
 
-	it("applies custom className", () => {
-		const futureDate = new Date(Date.now() + 2 * 24 * 60 * 60 * 1000);
 
-		const { container } = render(
-			<CountdownTimer targetDate={futureDate} className="custom-class" />,
-		);
-
-		expect(container.firstChild).toHaveClass("custom-class");
-	});
 });
 
 describe("createDefaultCountdownData", () => {

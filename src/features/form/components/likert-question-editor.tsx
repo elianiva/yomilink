@@ -154,8 +154,8 @@ export function LikertQuestionEditor({
 					{Array.from({ length: data.scaleSize }, (_, i) => {
 						const key = String(i + 1);
 						return (
-							<div key={key} className="flex gap-3">
-								<Label htmlFor={`label-${key}`} className="text-muted-foreground">
+							<div key={key} className="flex gap-3 items-center">
+								<Label htmlFor={`label-${key}`} className="text-muted-foreground w-4">
 									{key}.
 								</Label>
 								<Input
@@ -166,6 +166,19 @@ export function LikertQuestionEditor({
 									placeholder={key}
 									disabled={disabled}
 								/>
+							</div>
+						);
+					})}
+				</div>
+				<div
+					className="mt-2 p-3 bg-muted/50 rounded-md text-sm text-muted-foreground font-mono"
+					data-testid="preview-label"
+				>
+					{Array.from({ length: data.scaleSize }, (_, i) => {
+						const key = String(i + 1);
+						return (
+							<div key={key}>
+								{key} = "{data.labels[key] || key}"
 							</div>
 						);
 					})}
@@ -198,11 +211,14 @@ export function LikertQuestionEditor({
 	);
 }
 
-export function createDefaultLikertData(): LikertQuestionData {
+export function createDefaultLikertData(
+	overrides?: Partial<LikertQuestionData>,
+): LikertQuestionData {
 	return {
 		questionText: "",
 		scaleSize: 5,
 		labels: generateDefaultLabels(5),
 		required: true,
+		...overrides,
 	};
 }

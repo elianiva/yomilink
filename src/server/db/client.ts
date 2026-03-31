@@ -27,9 +27,9 @@ const SqlLocal = Layer.unwrapEffect(
 	}).pipe(Effect.withConfigProvider(ConfigProvider.fromEnv())),
 );
 
-// In-memory SQLite (tests)
+// File-based SQLite for tests
 const SqlTest = LibsqlClient.layer({
-	url: "file::memory:?cache=shared",
+	url: "file:test.db",
 });
 
 // Select layer based on DATABASE_MODE env var

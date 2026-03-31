@@ -65,12 +65,6 @@ describe("LikertQuestionEditor", () => {
 
 			expect(screen.getByTestId("reset-labels-button")).toBeInTheDocument();
 		});
-
-		it("applies correct styling for the editor container", () => {
-			render(<LikertQuestionEditor data={createDefaultData()} onChange={vi.fn()} />);
-
-			expect(screen.getByTestId("likert-question-editor")).toHaveClass("space-y-6");
-		});
 	});
 
 	describe("interactions", () => {

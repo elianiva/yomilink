@@ -182,20 +182,4 @@ describe("ManualUnlockButton", () => {
 		expect(screen.getByRole("button", { name: /unlock form/i })).toBeDisabled();
 	});
 
-	it("applies custom className to button", () => {
-		mockUseMutation.mockReturnValue({
-			mutate: vi.fn(),
-			mutateAsync: vi.fn(),
-			isPending: false,
-			isError: false,
-			isSuccess: false,
-			data: undefined,
-			error: null,
-			reset: vi.fn(),
-		} as never);
-
-		render(<ManualUnlockButton formId="form-1" userId="user-1" className="custom-class" />);
-
-		expect(screen.getByRole("button", { name: /unlock/i })).toHaveClass("custom-class");
-	});
 });

@@ -1,4 +1,4 @@
-import { assert, beforeEach, describe, it } from "@effect/vitest";
+import { beforeEach, describe, expect, it } from "vite-plus/test";
 import { eq } from "drizzle-orm";
 import { Effect, Either } from "effect";
 
@@ -23,10 +23,12 @@ import {
 } from "./assignment-service";
 
 describe("assignment-service", () => {
-	beforeEach(() => Effect.runPromise(resetDatabase.pipe(Effect.provide(DatabaseTest))));
+	beforeEach(() =>
+		Effect.runPromise(resetDatabase.pipe(Effect.provide(DatabaseTest))),
+	);
 
 	describe("createAssignment", () => {
-		it.effect("should create assignment with valid data", () =>
+		it("should create assignment with valid data", () =>
 			Effect.gen(function* () {
 				const teacher = yield* createTestUser();
 				const goalMap = yield* createTestGoalMap(teacher.id);
@@ -39,11 +41,10 @@ describe("assignment-service", () => {
 					userIds: [],
 				});
 
-				assert.strictEqual(result, true);
-			}).pipe(Effect.provide(DatabaseTest)),
-		);
+				expect(result).toBe(true);
+			}).pipe(Effect.provide(DatabaseTest), Effect.runPromise));
 
-		it.effect("should return KitNotFoundError when kit does not exist", () =>
+		it("should return KitNotFoundError when kit does not exist", () =>
 			Effect.gen(function* () {
 				const teacher = yield* createTestUser();
 				const goalMap = yield* createTestGoalMap(teacher.id);
@@ -58,13 +59,14 @@ describe("assignment-service", () => {
 				);
 
 				Either.match(result, {
-					onLeft: (error) => assert.strictEqual(error._tag, "KitNotFoundError"),
-					onRight: () => assert.fail("Expected Left but got Right"),
+					onLeft: (error) => expect(error._tag).toBe("KitNotFoundError"),
+					onRight: () => {
+						throw new Error("Expected Left but got Right");
+					},
 				});
-			}).pipe(Effect.provide(DatabaseTest)),
-		);
+			}).pipe(Effect.provide(DatabaseTest), Effect.runPromise));
 
-		it.effect("should create assignment with optional fields", () =>
+		it("should create assignment with optional fields", () =>
 			Effect.gen(function* () {
 				const teacher = yield* createTestUser();
 				const goalMap = yield* createTestGoalMap(teacher.id);
@@ -83,11 +85,10 @@ describe("assignment-service", () => {
 					userIds: [],
 				});
 
-				assert.strictEqual(result, true);
-			}).pipe(Effect.provide(DatabaseTest)),
-		);
+				expect(result).toBe(true);
+			}).pipe(Effect.provide(DatabaseTest), Effect.runPromise));
 
-		it.effect("should create assignment targets for cohorts", () =>
+		it("should create assignment targets for cohorts", () =>
 			Effect.gen(function* () {
 				const db = yield* Database;
 				const teacher = yield* createTestUser();
@@ -109,7 +110,7 @@ describe("assignment-service", () => {
 					userIds: [],
 				});
 
-				assert.strictEqual(result, true);
+				expect(result).toBe(true);
 
 				// Get the created assignment id from database
 				const assignmentRows = yield* db
@@ -118,11 +119,10 @@ describe("assignment-service", () => {
 					.where(eq(assignments.title, "Test Assignment"))
 					.limit(1);
 				const assignmentId = assignmentRows[0]?.id;
-				assert.isDefined(assignmentId);
-			}).pipe(Effect.provide(DatabaseTest)),
-		);
+				expect(assignmentId).toBeDefined();
+			}).pipe(Effect.provide(DatabaseTest), Effect.runPromise));
 
-		it.effect("should create assignment targets for users", () =>
+		it("should create assignment targets for users", () =>
 			Effect.gen(function* () {
 				const db = yield* Database;
 				const teacher = yield* createTestUser();
@@ -138,7 +138,7 @@ describe("assignment-service", () => {
 					userIds: [student1.id, student2.id],
 				});
 
-				assert.strictEqual(result, true);
+				expect(result).toBe(true);
 
 				// Get the created assignment id from database
 				const assignmentRows = yield* db
@@ -147,11 +147,10 @@ describe("assignment-service", () => {
 					.where(eq(assignments.title, "Test Assignment"))
 					.limit(1);
 				const assignmentId = assignmentRows[0]?.id;
-				assert.isDefined(assignmentId);
-			}).pipe(Effect.provide(DatabaseTest)),
-		);
+				expect(assignmentId).toBeDefined();
+			}).pipe(Effect.provide(DatabaseTest), Effect.runPromise));
 
-		it.effect("should create assignment targets for both cohorts and users", () =>
+		it("should create assignment targets for both cohorts and users", () =>
 			Effect.gen(function* () {
 				const db = yield* Database;
 				const teacher = yield* createTestUser();
@@ -161,7 +160,9 @@ describe("assignment-service", () => {
 
 				// Create cohort
 				const cohortId = crypto.randomUUID();
-				yield* db.insert(cohorts).values([{ id: cohortId, name: "Test Cohort" }]);
+				yield* db.insert(cohorts).values([
+					{ id: cohortId, name: "Test Cohort" },
+				]);
 
 				const result = yield* createAssignment(teacher.id, {
 					title: "Test Assignment",
@@ -170,7 +171,7 @@ describe("assignment-service", () => {
 					userIds: [student.id],
 				});
 
-				assert.strictEqual(result, true);
+				expect(result).toBe(true);
 
 				// Get the created assignment id from database
 				const assignmentRows = yield* db
@@ -179,23 +180,21 @@ describe("assignment-service", () => {
 					.where(eq(assignments.title, "Test Assignment"))
 					.limit(1);
 				const assignmentId = assignmentRows[0]?.id;
-				assert.isDefined(assignmentId);
-			}).pipe(Effect.provide(DatabaseTest)),
-		);
+				expect(assignmentId).toBeDefined();
+			}).pipe(Effect.provide(DatabaseTest), Effect.runPromise));
 	});
 
 	describe("listTeacherAssignments", () => {
-		it.effect("should return empty array when no assignments exist", () =>
+		it("should return empty array when no assignments exist", () =>
 			Effect.gen(function* () {
 				const teacher = yield* createTestUser();
 
 				const result = yield* listTeacherAssignments(teacher.id);
 
-				assert.strictEqual(result.length, 0);
-			}).pipe(Effect.provide(DatabaseTest)),
-		);
+				expect(result.length).toBe(0);
+			}).pipe(Effect.provide(DatabaseTest), Effect.runPromise));
 
-		it.effect("should return only assignments created by teacher", () =>
+		it("should return only assignments created by teacher", () =>
 			Effect.gen(function* () {
 				const teacher1 = yield* createTestUser({ email: "teacher1@test.com" });
 				const teacher2 = yield* createTestUser({ email: "teacher2@test.com" });
@@ -218,12 +217,11 @@ describe("assignment-service", () => {
 
 				const result = yield* listTeacherAssignments(teacher1.id);
 
-				assert.strictEqual(result.length, 1);
-				assert.strictEqual(result[0]?.title, "Teacher 1 Assignment");
-			}).pipe(Effect.provide(DatabaseTest)),
-		);
+				expect(result.length).toBe(1);
+				expect(result[0]?.title).toBe("Teacher 1 Assignment");
+			}).pipe(Effect.provide(DatabaseTest), Effect.runPromise));
 
-		it.effect("should return assignments ordered by createdAt descending", () =>
+		it("should return assignments ordered by createdAt descending", () =>
 			Effect.gen(function* () {
 				const teacher = yield* createTestUser();
 				const oldGoalMap = yield* createTestGoalMap(teacher.id, {
@@ -248,13 +246,12 @@ describe("assignment-service", () => {
 
 				const result = yield* listTeacherAssignments(teacher.id);
 
-				assert.strictEqual(result.length, 2);
-				assert.strictEqual(result[0]?.title, "New Assignment");
-				assert.strictEqual(result[1]?.title, "Old Assignment");
-			}).pipe(Effect.provide(DatabaseTest)),
-		);
+				expect(result.length).toBe(2);
+				expect(result[0]?.title).toBe("New Assignment");
+				expect(result[1]?.title).toBe("Old Assignment");
+			}).pipe(Effect.provide(DatabaseTest), Effect.runPromise));
 
-		it.effect("should return assignment with goal map details", () =>
+		it("should return assignment with goal map details", () =>
 			Effect.gen(function* () {
 				const teacher = yield* createTestUser();
 				const goalMap = yield* createTestGoalMap(teacher.id, {
@@ -271,13 +268,12 @@ describe("assignment-service", () => {
 
 				const result = yield* listTeacherAssignments(teacher.id);
 
-				assert.strictEqual(result.length, 1);
-				assert.strictEqual(result[0]?.goalMapTitle, "Test Goal Map");
-				assert.strictEqual(result[0]?.goalMapDescription, "Test Description");
-			}).pipe(Effect.provide(DatabaseTest)),
-		);
+				expect(result.length).toBe(1);
+				expect(result[0]?.goalMapTitle).toBe("Test Goal Map");
+				expect(result[0]?.goalMapDescription).toBe("Test Description");
+			}).pipe(Effect.provide(DatabaseTest), Effect.runPromise));
 
-		it.effect("should convert dates to timestamps", () =>
+		it("should convert dates to timestamps", () =>
 			Effect.gen(function* () {
 				const teacher = yield* createTestUser();
 				const goalMap = yield* createTestGoalMap(teacher.id);
@@ -295,15 +291,14 @@ describe("assignment-service", () => {
 
 				const result = yield* listTeacherAssignments(teacher.id);
 
-				assert.strictEqual(result.length, 1);
-				assert.strictEqual(typeof result[0]?.startDate, "number");
-				assert.strictEqual(typeof result[0]?.dueAt, "number");
-			}).pipe(Effect.provide(DatabaseTest)),
-		);
+				expect(result.length).toBe(1);
+				expect(typeof result[0]?.startDate).toBe("number");
+				expect(typeof result[0]?.dueAt).toBe("number");
+			}).pipe(Effect.provide(DatabaseTest), Effect.runPromise));
 	});
 
 	describe("deleteAssignment", () => {
-		it.effect("should delete assignment successfully", () =>
+		it("should delete assignment successfully", () =>
 			Effect.gen(function* () {
 				const db = yield* Database;
 				const teacher = yield* createTestUser();
@@ -324,14 +319,14 @@ describe("assignment-service", () => {
 					.where(eq(assignments.title, "Test Assignment"))
 					.limit(1);
 				const assignmentId = assignmentRows[0]?.id;
-				assert.isDefined(assignmentId);
+				expect(assignmentId).toBeDefined();
 				const result = yield* deleteAssignment(teacher.id, {
 					id: assignmentId!,
 				});
-				assert.strictEqual(result, true);
-			}).pipe(Effect.provide(DatabaseTest)),
-		);
-		it.effect("should return AssignmentNotFoundError when assignment does not exist", () =>
+				expect(result).toBe(true);
+			}).pipe(Effect.provide(DatabaseTest), Effect.runPromise));
+
+		it("should return AssignmentNotFoundError when assignment does not exist", () =>
 			Effect.gen(function* () {
 				const teacher = yield* createTestUser();
 
@@ -340,12 +335,15 @@ describe("assignment-service", () => {
 				);
 
 				Either.match(result, {
-					onLeft: (error) => assert.strictEqual(error._tag, "AssignmentNotFoundError"),
-					onRight: () => assert.fail("Expected Left but got Right"),
+					onLeft: (error) =>
+						expect(error._tag).toBe("AssignmentNotFoundError"),
+					onRight: () => {
+						throw new Error("Expected Left but got Right");
+					},
 				});
-			}).pipe(Effect.provide(DatabaseTest)),
-		);
-		it.effect("should return AssignmentNotFoundError when user is not creator", () =>
+			}).pipe(Effect.provide(DatabaseTest), Effect.runPromise));
+
+		it("should return AssignmentNotFoundError when user is not creator", () =>
 			Effect.gen(function* () {
 				const db = yield* Database;
 				const teacher1 = yield* createTestUser({
@@ -371,7 +369,7 @@ describe("assignment-service", () => {
 					.where(eq(assignments.title, "Test Assignment"))
 					.limit(1);
 				const assignmentId = assignmentRows[0]?.id;
-				assert.isDefined(assignmentId);
+				expect(assignmentId).toBeDefined();
 
 				const result = yield* Effect.either(
 					deleteAssignment(teacher2.id, {
@@ -380,23 +378,24 @@ describe("assignment-service", () => {
 				);
 
 				Either.match(result, {
-					onLeft: (error) => assert.strictEqual(error._tag, "AssignmentNotFoundError"),
-					onRight: () => assert.fail("Expected Left but got Right"),
+					onLeft: (error) =>
+						expect(error._tag).toBe("AssignmentNotFoundError"),
+					onRight: () => {
+						throw new Error("Expected Left but got Right");
+					},
 				});
-			}).pipe(Effect.provide(DatabaseTest)),
-		);
+			}).pipe(Effect.provide(DatabaseTest), Effect.runPromise));
 	});
 
 	describe("getAvailableCohorts", () => {
-		it.effect("should return empty array when no cohorts exist", () =>
+		it("should return empty array when no cohorts exist", () =>
 			Effect.gen(function* () {
 				const result = yield* getAvailableCohorts();
 
-				assert.strictEqual(result.length, 0);
-			}).pipe(Effect.provide(DatabaseTest)),
-		);
+				expect(result.length).toBe(0);
+			}).pipe(Effect.provide(DatabaseTest), Effect.runPromise));
 
-		it.effect("should return cohorts ordered by name", () =>
+		it("should return cohorts ordered by name", () =>
 			Effect.gen(function* () {
 				const db = yield* Database;
 				yield* db.insert(cohorts).values([
@@ -407,14 +406,13 @@ describe("assignment-service", () => {
 
 				const result = yield* getAvailableCohorts();
 
-				assert.strictEqual(result.length, 3);
-				assert.strictEqual(result[0]?.name, "Apple");
-				assert.strictEqual(result[1]?.name, "Mango");
-				assert.strictEqual(result[2]?.name, "Zebra");
-			}).pipe(Effect.provide(DatabaseTest)),
-		);
+				expect(result.length).toBe(3);
+				expect(result[0]?.name).toBe("Apple");
+				expect(result[1]?.name).toBe("Mango");
+				expect(result[2]?.name).toBe("Zebra");
+			}).pipe(Effect.provide(DatabaseTest), Effect.runPromise));
 
-		it.effect("should return cohorts with member count", () =>
+		it("should return cohorts with member count", () =>
 			Effect.gen(function* () {
 				const db = yield* Database;
 				const user1 = yield* createTestUser({ email: "user1@test.com" });
@@ -437,19 +435,20 @@ describe("assignment-service", () => {
 				// Add 1 member to Cohort B
 				yield* db
 					.insert(cohortMembers)
-					.values([{ id: crypto.randomUUID(), cohortId: cohortId2, userId: user3.id }]);
+					.values([
+						{ id: crypto.randomUUID(), cohortId: cohortId2, userId: user3.id },
+					]);
 
 				const result = yield* getAvailableCohorts();
 
-				assert.strictEqual(result.length, 2);
+				expect(result.length).toBe(2);
 				const cohortA = result.find((c) => c.id === cohortId1);
 				const cohortB = result.find((c) => c.id === cohortId2);
-				assert.strictEqual(cohortA?.memberCount, 2);
-				assert.strictEqual(cohortB?.memberCount, 1);
-			}).pipe(Effect.provide(DatabaseTest)),
-		);
+				expect(cohortA?.memberCount).toBe(2);
+				expect(cohortB?.memberCount).toBe(1);
+			}).pipe(Effect.provide(DatabaseTest), Effect.runPromise));
 
-		it.effect("should return 0 member count for cohorts with no members", () =>
+		it("should return 0 member count for cohorts with no members", () =>
 			Effect.gen(function* () {
 				const db = yield* Database;
 				yield* db
@@ -458,22 +457,20 @@ describe("assignment-service", () => {
 
 				const result = yield* getAvailableCohorts();
 
-				assert.strictEqual(result.length, 1);
-				assert.strictEqual(result[0]?.memberCount, 0);
-			}).pipe(Effect.provide(DatabaseTest)),
-		);
+				expect(result.length).toBe(1);
+				expect(result[0]?.memberCount).toBe(0);
+			}).pipe(Effect.provide(DatabaseTest), Effect.runPromise));
 	});
 
 	describe("getAvailableUsers", () => {
-		it.effect("should return empty array when no users exist", () =>
+		it("should return empty array when no users exist", () =>
 			Effect.gen(function* () {
 				const result = yield* getAvailableUsers();
 
-				assert.strictEqual(result.length, 0);
-			}).pipe(Effect.provide(DatabaseTest)),
-		);
+				expect(result.length).toBe(0);
+			}).pipe(Effect.provide(DatabaseTest), Effect.runPromise));
 
-		it.effect("should return users ordered by name", () =>
+		it("should return users ordered by name", () =>
 			Effect.gen(function* () {
 				yield* createTestUser({ name: "Zoe User", email: "zoe@test.com" });
 				yield* createTestUser({
@@ -484,24 +481,22 @@ describe("assignment-service", () => {
 
 				const result = yield* getAvailableUsers();
 
-				assert.strictEqual(result.length, 3);
-				assert.strictEqual(result[0]?.name, "Alice User");
-				assert.strictEqual(result[1]?.name, "Mike User");
-				assert.strictEqual(result[2]?.name, "Zoe User");
-			}).pipe(Effect.provide(DatabaseTest)),
-		);
+				expect(result.length).toBe(3);
+				expect(result[0]?.name).toBe("Alice User");
+				expect(result[1]?.name).toBe("Mike User");
+				expect(result[2]?.name).toBe("Zoe User");
+			}).pipe(Effect.provide(DatabaseTest), Effect.runPromise));
 	});
 
 	describe("getTeacherGoalMaps", () => {
-		it.effect("should return empty array when no goal maps exist", () =>
+		it("should return empty array when no goal maps exist", () =>
 			Effect.gen(function* () {
 				const result = yield* getTeacherGoalMaps();
 
-				assert.strictEqual(result.length, 0);
-			}).pipe(Effect.provide(DatabaseTest)),
-		);
+				expect(result.length).toBe(0);
+			}).pipe(Effect.provide(DatabaseTest), Effect.runPromise));
 
-		it.effect("should return goal maps ordered by updatedAt descending", () =>
+		it("should return goal maps ordered by updatedAt descending", () =>
 			Effect.gen(function* () {
 				const teacher = yield* createTestUser();
 				yield* createTestGoalMap(teacher.id, {
@@ -515,13 +510,12 @@ describe("assignment-service", () => {
 
 				const result = yield* getTeacherGoalMaps();
 
-				assert.strictEqual(result.length, 2);
-				assert.strictEqual(result[0]?.title, "New Goal Map");
-				assert.strictEqual(result[1]?.title, "Old Goal Map");
-			}).pipe(Effect.provide(DatabaseTest)),
-		);
+				expect(result.length).toBe(2);
+				expect(result[0]?.title).toBe("New Goal Map");
+				expect(result[1]?.title).toBe("Old Goal Map");
+			}).pipe(Effect.provide(DatabaseTest), Effect.runPromise));
 
-		it.effect("should convert dates to timestamps", () =>
+		it("should convert dates to timestamps", () =>
 			Effect.gen(function* () {
 				const teacher = yield* createTestUser();
 				yield* createTestGoalMap(teacher.id, {
@@ -531,10 +525,9 @@ describe("assignment-service", () => {
 
 				const result = yield* getTeacherGoalMaps();
 
-				assert.strictEqual(result.length, 1);
-				assert.strictEqual(typeof result[0]?.createdAt, "number");
-				assert.strictEqual(typeof result[0]?.updatedAt, "number");
-			}).pipe(Effect.provide(DatabaseTest)),
-		);
+				expect(result.length).toBe(1);
+				expect(typeof result[0]?.createdAt).toBe("number");
+				expect(typeof result[0]?.updatedAt).toBe("number");
+			}).pipe(Effect.provide(DatabaseTest), Effect.runPromise));
 	});
 });

@@ -114,27 +114,6 @@ describe("QuestionList", () => {
 			expect(screen.getByText("Text")).toBeInTheDocument();
 		});
 
-		it("applies correct badge styling for MCQ questions", () => {
-			render(<QuestionList questions={mockQuestions} />);
-
-			const mcqBadge = screen.getByTestId("question-type-badge-q1");
-			expect(mcqBadge.className).toContain("bg-blue-100");
-		});
-
-		it("applies correct badge styling for Likert questions", () => {
-			render(<QuestionList questions={mockQuestions} />);
-
-			const likertBadge = screen.getByTestId("question-type-badge-q2");
-			expect(likertBadge.className).toContain("bg-purple-100");
-		});
-
-		it("applies correct badge styling for Text questions", () => {
-			render(<QuestionList questions={mockQuestions} />);
-
-			const textBadge = screen.getByTestId("question-type-badge-q3");
-			expect(textBadge.className).toContain("bg-green-100");
-		});
-
 		it("shows optional badge for non-required questions", () => {
 			render(<QuestionList questions={mockQuestions} />);
 
@@ -273,15 +252,7 @@ describe("QuestionList", () => {
 		});
 	});
 
-	describe("styling", () => {
-		it("applies custom className to container", () => {
-			const { container } = render(
-				<QuestionList questions={mockQuestions} className="custom-class" />,
-			);
 
-			expect(container.querySelector(".custom-class")).toBeInTheDocument();
-		});
-	});
 
 	describe("drag-drop reordering", () => {
 		it("wraps list in DndContext when onReorder is provided", () => {

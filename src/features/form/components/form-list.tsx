@@ -61,11 +61,6 @@ interface FormListProps {
 	className?: string;
 }
 
-// Monochrome coral theme - 4 colors:
-// 1. Primary coral (actions, progress, accents)
-// 2. Stone 600 (text, icons)
-// 3. Stone 400 (muted text, borders)
-// 4. Stone 100/50 (backgrounds)
 const formTypeIcons: Record<FormType, React.ReactNode> = {
 	pre_test: <FileText className="size-4" />,
 	post_test: <FileText className="size-4" />,
@@ -86,12 +81,27 @@ const formTypeLabels: Record<FormType, string> = {
 
 const formStatusConfig: Record<FormStatus, { label: string; dot: string }> = {
 	draft: {
-		label: "Draft",
-		dot: "bg-stone-400",
+		label: "draft",
+		dot: "bg-yellow-500",
 	},
 	published: {
-		label: "Published",
-		dot: "bg-primary",
+		label: "published",
+		dot: "bg-green-500",
+	},
+};
+
+const formListStatusConfig: Record<FormListStatus, { label: string; color: string }> = {
+	locked: {
+		label: "Locked",
+		color: "bg-red-500",
+	},
+	available: {
+		label: "Available",
+		color: "bg-blue-500",
+	},
+	completed: {
+		label: "Completed",
+		color: "bg-green-500",
 	},
 };
 
@@ -148,12 +158,10 @@ export function FormList({
 					>
 						<CardContent className="p-3">
 							<div className="flex items-start gap-3">
-								{/* Icon - monochrome */}
 								<div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-md border border-stone-200 bg-stone-50 text-stone-500">
 									{formTypeIcons[form.type]}
 								</div>
 
-								{/* Main Content */}
 								<div className="min-w-0 flex-1">
 									<div className="flex items-center gap-2">
 										<h3 className="truncate font-medium text-stone-800">
@@ -167,16 +175,13 @@ export function FormList({
 										</p>
 									)}
 
-									{/* Metadata Row */}
 									<div className="mt-1 flex flex-wrap items-center gap-2">
-										{/* Type Label - text only */}
 										<span className="text-xs text-stone-500">
 											{formTypeLabels[form.type]}
 										</span>
 
 										<span className="text-stone-300">·</span>
 
-										{/* Status */}
 										<span className="flex items-center gap-1 text-xs text-stone-500">
 											<span
 												className={cn(
@@ -187,17 +192,30 @@ export function FormList({
 											{statusConfig.label}
 										</span>
 
+										{form.formStatus && (
+											<>
+												<span className="text-stone-300">·</span>
+												<span
+													className={cn(
+														"flex items-center gap-1 text-xs",
+														formListStatusConfig[form.formStatus].color,
+													)}
+												>
+													{formListStatusConfig[form.formStatus].label}
+												</span>
+											</>
+										)}
+
 										{form.createdAt && (
 											<>
 												<span className="text-stone-300">·</span>
 												<span className="text-xs text-stone-400">
-													{formatRelativeTime(form.createdAt)}
+													Created: {formatRelativeTime(form.createdAt)}
 												</span>
 											</>
 										)}
 									</div>
 
-									{/* Stats Section */}
 									<div className="hidden sm:flex items-center mt-2 gap-3">
 										<div className="flex items-center gap-1.5">
 											<Users className="size-3.5 text-stone-400" />
@@ -211,7 +229,6 @@ export function FormList({
 											</div>
 										</div>
 										<span className="text-xs text-stone-600/50">|</span>
-										{/* Breakdown - monochrome */}
 										<div className="flex items-center gap-2 text-sm text-stone-500">
 											<span className="flex items-center gap-0.5">
 												<CheckCircle2 className="size-3" />
@@ -229,7 +246,6 @@ export function FormList({
 									</div>
 								</div>
 
-								{/* Actions */}
 								<div className="flex items-center gap-1">
 									{(onEdit || onDelete) && (
 										<DropdownMenu>
@@ -291,7 +307,7 @@ export function FormList({
 						</CardContent>
 					</Card>
 				);
-			})}
-		</div>
-	);
+					})}
+	</div>
+);
 }

@@ -188,7 +188,6 @@ describe("PreTestGateway", () => {
 			</PreTestGateway>,
 		);
 
-		// Should show loading spinner
-		expect(document.querySelector(".animate-spin")).toBeInTheDocument();
+		expect(screen.queryByTestId("children")).not.toBeInTheDocument();
 	});
 });

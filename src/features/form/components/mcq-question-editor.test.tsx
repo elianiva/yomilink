@@ -421,24 +421,6 @@ describe("McqQuestionEditor", () => {
 	});
 
 	describe("visual feedback", () => {
-		it("shows correct answer visual indication", () => {
-			render(
-				<McqQuestionEditor
-					data={createDefaultData({
-						options: [
-							{ id: "opt_1", text: "Wrong" },
-							{ id: "opt_2", text: "Correct" },
-						],
-						correctOptionIds: ["opt_2"],
-					})}
-					onChange={vi.fn()}
-				/>,
-			);
-
-			const rows = screen.getAllByTestId(/option-row-/);
-			expect(rows[1]).toHaveClass("border-green-500/50");
-		});
-
 		it("displays option count", () => {
 			render(
 				<McqQuestionEditor

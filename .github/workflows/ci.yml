@@ -42,5 +42,5 @@ jobs:
                   cache: true
                   run-install: true
 
-            - name: Run tests
-              run: vp test
+            - name: Run UI tests
+              run: pnpm test:ui

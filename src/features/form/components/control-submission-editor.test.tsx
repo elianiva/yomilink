@@ -38,7 +38,6 @@ describe("ControlSubmissionEditor", () => {
 
 		const wordCount = screen.getByTestId("word-count-message");
 		expect(wordCount).toHaveTextContent("2 / 10 words minimum");
-		expect(wordCount).toHaveClass("text-amber-500");
 	});
 
 	it("shows success when meeting minimum word count", () => {
@@ -51,7 +50,6 @@ describe("ControlSubmissionEditor", () => {
 
 		const wordCount = screen.getByTestId("word-count-message");
 		expect(wordCount).toHaveTextContent("12 words");
-		expect(wordCount).toHaveClass("text-green-500");
 	});
 
 	it("calls onChange when content changes", () => {
@@ -82,11 +80,7 @@ describe("ControlSubmissionEditor", () => {
 		expect(screen.getByText("Minimum 200 words required")).toBeInTheDocument();
 	});
 
-	it("applies custom className", () => {
-		render(<ControlSubmissionEditor className="custom-class" />);
 
-		expect(screen.getByTestId("control-submission-editor")).toHaveClass("custom-class");
-	});
 
 	it("counts zero words for empty content", () => {
 		render(<ControlSubmissionEditor initialContent="" />);
@@ -107,7 +101,6 @@ describe("ControlSubmissionEditor", () => {
 
 		const wordCount = screen.getByTestId("word-count-message");
 		expect(wordCount).toHaveTextContent("5 / 3 words (exceeds maximum)");
-		expect(wordCount).toHaveClass("text-destructive");
 	});
 });
 

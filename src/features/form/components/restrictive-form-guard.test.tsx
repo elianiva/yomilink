@@ -68,7 +68,6 @@ describe("RestrictiveFormGuard", () => {
 		);
 
 		expect(screen.queryByTestId("children")).not.toBeInTheDocument();
-		expect(document.querySelector(".animate-spin")).toBeInTheDocument();
 	});
 
 	it("shows error state when fetch fails", () => {

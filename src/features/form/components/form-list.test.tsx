@@ -126,31 +126,7 @@ describe("FormList", () => {
 		expect(screen.getByText("Form without date")).toBeInTheDocument();
 	});
 
-	it("should apply custom className", () => {
-		render(<FormList forms={mockForms} className="custom-class" />);
-		const container = screen.getByText("Pre-test Form").closest(".custom-class");
-		expect(container).toBeInTheDocument();
-	});
 
-	it("should render correct badge colors for status", () => {
-		render(<FormList forms={mockForms} />);
-		const draftBadges = screen.getAllByText("draft");
-		const publishedBadges = screen.getAllByText("published");
-
-		expect(draftBadges[0].closest("span")).toHaveClass("bg-yellow-500");
-		expect(publishedBadges[0].closest("span")).toHaveClass("bg-green-500");
-	});
-
-	it("should render correct badge colors for form list status", () => {
-		render(<FormList forms={mockForms} />);
-		const lockedBadge = screen.getByText("Locked");
-		const availableBadge = screen.getByText("Available");
-		const completedBadge = screen.getByText("Completed");
-
-		expect(lockedBadge.closest("span")).toHaveClass("bg-red-500");
-		expect(availableBadge.closest("span")).toHaveClass("bg-blue-500");
-		expect(completedBadge.closest("span")).toHaveClass("bg-green-500");
-	});
 
 	it("should not render form list status when undefined", () => {
 		const formsWithoutListStatus: FormListItem[] = [

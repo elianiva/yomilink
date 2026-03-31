@@ -4,40 +4,29 @@ import { Effect } from "effect";
 export const setupDatabase = Effect.gen(function* () {
 	const sql = yield* SqlClient;
 
-	yield* Effect.log("Setting up test database...");
-
+	// eslint-disable-next-line @typescript-eslint/no-deprecated
 	const sqlFiles = import.meta.glob("/drizzle/*.sql", { as: "raw" });
 
-	for (const [path, module] of Object.entries(sqlFiles)) {
-		yield* Effect.log(`Loading schema from ${path}`);
+	for (const [, module] of Object.entries(sqlFiles)) {
 		const content = yield* Effect.tryPromise({
 			try: () => module(),
 			catch: () => "",
 		});
 		if (!content) continue;
 
-		const cleanSql = content
+		const statements = content
 			.replace(/`/g, '"')
 			.split("--> statement-breakpoint\n")
-			.map((s) => s.trim())
-			.filter((s) => s.length > 0)
-			.filter((s) => !s.startsWith("--"));
+			.filter((s) => s.trim().length > 0 && !s.trim().startsWith("--"));
 
-		for (const statement of cleanSql) {
-			const trimmed = statement.trim();
-			if (trimmed.length > 0 && !trimmed.startsWith("--")) {
-				yield* Effect.ignore(sql.unsafe(trimmed));
-			}
+		for (const stmt of statements) {
+			yield* Effect.ignore(sql.unsafe(stmt.trim()));
 		}
 	}
-
-	yield* Effect.log("Database setup completed");
 });
 
 export const resetDatabase = Effect.gen(function* () {
 	const sql = yield* SqlClient;
-
-	yield* Effect.log("Resetting database...");
 
 	yield* Effect.ignore(sql.unsafe("PRAGMA foreign_keys = OFF"));
 
@@ -69,6 +58,4 @@ export const resetDatabase = Effect.gen(function* () {
 	}
 
 	yield* Effect.ignore(sql.unsafe("PRAGMA foreign_keys = ON"));
-
-	yield* Effect.log("Database reset completed");
 });

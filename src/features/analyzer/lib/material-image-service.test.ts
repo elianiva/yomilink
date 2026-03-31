@@ -1,6 +1,5 @@
-import { assert, describe, it, beforeEach } from "@effect/vitest";
+import { beforeEach, describe, expect, it, vi } from "vite-plus/test";
 import { Effect, Either } from "effect";
-import { vi } from "vite-plus/test";
 
 import { uploadMaterialImage } from "./material-image-service";
 
@@ -73,7 +72,7 @@ const createMockFile = (
 describe("material-image-service", () => {
 	describe("uploadMaterialImage", () => {
 		describe("file type validation", () => {
-			it.effect("should accept valid PNG image", () =>
+			it("should accept valid PNG image", () =>
 				Effect.gen(function* () {
 					const file = createMockFile({ type: "image/png" });
 					const result = yield* uploadMaterialImage({
@@ -81,12 +80,11 @@ describe("material-image-service", () => {
 						file,
 					});
 
-					assert.strictEqual(result.id, mockUUID);
-					assert.strictEqual(result.type, "image/png");
-				}),
-			);
+					expect(result.id).toBe(mockUUID);
+					expect(result.type).toBe("image/png");
+				}).pipe(Effect.runPromise));
 
-			it.effect("should accept valid JPEG image", () =>
+			it("should accept valid JPEG image", () =>
 				Effect.gen(function* () {
 					const file = createMockFile({ type: "image/jpeg" });
 					const result = yield* uploadMaterialImage({
@@ -94,12 +92,11 @@ describe("material-image-service", () => {
 						file,
 					});
 
-					assert.strictEqual(result.id, mockUUID);
-					assert.strictEqual(result.type, "image/jpeg");
-				}),
-			);
+					expect(result.id).toBe(mockUUID);
+					expect(result.type).toBe("image/jpeg");
+				}).pipe(Effect.runPromise));
 
-			it.effect("should accept valid JPG image", () =>
+			it("should accept valid JPG image", () =>
 				Effect.gen(function* () {
 					const file = createMockFile({ type: "image/jpg" });
 					const result = yield* uploadMaterialImage({
@@ -107,12 +104,11 @@ describe("material-image-service", () => {
 						file,
 					});
 
-					assert.strictEqual(result.id, mockUUID);
-					assert.strictEqual(result.type, "image/jpg");
-				}),
-			);
+					expect(result.id).toBe(mockUUID);
+					expect(result.type).toBe("image/jpg");
+				}).pipe(Effect.runPromise));
 
-			it.effect("should accept valid GIF image", () =>
+			it("should accept valid GIF image", () =>
 				Effect.gen(function* () {
 					const file = createMockFile({ type: "image/gif" });
 					const result = yield* uploadMaterialImage({
@@ -120,12 +116,11 @@ describe("material-image-service", () => {
 						file,
 					});
 
-					assert.strictEqual(result.id, mockUUID);
-					assert.strictEqual(result.type, "image/gif");
-				}),
-			);
+					expect(result.id).toBe(mockUUID);
+					expect(result.type).toBe("image/gif");
+				}).pipe(Effect.runPromise));
 
-			it.effect("should accept valid WebP image", () =>
+			it("should accept valid WebP image", () =>
 				Effect.gen(function* () {
 					const file = createMockFile({ type: "image/webp" });
 					const result = yield* uploadMaterialImage({
@@ -133,12 +128,11 @@ describe("material-image-service", () => {
 						file,
 					});
 
-					assert.strictEqual(result.id, mockUUID);
-					assert.strictEqual(result.type, "image/webp");
-				}),
-			);
+					expect(result.id).toBe(mockUUID);
+					expect(result.type).toBe("image/webp");
+				}).pipe(Effect.runPromise));
 
-			it.effect("should accept valid SVG image", () =>
+			it("should accept valid SVG image", () =>
 				Effect.gen(function* () {
 					const file = createMockFile({ type: "image/svg+xml" });
 					const result = yield* uploadMaterialImage({
@@ -146,12 +140,11 @@ describe("material-image-service", () => {
 						file,
 					});
 
-					assert.strictEqual(result.id, mockUUID);
-					assert.strictEqual(result.type, "image/svg+xml");
-				}),
-			);
+					expect(result.id).toBe(mockUUID);
+					expect(result.type).toBe("image/svg+xml");
+				}).pipe(Effect.runPromise));
 
-			it.effect("should reject invalid file type with InvalidFileTypeError", () =>
+			it("should reject invalid file type with InvalidFileTypeError", () =>
 				Effect.gen(function* () {
 					const file = createMockFile({
 						name: "document.pdf",
@@ -166,10 +159,10 @@ describe("material-image-service", () => {
 
 					Either.match(result, {
 						onLeft: (error) => {
-							assert.strictEqual(error._tag, "InvalidFileTypeError");
+							expect(error._tag).toBe("InvalidFileTypeError");
 							if (error._tag === "InvalidFileTypeError") {
-								assert.strictEqual(error.type, "application/pdf");
-								assert.deepStrictEqual(error.allowed, [
+								expect(error.type).toBe("application/pdf");
+								expect(error.allowed).toStrictEqual([
 									"image/png",
 									"image/jpeg",
 									"image/jpg",
@@ -179,12 +172,13 @@ describe("material-image-service", () => {
 								]);
 							}
 						},
-						onRight: () => assert.fail("Expected Left but got Right"),
+						onRight: () => {
+							throw new Error("Expected Left but got Right");
+						},
 					});
-				}),
-			);
+				}).pipe(Effect.runPromise));
 
-			it.effect("should reject text/plain file type", () =>
+			it("should reject text/plain file type", () =>
 				Effect.gen(function* () {
 					const file = createMockFile({
 						name: "file.txt",
@@ -199,19 +193,20 @@ describe("material-image-service", () => {
 
 					Either.match(result, {
 						onLeft: (error) => {
-							assert.strictEqual(error._tag, "InvalidFileTypeError");
+							expect(error._tag).toBe("InvalidFileTypeError");
 							if (error._tag === "InvalidFileTypeError") {
-								assert.strictEqual(error.type, "text/plain");
+								expect(error.type).toBe("text/plain");
 							}
 						},
-						onRight: () => assert.fail("Expected Left but got Right"),
+						onRight: () => {
+							throw new Error("Expected Left but got Right");
+						},
 					});
-				}),
-			);
+				}).pipe(Effect.runPromise));
 		});
 
 		describe("file size validation", () => {
-			it.effect("should accept file under 5MB", () =>
+			it("should accept file under 5MB", () =>
 				Effect.gen(function* () {
 					const file = createMockFile({
 						size: 4 * 1024 * 1024, // 4MB
@@ -221,11 +216,10 @@ describe("material-image-service", () => {
 						file,
 					});
 
-					assert.strictEqual(result.id, mockUUID);
-				}),
-			);
+					expect(result.id).toBe(mockUUID);
+				}).pipe(Effect.runPromise));
 
-			it.effect("should accept file exactly at 5MB limit", () =>
+			it("should accept file exactly at 5MB limit", () =>
 				Effect.gen(function* () {
 					const file = createMockFile({
 						size: 5 * 1024 * 1024, // 5MB exactly
@@ -235,11 +229,10 @@ describe("material-image-service", () => {
 						file,
 					});
 
-					assert.strictEqual(result.id, mockUUID);
-				}),
-			);
+					expect(result.id).toBe(mockUUID);
+				}).pipe(Effect.runPromise));
 
-			it.effect("should reject file over 5MB with FileTooLargeError", () =>
+			it("should reject file over 5MB with FileTooLargeError", () =>
 				Effect.gen(function* () {
 					const fileSize = 6 * 1024 * 1024; // 6MB
 					const file = createMockFile({ size: fileSize });
@@ -252,20 +245,21 @@ describe("material-image-service", () => {
 
 					Either.match(result, {
 						onLeft: (error) => {
-							assert.strictEqual(error._tag, "FileTooLargeError");
+							expect(error._tag).toBe("FileTooLargeError");
 							if (error._tag === "FileTooLargeError") {
-								assert.strictEqual(error.size, fileSize);
-								assert.strictEqual(error.maxSize, 5 * 1024 * 1024);
+								expect(error.size).toBe(fileSize);
+								expect(error.maxSize).toBe(5 * 1024 * 1024);
 							}
 						},
-						onRight: () => assert.fail("Expected Left but got Right"),
+						onRight: () => {
+							throw new Error("Expected Left but got Right");
+						},
 					});
-				}),
-			);
+				}).pipe(Effect.runPromise));
 		});
 
 		describe("successful upload", () => {
-			it.effect("should return correct image metadata", () =>
+			it("should return correct image metadata", () =>
 				Effect.gen(function* () {
 					const file = createMockFile({
 						name: "my-image.png",
@@ -277,19 +271,17 @@ describe("material-image-service", () => {
 						file,
 					});
 
-					assert.strictEqual(result.id, mockUUID);
-					assert.strictEqual(result.name, "my-image.png");
-					assert.strictEqual(result.type, "image/png");
-					assert.strictEqual(result.size, file.size);
-					assert.strictEqual(typeof result.uploadedAt, "number");
-					assert.strictEqual(
-						result.url,
+					expect(result.id).toBe(mockUUID);
+					expect(result.name).toBe("my-image.png");
+					expect(result.type).toBe("image/png");
+					expect(result.size).toBe(file.size);
+					expect(typeof result.uploadedAt).toBe("number");
+					expect(result.url).toBe(
 						`/api/materials/images/goal-map-123/${mockUUID}`,
 					);
-				}),
-			);
+				}).pipe(Effect.runPromise));
 
-			it.effect("should return correct public URL format", () =>
+			it("should return correct public URL format", () =>
 				Effect.gen(function* () {
 					const file = createMockFile();
 					const goalMapId = "goal-map-abc";
@@ -298,14 +290,12 @@ describe("material-image-service", () => {
 						file,
 					});
 
-					assert.strictEqual(
-						result.url,
+					expect(result.url).toBe(
 						`/api/materials/images/${goalMapId}/${mockUUID}`,
 					);
-				}),
-			);
+				}).pipe(Effect.runPromise));
 
-			it.effect("should call R2 put with correct key and metadata", () =>
+			it("should call R2 put with correct key and metadata", () =>
 				Effect.gen(function* () {
 					const file = createMockFile({ type: "image/jpeg" });
 					const goalMapId = "goal-map-xyz";
@@ -314,16 +304,15 @@ describe("material-image-service", () => {
 						file,
 					});
 
-					assert.strictEqual(mockPut.mock.calls.length, 1);
+					expect(mockPut.mock.calls.length).toBe(1);
 					const [key, , options] = mockPut.mock.calls[0] as [
 						string,
 						ArrayBuffer,
 						{ httpMetadata: { contentType: string } },
 					];
-					assert.strictEqual(key, `materials/${goalMapId}/${mockUUID}`);
-					assert.strictEqual(options.httpMetadata.contentType, "image/jpeg");
-				}),
-			);
+					expect(key).toBe(`materials/${goalMapId}/${mockUUID}`);
+					expect(options.httpMetadata.contentType).toBe("image/jpeg");
+				}).pipe(Effect.runPromise));
 		});
 	});
 });

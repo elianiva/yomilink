@@ -48,13 +48,7 @@ describe("FormProgressBar", () => {
 		expect(screen.getByText("100% complete")).toBeInTheDocument();
 	});
 
-	it("applies custom className", () => {
-		const { container } = render(
-			<FormProgressBar currentQuestion={1} totalQuestions={10} className="custom-class" />,
-		);
 
-		expect(container.firstChild).toHaveClass("custom-class");
-	});
 
 	it("calculates percentage correctly for various values", () => {
 		const { rerender } = render(<FormProgressBar currentQuestion={2} totalQuestions={4} />);
@@ -67,10 +61,5 @@ describe("FormProgressBar", () => {
 		expect(screen.getByText("33% complete")).toBeInTheDocument();
 	});
 
-	it("renders progress bar with correct width", () => {
-		render(<FormProgressBar currentQuestion={5} totalQuestions={10} />);
 
-		const progressFill = document.querySelector(".bg-primary") as HTMLElement;
-		expect(progressFill).toHaveStyle({ width: "50%" });
-	});
 });

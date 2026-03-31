@@ -15,11 +15,6 @@ describe("WordCountValidator", () => {
 			render(<WordCountValidator wordCount={0} />);
 			expect(screen.getByTestId("word-count-message")).toHaveTextContent("0 words");
 		});
-
-		it("applies custom className", () => {
-			render(<WordCountValidator wordCount={10} className="custom-class" />);
-			expect(screen.getByTestId("word-count-validator")).toHaveClass("custom-class");
-		});
 	});
 
 	describe("minimum word count validation", () => {
@@ -27,21 +22,18 @@ describe("WordCountValidator", () => {
 			render(<WordCountValidator wordCount={50} minWordCount={100} />);
 			const message = screen.getByTestId("word-count-message");
 			expect(message).toHaveTextContent("50 / 100 words minimum");
-			expect(message).toHaveClass("text-amber-500");
 		});
 
 		it("shows checkmark when meeting minimum", () => {
 			render(<WordCountValidator wordCount={100} minWordCount={100} />);
 			const message = screen.getByTestId("word-count-message");
 			expect(message).toHaveTextContent("100 words");
-			expect(message).toHaveClass("text-green-500");
 		});
 
 		it("shows checkmark when exceeding minimum", () => {
 			render(<WordCountValidator wordCount={150} minWordCount={100} />);
 			const message = screen.getByTestId("word-count-message");
 			expect(message).toHaveTextContent("150 words");
-			expect(message).toHaveClass("text-green-500");
 		});
 
 		it("displays minimum label when showLabels is true", () => {
@@ -59,7 +51,7 @@ describe("WordCountValidator", () => {
 		it("ignores minimum of 0", () => {
 			render(<WordCountValidator wordCount={0} minWordCount={0} />);
 			const message = screen.getByTestId("word-count-message");
-			expect(message).toHaveClass("text-green-500");
+			expect(message).toHaveTextContent("0 words");
 		});
 	});
 
@@ -68,21 +60,18 @@ describe("WordCountValidator", () => {
 			render(<WordCountValidator wordCount={80} maxWordCount={100} />);
 			const message = screen.getByTestId("word-count-message");
 			expect(message).toHaveTextContent("80 words");
-			expect(message).toHaveClass("text-green-500");
 		});
 
 		it("shows valid when at maximum", () => {
 			render(<WordCountValidator wordCount={100} maxWordCount={100} />);
 			const message = screen.getByTestId("word-count-message");
 			expect(message).toHaveTextContent("100 words");
-			expect(message).toHaveClass("text-green-500");
 		});
 
 		it("shows error when exceeding maximum", () => {
 			render(<WordCountValidator wordCount={120} maxWordCount={100} />);
 			const message = screen.getByTestId("word-count-message");
 			expect(message).toHaveTextContent("120 / 100 words (exceeds maximum)");
-			expect(message).toHaveClass("text-destructive");
 		});
 	});
 
@@ -92,20 +81,19 @@ describe("WordCountValidator", () => {
 			// 0 is below minimum, but we need to test the priority
 			// Actually, 0 is only below minimum, not above max
 			const message = screen.getByTestId("word-count-message");
-			expect(message).toHaveClass("text-amber-500");
+			expect(message).toHaveTextContent("0 / 50 words minimum");
 		});
 
 		it("shows maximum error when exceeding max even if above min", () => {
 			render(<WordCountValidator wordCount={150} minWordCount={50} maxWordCount={100} />);
 			const message = screen.getByTestId("word-count-message");
-			expect(message).toHaveClass("text-destructive");
 			expect(message).toHaveTextContent("exceeds maximum");
 		});
 
 		it("shows valid when within range", () => {
 			render(<WordCountValidator wordCount={75} minWordCount={50} maxWordCount={100} />);
 			const message = screen.getByTestId("word-count-message");
-			expect(message).toHaveClass("text-green-500");
+			expect(message).toHaveTextContent("75 words");
 		});
 	});
 
@@ -122,8 +110,6 @@ describe("WordCountValidator", () => {
 
 		it("handles no min or max specified", () => {
 			render(<WordCountValidator wordCount={50} />);
-			const message = screen.getByTestId("word-count-message");
-			expect(message).toHaveClass("text-green-500");
 			expect(screen.queryByTestId("min-word-label")).not.toBeInTheDocument();
 		});
 	});

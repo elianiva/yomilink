@@ -1,4 +1,4 @@
-import { Check, Type } from "lucide-react";
+import { Check, Info, Type } from "lucide-react";
 import type * as React from "react";
 
 import { Input } from "@/components/ui/input";
@@ -139,6 +139,18 @@ export function TextQuestionEditor({ data, onChange, disabled = false }: TextQue
 					)}
 				</div>
 			</div>
+
+			{data.minLength !== null && data.maxLength !== null && (
+				<div
+					className="flex items-start gap-2 rounded-md bg-muted/50 p-3 text-sm"
+					data-testid="validation-preview"
+				>
+					<Info className="mt-0.5 h-4 w-4 shrink-0 text-muted-foreground" />
+					<p className="text-muted-foreground">
+						Answer must be between {data.minLength} and {data.maxLength} characters
+					</p>
+				</div>
+			)}
 
 			<div className="space-y-4 rounded-lg border p-4">
 				<div className="flex items-center justify-between">

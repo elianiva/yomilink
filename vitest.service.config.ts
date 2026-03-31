@@ -10,7 +10,6 @@ const baseConfig = {
 		).pathname,
 	},
 	globals: true,
-	setupFiles: ["./src/__tests__/setup/index.ts"],
 };
 
 export default defineConfig({
@@ -19,5 +18,8 @@ export default defineConfig({
 		environment: "jsdom",
 		include: ["src/**/*.test.ts"],
 		name: "service",
+		setupFiles: ["./src/__tests__/setup/index.ts"],
+		globalSetup: ["./src/__tests__/setup/global-setup.ts"],
+		isolate: false,
 	},
 });
