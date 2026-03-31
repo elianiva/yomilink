@@ -1,9 +1,14 @@
-import * as Sentry from "@sentry/tanstackstart-react";
 import { Cause, HashMap, Logger, LogLevel } from "effect";
 
 /**
- * Sentry logger that captures error-level logs as Sentry events.
- * Only processes Error and Fatal level logs.
+ * Simple logger that only logs to console.
+ * Sentry integration is disabled for Cloudflare Workers due to
+ * @sentry/tanstackstart-react using Node.js-specific APIs (setInterval().unref()).
+ *
+ * To re-enable Sentry:
+ * 1. Wait for @sentry/tanstackstart-react to fix workerd/worker export conditions
+ *    (see: https://github.com/getsentry/sentry-javascript/issues/20038)
+ * 2. Or switch to @sentry/cloudflare for server-side error tracking
  */
 const SentryLogger = Logger.make<unknown, void>(({ logLevel, message, cause, annotations }) => {
 	// Only capture errors and above
@@ -11,37 +16,26 @@ const SentryLogger = Logger.make<unknown, void>(({ logLevel, message, cause, ann
 		return;
 	}
 
-	// Convert annotations HashMap to plain object for Sentry tags
+	// Convert annotations HashMap to plain object for extra context
 	const tags: Record<string, string> = {};
 	HashMap.forEach(annotations, (value, key) => {
 		tags[key] = String(value);
 	});
 
-	// Pattern match on the cause to handle defects, failures, or empty
+	// Pattern match on the cause to log errors
 	Cause.match(cause, {
-		onEmpty: () =>
-			Sentry.captureMessage(String(message), {
-				level: logLevel === LogLevel.Fatal ? "fatal" : "error",
-				tags,
-			}),
+		onEmpty: () => {
+			console.error("[Error]", String(message), tags);
+		},
 		onDie: (defect) => {
-			Sentry.captureException(defect, {
-				level: logLevel === LogLevel.Fatal ? "fatal" : "error",
-				tags,
-				extra: { message: String(message) },
-			});
-			return undefined;
+			console.error("[Defect]", String(message), defect, tags);
+			return undefined as unknown as () => void;
 		},
 		onInterrupt: () => {
-			Sentry.captureMessage("Fiber interrupted", {
-				level: logLevel === LogLevel.Fatal ? "fatal" : "error",
-				tags,
-				extra: { message: String(message) },
-			});
-			return undefined;
+			console.error("[Interrupt]", String(message), tags);
+			return undefined as unknown as () => void;
 		},
 		onFail: (typedError) => {
-			// Extract underlying error if present (e.g., SqlError.cause = DrizzleQueryError)
 			const exceptionToCapture =
 				typeof typedError === "object" &&
 				typedError !== null &&
@@ -49,33 +43,16 @@ const SentryLogger = Logger.make<unknown, void>(({ logLevel, message, cause, ann
 				typedError.cause instanceof Error
 					? typedError.cause
 					: typedError;
-			Sentry.captureException(exceptionToCapture, {
-				level: logLevel === LogLevel.Fatal ? "fatal" : "error",
-				tags,
-				extra: {
-					message: String(message),
-					...(typeof typedError === "object" && typedError !== null
-						? { originalError: JSON.stringify(typedError) }
-						: {}),
-				},
-			});
-			return undefined;
+			console.error("[Failure]", String(message), exceptionToCapture, tags);
+			return undefined as unknown as () => void;
 		},
 		onSequential: (left, right) => {
-			Sentry.captureMessage(`Sequential errors: ${String(message)}`, {
-				level: logLevel === LogLevel.Fatal ? "fatal" : "error",
-				tags,
-				extra: { left, right },
-			});
-			return undefined;
+			console.error("[Sequential Errors]", String(message), { left, right }, tags);
+			return undefined as unknown as () => void;
 		},
 		onParallel: (left, right) => {
-			Sentry.captureMessage(`Parallel errors: ${String(message)}`, {
-				level: logLevel === LogLevel.Fatal ? "fatal" : "error",
-				tags,
-				extra: { left, right },
-			});
-			return undefined;
+			console.error("[Parallel Errors]", String(message), { left, right }, tags);
+			return undefined as unknown as () => void;
 		},
 	});
 });
