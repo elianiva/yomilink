@@ -3,6 +3,14 @@
 	"name": "yomilink",
 	"compatibility_date": "2025-09-02",
 	"compatibility_flags": ["nodejs_compat"],
+	"workers_dev": true,
+	"preview_urls": true,
+	"observability": {
+		"logs": {
+			"enabled": true,
+			"invocation_logs": true
+		}
+	},
 	"main": "@tanstack/react-start/server-entry",
 	"r2_buckets": [
 		{
