@@ -13,7 +13,6 @@ vp check --type-aware     # Above with type-aware linting (slower, more accurate
 # Testing
 vp test                   # Run all tests (UI + service)
 vp test -c vitest.ui.config.ts      # UI tests only (.test.tsx)
-vp test -c vitest.service.config.ts # Service tests only (.test.ts)
 vp test --watch           # Watch mode for UI tests
 
 # Single test file
