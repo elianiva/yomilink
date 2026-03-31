@@ -1,7 +1,20 @@
-import { env as cfEnv } from "cloudflare:workers";
 import { Config, ConfigProvider, Effect } from "effect";
 
-const env = cfEnv || process.env || import.meta.env;
+let env: Record<string, string> = process.env ?? import.meta.env;
+
+async function initEnv() {
+	try {
+		// @ts-expect-error cloudflare:workers only available in Workers runtime
+		const { env: cfEnv } = await import("cloudflare:workers");
+		if (cfEnv) {
+			env = cfEnv;
+		}
+	} catch {
+		// Running outside Workers runtime, use process.env
+	}
+}
+
+await initEnv();
 
 export const ClientConfig = Config.all({
 	sentryDsn: Config.redacted("SENTRY_DSN"),
