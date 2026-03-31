@@ -1,4 +1,4 @@
-import * as Sentry from "@sentry/tanstackstart-react";
+
 import type { ErrorComponentProps } from "@tanstack/react-router";
 import { Link } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
@@ -10,7 +10,7 @@ export function ErrorPage({ error, reset }: ErrorComponentProps) {
 	const [detailsOpen, setDetailsOpen] = useState(false);
 
 	useEffect(() => {
-		Sentry.captureException(error);
+		console.error("Error captured:", error);
 	}, [error]);
 
 	return (

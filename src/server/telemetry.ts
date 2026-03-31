@@ -1,35 +1,14 @@
-import { WebSdk } from "@effect/opentelemetry";
-import { SentrySpanProcessor } from "@sentry/opentelemetry";
-
-const resource = { serviceName: "yomilink" };
+import { Layer } from "effect";
 
 /**
- * Effect OpenTelemetry layer for Cloudflare Workers environment.
- * Uses WebSdk since Workers runs in a V8 isolate (similar to browser).
- * Uses SentrySpanProcessor to send spans to Sentry.
- */
-const SentryTelemetry = WebSdk.layer(() => ({
-	resource,
-	spanProcessor: new SentrySpanProcessor(),
-}));
-
-/**
- * Server-side telemetry layer for Cloudflare Workers.
- * Provide this in server entry points along with LoggerLive.
+ * Placeholder telemetry layer.
  *
- * @example
- * ```ts
- * Effect.provide(Layer.mergeAll(DatabaseLive, LoggerLive, ServerTelemetry))
- * ```
+ * TODO: Implement @sentry/cloudflare integration for server-side error tracking.
+ * The previous @sentry/opentelemetry + @sentry/tanstackstart-react setup
+ * used Node.js-specific APIs that don't work in Cloudflare Workers.
+ *
+ * @see https://docs.sentry.io/platforms/javascript/guides/cloudflare/
  */
-export const ServerTelemetry = SentryTelemetry;
-
-/**
- * Web/browser telemetry layer - used for client-side Effect programs.
- */
-export const WebTelemetry = SentryTelemetry;
-
-/**
- * Unified telemetry layer - Cloudflare Workers uses WebSdk for both environments.
- */
-export const Telemetry = SentryTelemetry;
+export const ServerTelemetry = Layer.empty;
+export const WebTelemetry = Layer.empty;
+export const Telemetry = Layer.empty;

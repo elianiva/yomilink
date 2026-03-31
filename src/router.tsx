@@ -1,4 +1,4 @@
-import * as Sentry from "@sentry/tanstackstart-react";
+
 import { MutationCache, QueryClient } from "@tanstack/react-query";
 import { createRouter } from "@tanstack/react-router";
 import { setupRouterSsrQueryIntegration } from "@tanstack/react-router-ssr-query";
@@ -33,37 +33,7 @@ export const getRouter = () => {
 		queryClient,
 	});
 
-	if (!router.isServer) {
-		Sentry.init({
-			dsn: import.meta.env.DEV ? undefined : import.meta.env.VITE_SENTRY_DSN,
-			sendDefaultPii: true,
-			tracesSampleRate: import.meta.env.DEV ? 1.0 : 0.1,
-			profilesSampleRate: import.meta.env.DEV ? 1.0 : 0.1,
-			replaysSessionSampleRate: import.meta.env.DEV ? 1.0 : 0.05,
-			replaysOnErrorSampleRate: 1.0,
-			beforeSend(event: { request?: { url?: string } }) {
-				// Filter out health check requests
-				if (event.request?.url?.includes("/health")) {
-					return null;
-				}
-				// Filter out specific errors if needed
-				return event;
-			},
-			beforeSendTransaction(event: { contexts?: { trace?: { data?: { url?: string } } } }) {
-				// Filter out health check transactions
-				if (event.contexts?.trace?.data?.url?.includes("/health")) {
-					return null;
-				}
-				return event;
-			},
-			integrations: [
-				Sentry.tanstackRouterBrowserTracingIntegration(router),
-				Sentry.captureConsoleIntegration({
-					levels: ["log", "info", "warn", "error", "debug"],
-				}),
-			],
-		} as unknown as Sentry.BrowserOptions);
-	}
+
 
 	return router;
 };

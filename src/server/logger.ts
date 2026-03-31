@@ -2,13 +2,9 @@ import { Cause, HashMap, Logger, LogLevel } from "effect";
 
 /**
  * Simple logger that only logs to console.
- * Sentry integration is disabled for Cloudflare Workers due to
- * @sentry/tanstackstart-react using Node.js-specific APIs (setInterval().unref()).
- *
- * To re-enable Sentry:
- * 1. Wait for @sentry/tanstackstart-react to fix workerd/worker export conditions
- *    (see: https://github.com/getsentry/sentry-javascript/issues/20038)
- * 2. Or switch to @sentry/cloudflare for server-side error tracking
+ * Sentry integration is disabled - needs @sentry/cloudflare setup for Workers.
+ * TODO: Integrate @sentry/cloudflare for server-side error tracking.
+ * @see https://docs.sentry.io/platforms/javascript/guides/cloudflare/
  */
 const SentryLogger = Logger.make<unknown, void>(({ logLevel, message, cause, annotations }) => {
 	// Only capture errors and above
