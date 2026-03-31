@@ -11,7 +11,9 @@ export default createServerEntry({
                     method: request.method,
                 }),
             );
-            return await handler.fetch(request);
+            const result = await handler.fetch(request);
+            console.log(JSON.stringify(result));
+            return result;
         } catch (error) {
             console.error(
                 "[SERVER] Unhandled error in fetch:\n" +
