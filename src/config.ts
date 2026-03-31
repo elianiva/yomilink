@@ -1,20 +1,29 @@
 import { Config, ConfigProvider, Effect } from "effect";
 
-let env: Record<string, string> = process.env ?? import.meta.env;
+// Log initial state for debugging
+console.log("[CONFIG] Initializing env, process.env available:", typeof process !== "undefined" && !!process.env);
+console.log("[CONFIG] import.meta.env available:", typeof import.meta.env !== "undefined");
+
+let env: Record<string, string | undefined> = (process.env ?? import.meta.env) as Record<string, string | undefined>;
+console.log("[CONFIG] Initial env keys:", Object.keys(env || {}).slice(0, 10));
 
 async function initEnv() {
 	try {
-		// @ts-expect-error cloudflare:workers only available in Workers runtime
-		const { env: cfEnv } = await import("cloudflare:workers");
+		const cloudflare = await import("cloudflare:workers") as unknown as { env?: Record<string, string | undefined> };
+		const cfEnv = cloudflare?.env;
+		console.log("[CONFIG] cloudflare:workers module loaded:", !!cloudflare);
+		console.log("[CONFIG] cfEnv available:", !!cfEnv);
 		if (cfEnv) {
 			env = cfEnv;
+			console.log("[CONFIG] Switched to Cloudflare env, keys:", Object.keys(cfEnv).slice(0, 10));
 		}
-	} catch {
-		// Running outside Workers runtime, use process.env
+	} catch (err) {
+		console.log("[CONFIG] Not in Cloudflare Workers runtime, using process.env:", err instanceof Error ? err.message : String(err));
 	}
 }
 
 await initEnv();
+console.log("[CONFIG] Final env keys:", Object.keys(env || {}).slice(0, 10));
 
 export const ClientConfig = Config.all({
 	sentryDsn: Config.redacted("SENTRY_DSN"),

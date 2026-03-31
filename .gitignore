@@ -20,3 +20,4 @@ data/*.sqlite
 data/*.sqlite3
 *.db
 *.db-journal
+.wrangler
