@@ -133,8 +133,6 @@ describe("FormattingToolbar", () => {
 		expect(mockExecCommand).not.toHaveBeenCalled();
 	});
 
-
-
 	it("renders separator between text and list buttons", () => {
 		render(<FormattingToolbar />);
 

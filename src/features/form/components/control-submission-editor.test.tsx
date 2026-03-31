@@ -80,8 +80,6 @@ describe("ControlSubmissionEditor", () => {
 		expect(screen.getByText("Minimum 200 words required")).toBeInTheDocument();
 	});
 
-
-
 	it("counts zero words for empty content", () => {
 		render(<ControlSubmissionEditor initialContent="" />);
 

@@ -1,6 +1,7 @@
 import { existsSync, unlinkSync } from "node:fs";
-import type { TestProject } from "vitest/node";
+
 import { Effect } from "effect";
+import type { TestProject } from "vitest/node";
 
 import { resetDatabase, setupDatabase } from "@/__tests__/utils/test-helpers";
 import { DatabaseTest } from "@/server/db/client";

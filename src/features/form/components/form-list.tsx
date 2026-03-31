@@ -307,7 +307,7 @@ export function FormList({
 						</CardContent>
 					</Card>
 				);
-					})}
-	</div>
-);
+			})}
+		</div>
+	);
 }

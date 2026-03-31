@@ -181,5 +181,4 @@ describe("ManualUnlockButton", () => {
 
 		expect(screen.getByRole("button", { name: /unlock form/i })).toBeDisabled();
 	});
-
 });

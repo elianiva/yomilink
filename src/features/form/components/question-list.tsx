@@ -139,7 +139,10 @@ function SortableQuestionItem({
 									<p className="text-sm font-medium leading-relaxed">
 										{question.questionText}
 										{question.required && (
-											<span className="ml-1 text-destructive" title="Required">
+											<span
+												className="ml-1 text-destructive"
+												title="Required"
+											>
 												*
 											</span>
 										)}

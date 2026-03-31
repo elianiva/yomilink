@@ -155,7 +155,10 @@ export function LikertQuestionEditor({
 						const key = String(i + 1);
 						return (
 							<div key={key} className="flex gap-3 items-center">
-								<Label htmlFor={`label-${key}`} className="text-muted-foreground w-4">
+								<Label
+									htmlFor={`label-${key}`}
+									className="text-muted-foreground w-4"
+								>
 									{key}.
 								</Label>
 								<Input

@@ -91,8 +91,6 @@ describe("CountdownTimer", () => {
 
 		expect(container).toBeInTheDocument();
 	});
-
-
 });
 
 describe("createDefaultCountdownData", () => {

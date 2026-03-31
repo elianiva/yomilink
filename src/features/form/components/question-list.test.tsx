@@ -252,8 +252,6 @@ describe("QuestionList", () => {
 		});
 	});
 
-
-
 	describe("drag-drop reordering", () => {
 		it("wraps list in DndContext when onReorder is provided", () => {
 			const { container } = render(

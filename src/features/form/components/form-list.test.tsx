@@ -126,8 +126,6 @@ describe("FormList", () => {
 		expect(screen.getByText("Form without date")).toBeInTheDocument();
 	});
 
-
-
 	it("should not render form list status when undefined", () => {
 		const formsWithoutListStatus: FormListItem[] = [
 			{

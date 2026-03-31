@@ -48,8 +48,6 @@ describe("FormProgressBar", () => {
 		expect(screen.getByText("100% complete")).toBeInTheDocument();
 	});
 
-
-
 	it("calculates percentage correctly for various values", () => {
 		const { rerender } = render(<FormProgressBar currentQuestion={2} totalQuestions={4} />);
 		expect(screen.getByText("50% complete")).toBeInTheDocument();
@@ -60,6 +58,4 @@ describe("FormProgressBar", () => {
 		rerender(<FormProgressBar currentQuestion={1} totalQuestions={3} />);
 		expect(screen.getByText("33% complete")).toBeInTheDocument();
 	});
-
-
 });
