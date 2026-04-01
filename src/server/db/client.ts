@@ -35,17 +35,14 @@ const SqlTest = LibsqlClient.layer({
 // Select layer based on DATABASE_MODE env var
 const SqlLive = Layer.unwrapEffect(
 	Effect.gen(function* () {
-		console.log("[DB] Selecting database mode...");
 		const mode = yield* Config.string("DATABASE_MODE").pipe(
 			Effect.orElseSucceed(() => "remote"),
 			Effect.withConfigProvider(ConfigProvider.fromEnv()),
 		);
-		console.log("[DB] Database mode:", mode);
 		if (mode === "local") {
 			yield* Effect.log("Using local SQLite database");
 			return SqlLocal;
 		}
-		console.log("[DB] Using remote Turso database");
 		yield* Effect.log("Using remote Turso database");
 		return SqlRemote;
 	}),
