@@ -3,7 +3,7 @@ import type { AnyFieldApi } from "@tanstack/react-form";
 import { FieldInfo } from "@/components/ui/field-info";
 import { Input, PasswordInput } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { PasswordStrength } from "@/components/ui/password-strength";
+// import { PasswordStrength } from "@/components/ui/password-strength";
 
 interface AccountStepProps {
 	// biome-ignore lint/suspicious/noExplicitAny: <explanation>
@@ -61,7 +61,7 @@ export function AccountStep({ form }: AccountStepProps) {
 							autoComplete="new-password"
 						/>
 						<FieldInfo field={field} />
-						<PasswordStrength password={field.state.value} />
+						{/* <PasswordStrength password={field.state.value} /> */}
 					</div>
 				)}
 			</form.Field>

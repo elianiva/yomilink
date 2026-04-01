@@ -15,18 +15,20 @@ export const jlptOptions = [
 export const SignUpSchema = Schema.Struct({
 	name: Schema.NonEmptyString,
 	email: Schema.NonEmptyString,
-	password: Schema.String.pipe(
-		Schema.minLength(8),
-		Schema.pattern(/[A-Z]/, {
-			message: () => "Password must include at least one uppercase letter",
-		}),
-		Schema.pattern(/[a-z]/, {
-			message: () => "Password must include at least one lowercase letter",
-		}),
-		Schema.pattern(/[0-9]|[^A-Za-z0-9]/, {
-			message: () => "Password must include at least one number or special character",
-		}),
-	),
+	// Password validation disabled for students - easy to re-enable
+	// password: Schema.String.pipe(
+	// 	Schema.minLength(8),
+	// 	Schema.pattern(/[A-Z]/, {
+	// 		message: () => "Password must include at least one uppercase letter",
+	// 	}),
+	// 	Schema.pattern(/[a-z]/, {
+	// 		message: () => "Password must include at least one lowercase letter",
+	// 	}),
+	// 	Schema.pattern(/[0-9]|[^A-Za-z0-9]/, {
+	// 		message: () => "Password must include at least one number or special character",
+	// 	}),
+	// ),
+	password: Schema.String,
 	confirmPassword: Schema.String,
 	age: Schema.NullOr(Schema.Number),
 	studentId: Schema.NullOr(Schema.String),
