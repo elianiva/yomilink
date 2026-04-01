@@ -8,7 +8,6 @@ declare namespace Cloudflare {
 		TURSO_AUTH_TOKEN: string;
 		VITE_SENTRY_DSN: string;
 		SITE_URL: string;
-		NODE_ENV: string;
 		BETTER_AUTH_URL: string;
 		BETTER_AUTH_SECRET: string;
 	}
@@ -25,7 +24,6 @@ declare namespace NodeJS {
 			| "TURSO_AUTH_TOKEN"
 			| "VITE_SENTRY_DSN"
 			| "SITE_URL"
-			| "NODE_ENV"
 			| "BETTER_AUTH_URL"
 			| "BETTER_AUTH_SECRET"
 		>

@@ -3,7 +3,7 @@
 	"private": true,
 	"type": "module",
 	"scripts": {
-		"dev": "NODE_ENV='development' vp dev",
+		"dev": "vp dev",
 		"spotlight": "npx @spotlightjs/spotlight",
 		"build": "vp build",
 		"serve": "vp preview",
