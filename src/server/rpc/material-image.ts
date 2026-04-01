@@ -26,6 +26,12 @@ export const uploadMaterialImageRpc = createServerFn()
 					Rpc.err(`File too large: ${e.size} bytes. Max: ${e.maxSize} bytes`),
 				UnknownException: () => Rpc.err("Failed to upload image"),
 			}),
+			Effect.catchAll((error) =>
+				Effect.gen(function* () {
+					yield* Effect.logError("Upload failed", error);
+					return yield* Rpc.err("Failed to upload image", undefined, error);
+				}),
+			),
 			Effect.provide(AppLayer),
 			Effect.runPromise,
 		),

@@ -9,7 +9,13 @@ import { Database } from "@/server/db/client";
 import { cohortMembers, cohorts } from "@/server/db/schema/auth-schema";
 
 import { AppLayer } from "../app-layer";
-import { Rpc, logRpcError, type RpcResult } from "../rpc-helper";
+import {
+	Rpc,
+	logRpcError,
+	logAndReturnError,
+	logAndReturnDefect,
+	type RpcResult,
+} from "../rpc-helper";
 
 export const JlptLevelSchema = Schema.Union(Schema.Literal("N5", "N4", "N3", "N2", "N1", "None"));
 
@@ -105,7 +111,8 @@ export const signUpRpc = createServerFn()
 			Effect.catchTags({
 				SignUpFailedError: (e) => Rpc.err(e.message),
 			}),
-			Effect.catchAll(() => Rpc.err("Internal server error")),
+			Effect.catchAll(logAndReturnError("signUp")),
+			Effect.catchAllDefect(logAndReturnDefect("signUp")),
 			Effect.provide(Layer.merge(AppLayer, Auth.Default)),
 			Effect.runPromise,
 		),
@@ -139,5 +146,12 @@ export const listCohortsRpc = createServerFn()
 				.orderBy(cohorts.name);
 
 			return Rpc.ok(rows);
-		}).pipe(Effect.withSpan("listCohorts"), Effect.provide(AppLayer), Effect.runPromise),
+		}).pipe(
+			Effect.withSpan("listCohorts"),
+			Effect.tapError(logRpcError("listCohorts")),
+			Effect.catchAll(logAndReturnError("listCohorts")),
+			Effect.catchAllDefect(logAndReturnDefect("listCohorts")),
+			Effect.provide(AppLayer),
+			Effect.runPromise,
+		),
 	);

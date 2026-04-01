@@ -20,7 +20,7 @@ import {
 import { requireRoleMiddleware } from "@/middlewares/auth";
 
 import { AppLayer } from "../app-layer";
-import { Rpc, logRpcError } from "../rpc-helper";
+import { Rpc, logRpcError, logAndReturnError, logAndReturnDefect } from "../rpc-helper";
 
 // === List Users ===
 
@@ -32,7 +32,8 @@ export const listUsersRpc = createServerFn()
 			Effect.map(Rpc.ok),
 			Effect.withSpan("listUsers"),
 			Effect.tapError(logRpcError("listUsers")),
-			Effect.catchAll(() => Rpc.err("Internal server error")),
+			Effect.catchAll(logAndReturnError("listUsers")),
+			Effect.catchAllDefect(logAndReturnDefect("listUsers")),
 			Effect.provide(AppLayer),
 			Effect.runPromise,
 		),
@@ -53,7 +54,8 @@ export const getUserByIdRpc = createServerFn()
 			Effect.catchTags({
 				UserNotFoundError: () => Rpc.notFound("User"),
 			}),
-			Effect.catchAll(() => Rpc.err("Internal server error")),
+			Effect.catchAll(logAndReturnError("getUserById")),
+			Effect.catchAllDefect(logAndReturnDefect("getUserById")),
 			Effect.provide(AppLayer),
 			Effect.runPromise,
 		),
@@ -79,7 +81,8 @@ export const updateUserRpc = createServerFn()
 			Effect.catchTags({
 				UserNotFoundError: () => Rpc.notFound("User"),
 			}),
-			Effect.catchAll(() => Rpc.err("Internal server error")),
+			Effect.catchAll(logAndReturnError("updateUser")),
+			Effect.catchAllDefect(logAndReturnDefect("updateUser")),
 			Effect.provide(AppLayer),
 			Effect.runPromise,
 		),
@@ -100,7 +103,8 @@ export const updateUserRoleRpc = createServerFn()
 				CannotModifySelfError: (e) => Rpc.err(e.message),
 				LastAdminError: (e) => Rpc.err(e.message),
 			}),
-			Effect.catchAll(() => Rpc.err("Internal server error")),
+			Effect.catchAll(logAndReturnError("updateUserRole")),
+			Effect.catchAllDefect(logAndReturnDefect("updateUserRole")),
 			Effect.provide(AppLayer),
 			Effect.runPromise,
 		),
@@ -121,7 +125,8 @@ export const banUserRpc = createServerFn()
 				CannotModifySelfError: (e) => Rpc.err(e.message),
 				LastAdminError: (e) => Rpc.err(e.message),
 			}),
-			Effect.catchAll(() => Rpc.err("Internal server error")),
+			Effect.catchAll(logAndReturnError("banUser")),
+			Effect.catchAllDefect(logAndReturnDefect("banUser")),
 			Effect.provide(AppLayer),
 			Effect.runPromise,
 		),
@@ -143,7 +148,8 @@ export const unbanUserRpc = createServerFn()
 				UserNotFoundError: () => Rpc.notFound("User"),
 				CannotModifySelfError: (e) => Rpc.err(e.message),
 			}),
-			Effect.catchAll(() => Rpc.err("Internal server error")),
+			Effect.catchAll(logAndReturnError("unbanUser")),
+			Effect.catchAllDefect(logAndReturnDefect("unbanUser")),
 			Effect.provide(AppLayer),
 			Effect.runPromise,
 		),
@@ -159,7 +165,8 @@ export const bulkAssignCohortRpc = createServerFn()
 			Effect.map(Rpc.ok),
 			Effect.withSpan("bulkAssignCohort"),
 			Effect.tapError(logRpcError("bulkAssignCohort")),
-			Effect.catchAll(() => Rpc.err("Internal server error")),
+			Effect.catchAll(logAndReturnError("bulkAssignCohort")),
+			Effect.catchAllDefect(logAndReturnDefect("bulkAssignCohort")),
 			Effect.provide(AppLayer),
 			Effect.runPromise,
 		),
@@ -180,7 +187,8 @@ export const triggerPasswordResetRpc = createServerFn()
 			Effect.catchTags({
 				UserNotFoundError: () => Rpc.notFound("User"),
 			}),
-			Effect.catchAll(() => Rpc.err("Internal server error")),
+			Effect.catchAll(logAndReturnError("triggerPasswordReset")),
+			Effect.catchAllDefect(logAndReturnDefect("triggerPasswordReset")),
 			Effect.provide(AppLayer),
 			Effect.runPromise,
 		),

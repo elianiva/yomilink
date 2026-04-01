@@ -6,7 +6,7 @@ import { listTopics, createTopic, CreateTopicInput } from "@/features/analyzer/l
 import { authMiddleware } from "@/middlewares/auth";
 
 import { AppLayer } from "../app-layer";
-import { Rpc, logRpcError } from "../rpc-helper";
+import { Rpc, logRpcError, logAndReturnError, logAndReturnDefect } from "../rpc-helper";
 
 export const listTopicsRpc = createServerFn()
 	.middleware([authMiddleware])
@@ -15,7 +15,8 @@ export const listTopicsRpc = createServerFn()
 			Effect.map(Rpc.ok),
 			Effect.withSpan("listTopics"),
 			Effect.tapError(logRpcError("listTopics")),
-			Effect.catchAll(() => Rpc.err("Internal server error")),
+			Effect.catchAll(logAndReturnError("listTopics")),
+			Effect.catchAllDefect(logAndReturnDefect("listTopics")),
 			Effect.provide(AppLayer),
 			Effect.runPromise,
 		),
@@ -29,7 +30,8 @@ export const createTopicRpc = createServerFn()
 			Effect.map(Rpc.ok),
 			Effect.withSpan("createTopic"),
 			Effect.tapError(logRpcError("createTopic")),
-			Effect.catchAll(() => Rpc.err("Internal server error")),
+			Effect.catchAll(logAndReturnError("createTopic")),
+			Effect.catchAllDefect(logAndReturnDefect("createTopic")),
 			Effect.provide(AppLayer),
 			Effect.runPromise,
 		),

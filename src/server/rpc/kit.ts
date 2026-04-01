@@ -14,7 +14,7 @@ import {
 import { requireRoleMiddleware } from "@/middlewares/auth";
 
 import { AppLayer } from "../app-layer";
-import { Rpc, logRpcError } from "../rpc-helper";
+import { Rpc, logRpcError, logAndReturnError, logAndReturnDefect } from "../rpc-helper";
 
 export const listStudentKitsRpc = createServerFn()
 	.middleware([requireRoleMiddleware("teacher", "admin")])
@@ -23,7 +23,8 @@ export const listStudentKitsRpc = createServerFn()
 			Effect.map(Rpc.ok),
 			Effect.withSpan("listStudentKits"),
 			Effect.tapError(logRpcError("listStudentKits")),
-			Effect.catchAll(() => Rpc.err("Internal server error")),
+			Effect.catchAll(logAndReturnError("listStudentKits")),
+			Effect.catchAllDefect(logAndReturnDefect("listStudentKits")),
 			Effect.provide(AppLayer),
 			Effect.runPromise,
 		),
@@ -37,7 +38,8 @@ export const getKitRpc = createServerFn()
 			Effect.map(Rpc.ok),
 			Effect.withSpan("getKit"),
 			Effect.tapError(logRpcError("getKit")),
-			Effect.catchAll(() => Rpc.err("Internal server error")),
+			Effect.catchAll(logAndReturnError("getKit")),
+			Effect.catchAllDefect(logAndReturnDefect("getKit")),
 			Effect.provide(AppLayer),
 			Effect.runPromise,
 		),
@@ -51,7 +53,8 @@ export const getKitStatusRpc = createServerFn()
 			Effect.map(Rpc.ok),
 			Effect.withSpan("getKitStatus"),
 			Effect.tapError(logRpcError("getKitStatus")),
-			Effect.catchAll(() => Rpc.err("Internal server error")),
+			Effect.catchAll(logAndReturnError("getKitStatus")),
+			Effect.catchAllDefect(logAndReturnDefect("getKitStatus")),
 			Effect.provide(AppLayer),
 			Effect.runPromise,
 		),
@@ -68,7 +71,8 @@ export const generateKitRpc = createServerFn()
 			Effect.catchTags({
 				GoalMapNotFoundError: () => Rpc.notFound("Goal map"),
 			}),
-			Effect.catchAll(() => Rpc.err("Internal server error")),
+			Effect.catchAll(logAndReturnError("generateKit")),
+			Effect.catchAllDefect(logAndReturnDefect("generateKit")),
 			Effect.provide(AppLayer),
 			Effect.runPromise,
 		),

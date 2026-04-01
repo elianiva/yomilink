@@ -481,6 +481,11 @@ export const getMultipleLearnerMaps = Effect.fn("getMultipleLearnerMaps")(functi
 	const results = yield* Effect.all(
 		input.learnerMapIds.map((id) =>
 			getLearnerMapForAnalytics({ learnerMapId: id }).pipe(
+				Effect.tapError((error) =>
+					Effect.logError("Failed to get learner map for analytics", error).pipe(
+						Effect.annotateLogs({ learnerMapId: id }),
+					),
+				),
 				Effect.catchAll(() => Effect.succeed(null)),
 			),
 		),

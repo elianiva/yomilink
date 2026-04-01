@@ -23,7 +23,7 @@ import {
 import { requireRoleMiddleware } from "@/middlewares/auth";
 
 import { AppLayer } from "../app-layer";
-import { Rpc, logRpcError } from "../rpc-helper";
+import { Rpc, logRpcError, logAndReturnError, logAndReturnDefect } from "../rpc-helper";
 
 export const createAssignmentRpc = createServerFn()
 	.middleware([requireRoleMiddleware("teacher", "admin")])
@@ -37,7 +37,8 @@ export const createAssignmentRpc = createServerFn()
 			Effect.catchTags({
 				KitNotFoundError: () => Rpc.notFound("Kit"),
 			}),
-			Effect.catchAll(() => Rpc.err("Internal server error")),
+			Effect.catchAll(logAndReturnError("createAssignment")),
+			Effect.catchAllDefect(logAndReturnDefect("createAssignment")),
 			Effect.runPromise,
 		),
 	);
@@ -49,7 +50,8 @@ export const listTeacherAssignmentsRpc = createServerFn()
 			Effect.map(Rpc.ok),
 			Effect.withSpan("listTeacherAssignments"),
 			Effect.tapError(logRpcError("listTeacherAssignments")),
-			Effect.catchAll(() => Rpc.err("Internal server error")),
+			Effect.catchAll(logAndReturnError("listTeacherAssignments")),
+			Effect.catchAllDefect(logAndReturnDefect("listTeacherAssignments")),
 			Effect.provide(AppLayer),
 			Effect.runPromise,
 		),
@@ -66,7 +68,8 @@ export const deleteAssignmentRpc = createServerFn()
 			Effect.catchTags({
 				AssignmentNotFoundError: () => Rpc.notFound("Assignment"),
 			}),
-			Effect.catchAll(() => Rpc.err("Internal server error")),
+			Effect.catchAll(logAndReturnError("deleteAssignment")),
+			Effect.catchAllDefect(logAndReturnDefect("deleteAssignment")),
 			Effect.provide(AppLayer),
 			Effect.runPromise,
 		),
@@ -79,7 +82,8 @@ export const getAvailableCohortsRpc = createServerFn()
 			Effect.map(Rpc.ok),
 			Effect.withSpan("getAvailableCohorts"),
 			Effect.tapError(logRpcError("getAvailableCohorts")),
-			Effect.catchAll(() => Rpc.err("Internal server error")),
+			Effect.catchAll(logAndReturnError("getAvailableCohorts")),
+			Effect.catchAllDefect(logAndReturnDefect("getAvailableCohorts")),
 			Effect.provide(AppLayer),
 			Effect.runPromise,
 		),
@@ -92,7 +96,8 @@ export const getAvailableUsersRpc = createServerFn()
 			Effect.map(Rpc.ok),
 			Effect.withSpan("getAvailableUsers"),
 			Effect.tapError(logRpcError("getAvailableUsers")),
-			Effect.catchAll(() => Rpc.err("Internal server error")),
+			Effect.catchAll(logAndReturnError("getAvailableUsers")),
+			Effect.catchAllDefect(logAndReturnDefect("getAvailableUsers")),
 			Effect.provide(AppLayer),
 			Effect.runPromise,
 		),
@@ -105,7 +110,8 @@ export const getTeacherGoalMapsRpc = createServerFn()
 			Effect.map(Rpc.ok),
 			Effect.withSpan("getTeacherGoalMaps"),
 			Effect.tapError(logRpcError("getTeacherGoalMaps")),
-			Effect.catchAll(() => Rpc.err("Internal server error")),
+			Effect.catchAll(logAndReturnError("getTeacherGoalMaps")),
+			Effect.catchAllDefect(logAndReturnDefect("getTeacherGoalMaps")),
 			Effect.provide(AppLayer),
 			Effect.runPromise,
 		),
@@ -119,7 +125,8 @@ export const saveExperimentGroupsRpc = createServerFn()
 			Effect.map(() => Rpc.ok(true)),
 			Effect.withSpan("saveExperimentGroups"),
 			Effect.tapError(logRpcError("saveExperimentGroups")),
-			Effect.catchAll(() => Rpc.err("Internal server error")),
+			Effect.catchAll(logAndReturnError("saveExperimentGroups")),
+			Effect.catchAllDefect(logAndReturnDefect("saveExperimentGroups")),
 			Effect.provide(AppLayer),
 			Effect.runPromise,
 		),
@@ -135,7 +142,8 @@ export const getExperimentGroupsByAssignmentIdRpc = createServerFn()
 			Effect.map(Rpc.ok),
 			Effect.withSpan("getExperimentGroupsByAssignmentId"),
 			Effect.tapError(logRpcError("getExperimentGroupsByAssignmentId")),
-			Effect.catchAll(() => Rpc.err("Internal server error")),
+			Effect.catchAll(logAndReturnError("getExperimentGroupsByAssignmentId")),
+			Effect.catchAllDefect(logAndReturnDefect("getExperimentGroupsByAssignmentId")),
 			Effect.provide(AppLayer),
 			Effect.runPromise,
 		),
@@ -151,7 +159,8 @@ export const getAssignmentByPreTestFormIdRpc = createServerFn()
 			Effect.map(Rpc.ok),
 			Effect.withSpan("getAssignmentByPreTestFormId"),
 			Effect.tapError(logRpcError("getAssignmentByPreTestFormId")),
-			Effect.catchAll(() => Rpc.err("Internal server error")),
+			Effect.catchAll(logAndReturnError("getAssignmentByPreTestFormId")),
+			Effect.catchAllDefect(logAndReturnDefect("getAssignmentByPreTestFormId")),
 			Effect.provide(AppLayer),
 			Effect.runPromise,
 		),
@@ -170,7 +179,8 @@ export const getAssignmentByIdRpc = createServerFn()
 			Effect.catchTags({
 				AssignmentNotFoundError: () => Rpc.notFound("Assignment"),
 			}),
-			Effect.catchAll(() => Rpc.err("Internal server error")),
+			Effect.catchAll(logAndReturnError("getAssignmentById")),
+			Effect.catchAllDefect(logAndReturnDefect("getAssignmentById")),
 			Effect.provide(AppLayer),
 			Effect.runPromise,
 		),
@@ -186,7 +196,8 @@ export const getExperimentConditionRpc = createServerFn()
 			Effect.map(Rpc.ok),
 			Effect.withSpan("getExperimentCondition"),
 			Effect.tapError(logRpcError("getExperimentCondition")),
-			Effect.catchAll(() => Rpc.err("Internal server error")),
+			Effect.catchAll(logAndReturnError("getExperimentCondition")),
+			Effect.catchAllDefect(logAndReturnDefect("getExperimentCondition")),
 			Effect.provide(AppLayer),
 			Effect.runPromise,
 		),
@@ -203,7 +214,8 @@ export const getAssignmentExperimentStatusRpc = createServerFn()
 			Effect.catchTags({
 				AssignmentNotFoundError: () => Rpc.notFound("Assignment"),
 			}),
-			Effect.catchAll(() => Rpc.err("Internal server error")),
+			Effect.catchAll(logAndReturnError("getAssignmentExperimentStatus")),
+			Effect.catchAllDefect(logAndReturnDefect("getAssignmentExperimentStatus")),
 			Effect.provide(AppLayer),
 			Effect.runPromise,
 		),

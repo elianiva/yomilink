@@ -6,7 +6,7 @@ import { UpdateProfileInput, updateProfile } from "@/features/profile/lib/profil
 import { authMiddleware, authMiddlewareOptional } from "@/middlewares/auth";
 
 import { AppLayer } from "../app-layer";
-import { Rpc, logRpcError } from "../rpc-helper";
+import { Rpc, logRpcError, logAndReturnError, logAndReturnDefect } from "../rpc-helper";
 
 export const getMe = createServerFn()
 	.middleware([authMiddlewareOptional])
@@ -31,7 +31,8 @@ export const updateProfileRpc = createServerFn()
 			Effect.catchTags({
 				UserNotFoundError: () => Rpc.notFound("User"),
 			}),
-			Effect.catchAll(() => Rpc.err("Internal server error")),
+			Effect.catchAll(logAndReturnError("updateProfile")),
+			Effect.catchAllDefect(logAndReturnDefect("updateProfile")),
 			Effect.provide(AppLayer),
 			Effect.runPromise,
 		),

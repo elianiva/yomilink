@@ -39,7 +39,7 @@ import {
 import { requireRoleMiddleware } from "@/middlewares/auth";
 
 import { AppLayer } from "../app-layer";
-import { Rpc, logRpcError } from "../rpc-helper";
+import { Rpc, logRpcError, logAndReturnError, logAndReturnDefect } from "../rpc-helper";
 
 export const createFormRpc = createServerFn()
 	.middleware([requireRoleMiddleware("teacher", "admin")])
@@ -50,7 +50,8 @@ export const createFormRpc = createServerFn()
 			Effect.withSpan("createForm"),
 			Effect.tapError(logRpcError("createForm")),
 			Effect.provide(AppLayer),
-			Effect.catchAll(() => Rpc.err("Internal server error")),
+			Effect.catchAll(logAndReturnError("createForm")),
+			Effect.catchAllDefect(logAndReturnDefect("createForm")),
 			Effect.runPromise,
 		),
 	);
@@ -67,7 +68,8 @@ export const getFormByIdRpc = createServerFn()
 			Effect.catchTags({
 				FormNotFoundError: () => Rpc.notFound("Form"),
 			}),
-			Effect.catchAll(() => Rpc.err("Internal server error")),
+			Effect.catchAll(logAndReturnError("getFormById")),
+			Effect.catchAllDefect(logAndReturnDefect("getFormById")),
 			Effect.runPromise,
 		),
 	);
@@ -80,7 +82,8 @@ export const listFormsRpc = createServerFn()
 			Effect.withSpan("listForms"),
 			Effect.tapError(logRpcError("listForms")),
 			Effect.provide(AppLayer),
-			Effect.catchAll(() => Rpc.err("Internal server error")),
+			Effect.catchAll(logAndReturnError("listForms")),
+			Effect.catchAllDefect(logAndReturnDefect("listForms")),
 			Effect.runPromise,
 		),
 	);
@@ -93,7 +96,8 @@ export const getStudentFormsRpc = createServerFn()
 			Effect.withSpan("getStudentForms"),
 			Effect.tapError(logRpcError("getStudentForms")),
 			Effect.provide(AppLayer),
-			Effect.catchAll(() => Rpc.err("Internal server error")),
+			Effect.catchAll(logAndReturnError("getStudentForms")),
+			Effect.catchAllDefect(logAndReturnDefect("getStudentForms")),
 			Effect.runPromise,
 		),
 	);
@@ -110,7 +114,8 @@ export const deleteFormRpc = createServerFn()
 			Effect.catchTags({
 				FormNotFoundError: () => Rpc.notFound("Form"),
 			}),
-			Effect.catchAll(() => Rpc.err("Internal server error")),
+			Effect.catchAll(logAndReturnError("deleteForm")),
+			Effect.catchAllDefect(logAndReturnDefect("deleteForm")),
 			Effect.runPromise,
 		),
 	);
@@ -127,7 +132,8 @@ export const publishFormRpc = createServerFn()
 			Effect.catchTags({
 				FormNotFoundError: () => Rpc.notFound("Form"),
 			}),
-			Effect.catchAll(() => Rpc.err("Internal server error")),
+			Effect.catchAll(logAndReturnError("publishForm")),
+			Effect.catchAllDefect(logAndReturnDefect("publishForm")),
 			Effect.runPromise,
 		),
 	);
@@ -144,7 +150,8 @@ export const unpublishFormRpc = createServerFn()
 			Effect.catchTags({
 				FormNotFoundError: () => Rpc.notFound("Form"),
 			}),
-			Effect.catchAll(() => Rpc.err("Internal server error")),
+			Effect.catchAll(logAndReturnError("unpublishForm")),
+			Effect.catchAllDefect(logAndReturnDefect("unpublishForm")),
 			Effect.runPromise,
 		),
 	);
@@ -168,7 +175,8 @@ export const updateFormRpc = createServerFn()
 				FormNotFoundError: () => Rpc.notFound("Form"),
 				FormHasResponsesError: () => Rpc.err("Cannot update form: form has responses"),
 			}),
-			Effect.catchAll(() => Rpc.err("Internal server error")),
+			Effect.catchAll(logAndReturnError("updateForm")),
+			Effect.catchAllDefect(logAndReturnDefect("updateForm")),
 			Effect.runPromise,
 		),
 	);
@@ -185,7 +193,8 @@ export const cloneFormRpc = createServerFn()
 			Effect.catchTags({
 				FormNotFoundError: () => Rpc.notFound("Form"),
 			}),
-			Effect.catchAll(() => Rpc.err("Internal server error")),
+			Effect.catchAll(logAndReturnError("cloneForm")),
+			Effect.catchAllDefect(logAndReturnDefect("cloneForm")),
 			Effect.runPromise,
 		),
 	);
@@ -202,7 +211,8 @@ export const getFormResponsesRpc = createServerFn()
 			Effect.catchTags({
 				FormNotFoundError: () => Rpc.notFound("Form"),
 			}),
-			Effect.catchAll(() => Rpc.err("Internal server error")),
+			Effect.catchAll(logAndReturnError("getFormResponses")),
+			Effect.catchAllDefect(logAndReturnDefect("getFormResponses")),
 			Effect.runPromise,
 		),
 	);
@@ -221,7 +231,8 @@ export const submitFormResponseRpc = createServerFn()
 				FormNotPublishedError: () => Rpc.err("Form is not published"),
 				FormAlreadySubmittedError: () => Rpc.err("You have already submitted this form"),
 			}),
-			Effect.catchAll(() => Rpc.err("Internal server error")),
+			Effect.catchAll(logAndReturnError("submitFormResponse")),
+			Effect.catchAllDefect(logAndReturnDefect("submitFormResponse")),
 			Effect.runPromise,
 		),
 	);
@@ -242,7 +253,8 @@ export const reorderQuestionsRpc = createServerFn()
 				InvalidQuestionOrderError: () =>
 					Rpc.err("Invalid question order: question count mismatch or invalid IDs"),
 			}),
-			Effect.catchAll(() => Rpc.err("Internal server error")),
+			Effect.catchAll(logAndReturnError("reorderQuestions")),
+			Effect.catchAllDefect(logAndReturnDefect("reorderQuestions")),
 			Effect.runPromise,
 		),
 	);
@@ -260,7 +272,8 @@ export const createQuestionRpc = createServerFn()
 				FormNotFoundError: () => Rpc.notFound("Form"),
 				FormHasResponsesError: () => Rpc.err("Cannot add questions: form has responses"),
 			}),
-			Effect.catchAll(() => Rpc.err("Internal server error")),
+			Effect.catchAll(logAndReturnError("createQuestion")),
+			Effect.catchAllDefect(logAndReturnDefect("createQuestion")),
 			Effect.runPromise,
 		),
 	);
@@ -278,7 +291,8 @@ export const updateQuestionRpc = createServerFn()
 				QuestionNotFoundError: () => Rpc.notFound("Question"),
 				FormHasResponsesError: () => Rpc.err("Cannot edit question: form has responses"),
 			}),
-			Effect.catchAll(() => Rpc.err("Internal server error")),
+			Effect.catchAll(logAndReturnError("updateQuestion")),
+			Effect.catchAllDefect(logAndReturnDefect("updateQuestion")),
 			Effect.runPromise,
 		),
 	);
@@ -296,7 +310,8 @@ export const deleteQuestionRpc = createServerFn()
 				QuestionNotFoundError: () => Rpc.notFound("Question"),
 				FormHasResponsesError: () => Rpc.err("Cannot delete question: form has responses"),
 			}),
-			Effect.catchAll(() => Rpc.err("Internal server error")),
+			Effect.catchAll(logAndReturnError("deleteQuestion")),
+			Effect.catchAllDefect(logAndReturnDefect("deleteQuestion")),
 			Effect.runPromise,
 		),
 	);
@@ -313,7 +328,8 @@ export const checkFormUnlockRpc = createServerFn()
 			Effect.catchTags({
 				FormNotFoundError: () => Rpc.notFound("Form"),
 			}),
-			Effect.catchAll(() => Rpc.err("Internal server error")),
+			Effect.catchAll(logAndReturnError("checkFormUnlock")),
+			Effect.catchAllDefect(logAndReturnDefect("checkFormUnlock")),
 			Effect.runPromise,
 		),
 	);
@@ -327,7 +343,8 @@ export const unlockFormRpc = createServerFn()
 			Effect.withSpan("unlockForm"),
 			Effect.tapError(logRpcError("unlockForm")),
 			Effect.provide(AppLayer),
-			Effect.catchAll(() => Rpc.err("Internal server error")),
+			Effect.catchAll(logAndReturnError("getRegistrationFormStatus")),
+			Effect.catchAllDefect(logAndReturnDefect("getRegistrationFormStatus")),
 			Effect.runPromise,
 		),
 	);
@@ -340,7 +357,8 @@ export const getRegistrationFormStatusRpc = createServerFn()
 			Effect.withSpan("getRegistrationFormStatus"),
 			Effect.tapError(logRpcError("getRegistrationFormStatus")),
 			Effect.provide(AppLayer),
-			Effect.catchAll(() => Rpc.err("Internal server error")),
+			Effect.catchAll(logAndReturnError("getRegistrationFormStatus")),
+			Effect.catchAllDefect(logAndReturnDefect("getRegistrationFormStatus")),
 			Effect.runPromise,
 		),
 	);

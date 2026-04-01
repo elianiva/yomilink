@@ -22,7 +22,7 @@ import {
 import { authMiddleware } from "@/middlewares/auth";
 
 import { AppLayer } from "../app-layer";
-import { Rpc, logRpcError } from "../rpc-helper";
+import { Rpc, logRpcError, logAndReturnError, logAndReturnDefect } from "../rpc-helper";
 
 export const listStudentAssignmentsRpc = createServerFn()
 	.middleware([authMiddleware])
@@ -31,7 +31,8 @@ export const listStudentAssignmentsRpc = createServerFn()
 			Effect.map(Rpc.ok),
 			Effect.withSpan("listStudentAssignments"),
 			Effect.tapError(logRpcError("listStudentAssignments")),
-			Effect.catchAll(() => Rpc.err("Internal server error")),
+			Effect.catchAll(logAndReturnError("listStudentAssignments")),
+			Effect.catchAllDefect(logAndReturnDefect("listStudentAssignments")),
 			Effect.provide(AppLayer),
 			Effect.runPromise,
 		),
@@ -45,7 +46,8 @@ export const getAssignmentForStudentRpc = createServerFn()
 			Effect.map(Rpc.ok),
 			Effect.withSpan("getAssignmentForStudent"),
 			Effect.tapError(logRpcError("getAssignmentForStudent")),
-			Effect.catchAll(() => Rpc.err("Internal server error")),
+			Effect.catchAll(logAndReturnError("getAssignmentForStudent")),
+			Effect.catchAllDefect(logAndReturnDefect("getAssignmentForStudent")),
 			Effect.provide(AppLayer),
 			Effect.runPromise,
 		),
@@ -95,7 +97,8 @@ export const getDiagnosisRpc = createServerFn()
 			Effect.map(Rpc.ok),
 			Effect.withSpan("getDiagnosis"),
 			Effect.tapError(logRpcError("getDiagnosis")),
-			Effect.catchAll(() => Rpc.err("Internal server error")),
+			Effect.catchAll(logAndReturnError("getDiagnosis")),
+			Effect.catchAllDefect(logAndReturnDefect("getDiagnosis")),
 			Effect.provide(AppLayer),
 			Effect.runPromise,
 		),
@@ -126,7 +129,8 @@ export const getPeerStatsRpc = createServerFn()
 			Effect.map(Rpc.ok),
 			Effect.withSpan("getPeerStats"),
 			Effect.tapError(logRpcError("getPeerStats")),
-			Effect.catchAll(() => Rpc.err("Internal server error")),
+			Effect.catchAll(logAndReturnError("getPeerStats")),
+			Effect.catchAllDefect(logAndReturnDefect("getPeerStats")),
 			Effect.provide(AppLayer),
 			Effect.runPromise,
 		),

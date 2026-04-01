@@ -16,7 +16,7 @@ import {
 import { authMiddleware } from "@/middlewares/auth";
 
 import { AppLayer } from "../app-layer";
-import { Rpc, logRpcError } from "../rpc-helper";
+import { Rpc, logRpcError, logAndReturnError, logAndReturnDefect } from "../rpc-helper";
 
 export const getGoalMapRpc = createServerFn()
 	.middleware([authMiddleware])
@@ -26,7 +26,8 @@ export const getGoalMapRpc = createServerFn()
 			Effect.map(Rpc.ok),
 			Effect.withSpan("getGoalMap"),
 			Effect.tapError(logRpcError("getGoalMap")),
-			Effect.catchAll(() => Rpc.err("Internal server error")),
+			Effect.catchAll(logAndReturnError("getGoalMap")),
+			Effect.catchAllDefect(logAndReturnDefect("getGoalMap")),
 			Effect.provide(AppLayer),
 			Effect.runPromise,
 		),
@@ -47,7 +48,8 @@ export const saveGoalMapRpc = createServerFn()
 				GoalMapAccessDeniedError: (e: { goalMapId: string }) =>
 					Rpc.forbidden(`Access denied to goal map ${e.goalMapId}`),
 			}),
-			Effect.catchAll(() => Rpc.err("Internal server error")),
+			Effect.catchAll(logAndReturnError("saveGoalMap")),
+			Effect.catchAllDefect(logAndReturnDefect("saveGoalMap")),
 			Effect.provide(AppLayer),
 			Effect.runPromise,
 		),
@@ -72,7 +74,8 @@ export const listGoalMapsByTopicRpc = createServerFn()
 			Effect.map(Rpc.ok),
 			Effect.withSpan("listGoalMapsByTopic"),
 			Effect.tapError(logRpcError("listGoalMapsByTopic")),
-			Effect.catchAll(() => Rpc.err("Internal server error")),
+			Effect.catchAll(logAndReturnError("listGoalMapsByTopic")),
+			Effect.catchAllDefect(logAndReturnDefect("listGoalMapsByTopic")),
 			Effect.provide(AppLayer),
 			Effect.runPromise,
 		),
@@ -91,7 +94,8 @@ export const deleteGoalMapRpc = createServerFn()
 				GoalMapAccessDeniedError: (e: { goalMapId: string }) =>
 					Rpc.forbidden(`Access denied to goal map ${e.goalMapId}`),
 			}),
-			Effect.catchAll(() => Rpc.err("Internal server error")),
+			Effect.catchAll(logAndReturnError("deleteGoalMap")),
+			Effect.catchAllDefect(logAndReturnDefect("deleteGoalMap")),
 			Effect.provide(AppLayer),
 			Effect.runPromise,
 		),

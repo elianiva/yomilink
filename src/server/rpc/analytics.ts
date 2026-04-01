@@ -18,7 +18,7 @@ import {
 import { authMiddleware } from "@/middlewares/auth";
 
 import { AppLayer } from "../app-layer";
-import { Rpc, logRpcError } from "../rpc-helper";
+import { Rpc, logRpcError, logAndReturnError, logAndReturnDefect } from "../rpc-helper";
 
 export const getTeacherAssignmentsRpc = createServerFn()
 	.middleware([authMiddleware])
@@ -27,7 +27,8 @@ export const getTeacherAssignmentsRpc = createServerFn()
 			Effect.map(Rpc.ok),
 			Effect.withSpan("getTeacherAssignments"),
 			Effect.tapError(logRpcError("getTeacherAssignments")),
-			Effect.catchAll(() => Rpc.err("Internal server error")),
+			Effect.catchAll(logAndReturnError("getTeacherAssignments")),
+			Effect.catchAllDefect(logAndReturnDefect("getTeacherAssignments")),
 			Effect.provide(AppLayer),
 			Effect.runPromise,
 		),
@@ -45,7 +46,8 @@ export const getAnalyticsForAssignmentRpc = createServerFn()
 				AssignmentNotFoundError: () => Rpc.notFound("Assignment"),
 				GoalMapNotFoundError: () => Rpc.notFound("Goal map"),
 			}),
-			Effect.catchAll(() => Rpc.err("Internal server error")),
+			Effect.catchAll(logAndReturnError("getAnalyticsForAssignment")),
+			Effect.catchAllDefect(logAndReturnDefect("getAnalyticsForAssignment")),
 			Effect.provide(AppLayer),
 			Effect.runPromise,
 		),
@@ -64,7 +66,8 @@ export const getLearnerMapForAnalyticsRpc = createServerFn()
 				LearnerMapNotFoundError: () => Rpc.notFound("Learner map"),
 				GoalMapNotFoundError: () => Rpc.notFound("Goal map"),
 			}),
-			Effect.catchAll(() => Rpc.err("Internal server error")),
+			Effect.catchAll(logAndReturnError("getLearnerMapForAnalytics")),
+			Effect.catchAllDefect(logAndReturnDefect("getLearnerMapForAnalytics")),
 			Effect.provide(AppLayer),
 			Effect.runPromise,
 		),
@@ -78,7 +81,8 @@ export const getMultipleLearnerMapsRpc = createServerFn()
 			Effect.map(Rpc.ok),
 			Effect.withSpan("getMultipleLearnerMaps"),
 			Effect.tapError(logRpcError("getMultipleLearnerMaps")),
-			Effect.catchAll(() => Rpc.err("Internal server error")),
+			Effect.catchAll(logAndReturnError("getMultipleLearnerMaps")),
+			Effect.catchAllDefect(logAndReturnDefect("getMultipleLearnerMaps")),
 			Effect.provide(AppLayer),
 			Effect.runPromise,
 		),
@@ -95,7 +99,8 @@ export const getLearnerSummaryTextRpc = createServerFn()
 			Effect.catchTags({
 				LearnerMapNotFoundError: () => Rpc.notFound("Learner map"),
 			}),
-			Effect.catchAll(() => Rpc.err("Internal server error")),
+			Effect.catchAll(logAndReturnError("getLearnerSummaryText")),
+			Effect.catchAllDefect(logAndReturnDefect("getLearnerSummaryText")),
 			Effect.provide(AppLayer),
 			Effect.runPromise,
 		),
@@ -109,7 +114,8 @@ export const exportAnalyticsDataRpc = createServerFn()
 			Effect.map(Rpc.ok),
 			Effect.withSpan("exportAnalyticsData"),
 			Effect.tapError(logRpcError("exportAnalyticsData")),
-			Effect.catchAll(() => Rpc.err("Internal server error")),
+			Effect.catchAll(logAndReturnError("exportAnalyticsData")),
+			Effect.catchAllDefect(logAndReturnDefect("exportAnalyticsData")),
 			Effect.provide(AppLayer),
 			Effect.runPromise,
 		),
