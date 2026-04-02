@@ -8,30 +8,25 @@ export default defineConfig({
 	workers: process.env.CI ? 1 : undefined,
 	reporter: "html",
 	use: {
-		baseURL: "http://localhost:3000",
+		baseURL: "http://localhost:5173",
 		trace: "on-first-retry",
 	},
 	projects: [
+		{ name: "setup", testMatch: /.*\.setup\.ts/ },
 		{
 			name: "chromium",
 			use: { ...devices["Desktop Chrome"] },
+			dependencies: ["setup"],
 		},
 		{
 			name: "webkit",
 			use: { ...devices["Desktop Safari"] },
-		},
-		{
-			name: "Mobile Chrome",
-			use: { ...devices["Pixel 5"] },
-		},
-		{
-			name: "Mobile Safari",
-			use: { ...devices["iPhone 12"] },
+			dependencies: ["setup"],
 		},
 	],
 	webServer: {
 		command: "vp dev",
-		url: "http://localhost:3000",
+		url: "http://localhost:5173",
 		reuseExistingServer: !process.env.CI,
 	},
 });
