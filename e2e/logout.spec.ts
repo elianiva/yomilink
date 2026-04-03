@@ -6,8 +6,8 @@ test.describe("Logout - Basic Flow", () => {
 		await studentPage.goto("/dashboard/assignments");
 
 		// Open user menu and click logout
-		await studentPage.click('[data-sidebar="menu-button"]');
-		await studentPage.click("text=Log out");
+		await studentPage.locator('[data-sidebar="menu-button"]').click();
+		await studentPage.locator("text=Log out").click();
 
 		// Should redirect to login
 		await expect(studentPage).toHaveURL("/login");
@@ -16,8 +16,8 @@ test.describe("Logout - Basic Flow", () => {
 	test("should logout teacher from user menu", async ({ teacherPage }) => {
 		await teacherPage.goto("/dashboard");
 
-		await teacherPage.click('[data-sidebar="menu-button"]');
-		await teacherPage.click("text=Log out");
+		await teacherPage.locator('[data-sidebar="menu-button"]').click();
+		await teacherPage.locator("text=Log out").click();
 
 		await expect(teacherPage).toHaveURL("/login");
 	});
@@ -25,8 +25,8 @@ test.describe("Logout - Basic Flow", () => {
 	test("should show success toast after logout", async ({ studentPage }) => {
 		await studentPage.goto("/dashboard/assignments");
 
-		await studentPage.click('[data-sidebar="menu-button"]');
-		await studentPage.click("text=Log out");
+		await studentPage.locator('[data-sidebar="menu-button"]').click();
+		await studentPage.locator("text=Log out").click();
 
 		// Check for toast message
 		await expect(studentPage.locator("text=You have been logged out")).toBeVisible();
@@ -36,8 +36,8 @@ test.describe("Logout - Basic Flow", () => {
 		await studentPage.goto("/dashboard/assignments");
 
 		// Logout
-		await studentPage.click('[data-sidebar="menu-button"]');
-		await studentPage.click("text=Log out");
+		await studentPage.locator('[data-sidebar="menu-button"]').click();
+		await studentPage.locator("text=Log out").click();
 		await expect(studentPage).toHaveURL("/login");
 
 		// Try to access protected page
@@ -51,8 +51,8 @@ test.describe("Logout - Basic Flow", () => {
 		await studentPage.goto("/dashboard/assignments");
 
 		// Logout
-		await studentPage.click('[data-sidebar="menu-button"]');
-		await studentPage.click("text=Log out");
+		await studentPage.locator('[data-sidebar="menu-button"]').click();
+		await studentPage.locator("text=Log out").click();
 		await expect(studentPage).toHaveURL("/login");
 
 		// Try back button
@@ -68,7 +68,7 @@ test.describe("Logout - Profile Page", () => {
 		await studentPage.goto("/dashboard/profile");
 
 		// Profile page has separate logout button
-		await studentPage.click('button:has-text("Sign out")');
+		await studentPage.locator('button:has-text("Sign out")').click();
 
 		await expect(studentPage).toHaveURL("/login");
 	});
@@ -77,7 +77,7 @@ test.describe("Logout - Profile Page", () => {
 		await studentPage.goto("/dashboard/profile");
 
 		// Click sign out
-		await studentPage.click('button:has-text("Sign out")');
+		await studentPage.locator('button:has-text("Sign out")').click();
 
 		// Should redirect immediately (no confirm dialog based on current implementation)
 		await expect(studentPage).toHaveURL("/login");
@@ -99,8 +99,8 @@ test.describe("Logout - Multiple Sessions", () => {
 		await page2.goto("/dashboard");
 
 		// Logout from page1
-		await page1.click('[data-sidebar="menu-button"]');
-		await page1.click("text=Log out");
+		await page1.locator('[data-sidebar="menu-button"]').click();
+		await page1.locator("text=Log out").click();
 
 		// Both should redirect
 		await expect(page1).toHaveURL("/login");

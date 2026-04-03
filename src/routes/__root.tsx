@@ -16,6 +16,7 @@ interface MyRouterContext {
 }
 
 const isDev = import.meta.env.DEV;
+const disableReactScan = import.meta.env.VITE_DISABLE_REACT_SCAN === "true";
 
 // Lazy load dev tools only in development
 const DevTools = lazy(() =>
@@ -33,13 +34,14 @@ export const Route = createRootRouteWithContext<MyRouterContext>()({
 			{ rel: "stylesheet", href: appCss },
 			{ rel: "stylesheet", href: fredokaFont },
 		],
-		scripts: isDev
-			? [
-					{
-						src: "https://cdn.jsdelivr.net/npm/react-scan/dist/auto.global.js",
-					},
-				]
-			: [],
+		scripts:
+			isDev && !disableReactScan
+				? [
+						{
+							src: "https://cdn.jsdelivr.net/npm/react-scan/dist/auto.global.js",
+						},
+					]
+				: [],
 	}),
 	notFoundComponent: NotFound,
 	shellComponent: RootDocument,

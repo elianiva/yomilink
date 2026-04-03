@@ -73,13 +73,14 @@ test.describe("Login - Navigation Links", () => {
 
 	test("should maintain login form state after navigating away and back", async ({ page }) => {
 		await page.goto("/login");
-		await page.fill("#email", "test@example.com");
+		await page.waitForSelector("#email");
+		await page.locator("#email").fill("test@example.com");
 
-		await page.click('a:has-text("Sign up")');
+		await page.locator('a:has-text("Sign up")').click();
 		await expect(page).toHaveURL("/signup");
 
 		// Navigate back
-		await page.click('a:has-text("Sign in")');
+		await page.locator('a:has-text("Sign in")').click();
 
 		// Form should be empty (new page load)
 		const emailValue = await page.inputValue("#email");

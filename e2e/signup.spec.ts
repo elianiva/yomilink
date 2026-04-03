@@ -22,9 +22,10 @@ import type { Page } from "@playwright/test";
  */
 async function navigateToStep(page: Page, step: number): Promise<void> {
 	await page.goto("/signup");
+	await page.waitForSelector("#name");
 
 	for (let i = 0; i < step; i++) {
-		await page.click('button:has-text("Next")');
+		await page.locator('button:has-text("Next")').click();
 	}
 }
 
@@ -32,10 +33,11 @@ test.describe("Signup - Step 1: Account", () => {
 	test("should complete account step with valid data", async ({ page }) => {
 		await page.goto("/signup");
 
-		await page.fill("#name", "Test User");
-		await page.fill("#email", generateTestEmail("step1"));
-		await page.fill("#password", "password123");
-		await page.fill("#confirmPassword", "password123");
+		await page.waitForSelector("#name");
+		await page.locator("#name").fill("Test User");
+		await page.locator("#email").fill(generateTestEmail("step1"));
+		await page.locator("#password").fill("password123");
+		await page.locator("#confirmPassword").fill("password123");
 
 		// Next button should be enabled
 		await expect(page.locator('button:has-text("Next")')).toBeEnabled();
@@ -44,9 +46,10 @@ test.describe("Signup - Step 1: Account", () => {
 	test("should show error when passwords don't match", async ({ page }) => {
 		await page.goto("/signup");
 
-		await page.fill("#password", "password123");
-		await page.fill("#confirmPassword", "differentpassword");
-		await page.click('button:has-text("Next")');
+		await page.waitForSelector("#password");
+		await page.locator("#password").fill("password123");
+		await page.locator("#confirmPassword").fill("differentpassword");
+		await page.locator('button:has-text("Next")').click();
 
 		// Should show validation error
 		await expect(page.locator("text=Passwords do not match")).toBeVisible();
@@ -56,30 +59,31 @@ test.describe("Signup - Step 1: Account", () => {
 		await page.goto("/signup");
 
 		// Use existing seed user email
-		await page.fill("#name", "Test User");
-		await page.fill("#email", "tanaka@demo.local");
-		await page.fill("#password", "password123");
-		await page.fill("#confirmPassword", "password123");
+		await page.waitForSelector("#name");
+		await page.locator("#name").fill("Test User");
+		await page.locator("#email").fill("tanaka@demo.local");
+		await page.locator("#password").fill("password123");
+		await page.locator("#confirmPassword").fill("password123");
 
 		// Navigate through all steps
-		await page.click('button:has-text("Next")');
+		await page.locator('button:has-text("Next")').click();
 
 		// Step 2
-		await page.fill("#age", "20");
-		await page.locator('[id="jlptLevel"]').click();
-		await page.click("text=N5 (Beginner)");
-		await page.fill("#japaneseLearningDuration", "6");
-		await page.fill("#mediaConsumption", "3");
-		await page.click('button:has-text("Next")');
+		await page.locator("#age").fill("20");
+		await page.locator('#jlptLevel').click();
+		await page.locator('text=N5 (Beginner)').click();
+		await page.locator("#japaneseLearningDuration").fill("6");
+		await page.locator("#mediaConsumption").fill("3");
+		await page.locator('button:has-text("Next")').click();
 
 		// Step 3 - Cohort
-		await page.locator('[id="cohortId"]').click();
-		await page.click(`text=${TEST_COHORT}`);
-		await page.click('button:has-text("Next")');
+		await page.locator('#cohortId').click();
+		await page.locator(`text=${TEST_COHORT}`).click();
+		await page.locator('button:has-text("Next")').click();
 
 		// Step 4 - Consent
-		await page.click('input[id="consentGiven"]');
-		await page.click('button:has-text("Create Account")');
+		await page.locator('#consentGiven').click();
+		await page.locator('button:has-text("Create Account")').click();
 
 		// Should show error
 		await expect(page.locator("text=already exists")).toBeVisible();
@@ -90,14 +94,15 @@ test.describe("Signup - Step 2: Personal", () => {
 	test("should complete personal step with required fields", async ({ page }) => {
 		await navigateToStep(page, 1);
 
-		await page.fill("#age", "20");
+		await page.waitForSelector("#age");
+		await page.locator("#age").fill("20");
 
 		// Select JLPT level from searchable select
-		await page.locator('[id="jlptLevel"]').click();
-		await page.click("text=N4 (Elementary)");
+		await page.locator('#jlptLevel').click();
+		await page.locator("text=N4 (Elementary)").click();
 
-		await page.fill("#japaneseLearningDuration", "12");
-		await page.fill("#mediaConsumption", "5");
+		await page.locator("#japaneseLearningDuration").fill("12");
+		await page.locator("#mediaConsumption").fill("5");
 
 		// Optional fields can be empty
 		await expect(page.locator('button:has-text("Next")')).toBeEnabled();
@@ -106,13 +111,14 @@ test.describe("Signup - Step 2: Personal", () => {
 	test("should fill optional fields in personal step", async ({ page }) => {
 		await navigateToStep(page, 1);
 
-		await page.fill("#age", "22");
-		await page.locator('[id="jlptLevel"]').click();
-		await page.click("text=N3 (Intermediate)");
-		await page.fill("#japaneseLearningDuration", "18");
-		await page.fill("#previousJapaneseScore", "75");
-		await page.fill("#mediaConsumption", "8");
-		await page.fill("#motivation", "I want to study in Japan");
+		await page.waitForSelector("#age");
+		await page.locator("#age").fill("22");
+		await page.locator('#jlptLevel').click();
+		await page.locator("text=N3 (Intermediate)").click();
+		await page.locator("#japaneseLearningDuration").fill("18");
+		await page.locator("#previousJapaneseScore").fill("75");
+		await page.locator("#mediaConsumption").fill("8");
+		await page.locator("#motivation").fill("I want to study in Japan");
 
 		await expect(page.locator('button:has-text("Next")')).toBeEnabled();
 	});
@@ -120,7 +126,8 @@ test.describe("Signup - Step 2: Personal", () => {
 	test("should validate age range", async ({ page }) => {
 		await navigateToStep(page, 1);
 
-		await page.fill("#age", "999");
+		await page.waitForSelector("#age");
+		await page.locator("#age").fill("999");
 		// Should show some validation (if implemented)
 		// Currently schema allows any number
 	});
@@ -131,12 +138,13 @@ test.describe("Signup - Step 3: Academic", () => {
 		await navigateToStep(page, 2);
 
 		// Step 2 fields
-		await page.fill("#age", "20");
-		await page.locator('[id="jlptLevel"]').click();
-		await page.click("text=N5 (Beginner)");
-		await page.fill("#japaneseLearningDuration", "6");
-		await page.fill("#mediaConsumption", "2");
-		await page.click('button:has-text("Next")');
+		await page.waitForSelector("#age");
+		await page.locator("#age").fill("20");
+		await page.locator('#jlptLevel').click();
+		await page.locator("text=N5 (Beginner)").click();
+		await page.locator("#japaneseLearningDuration").fill("6");
+		await page.locator("#mediaConsumption").fill("2");
+		await page.locator('button:has-text("Next")').click();
 
 		// Now on step 3
 		// Next should be disabled without cohort
@@ -147,16 +155,17 @@ test.describe("Signup - Step 3: Academic", () => {
 		await navigateToStep(page, 2);
 
 		// Fill step 2 first
-		await page.fill("#age", "20");
-		await page.locator('[id="jlptLevel"]').click();
-		await page.click("text=N5 (Beginner)");
-		await page.fill("#japaneseLearningDuration", "6");
-		await page.fill("#mediaConsumption", "2");
-		await page.click('button:has-text("Next")');
+		await page.waitForSelector("#age");
+		await page.locator("#age").fill("20");
+		await page.locator('#jlptLevel').click();
+		await page.locator("text=N5 (Beginner)").click();
+		await page.locator("#japaneseLearningDuration").fill("6");
+		await page.locator("#mediaConsumption").fill("2");
+		await page.locator('button:has-text("Next")').click();
 
 		// Select cohort
-		await page.locator('[id="cohortId"]').click();
-		await page.click(`text=${TEST_COHORT}`);
+		await page.locator('#cohortId').click();
+		await page.locator(`text=${TEST_COHORT}`).click();
 
 		await expect(page.locator('button:has-text("Next")')).toBeEnabled();
 	});
@@ -165,17 +174,18 @@ test.describe("Signup - Step 3: Academic", () => {
 		await navigateToStep(page, 2);
 
 		// Fill step 2
-		await page.fill("#age", "20");
-		await page.locator('[id="jlptLevel"]').click();
-		await page.click("text=N5 (Beginner)");
-		await page.fill("#japaneseLearningDuration", "6");
-		await page.fill("#mediaConsumption", "2");
-		await page.click('button:has-text("Next")');
+		await page.waitForSelector("#age");
+		await page.locator("#age").fill("20");
+		await page.locator('#jlptLevel').click();
+		await page.locator("text=N5 (Beginner)").click();
+		await page.locator("#japaneseLearningDuration").fill("6");
+		await page.locator("#mediaConsumption").fill("2");
+		await page.locator('button:has-text("Next")').click();
 
 		// Step 3 with student ID
-		await page.locator('[id="cohortId"]').click();
-		await page.click(`text=${TEST_COHORT}`);
-		await page.fill("#studentId", "S123456");
+		await page.locator('#cohortId').click();
+		await page.locator(`text=${TEST_COHORT}`).click();
+		await page.locator("#studentId").fill("S123456");
 
 		await expect(page.locator('button:has-text("Next")')).toBeEnabled();
 	});
@@ -186,17 +196,18 @@ test.describe("Signup - Step 4: Consent", () => {
 		await navigateToStep(page, 3);
 
 		// Fill step 2
-		await page.fill("#age", "20");
-		await page.locator('[id="jlptLevel"]').click();
-		await page.click("text=N5 (Beginner)");
-		await page.fill("#japaneseLearningDuration", "6");
-		await page.fill("#mediaConsumption", "2");
-		await page.click('button:has-text("Next")');
+		await page.waitForSelector("#age");
+		await page.locator("#age").fill("20");
+		await page.locator('#jlptLevel').click();
+		await page.locator("text=N5 (Beginner)").click();
+		await page.locator("#japaneseLearningDuration").fill("6");
+		await page.locator("#mediaConsumption").fill("2");
+		await page.locator('button:has-text("Next")').click();
 
 		// Step 3
-		await page.locator('[id="cohortId"]').click();
-		await page.click(`text=${TEST_COHORT}`);
-		await page.click('button:has-text("Next")');
+		await page.locator('#cohortId').click();
+		await page.locator(`text=${TEST_COHORT}`).click();
+		await page.locator('button:has-text("Next")').click();
 
 		// Step 4 - submit should be disabled without consent
 		await expect(page.locator('button:has-text("Create Account")')).toBeDisabled();
