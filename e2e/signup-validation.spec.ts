@@ -214,14 +214,14 @@ test.describe("Signup - Step 4 Validation", () => {
 		await page.locator('button:has-text("Next")').click();
 
 		await page.locator("#age").fill("20");
-		await page.locator('#jlptLevel').click();
+		await page.locator("#jlptLevel").click();
 		await page.locator("text=N5 (Beginner)").click();
 		await page.locator("#japaneseLearningDuration").fill("6");
 		await page.locator("#mediaConsumption").fill("2");
 		await page.locator('button:has-text("Next")').click();
 
 		const TEST_COHORT = "Demo Class 2025";
-		await page.locator('#cohortId').click();
+		await page.locator("#cohortId").click();
 		await page.locator(`text=${TEST_COHORT}`).click();
 		await page.locator('button:has-text("Next")').click();
 
@@ -229,7 +229,7 @@ test.describe("Signup - Step 4 Validation", () => {
 		await expect(page.locator('button:has-text("Create Account")')).toBeDisabled();
 
 		// Click checkbox
-		await page.locator('#consentGiven').click();
+		await page.locator("#consentGiven").click();
 
 		// Should be enabled
 		await expect(page.locator('button:has-text("Create Account")')).toBeEnabled();
@@ -253,7 +253,7 @@ test.describe("Signup - Error Recovery", () => {
 
 		// Fix errors
 		await page.locator("#age").fill("25");
-		await page.locator('#jlptLevel').click();
+		await page.locator("#jlptLevel").click();
 		await page.locator("text=N4 (Elementary)").click();
 		await page.locator("#japaneseLearningDuration").fill("12");
 		await page.locator("#mediaConsumption").fill("5");

@@ -2,7 +2,7 @@ import { execSync } from "node:child_process";
 
 import { test as setup } from "@playwright/test";
 
-const authDir = "../playwright/.auth";
+const authDir = "./playwright/.auth";
 
 /**
  * Global setup for auth tests.
@@ -31,48 +31,52 @@ setup("authenticate student", async ({ page }) => {
 	await page.goto("/login");
 
 	// Wait for page to fully load and hydrate
-	await page.waitForSelector("#email");
-	await page.waitForTimeout(500);
+	await page.waitForSelector("#email", { state: "visible" });
 
-	// Login as demo student (tanaka)
-	// Use page.type() which properly triggers React input events
-	await page.type("#email", "tanaka@demo.local", { delay: 10 });
-	await page.type("#password", "demo12345", { delay: 10 });
+	// Fill credentials
+	await page.fill("#email", "tanaka@demo.local");
+	await page.fill("#password", "demo12345");
 
-	// Wait for React form state to update and button to be enabled
-	await page.waitForTimeout(200);
+	// Wait for form validation to pass and button to enable
+	await page.waitForFunction(() => {
+		const button = document.querySelector('button[type="submit"]') as HTMLButtonElement;
+		return button && !button.disabled;
+	});
 
-	// Click submit button
-	await page.click('button[type="submit"]');
+	// Click submit and wait for navigation
+	await Promise.all([
+		page.waitForURL("/dashboard/assignments", { timeout: 30000 }),
+		page.click('button[type="submit"]'),
+	]);
 
-	// Wait for navigation with generous timeout for dev server
-	await page.waitForURL("/dashboard/assignments", { timeout: 20000 });
-
-	// Save storage state
+	// Save storage state (cookies with session token)
 	await page.context().storageState({ path: `${authDir}/student.json` });
+	console.log("Student auth state saved");
 });
 
 setup("authenticate teacher", async ({ page }) => {
 	await page.goto("/login");
 
 	// Wait for page to fully load and hydrate
-	await page.waitForSelector("#email");
-	await page.waitForTimeout(500);
+	await page.waitForSelector("#email", { state: "visible" });
 
-	// Login as demo teacher
-	// Use page.type() which properly triggers React input events
-	await page.type("#email", "teacher@demo.local", { delay: 10 });
-	await page.type("#password", "teacher123", { delay: 10 });
+	// Fill credentials
+	await page.fill("#email", "teacher@demo.local");
+	await page.fill("#password", "teacher123");
 
-	// Wait for React form state to update and button to be enabled
-	await page.waitForTimeout(200);
+	// Wait for form validation to pass
+	await page.waitForFunction(() => {
+		const button = document.querySelector('button[type="submit"]') as HTMLButtonElement;
+		return button && !button.disabled;
+	});
 
-	// Click submit button
-	await page.click('button[type="submit"]');
-
-	// Wait for navigation with generous timeout
-	await page.waitForURL("/dashboard", { timeout: 20000 });
+	// Click submit and wait for navigation
+	await Promise.all([
+		page.waitForURL("/dashboard", { timeout: 30000 }),
+		page.click('button[type="submit"]'),
+	]);
 
 	// Save storage state
 	await page.context().storageState({ path: `${authDir}/teacher.json` });
+	console.log("Teacher auth state saved");
 });

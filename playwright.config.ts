@@ -33,6 +33,8 @@ export default defineConfig({
 		reuseExistingServer: true,
 		env: {
 			VITE_DISABLE_REACT_SCAN: "true",
+			SITE_URL: "http://localhost:5174",
+			BETTER_AUTH_URL: "http://localhost:5174",
 		},
 	},
 });

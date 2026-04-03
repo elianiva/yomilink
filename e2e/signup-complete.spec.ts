@@ -30,7 +30,7 @@ test.describe("Signup - Complete Flow", () => {
 
 		// === Step 2: Personal ===
 		await page.locator("#age").fill("21");
-		await page.locator('#jlptLevel').click();
+		await page.locator("#jlptLevel").click();
 		await page.locator("text=N4 (Elementary)").click();
 		await page.locator("#japaneseLearningDuration").fill("12");
 		await page.locator("#previousJapaneseScore").fill("80");
@@ -39,13 +39,13 @@ test.describe("Signup - Complete Flow", () => {
 		await page.locator('button:has-text("Next")').click();
 
 		// === Step 3: Academic ===
-		await page.locator('#cohortId').click();
+		await page.locator("#cohortId").click();
 		await page.locator(`text=${TEST_COHORT}`).click();
 		await page.locator("#studentId").fill("STU12345");
 		await page.locator('button:has-text("Next")').click();
 
 		// === Step 4: Consent ===
-		await page.locator('#consentGiven').click();
+		await page.locator("#consentGiven").click();
 
 		// Submit
 		await page.locator('button:has-text("Create Account")').click();
@@ -70,19 +70,19 @@ test.describe("Signup - Complete Flow", () => {
 
 		// Step 2
 		await page.locator("#age").fill("19");
-		await page.locator('#jlptLevel').click();
+		await page.locator("#jlptLevel").click();
 		await page.locator("text=N5 (Beginner)").click();
 		await page.locator("#japaneseLearningDuration").fill("3");
 		await page.locator("#mediaConsumption").fill("2");
 		await page.locator('button:has-text("Next")').click();
 
 		// Step 3
-		await page.locator('#cohortId').click();
+		await page.locator("#cohortId").click();
 		await page.locator(`text=${TEST_COHORT}`).click();
 		await page.locator('button:has-text("Next")').click();
 
 		// Step 4
-		await page.locator('#consentGiven').click();
+		await page.locator("#consentGiven").click();
 		await page.locator('button:has-text("Create Account")').click();
 
 		await expect(page).toHaveURL("/login");
@@ -114,7 +114,7 @@ test.describe("Signup - Complete Flow", () => {
 
 		// Step 2
 		await page.locator("#age").fill("25");
-		await page.locator('#jlptLevel').click();
+		await page.locator("#jlptLevel").click();
 		await page.locator("text=N3 (Intermediate)").click();
 		await page.locator("#japaneseLearningDuration").fill("24");
 		await page.locator("#mediaConsumption").fill("10");
@@ -124,7 +124,7 @@ test.describe("Signup - Complete Flow", () => {
 		await expect(page.locator("text=Academic Information")).toBeVisible();
 
 		// Step 3
-		await page.locator('#cohortId').click();
+		await page.locator("#cohortId").click();
 		await page.locator(`text=${TEST_COHORT}`).click();
 		await page.locator('button:has-text("Next")').click();
 
@@ -144,7 +144,7 @@ test.describe("Signup - Complete Flow", () => {
 
 		// Step 2
 		await page.locator("#age").fill("23");
-		await page.locator('#jlptLevel').click();
+		await page.locator("#jlptLevel").click();
 		await page.locator("text=N2 (Pre-Advanced)").click();
 		await page.locator("#japaneseLearningDuration").fill("48");
 		await page.locator("#mediaConsumption").fill("15");

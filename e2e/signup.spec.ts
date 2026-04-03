@@ -70,19 +70,19 @@ test.describe("Signup - Step 1: Account", () => {
 
 		// Step 2
 		await page.locator("#age").fill("20");
-		await page.locator('#jlptLevel').click();
-		await page.locator('text=N5 (Beginner)').click();
+		await page.locator("#jlptLevel").click();
+		await page.locator("text=N5 (Beginner)").click();
 		await page.locator("#japaneseLearningDuration").fill("6");
 		await page.locator("#mediaConsumption").fill("3");
 		await page.locator('button:has-text("Next")').click();
 
 		// Step 3 - Cohort
-		await page.locator('#cohortId').click();
+		await page.locator("#cohortId").click();
 		await page.locator(`text=${TEST_COHORT}`).click();
 		await page.locator('button:has-text("Next")').click();
 
 		// Step 4 - Consent
-		await page.locator('#consentGiven').click();
+		await page.locator("#consentGiven").click();
 		await page.locator('button:has-text("Create Account")').click();
 
 		// Should show error
@@ -98,7 +98,7 @@ test.describe("Signup - Step 2: Personal", () => {
 		await page.locator("#age").fill("20");
 
 		// Select JLPT level from searchable select
-		await page.locator('#jlptLevel').click();
+		await page.locator("#jlptLevel").click();
 		await page.locator("text=N4 (Elementary)").click();
 
 		await page.locator("#japaneseLearningDuration").fill("12");
@@ -113,7 +113,7 @@ test.describe("Signup - Step 2: Personal", () => {
 
 		await page.waitForSelector("#age");
 		await page.locator("#age").fill("22");
-		await page.locator('#jlptLevel').click();
+		await page.locator("#jlptLevel").click();
 		await page.locator("text=N3 (Intermediate)").click();
 		await page.locator("#japaneseLearningDuration").fill("18");
 		await page.locator("#previousJapaneseScore").fill("75");
@@ -140,7 +140,7 @@ test.describe("Signup - Step 3: Academic", () => {
 		// Step 2 fields
 		await page.waitForSelector("#age");
 		await page.locator("#age").fill("20");
-		await page.locator('#jlptLevel').click();
+		await page.locator("#jlptLevel").click();
 		await page.locator("text=N5 (Beginner)").click();
 		await page.locator("#japaneseLearningDuration").fill("6");
 		await page.locator("#mediaConsumption").fill("2");
@@ -157,14 +157,14 @@ test.describe("Signup - Step 3: Academic", () => {
 		// Fill step 2 first
 		await page.waitForSelector("#age");
 		await page.locator("#age").fill("20");
-		await page.locator('#jlptLevel').click();
+		await page.locator("#jlptLevel").click();
 		await page.locator("text=N5 (Beginner)").click();
 		await page.locator("#japaneseLearningDuration").fill("6");
 		await page.locator("#mediaConsumption").fill("2");
 		await page.locator('button:has-text("Next")').click();
 
 		// Select cohort
-		await page.locator('#cohortId').click();
+		await page.locator("#cohortId").click();
 		await page.locator(`text=${TEST_COHORT}`).click();
 
 		await expect(page.locator('button:has-text("Next")')).toBeEnabled();
@@ -176,14 +176,14 @@ test.describe("Signup - Step 3: Academic", () => {
 		// Fill step 2
 		await page.waitForSelector("#age");
 		await page.locator("#age").fill("20");
-		await page.locator('#jlptLevel').click();
+		await page.locator("#jlptLevel").click();
 		await page.locator("text=N5 (Beginner)").click();
 		await page.locator("#japaneseLearningDuration").fill("6");
 		await page.locator("#mediaConsumption").fill("2");
 		await page.locator('button:has-text("Next")').click();
 
 		// Step 3 with student ID
-		await page.locator('#cohortId').click();
+		await page.locator("#cohortId").click();
 		await page.locator(`text=${TEST_COHORT}`).click();
 		await page.locator("#studentId").fill("S123456");
 
@@ -198,14 +198,14 @@ test.describe("Signup - Step 4: Consent", () => {
 		// Fill step 2
 		await page.waitForSelector("#age");
 		await page.locator("#age").fill("20");
-		await page.locator('#jlptLevel').click();
+		await page.locator("#jlptLevel").click();
 		await page.locator("text=N5 (Beginner)").click();
 		await page.locator("#japaneseLearningDuration").fill("6");
 		await page.locator("#mediaConsumption").fill("2");
 		await page.locator('button:has-text("Next")').click();
 
 		// Step 3
-		await page.locator('#cohortId').click();
+		await page.locator("#cohortId").click();
 		await page.locator(`text=${TEST_COHORT}`).click();
 		await page.locator('button:has-text("Next")').click();
 

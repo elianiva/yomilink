@@ -18,6 +18,7 @@ export class Auth extends Effect.Service<Auth>()("Auth", {
 
 		return betterAuth({
 			baseURL: config.siteUrl,
+			trustedOrigins: [config.siteUrl, "http://localhost:5173", "http://localhost:5174"],
 			database: drizzleAdapter(db, {
 				provider: "sqlite",
 				schema: {
