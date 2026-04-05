@@ -22,18 +22,17 @@ function ConnectorNodeComponent({ id, data }: Partial<NodeProps<Node<{ label: st
 				{data?.label ?? "rel"}
 			</p>
 
-			{/* Target handle - left side */}
+			{/* Connection handles - both source type for ConnectionMode.Loose */}
 			<Handle
-				type="target"
-				id="target"
+				type="source"
+				id="left"
 				position={Position.Left}
 				isConnectable={true}
 				className={HANDLE_CLASSES}
 			/>
-			{/* Source handle - right side */}
 			<Handle
 				type="source"
-				id="source"
+				id="right"
 				position={Position.Right}
 				isConnectable={true}
 				className={HANDLE_CLASSES}

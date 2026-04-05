@@ -58,18 +58,17 @@ function TextNodeComponent({ id, data }: Partial<NodeProps<Node<TextNodeData>>>)
 			)}
 		>
 			<p className="text-sm font-medium leading-tight text-center">{data?.label ?? "Text"}</p>
-			{/* Target handle - left side */}
+			{/* Connection handles - both source type for ConnectionMode.Loose */}
 			<Handle
-				type="target"
-				id="target"
+				type="source"
+				id="left"
 				position={Position.Left}
 				isConnectable={true}
 				className={cn(HANDLE_CLASSES, colorClasses.handle)}
 			/>
-			{/* Source handle - right side */}
 			<Handle
 				type="source"
-				id="source"
+				id="right"
 				position={Position.Right}
 				isConnectable={true}
 				className={cn(HANDLE_CLASSES, colorClasses.handle)}
