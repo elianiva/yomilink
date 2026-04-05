@@ -1,23 +1,3 @@
-# Frontend Reading Material - Copy/Paste Version (Beginner)
-
-## For Manual Entry into the App
-
-### Title
-
-```
-Frontend Web Development Basics
-```
-
-### Description
-
-```
-Introduction to HTML structure, CSS styling, and basic JavaScript
-```
-
-### Content (Copy everything below the line)
-
----
-
 # Frontend Web Development Basics
 
 Frontend web development is the practice of building what users see and interact with on websites. There are three main technologies: **HTML**, **CSS**, and **JavaScript**.

@@ -9,7 +9,7 @@ import { AddConceptDialog } from "@/features/goal-map/components/add-concept-dia
 import "@xyflow/react/dist/style.css";
 import { AddLinkDialog } from "@/features/goal-map/components/add-link-dialog";
 import { EditorToolbar } from "@/features/goal-map/components/editor-toolbar";
-import { ImportMaterialDialog } from "@/features/goal-map/components/import-material-dialog";
+import { MaterialDialog } from "@/features/goal-map/components/material-dialog";
 import { SaveDialog, WarningsPanel } from "@/features/goal-map/components/save-dialog";
 import { useContextMenu } from "@/features/goal-map/hooks/use-context-menu";
 import { useGraphHandlers } from "@/features/goal-map/hooks/use-graph-handlers";
@@ -24,6 +24,7 @@ import {
 	editNodeAtom,
 	imagesAtom,
 	linkDialogOpenAtom,
+	materialDialogOpenAtom,
 	materialTextAtom,
 	searchOpenAtom,
 } from "@/features/goal-map/lib/atoms";
@@ -57,6 +58,7 @@ export function GoalMapEditor() {
 	const [materialImages, setMaterialImages] = useAtom(imagesAtom);
 	const materialText = useAtomValue(materialTextAtom);
 	const setMaterialText = useSetAtom(materialTextAtom);
+	const materialDialogOpen = useAtomValue(materialDialogOpenAtom);
 	const [isSavingForKit, setIsSavingForKit] = useState(false);
 
 	const { goalMapId } = routeApi.useParams();
@@ -369,7 +371,14 @@ export function GoalMapEditor() {
 				onCancel={() => setEditNode(null)}
 				onConfirm={(data) => handleEditNodeConfirm(data)}
 			/>
-			<ImportMaterialDialog goalMapId={goalMapId} />
+			{materialDialogOpen && (
+				<MaterialDialog
+					key={`${materialText.slice(0, 50)}-${materialImages.length}`}
+					goalMapId={goalMapId}
+					materialText={materialText}
+					materialImages={materialImages}
+				/>
+			)}
 			<SaveDialog
 				open={saveOpen}
 				saving={saving}

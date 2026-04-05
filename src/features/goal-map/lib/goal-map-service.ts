@@ -93,8 +93,8 @@ export type GoalMap = {
 	teacherId: string;
 	topicId: string | null;
 	kitId?: string | null;
-	nodes: Schema.Schema.Type<typeof NodeSchema>[];
-	edges: Schema.Schema.Type<typeof EdgeSchema>[];
+	nodes: readonly Schema.Schema.Type<typeof NodeSchema>[];
+	edges: readonly Schema.Schema.Type<typeof EdgeSchema>[];
 	createdAt: number | undefined;
 	updatedAt: number | undefined;
 };
@@ -110,6 +110,14 @@ export const DeleteGoalMapInput = Schema.Struct({
 });
 
 export type DeleteGoalMapInput = typeof DeleteGoalMapInput.Type;
+
+export const UpdateMaterialInput = Schema.Struct({
+	goalMapId: Schema.NonEmptyString,
+	materialText: Schema.optionalWith(Schema.String, { nullable: true }),
+	materialImages: Schema.optionalWith(Schema.Array(Schema.Any), { nullable: true }),
+});
+
+export type UpdateMaterialInput = typeof UpdateMaterialInput.Type;
 
 export const getGoalMap = Effect.fn("getGoalMap")(function* (input: GetGoalMapInput) {
 	const db = yield* Database;
@@ -332,18 +340,27 @@ export const listGoalMapsByTopic = Effect.fn("listGoalMapsByTopic")(function* (
 
 	const rows = yield* query.orderBy(desc(goalMaps.updatedAt));
 
-	return rows.map((row) => {
-		const nodes = Array.isArray(row.nodes) ? row.nodes : [];
-		const edges = Array.isArray(row.edges) ? row.edges : [];
+	return yield* Effect.all(
+		rows.map((row) =>
+			Effect.gen(function* () {
+				const [nodes, edges] = yield* Effect.all(
+					[
+						safeParseJson(row.nodes, [], Schema.Array(NodeSchema)),
+						safeParseJson(row.edges, [], Schema.Array(EdgeSchema)),
+					],
+					{ concurrency: "unbounded" },
+				);
 
-		return {
-			...row,
-			nodes,
-			edges,
-			createdAt: row.createdAt?.getTime(),
-			updatedAt: row.updatedAt?.getTime(),
-		};
-	});
+				return {
+					...row,
+					nodes,
+					edges,
+					createdAt: row.createdAt?.getTime(),
+					updatedAt: row.updatedAt?.getTime(),
+				};
+			}),
+		),
+	);
 });
 
 export const deleteGoalMap = Effect.fn("deleteGoalMap")(function* (
@@ -374,4 +391,86 @@ export const deleteGoalMap = Effect.fn("deleteGoalMap")(function* (
 
 	yield* Effect.tryPromise(() => db.delete(goalMaps).where(eq(goalMaps.id, input.goalMapId)));
 	return true;
+});
+
+export const updateMaterial = Effect.fn("updateMaterial")(function* (
+	userId: string,
+	input: UpdateMaterialInput,
+) {
+	const db = yield* Database;
+
+	// Authorization check
+	const goalMap = yield* Effect.tryPromise(() =>
+		db
+			.select({
+				teacherId: goalMaps.teacherId,
+				textId: goalMaps.textId,
+				title: goalMaps.title,
+			})
+			.from(goalMaps)
+			.where(eq(goalMaps.id, input.goalMapId))
+			.limit(1),
+	);
+
+	const existing = goalMap[0];
+	if (!existing) {
+		return yield* new GoalMapNotFoundError({ goalMapId: input.goalMapId });
+	}
+
+	if (existing.teacherId !== userId) {
+		return yield* new GoalMapAccessDeniedError({
+			goalMapId: input.goalMapId,
+			userId,
+		});
+	}
+
+	const hasMaterial =
+		input.materialText?.trim() || (input.materialImages && input.materialImages.length > 0);
+
+	let textId: string | null = existing.textId;
+
+	if (hasMaterial) {
+		if (existing.textId) {
+			// Update existing text record
+			yield* db
+				.update(texts)
+				.set({
+					content: input.materialText || "",
+					images:
+						input.materialImages && input.materialImages.length > 0
+							? JSON.stringify(input.materialImages)
+							: null,
+					updatedAt: new Date(),
+				})
+				.where(eq(texts.id, existing.textId));
+		} else {
+			// Create new text record
+			textId = crypto.randomUUID();
+			yield* db.insert(texts).values({
+				id: textId,
+				title: `Material for ${existing.title}`,
+				content: input.materialText || "",
+				images:
+					input.materialImages && input.materialImages.length > 0
+						? JSON.stringify(input.materialImages)
+						: null,
+			});
+
+			// Link text to goal map
+			yield* db
+				.update(goalMaps)
+				.set({ textId, updatedAt: new Date() })
+				.where(eq(goalMaps.id, input.goalMapId));
+		}
+	} else if (existing.textId) {
+		// Clear material - delete text record and unlink
+		yield* db.delete(texts).where(eq(texts.id, existing.textId));
+		yield* db
+			.update(goalMaps)
+			.set({ textId: null, updatedAt: new Date() })
+			.where(eq(goalMaps.id, input.goalMapId));
+		textId = null;
+	}
+
+	return { goalMapId: input.goalMapId, textId };
 });

@@ -34,12 +34,11 @@ export const linkDialogOpenAtom = atom(false);
 
 /** Controls visibility of the search dialog */
 export const searchDialogOpenAtom = atom(false);
-
-// Backward compatible alias
 export const searchOpenAtom = searchDialogOpenAtom;
 
-/** Controls visibility of the file import dialog */
-export const importDialogOpenAtom = atom(false);
+/** Controls visibility of the material dialog */
+export const materialDialogOpenAtom = atom(false);
+export const importDialogOpenAtom = materialDialogOpenAtom;
 
 // ============================================
 // Image State
@@ -87,17 +86,9 @@ export interface HistoryEntry {
 /** Full history stack for undo/redo functionality */
 export const historyAtom = atom<HistoryEntry[]>([{ nodes: [], edges: [] }]);
 
-// Backward compatible export
 export { historyAtom as historyAtomWithPointer };
 
-/**
- * Current position in the history stack.
- * 0 = initial state, history.length - 1 = most recent state.
- * @deprecated Use historyPointer to match old naming
- */
 export const historyPointerAtom = atom(0);
-
-// Backward compatible name
 export { historyPointerAtom as historyPointer };
 
 export const isApplyingHistoryAtom = atom(false);
@@ -136,5 +127,4 @@ export type EditNodeState = EditNodeData | null;
 
 export const editNodeAtom = atom<EditNodeState>(null);
 
-// Backward compatible name
 export { editNodeAtom as editNode };

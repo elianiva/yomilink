@@ -1,5 +1,5 @@
 import { useSetAtom } from "jotai";
-import { FileText, Grid3X3, Loader2, Plus, Save, Search, Shuffle, Trash2 } from "lucide-react";
+import { BookOpen, Grid3X3, Loader2, Plus, Save, Search, Shuffle, Trash2 } from "lucide-react";
 import { memo } from "react";
 
 import { ToolbarButton } from "@/components/toolbar/toolbar-button";
@@ -17,7 +17,7 @@ import {
 import { useSaveDialog } from "../hooks/use-save-dialog";
 import {
 	conceptDialogOpenAtom,
-	importDialogOpenAtom,
+	materialDialogOpenAtom,
 	linkDialogOpenAtom,
 	searchOpenAtom,
 } from "../lib/atoms";
@@ -65,7 +65,7 @@ function EditorToolbarImpl({
 }: EditorToolbarProps) {
 	const setConceptDialogOpen = useSetAtom(conceptDialogOpenAtom);
 	const setLinkDialogOpen = useSetAtom(linkDialogOpenAtom);
-	const setImportDialogOpen = useSetAtom(importDialogOpenAtom);
+	const setMaterialDialogOpen = useSetAtom(materialDialogOpenAtom);
 	const setSearchOpen = useSetAtom(searchOpenAtom);
 	const { setSaveOpen, setSaveAsOpen } = useSaveDialog();
 
@@ -117,13 +117,13 @@ function EditorToolbarImpl({
 							<Button
 								size="sm"
 								variant="outline"
-								onClick={() => setImportDialogOpen(true)}
+								onClick={() => setMaterialDialogOpen(true)}
 							>
-								<FileText className="size-4" />
-								Import
+								<BookOpen className="size-4" />
+								Material
 							</Button>
 						}
-						payload="Import learning material"
+						payload="Add learning material"
 					/>
 				</ButtonGroup>
 

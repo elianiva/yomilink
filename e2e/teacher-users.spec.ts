@@ -78,7 +78,7 @@ test.describe("Teacher - User Management", () => {
 			.click()
 			.catch(() => {
 				// If click fails, close the dropdown
-				teacherPage.keyboard.press("Escape");
+				void teacherPage.keyboard.press("Escape");
 			});
 
 		// Should show table

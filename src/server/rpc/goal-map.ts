@@ -12,6 +12,8 @@ import {
 	listGoalMapsByTopic,
 	SaveGoalMapInput,
 	saveGoalMap,
+	UpdateMaterialInput,
+	updateMaterial,
 } from "@/features/goal-map/lib/goal-map-service";
 import { authMiddleware } from "@/middlewares/auth";
 
@@ -100,6 +102,26 @@ export const deleteGoalMapRpc = createServerFn({ method: "POST" })
 		),
 	);
 
+export const updateMaterialRpc = createServerFn({ method: "POST" })
+	.middleware([authMiddleware])
+	.inputValidator((raw) => Schema.decodeUnknownSync(UpdateMaterialInput)(raw))
+	.handler(({ data, context }) =>
+		updateMaterial(context.user.id, data).pipe(
+			Effect.map(Rpc.ok),
+			Effect.withSpan("updateMaterial"),
+			Effect.tapError(logRpcError("updateMaterial")),
+			Effect.catchTags({
+				GoalMapNotFoundError: () => Rpc.notFound("Goal map"),
+				GoalMapAccessDeniedError: (e: { goalMapId: string }) =>
+					Rpc.forbidden(`Access denied to goal map ${e.goalMapId}`),
+			}),
+			Effect.catchAll(logAndReturnError("updateMaterial")),
+			Effect.catchAllDefect(logAndReturnDefect("updateMaterial")),
+			Effect.provide(AppLayer),
+			Effect.runPromise,
+		),
+	);
+
 export const GoalMapRpc = {
 	goalMap: () => ["goal-map"],
 	getGoalMap: (data: GetGoalMapInput) =>
@@ -126,5 +148,10 @@ export const GoalMapRpc = {
 		mutationOptions({
 			mutationKey: [...GoalMapRpc.goalMap()],
 			mutationFn: (data: DeleteGoalMapInput) => deleteGoalMapRpc({ data }),
+		}),
+	updateMaterial: () =>
+		mutationOptions({
+			mutationKey: [...GoalMapRpc.goalMap(), "material"],
+			mutationFn: (data: UpdateMaterialInput) => updateMaterialRpc({ data }),
 		}),
 };
