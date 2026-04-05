@@ -167,7 +167,7 @@ export const saveGoalMap = Effect.fn("saveGoalMap")(function* (
 ) {
 	const db = yield* Database;
 
-	// Authorization check INSIDE the service
+	// Authorization check for EXISTING maps - skip if map does not exist (upsert)
 	if (data.goalMapId !== NEW_GOAL_MAP_ID) {
 		const goalMap = yield* Effect.tryPromise(() =>
 			db
@@ -176,12 +176,9 @@ export const saveGoalMap = Effect.fn("saveGoalMap")(function* (
 				.where(eq(goalMaps.id, data.goalMapId))
 				.get(),
 		);
-
-		if (!goalMap) {
-			return yield* new GoalMapNotFoundError({ goalMapId: data.goalMapId });
-		}
-
-		if (goalMap.teacherId !== userId) {
+		// Only enforce ownership if map exists; allow creating with specific ID
+		// Also skip auth if teacherId is null (incomplete/orphaned record)
+		if (goalMap && goalMap.teacherId && goalMap.teacherId !== userId) {
 			return yield* new GoalMapAccessDeniedError({
 				goalMapId: data.goalMapId,
 				userId,

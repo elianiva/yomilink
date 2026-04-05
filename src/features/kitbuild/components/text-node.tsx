@@ -35,7 +35,7 @@ type TextNodeData = {
 
 function getColorClasses(data?: TextNodeData) {
 	const colour = data?.color ?? "amber";
-	const c = COLOR_CLASSES[colour];
+	const c = COLOR_CLASSES[colour] ?? COLOR_CLASSES.amber;
 	return {
 		container: cn(c.ring, c.text, "bg-background"),
 		handle: c.border,

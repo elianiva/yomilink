@@ -9,10 +9,6 @@ body {
 	-moz-osx-font-smoothing: grayscale;
 }
 
-/* Pastel Anthropic-inspired color system
- * Warm cream backgrounds, soft coral accents, sophisticated muted tones
- */
-
 :root {
 	/* Core palette - Light mode */
 	--background: oklch(0.985 0.005 75);
@@ -63,7 +59,7 @@ body {
 	--edge-neutral: oklch(0.55 0.04 65);
 
 	/* Sidebar - Slightly deeper cream */
-	--sidebar: oklch(0.975 0.006 75);
+	--sidebar: var(--background);
 	--sidebar-foreground: oklch(0.32 0.012 65);
 	--sidebar-primary: oklch(0.63 0.11 28);
 	--sidebar-primary-foreground: oklch(0.995 0.005 75);

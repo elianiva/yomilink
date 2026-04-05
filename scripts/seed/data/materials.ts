@@ -84,4 +84,9 @@ export const TOPICS = [
 		description: "Fundamental Japanese grammar structures and sentence patterns",
 		goalMapTitles: ["Desu/Masu Forms", "Particles Wa and Ga"],
 	},
+	{
+		title: "Frontend Web Development",
+		description: "Introduction to HTML, CSS, and basic JavaScript for web development",
+		goalMapTitles: ["Frontend Web Development Basics"],
+	},
 ];

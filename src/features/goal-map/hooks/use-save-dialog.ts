@@ -7,13 +7,12 @@ import { randomString } from "@/lib/utils";
 export type SaveMeta = {
 	topicId: string;
 	name: string;
-	description: string;
+	description?: string;
 };
 
 export const saveMetaAtom = atom<SaveMeta>({
 	topicId: "",
 	name: "",
-	description: "",
 });
 
 export const saveOpenAtom = atom(false);

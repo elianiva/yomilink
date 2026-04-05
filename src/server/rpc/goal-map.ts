@@ -44,7 +44,6 @@ export const saveGoalMapRpc = createServerFn()
 			Effect.catchTags({
 				GoalMapValidationError: (e: { errors: string[] }) =>
 					Rpc.err(`Validation failed: ${e.errors.join(", ")}`),
-				GoalMapNotFoundError: () => Rpc.notFound("Goal map"),
 				GoalMapAccessDeniedError: (e: { goalMapId: string }) =>
 					Rpc.forbidden(`Access denied to goal map ${e.goalMapId}`),
 			}),

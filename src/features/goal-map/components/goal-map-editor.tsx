@@ -379,7 +379,7 @@ export function GoalMapEditor() {
 				defaultName={saveMeta.name}
 				onCancel={() => setSaveOpen(false)}
 				onConfirm={async (meta) => {
-					doSave({ ...meta, description: saveMeta.description });
+					doSave(meta);
 					setSaveOpen(false);
 					updateMeta(meta);
 				}}
