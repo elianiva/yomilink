@@ -103,16 +103,6 @@ export { historyPointerAtom as historyPointer };
 export const isApplyingHistoryAtom = atom(false);
 
 // ============================================
-// Hydration State
-// ============================================
-
-/**
- * Indicates whether the goal map state has been hydrated
- * from the server/localStorage. Prevents hydration mismatches.
- */
-export const isHydratedAtom = atom(false);
-
-// ============================================
 // Context Menu State
 // ============================================
 

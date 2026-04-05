@@ -23,7 +23,6 @@ import {
 	contextMenuAtom,
 	editNodeAtom,
 	imagesAtom,
-	isHydratedAtom,
 	linkDialogOpenAtom,
 	materialTextAtom,
 	searchOpenAtom,
@@ -53,7 +52,6 @@ export function GoalMapEditor() {
 	const [conceptDialogOpen, setConceptDialogOpen] = useAtom(conceptDialogOpenAtom);
 	const [linkDialogOpen, setLinkDialogOpen] = useAtom(linkDialogOpenAtom);
 	const [searchOpen, setSearchOpen] = useAtom(searchOpenAtom);
-	const [isHydrated, setIsHydrated] = useAtom(isHydratedAtom);
 	const [contextMenu, setContextMenu] = useAtom(contextMenuAtom);
 	const [editNode, setEditNode] = useAtom(editNodeAtom);
 	const [materialImages, setMaterialImages] = useAtom(imagesAtom);
@@ -64,15 +62,21 @@ export function GoalMapEditor() {
 	const { goalMapId } = routeApi.useParams();
 	const navigate = useNavigate();
 
-	const { data: existing } = useRpcQuery(GoalMapRpc.getGoalMap({ goalMapId }));
+	const isNewMap = goalMapId === "new";
+
+	const { data: existing } = useRpcQuery({
+		...GoalMapRpc.getGoalMap({ goalMapId }),
+		enabled: !isNewMap,
+	});
 	const { data: topics, isLoading: topicsLoading } = useRpcQuery(TopicRpc.listTopics());
-	const { data: kitStatus } = useRpcQuery(KitRpc.getKitStatus(goalMapId));
+	const { data: kitStatus } = useRpcQuery({
+		...KitRpc.getKitStatus(goalMapId),
+		enabled: !isNewMap,
+	});
 
 	const generateKitMutation = useRpcMutation(KitRpc.generateKit(), {
 		operation: "generate kit",
 	});
-
-	const isNewMap = goalMapId === "new";
 
 	useEffect(() => {
 		if (isNewMap) {
@@ -204,7 +208,7 @@ export function GoalMapEditor() {
 	useKeyboardShortcuts(saving, doSave, saveMeta.name, saveMeta.topicId, isNewMap);
 
 	useEffect(() => {
-		if (existing && !isHydrated) {
+		if (existing) {
 			const loadedNodes = Array.isArray(existing.nodes) ? existing.nodes : [];
 			const loadedEdges = Array.isArray(existing.edges) ? existing.edges : [];
 			setNodes(loadedNodes);
@@ -222,18 +226,15 @@ export function GoalMapEditor() {
 					: [],
 			);
 			setLastSavedSnapshot(JSON.stringify({ nodes: loadedNodes, edges: loadedEdges }));
-			setIsHydrated(true);
 		}
 	}, [
 		existing,
-		isHydrated,
 		setNodes,
 		setEdges,
 		updateMeta,
 		setMaterialText,
 		setMaterialImages,
 		setLastSavedSnapshot,
-		setIsHydrated,
 	]);
 
 	const handleAddConcept = (data: { label: string; color: TailwindColor }) => {
