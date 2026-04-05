@@ -68,7 +68,9 @@ test.describe("Teacher - Analytics Dashboard", () => {
 			await teacherPage.waitForTimeout(500);
 
 			// Find learner checkbox
-			const learnerCheckbox = teacherPage.locator('input[type="checkbox"], button[role="checkbox"]').first();
+			const learnerCheckbox = teacherPage
+				.locator('input[type="checkbox"], button[role="checkbox"]')
+				.first();
 
 			if (await learnerCheckbox.isVisible().catch(() => false)) {
 				await learnerCheckbox.click();
@@ -117,8 +119,10 @@ test.describe("Teacher - Analytics Dashboard", () => {
 			await teacherPage.waitForTimeout(500);
 
 			// Look for visibility controls
-			const controls = teacherPage.locator('button[aria-label*="show" i], button[aria-label*="visibility" i], .visibility-toggle');
-			const hasControls = await controls.count() > 0;
+			const controls = teacherPage.locator(
+				'button[aria-label*="show" i], button[aria-label*="visibility" i], .visibility-toggle',
+			);
+			const hasControls = (await controls.count()) > 0;
 			expect(hasControls || true).toBe(true); // Soft assertion - controls may not always be visible
 		}
 	});

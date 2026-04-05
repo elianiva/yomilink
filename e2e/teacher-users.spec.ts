@@ -60,7 +60,10 @@ test.describe("Teacher - User Management", () => {
 		}
 
 		// Check if we have the role filter available
-		const roleTrigger = teacherPage.locator('[data-slot="select-trigger"]').filter({ hasText: /All Roles|Role/ }).first();
+		const roleTrigger = teacherPage
+			.locator('[data-slot="select-trigger"]')
+			.filter({ hasText: /All Roles|Role/ })
+			.first();
 		if (!(await roleTrigger.isVisible().catch(() => false))) {
 			test.skip(true, "Role filter not available");
 			return;
@@ -68,10 +71,15 @@ test.describe("Teacher - User Management", () => {
 
 		// Open role filter and select Student
 		await roleTrigger.click();
-		await teacherPage.locator('[role="option"], [data-slot="select-item"]').filter({ hasText: "Student" }).first().click().catch(() => {
-			// If click fails, close the dropdown
-			teacherPage.keyboard.press("Escape");
-		});
+		await teacherPage
+			.locator('[role="option"], [data-slot="select-item"]')
+			.filter({ hasText: "Student" })
+			.first()
+			.click()
+			.catch(() => {
+				// If click fails, close the dropdown
+				teacherPage.keyboard.press("Escape");
+			});
 
 		// Should show table
 		await expect(teacherPage.locator("table")).toBeVisible();
@@ -100,7 +108,10 @@ test.describe("Teacher - User Management", () => {
 		await cohortTriggers.nth(1).click();
 
 		// Try to select Demo Class 2025 if available
-		const demoOption = teacherPage.locator('[role="option"], [data-slot="select-item"]').filter({ hasText: "Demo Class 2025" }).first();
+		const demoOption = teacherPage
+			.locator('[role="option"], [data-slot="select-item"]')
+			.filter({ hasText: "Demo Class 2025" })
+			.first();
 		if (await demoOption.isVisible().catch(() => false)) {
 			await demoOption.click();
 		} else {
@@ -137,11 +148,15 @@ test.describe("Teacher - User Management", () => {
 		await teacherPage.waitForSelector("table");
 
 		// Find and click first user checkbox
-		const firstCheckbox = teacherPage.locator('table tbody tr:first-child td:first-child button[role="checkbox"], table tbody tr:first-child td:first-child input[type="checkbox"]').first();
+		const firstCheckbox = teacherPage
+			.locator(
+				'table tbody tr:first-child td:first-child button[role="checkbox"], table tbody tr:first-child td:first-child input[type="checkbox"]',
+			)
+			.first();
 		await firstCheckbox.click();
 
 		// Bulk actions should appear
-		await expect(teacherPage.locator('text=/\\d+ selected/')).toBeVisible();
+		await expect(teacherPage.locator("text=/\\d+ selected/")).toBeVisible();
 		await expect(teacherPage.locator('button:has-text("Assign to Cohort")')).toBeVisible();
 	});
 
@@ -153,7 +168,9 @@ test.describe("Teacher - User Management", () => {
 		await teacherPage.locator("table tbody tr:first-child").click();
 
 		// Detail sheet should open
-		await expect(teacherPage.locator('[data-slot="sheet-content"], [role="dialog"]')).toBeVisible();
+		await expect(
+			teacherPage.locator('[data-slot="sheet-content"], [role="dialog"]'),
+		).toBeVisible();
 		await expect(teacherPage.locator("text=User Details")).toBeVisible();
 	});
 
@@ -166,7 +183,7 @@ test.describe("Teacher - User Management", () => {
 		await teacherPage.waitForSelector("text=User Details");
 
 		// Edit name field
-		const nameInput = teacherPage.locator('input#name');
+		const nameInput = teacherPage.locator("input#name");
 		await nameInput.fill("Updated Test Name");
 
 		// Save changes
@@ -181,7 +198,9 @@ test.describe("Teacher - User Management", () => {
 		await teacherPage.waitForSelector("table");
 
 		// Select first two users
-		const checkboxes = teacherPage.locator('table tbody tr td:first-child button[role="checkbox"], table tbody tr td:first-child input[type="checkbox"]');
+		const checkboxes = teacherPage.locator(
+			'table tbody tr td:first-child button[role="checkbox"], table tbody tr td:first-child input[type="checkbox"]',
+		);
 		const count = await checkboxes.count();
 		if (count < 2) {
 			test.skip(true, "Not enough users to test bulk assign");
@@ -192,16 +211,23 @@ test.describe("Teacher - User Management", () => {
 		await checkboxes.nth(1).click();
 
 		// Click bulk assign button (outside any sheet/dialog)
-		const bulkButton = teacherPage.locator('button').filter({ hasText: /^Assign to Cohort$/ }).first();
+		const bulkButton = teacherPage
+			.locator("button")
+			.filter({ hasText: /^Assign to Cohort$/ })
+			.first();
 		await expect(bulkButton).toBeVisible();
 		await bulkButton.click();
 
 		// Bulk cohort dialog should open
 		await expect(teacherPage.locator('[role="dialog"]')).toBeVisible();
-		await expect(teacherPage.locator('[data-slot="dialog-title"]').filter({ hasText: "Assign to Cohort" })).toBeVisible();
+		await expect(
+			teacherPage
+				.locator('[data-slot="dialog-title"]')
+				.filter({ hasText: "Assign to Cohort" }),
+		).toBeVisible();
 
 		// Select cohort from dialog if Demo Class 2025 is available
-		const demoClass = teacherPage.locator('text=Demo Class 2025');
+		const demoClass = teacherPage.locator("text=Demo Class 2025");
 		if (await demoClass.isVisible().catch(() => false)) {
 			await demoClass.click();
 		}
@@ -226,7 +252,10 @@ test.describe("Teacher - User Management", () => {
 		await teacherPage.waitForSelector('[data-slot="sheet-content"]');
 
 		// Find password reset button within the sheet
-		const resetButton = teacherPage.locator('[data-slot="sheet-content"] button').filter({ hasText: "Reset Password" }).first();
+		const resetButton = teacherPage
+			.locator('[data-slot="sheet-content"] button')
+			.filter({ hasText: "Reset Password" })
+			.first();
 		if (await resetButton.isVisible().catch(() => false)) {
 			await resetButton.click();
 			// Wait for toast or confirmation

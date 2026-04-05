@@ -25,7 +25,11 @@ test.describe("Teacher - Forms Management", () => {
 
 		// Should show forms from seed data or empty state
 		const content = await teacherPage.locator("body").textContent();
-		const hasForms = content?.includes("Questionnaire") || content?.includes("Feedback") || content?.includes("Form") || content?.includes("No forms");
+		const hasForms =
+			content?.includes("Questionnaire") ||
+			content?.includes("Feedback") ||
+			content?.includes("Form") ||
+			content?.includes("No forms");
 		expect(hasForms).toBeTruthy();
 	});
 
@@ -46,7 +50,9 @@ test.describe("Teacher - Forms Management", () => {
 		await teacherPage.waitForSelector("text=Manage your forms");
 
 		// Look for edit button on first form
-		const editButton = teacherPage.locator('button[aria-label*="edit" i], button:has-text("Edit"]').first();
+		const editButton = teacherPage
+			.locator('button[aria-label*="edit" i], button:has-text("Edit"]')
+			.first();
 
 		if (await editButton.isVisible().catch(() => false)) {
 			await editButton.click();
@@ -62,7 +68,11 @@ test.describe("Teacher - Forms Management", () => {
 		await teacherPage.waitForSelector("text=Manage your forms");
 
 		// Look for results/view button on first form
-		const resultsButton = teacherPage.locator('button[aria-label*="result" i], button:has-text("Results"), button:has-text("View")').first();
+		const resultsButton = teacherPage
+			.locator(
+				'button[aria-label*="result" i], button:has-text("Results"), button:has-text("View")',
+			)
+			.first();
 
 		if (await resultsButton.isVisible().catch(() => false)) {
 			await resultsButton.click();
@@ -78,13 +88,17 @@ test.describe("Teacher - Forms Management", () => {
 		await teacherPage.waitForSelector("text=Manage your forms");
 
 		// Look for delete button on first form
-		const deleteButton = teacherPage.locator('button[aria-label*="delete" i], button:has-text("Delete"]').first();
+		const deleteButton = teacherPage
+			.locator('button[aria-label*="delete" i], button:has-text("Delete"]')
+			.first();
 
 		if (await deleteButton.isVisible().catch(() => false)) {
 			await deleteButton.click();
 
 			// Delete confirmation dialog should appear
-			await expect(teacherPage.locator('[role="alertdialog"], [role="dialog"]')).toBeVisible();
+			await expect(
+				teacherPage.locator('[role="alertdialog"], [role="dialog"]'),
+			).toBeVisible();
 			await expect(teacherPage.locator("text=Delete Form")).toBeVisible();
 
 			// Cancel the delete
@@ -108,7 +122,11 @@ test.describe("Teacher - Form Builder (basic navigation)", () => {
 		await expect(teacherPage.locator("body")).toContainText("Form");
 
 		// Check for form title input or some builder element
-		const hasBuilderElement = await teacherPage.locator('input[placeholder*="title" i], input#title, [data-slot="select-trigger"]').first().isVisible().catch(() => false);
+		const hasBuilderElement = await teacherPage
+			.locator('input[placeholder*="title" i], input#title, [data-slot="select-trigger"]')
+			.first()
+			.isVisible()
+			.catch(() => false);
 		expect(hasBuilderElement).toBeTruthy();
 	});
 });

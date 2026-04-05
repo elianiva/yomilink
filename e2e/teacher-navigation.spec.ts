@@ -37,7 +37,9 @@ test.describe("Teacher - Sidebar Navigation", () => {
 		await teacherPage.waitForSelector("text=Topics");
 
 		// Click assignments link
-		await teacherPage.click('a[href="/dashboard/assignments/manage"], nav a:has-text("Assignments")');
+		await teacherPage.click(
+			'a[href="/dashboard/assignments/manage"], nav a:has-text("Assignments")',
+		);
 
 		await teacherPage.waitForURL("**/dashboard/assignments/manage");
 		await expect(teacherPage.locator("text=Create and manage assignments")).toBeVisible();
@@ -70,7 +72,11 @@ test.describe("Teacher - Sidebar Navigation", () => {
 		await teacherPage.waitForSelector("text=Topics");
 
 		// Click profile link (usually in user menu)
-		const userMenu = teacherPage.locator('button[aria-label*="user" i], [data-testid="user-menu"], button:has-text("Teacher")').first();
+		const userMenu = teacherPage
+			.locator(
+				'button[aria-label*="user" i], [data-testid="user-menu"], button:has-text("Teacher")',
+			)
+			.first();
 		if (await userMenu.isVisible().catch(() => false)) {
 			await userMenu.click();
 			// Try to click profile link
@@ -90,7 +96,9 @@ test.describe("Teacher - Sidebar Navigation", () => {
 });
 
 test.describe("Access Control - Student cannot access teacher routes", () => {
-	test("student should be redirected from /dashboard to student assignments", async ({ studentPage }) => {
+	test("student should be redirected from /dashboard to student assignments", async ({
+		studentPage,
+	}) => {
 		await studentPage.goto("/dashboard");
 
 		// Student should be redirected to /dashboard/assignments
@@ -118,7 +126,9 @@ test.describe("Access Control - Student cannot access teacher routes", () => {
 		await expect(studentPage).toHaveURL(/\/dashboard\/assignments/);
 	});
 
-	test("student should be redirected from /dashboard/assignments/manage", async ({ studentPage }) => {
+	test("student should be redirected from /dashboard/assignments/manage", async ({
+		studentPage,
+	}) => {
 		await studentPage.goto("/dashboard/assignments/manage");
 
 		// Should redirect to student assignments

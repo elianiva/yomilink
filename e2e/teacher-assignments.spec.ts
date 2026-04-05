@@ -16,7 +16,9 @@ test.describe("Teacher - Assignment Management", () => {
 
 		// Wait for the page to load
 		await teacherPage.waitForSelector("text=Create and manage assignments");
-		await expect(teacherPage.locator("h1").filter({ hasText: "Manage Assignments" })).toBeVisible();
+		await expect(
+			teacherPage.locator("h1").filter({ hasText: "Manage Assignments" }),
+		).toBeVisible();
 	});
 
 	test("should show assignment list with data", async ({ teacherPage }) => {
@@ -25,7 +27,11 @@ test.describe("Teacher - Assignment Management", () => {
 
 		// Should show either assignments or empty state
 		const content = await teacherPage.locator("body").textContent();
-		const hasAssignments = content?.includes("Tanaka") || content?.includes("Quiz") || content?.includes("Assignment") || content?.includes("No assignments");
+		const hasAssignments =
+			content?.includes("Tanaka") ||
+			content?.includes("Quiz") ||
+			content?.includes("Assignment") ||
+			content?.includes("No assignments");
 		expect(hasAssignments).toBeTruthy();
 	});
 
@@ -68,7 +74,9 @@ test.describe("Teacher - Assignment Management", () => {
 		await teacherPage.waitForSelector("text=Create and manage assignments");
 
 		// Click on first assignment if exists
-		const firstAssignment = teacherPage.locator('[data-testid="assignment-card"], .assignment-item, [role="listitem"]').first();
+		const firstAssignment = teacherPage
+			.locator('[data-testid="assignment-card"], .assignment-item, [role="listitem"]')
+			.first();
 		if (await firstAssignment.isVisible().catch(() => false)) {
 			await firstAssignment.click();
 
@@ -83,13 +91,19 @@ test.describe("Teacher - Assignment Management", () => {
 		await teacherPage.waitForSelector("text=Create and manage assignments");
 
 		// Look for delete button on first assignment
-		const deleteButton = teacherPage.locator('button[aria-label*="delete" i], button:has-text("Delete"), [data-testid="delete-assignment"]').first();
+		const deleteButton = teacherPage
+			.locator(
+				'button[aria-label*="delete" i], button:has-text("Delete"), [data-testid="delete-assignment"]',
+			)
+			.first();
 
 		if (await deleteButton.isVisible().catch(() => false)) {
 			await deleteButton.click();
 
 			// Delete confirmation dialog should appear
-			await expect(teacherPage.locator('[role="alertdialog"], [role="dialog"]')).toBeVisible();
+			await expect(
+				teacherPage.locator('[role="alertdialog"], [role="dialog"]'),
+			).toBeVisible();
 			await expect(teacherPage.locator("text=Delete Assignment")).toBeVisible();
 
 			// Cancel the delete

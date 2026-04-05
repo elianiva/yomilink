@@ -26,7 +26,11 @@ test.describe("Teacher - Goal Maps Dashboard", () => {
 		await teacherPage.waitForSelector("text=Topics");
 
 		// Click on first topic if available
-		const firstTopic = teacherPage.locator('button:has-text("Japanese Vocabulary"), button:has-text("Grammar"), .topic-item, [role="button"]').first();
+		const firstTopic = teacherPage
+			.locator(
+				'button:has-text("Japanese Vocabulary"), button:has-text("Grammar"), .topic-item, [role="button"]',
+			)
+			.first();
 
 		if (await firstTopic.isVisible().catch(() => false)) {
 			await firstTopic.click();
@@ -54,20 +58,28 @@ test.describe("Teacher - Goal Maps Dashboard", () => {
 		await teacherPage.waitForSelector("text=Topics");
 
 		// Select a topic first
-		const firstTopic = teacherPage.locator('button:has-text("Japanese Vocabulary"), button:has-text("Grammar"), .topic-item').first();
+		const firstTopic = teacherPage
+			.locator(
+				'button:has-text("Japanese Vocabulary"), button:has-text("Grammar"), .topic-item',
+			)
+			.first();
 
 		if (await firstTopic.isVisible().catch(() => false)) {
 			await firstTopic.click();
 			await teacherPage.waitForTimeout(300);
 
 			// Look for goal map card with delete button
-			const deleteButton = teacherPage.locator('[data-testid="delete-goalmap"], button[aria-label*="delete" i]').first();
+			const deleteButton = teacherPage
+				.locator('[data-testid="delete-goalmap"], button[aria-label*="delete" i]')
+				.first();
 
 			if (await deleteButton.isVisible().catch(() => false)) {
 				await deleteButton.click();
 
 				// Should show confirmation dialog
-				await expect(teacherPage.locator('[role="alertdialog"], [role="dialog"]')).toBeVisible();
+				await expect(
+					teacherPage.locator('[role="alertdialog"], [role="dialog"]'),
+				).toBeVisible();
 
 				// Cancel
 				await teacherPage.click('button:has-text("Cancel")');
@@ -90,14 +102,20 @@ test.describe("Teacher - Goal Map Editor (basic navigation)", () => {
 		await teacherPage.waitForSelector("text=Topics");
 
 		// Select a topic
-		const firstTopic = teacherPage.locator('button:has-text("Japanese Vocabulary"), button:has-text("Grammar"), .topic-item').first();
+		const firstTopic = teacherPage
+			.locator(
+				'button:has-text("Japanese Vocabulary"), button:has-text("Grammar"), .topic-item',
+			)
+			.first();
 
 		if (await firstTopic.isVisible().catch(() => false)) {
 			await firstTopic.click();
 			await teacherPage.waitForTimeout(300);
 
 			// Look for a goal map link
-			const goalMapLink = teacherPage.locator('a[href*="/dashboard/goal-map/"], .goal-map-card').first();
+			const goalMapLink = teacherPage
+				.locator('a[href*="/dashboard/goal-map/"], .goal-map-card')
+				.first();
 
 			if (await goalMapLink.isVisible().catch(() => false)) {
 				await goalMapLink.click();
