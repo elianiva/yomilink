@@ -20,7 +20,7 @@ export const getMe = createServerFn()
 		),
 	);
 
-export const updateProfileRpc = createServerFn()
+export const updateProfileRpc = createServerFn({ method: "POST" })
 	.middleware([authMiddleware])
 	.inputValidator((raw) => Schema.decodeUnknownSync(UpdateProfileInput)(raw))
 	.handler(({ data, context }) =>

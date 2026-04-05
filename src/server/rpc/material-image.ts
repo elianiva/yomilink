@@ -11,7 +11,7 @@ import { authMiddleware } from "@/middlewares/auth";
 import { AppLayer } from "../app-layer";
 import { Rpc, logRpcError } from "../rpc-helper";
 
-export const uploadMaterialImageRpc = createServerFn()
+export const uploadMaterialImageRpc = createServerFn({ method: "POST" })
 	.middleware([authMiddleware])
 	.inputValidator((raw) => Schema.decodeUnknownSync(UploadMaterialImageInput)(raw))
 	.handler(({ data }) =>

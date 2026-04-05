@@ -60,7 +60,7 @@ export const getKitStatusRpc = createServerFn()
 		),
 	);
 
-export const generateKitRpc = createServerFn()
+export const generateKitRpc = createServerFn({ method: "POST" })
 	.middleware([requireRoleMiddleware("teacher", "admin")])
 	.inputValidator((raw) => Schema.decodeUnknownSync(GenerateKitInput)(raw))
 	.handler(({ data, context }) =>

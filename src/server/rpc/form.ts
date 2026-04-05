@@ -41,7 +41,7 @@ import { requireRoleMiddleware } from "@/middlewares/auth";
 import { AppLayer } from "../app-layer";
 import { Rpc, logRpcError, logAndReturnError, logAndReturnDefect } from "../rpc-helper";
 
-export const createFormRpc = createServerFn()
+export const createFormRpc = createServerFn({ method: "POST" })
 	.middleware([requireRoleMiddleware("teacher", "admin")])
 	.inputValidator((raw) => Schema.decodeUnknownSync(CreateFormInput)(raw))
 	.handler(({ data, context }) =>
@@ -102,7 +102,7 @@ export const getStudentFormsRpc = createServerFn()
 		),
 	);
 
-export const deleteFormRpc = createServerFn()
+export const deleteFormRpc = createServerFn({ method: "POST" })
 	.middleware([requireRoleMiddleware("teacher", "admin")])
 	.inputValidator((raw) => Schema.decodeUnknownSync(GetFormByIdInput)(raw))
 	.handler(({ data }) =>
@@ -120,7 +120,7 @@ export const deleteFormRpc = createServerFn()
 		),
 	);
 
-export const publishFormRpc = createServerFn()
+export const publishFormRpc = createServerFn({ method: "POST" })
 	.middleware([requireRoleMiddleware("teacher", "admin")])
 	.inputValidator((raw) => Schema.decodeUnknownSync(GetFormByIdInput)(raw))
 	.handler(({ data }) =>
@@ -138,7 +138,7 @@ export const publishFormRpc = createServerFn()
 		),
 	);
 
-export const unpublishFormRpc = createServerFn()
+export const unpublishFormRpc = createServerFn({ method: "POST" })
 	.middleware([requireRoleMiddleware("teacher", "admin")])
 	.inputValidator((raw) => Schema.decodeUnknownSync(GetFormByIdInput)(raw))
 	.handler(({ data }) =>
@@ -156,7 +156,7 @@ export const unpublishFormRpc = createServerFn()
 		),
 	);
 
-export const updateFormRpc = createServerFn()
+export const updateFormRpc = createServerFn({ method: "POST" })
 	.middleware([requireRoleMiddleware("teacher", "admin")])
 	.inputValidator((raw) => Schema.decodeUnknownSync(UpdateFormInput)(raw))
 	.handler(({ data }) =>
@@ -181,7 +181,7 @@ export const updateFormRpc = createServerFn()
 		),
 	);
 
-export const cloneFormRpc = createServerFn()
+export const cloneFormRpc = createServerFn({ method: "POST" })
 	.middleware([requireRoleMiddleware("teacher", "admin")])
 	.inputValidator((raw) => Schema.decodeUnknownSync(CloneFormInput)(raw))
 	.handler(({ data, context }) =>
@@ -217,7 +217,7 @@ export const getFormResponsesRpc = createServerFn()
 		),
 	);
 
-export const submitFormResponseRpc = createServerFn()
+export const submitFormResponseRpc = createServerFn({ method: "POST" })
 	.middleware([requireRoleMiddleware("student", "teacher", "admin")])
 	.inputValidator((raw) => Schema.decodeUnknownSync(SubmitFormResponseInput)(raw))
 	.handler(({ data }) =>
@@ -237,7 +237,7 @@ export const submitFormResponseRpc = createServerFn()
 		),
 	);
 
-export const reorderQuestionsRpc = createServerFn()
+export const reorderQuestionsRpc = createServerFn({ method: "POST" })
 	.middleware([requireRoleMiddleware("teacher", "admin")])
 	.inputValidator((raw) => Schema.decodeUnknownSync(ReorderQuestionsInput)(raw))
 	.handler(({ data }) =>
@@ -259,7 +259,7 @@ export const reorderQuestionsRpc = createServerFn()
 		),
 	);
 
-export const createQuestionRpc = createServerFn()
+export const createQuestionRpc = createServerFn({ method: "POST" })
 	.middleware([requireRoleMiddleware("teacher", "admin")])
 	.inputValidator((raw) => Schema.decodeUnknownSync(CreateQuestionInput)(raw))
 	.handler(({ data }) =>
@@ -278,7 +278,7 @@ export const createQuestionRpc = createServerFn()
 		),
 	);
 
-export const updateQuestionRpc = createServerFn()
+export const updateQuestionRpc = createServerFn({ method: "POST" })
 	.middleware([requireRoleMiddleware("teacher", "admin")])
 	.inputValidator((raw) => Schema.decodeUnknownSync(UpdateQuestionInput)(raw))
 	.handler(({ data }) =>
@@ -297,7 +297,7 @@ export const updateQuestionRpc = createServerFn()
 		),
 	);
 
-export const deleteQuestionRpc = createServerFn()
+export const deleteQuestionRpc = createServerFn({ method: "POST" })
 	.middleware([requireRoleMiddleware("teacher", "admin")])
 	.inputValidator((raw) => Schema.decodeUnknownSync(GetQuestionByIdInput)(raw))
 	.handler(({ data }) =>
@@ -334,7 +334,7 @@ export const checkFormUnlockRpc = createServerFn()
 		),
 	);
 
-export const unlockFormRpc = createServerFn()
+export const unlockFormRpc = createServerFn({ method: "POST" })
 	.middleware([requireRoleMiddleware("teacher", "admin")])
 	.inputValidator((raw) => Schema.decodeUnknownSync(UnlockFormInput)(raw))
 	.handler(({ data }) =>

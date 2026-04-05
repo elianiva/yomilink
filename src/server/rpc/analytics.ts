@@ -106,7 +106,7 @@ export const getLearnerSummaryTextRpc = createServerFn()
 		),
 	);
 
-export const exportAnalyticsDataRpc = createServerFn()
+export const exportAnalyticsDataRpc = createServerFn({ method: "POST" })
 	.middleware([authMiddleware])
 	.inputValidator((raw) => Schema.decodeUnknownSync(ExportAnalyticsDataInput)(raw))
 	.handler(({ data }) =>

@@ -25,7 +25,7 @@ import { requireRoleMiddleware } from "@/middlewares/auth";
 import { AppLayer } from "../app-layer";
 import { Rpc, logRpcError, logAndReturnError, logAndReturnDefect } from "../rpc-helper";
 
-export const createAssignmentRpc = createServerFn()
+export const createAssignmentRpc = createServerFn({ method: "POST" })
 	.middleware([requireRoleMiddleware("teacher", "admin")])
 	.inputValidator((raw) => Schema.decodeUnknownSync(CreateAssignmentInput)(raw))
 	.handler(({ data, context }) =>
@@ -57,7 +57,7 @@ export const listTeacherAssignmentsRpc = createServerFn()
 		),
 	);
 
-export const deleteAssignmentRpc = createServerFn()
+export const deleteAssignmentRpc = createServerFn({ method: "POST" })
 	.middleware([requireRoleMiddleware("teacher", "admin")])
 	.inputValidator((raw) => Schema.decodeUnknownSync(DeleteAssignmentInput)(raw))
 	.handler(({ data, context }) =>
@@ -117,7 +117,7 @@ export const getTeacherGoalMapsRpc = createServerFn()
 		),
 	);
 
-export const saveExperimentGroupsRpc = createServerFn()
+export const saveExperimentGroupsRpc = createServerFn({ method: "POST" })
 	.middleware([requireRoleMiddleware("teacher", "admin")])
 	.inputValidator((raw) => Schema.decodeUnknownSync(SaveExperimentGroupsInput)(raw))
 	.handler(({ data }) =>

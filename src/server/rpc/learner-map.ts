@@ -53,7 +53,7 @@ export const getAssignmentForStudentRpc = createServerFn()
 		),
 	);
 
-export const saveLearnerMapRpc = createServerFn()
+export const saveLearnerMapRpc = createServerFn({ method: "POST" })
 	.middleware([authMiddleware])
 	.inputValidator((raw) => Schema.decodeUnknownSync(SaveLearnerMapInput)(raw))
 	.handler(({ data, context }) =>
@@ -71,7 +71,7 @@ export const saveLearnerMapRpc = createServerFn()
 		),
 	);
 
-export const submitLearnerMapRpc = createServerFn()
+export const submitLearnerMapRpc = createServerFn({ method: "POST" })
 	.middleware([authMiddleware])
 	.inputValidator((raw) => Schema.decodeUnknownSync(SubmitLearnerMapInput)(raw))
 	.handler(({ data, context }) =>
@@ -104,7 +104,7 @@ export const getDiagnosisRpc = createServerFn()
 		),
 	);
 
-export const startNewAttemptRpc = createServerFn()
+export const startNewAttemptRpc = createServerFn({ method: "POST" })
 	.middleware([authMiddleware])
 	.inputValidator((raw) => Schema.decodeUnknownSync(StartNewAttemptInput)(raw))
 	.handler(({ data, context }) =>
@@ -136,7 +136,7 @@ export const getPeerStatsRpc = createServerFn()
 		),
 	);
 
-export const submitControlTextRpc = createServerFn()
+export const submitControlTextRpc = createServerFn({ method: "POST" })
 	.middleware([authMiddleware])
 	.inputValidator((raw) => Schema.decodeUnknownSync(SubmitControlTextInput)(raw))
 	.handler(({ data, context }) =>

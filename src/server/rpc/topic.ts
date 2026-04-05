@@ -22,7 +22,7 @@ export const listTopicsRpc = createServerFn()
 		),
 	);
 
-export const createTopicRpc = createServerFn()
+export const createTopicRpc = createServerFn({ method: "POST" })
 	.middleware([authMiddleware])
 	.inputValidator((raw) => Schema.decodeUnknownSync(CreateTopicInput)(raw))
 	.handler(({ data }) =>

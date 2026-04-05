@@ -33,7 +33,7 @@ export const getGoalMapRpc = createServerFn()
 		),
 	);
 
-export const saveGoalMapRpc = createServerFn()
+export const saveGoalMapRpc = createServerFn({ method: "POST" })
 	.middleware([authMiddleware]) // Only check authentication, not authorization
 	.inputValidator((raw) => Schema.decodeUnknownSync(SaveGoalMapInput)(raw))
 	.handler(({ data, context }) =>
@@ -80,7 +80,7 @@ export const listGoalMapsByTopicRpc = createServerFn()
 		),
 	);
 
-export const deleteGoalMapRpc = createServerFn()
+export const deleteGoalMapRpc = createServerFn({ method: "POST" })
 	.middleware([authMiddleware])
 	.inputValidator((raw) => Schema.decodeUnknownSync(DeleteGoalMapInput)(raw))
 	.handler(({ data, context }) =>

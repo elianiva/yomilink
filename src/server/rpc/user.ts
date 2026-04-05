@@ -63,7 +63,7 @@ export const getUserByIdRpc = createServerFn()
 
 // === Update User ===
 
-export const updateUserRpc = createServerFn()
+export const updateUserRpc = createServerFn({ method: "POST" })
 	.middleware([requireRoleMiddleware("teacher", "admin")])
 	.inputValidator((raw) =>
 		Schema.decodeUnknownSync(
@@ -90,7 +90,7 @@ export const updateUserRpc = createServerFn()
 
 // === Update User Role (Admin only) ===
 
-export const updateUserRoleRpc = createServerFn()
+export const updateUserRoleRpc = createServerFn({ method: "POST" })
 	.middleware([requireRoleMiddleware("admin")])
 	.inputValidator((raw) => Schema.decodeUnknownSync(UpdateRoleInput)(raw))
 	.handler(({ data, context }) =>
@@ -112,7 +112,7 @@ export const updateUserRoleRpc = createServerFn()
 
 // === Ban User (Admin only) ===
 
-export const banUserRpc = createServerFn()
+export const banUserRpc = createServerFn({ method: "POST" })
 	.middleware([requireRoleMiddleware("admin")])
 	.inputValidator((raw) => Schema.decodeUnknownSync(BanUserInput)(raw))
 	.handler(({ data, context }) =>
@@ -134,7 +134,7 @@ export const banUserRpc = createServerFn()
 
 // === Unban User (Admin only) ===
 
-export const unbanUserRpc = createServerFn()
+export const unbanUserRpc = createServerFn({ method: "POST" })
 	.middleware([requireRoleMiddleware("admin")])
 	.inputValidator((raw) =>
 		Schema.decodeUnknownSync(Schema.Struct({ userId: Schema.String }))(raw),
@@ -157,7 +157,7 @@ export const unbanUserRpc = createServerFn()
 
 // === Bulk Assign Cohort ===
 
-export const bulkAssignCohortRpc = createServerFn()
+export const bulkAssignCohortRpc = createServerFn({ method: "POST" })
 	.middleware([requireRoleMiddleware("teacher", "admin")])
 	.inputValidator((raw) => Schema.decodeUnknownSync(BulkCohortAssignInput)(raw))
 	.handler(({ data }) =>
@@ -174,7 +174,7 @@ export const bulkAssignCohortRpc = createServerFn()
 
 // === Trigger Password Reset (Admin only) ===
 
-export const triggerPasswordResetRpc = createServerFn()
+export const triggerPasswordResetRpc = createServerFn({ method: "POST" })
 	.middleware([requireRoleMiddleware("admin")])
 	.inputValidator((raw) =>
 		Schema.decodeUnknownSync(Schema.Struct({ userId: Schema.String }))(raw),

@@ -63,7 +63,7 @@ function getFriendlySignUpError(err: unknown): string {
 	return "Signup failed. Please try again.";
 }
 
-export const signUpRpc = createServerFn()
+export const signUpRpc = createServerFn({ method: "POST" })
 	.middleware([authMiddlewareOptional])
 	.inputValidator((raw) => Schema.decodeUnknownSync(SignUpInput)(raw))
 	.handler(({ data }) =>
