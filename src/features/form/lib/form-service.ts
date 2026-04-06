@@ -192,6 +192,106 @@ export const getFormById = Effect.fn("getFormById")(function* (formId: string) {
 	});
 });
 
+class FormNotAccessibleError extends Data.TaggedError("FormNotAccessibleError")<{
+	readonly formId: string;
+}> {}
+
+/**
+ * Get form for student viewing - strips correct answers and verifies access
+ */
+export const getStudentFormById = Effect.fn("getStudentFormById")(function* (
+	formId: string,
+	_userId: string,
+) {
+	const db = yield* Database;
+
+	// Get form
+	const formRows = yield* db.select().from(forms).where(eq(forms.id, formId)).limit(1);
+
+	const formRow = formRows[0];
+	if (!formRow) {
+		return yield* new FormNotFoundError({ formId });
+	}
+
+	// Allow access to published forms for students
+	// (progress check only matters for submission, not viewing)
+	if (formRow.status !== "published") {
+		return yield* new FormNotAccessibleError({ formId });
+	}
+
+	// Get questions
+	const questionRows = yield* db
+		.select()
+		.from(questions)
+		.where(eq(questions.formId, formId))
+		.orderBy(questions.orderIndex);
+
+	const unlockConditions = yield* safeParseJson(
+		formRow.unlockConditions,
+		null,
+		FormUnlockConditionsNullable,
+	);
+
+	const form = {
+		id: formRow.id,
+		title: formRow.title,
+		description: formRow.description,
+		type: formRow.type,
+		status: formRow.status,
+		unlockConditions,
+		createdBy: formRow.createdBy,
+		createdAt: formRow.createdAt,
+		updatedAt: formRow.updatedAt,
+	};
+
+	// Map questions and strip correctOptionIds for MCQ
+	const mappedQuestions = yield* Effect.all(
+		questionRows.map((q) =>
+			Effect.gen(function* () {
+				const parsedOptions = yield* safeParseJson(
+					q.options,
+					null,
+					Schema.NullOr(QuestionOptions),
+				);
+
+				// Strip correctOptionIds from MCQ options for student view
+				// eslint-disable-next-line @typescript-eslint/no-explicit-any
+				let studentOptions: any = parsedOptions;
+				if (parsedOptions?.type === "mcq") {
+					studentOptions = {
+						type: "mcq",
+						options: parsedOptions.options,
+						shuffle: parsedOptions.shuffle,
+						// NOTE: correctOptionIds is intentionally omitted for student view
+					};
+				}
+
+				return {
+					id: q.id,
+					formId: q.formId,
+					type: q.type,
+					questionText: q.questionText,
+					options: studentOptions,
+					orderIndex: q.orderIndex,
+					required: q.required,
+					createdAt: q.createdAt.getTime(),
+					updatedAt: q.updatedAt.getTime(),
+				};
+			}),
+		),
+		{ concurrency: "unbounded" },
+	);
+
+	return yield* Schema.encode(GetStudentFormByIdOutputSchema)({
+		form: {
+			...form,
+			createdAt: form.createdAt.getTime(),
+			updatedAt: form.updatedAt.getTime(),
+		},
+		questions: mappedQuestions,
+	});
+});
+
 export const listForms = Effect.fn("listForms")(function* (userId: string) {
 	const db = yield* Database;
 	const formRows = yield* db
@@ -662,6 +762,22 @@ export type TextOptions = typeof TextOptions.Type;
 
 export const QuestionOptions = Schema.Union(McqOptions, LikertOptions, TextOptions);
 
+// Student-facing question options (strips correctOptionIds from MCQ)
+export const StudentMcqOptions = Schema.Struct({
+	type: Schema.Literal("mcq"),
+	options: Schema.Array(
+		Schema.Struct({
+			id: Schema.String,
+			text: NonEmpty("Option text"),
+		}),
+	),
+	shuffle: Schema.Boolean,
+});
+
+export type StudentMcqOptions = typeof StudentMcqOptions.Type;
+
+export const StudentQuestionOptions = Schema.Union(StudentMcqOptions, LikertOptions, TextOptions);
+
 export const CreateQuestionInput = Schema.Struct({
 	formId: NonEmpty("Form ID"),
 	type: Schema.Union(Schema.Literal("mcq"), Schema.Literal("likert"), Schema.Literal("text")),
@@ -834,6 +950,24 @@ export const QuestionOutputSchema = Schema.Struct({
 	updatedAt: Schema.Number,
 });
 
+// Student question output (strips correctOptionIds)
+export const StudentQuestionOutputSchema = Schema.Struct({
+	id: Schema.String,
+	formId: Schema.String,
+	type: Schema.Union(Schema.Literal("mcq"), Schema.Literal("likert"), Schema.Literal("text")),
+	questionText: Schema.String,
+	options: Schema.NullOr(StudentQuestionOptions),
+	orderIndex: Schema.Number,
+	required: Schema.Boolean,
+	createdAt: Schema.Number,
+	updatedAt: Schema.Number,
+});
+
+export const GetStudentFormByIdOutputSchema = Schema.Struct({
+	form: FormOutputSchema,
+	questions: Schema.Array(StudentQuestionOutputSchema),
+});
+
 export const ResponseUserSchema = Schema.Struct({
 	id: Schema.String,
 	name: Schema.NullOr(Schema.String),
@@ -871,9 +1005,11 @@ export const GetFormResponsesOutputSchema = Schema.Struct({
 });
 
 export type GetFormByIdOutput = typeof GetFormByIdOutputSchema.Type;
+export type GetStudentFormByIdOutput = typeof GetStudentFormByIdOutputSchema.Type;
 export type GetFormResponsesOutput = typeof GetFormResponsesOutputSchema.Type;
 export type FormOutput = typeof FormOutputSchema.Type;
 export type QuestionOutput = typeof QuestionOutputSchema.Type;
+export type StudentQuestionOutput = typeof StudentQuestionOutputSchema.Type;
 export type FormResponseOutput = typeof FormResponseOutputSchema.Type;
 
 // Check if user has completed the registration form

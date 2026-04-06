@@ -47,40 +47,6 @@ export function PreTestGateway({
 		enabled: enabled && !!preTestFormId,
 	});
 
-	// If not enabled or no pre-test required, render children directly
-	if (!enabled || !preTestFormId) {
-		return <>{children}</>;
-	}
-
-	// Loading state
-	if (isLoading) {
-		return (
-			<div className={cn("flex items-center justify-center p-8", className)}>
-				<div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary" />
-			</div>
-		);
-	}
-
-	// Error state - check if data is undefined
-	if (error || !unlockStatus) {
-		return (
-			<div className={cn("flex items-center justify-center p-8", className)}>
-				<Card className="w-full max-w-md">
-					<CardContent className="pt-6 text-center">
-						<p className="text-destructive">Failed to check pre-test status</p>
-						<p className="text-sm text-muted-foreground mt-2">Please try again later</p>
-					</CardContent>
-				</Card>
-			</div>
-		);
-	}
-
-	// If unlocked (completed), render children
-	if (unlockStatus.isUnlocked) {
-		return <>{children}</>;
-	}
-
-	// Blocked state - show gateway UI
 	const handleTakePreTest = () => {
 		if (assignmentId) {
 			void navigate({
@@ -97,6 +63,49 @@ export function PreTestGateway({
 			});
 		}
 	};
+
+	// If not enabled or no pre-test required, render children directly
+	if (!enabled || !preTestFormId) {
+		return <>{children}</>;
+	}
+
+	// Loading state
+	if (isLoading) {
+		return (
+			<div className={cn("flex items-center justify-center p-8", className)}>
+				<div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary" />
+			</div>
+		);
+	}
+
+	// Error state - treat as locked and redirect to form
+	if (error || !unlockStatus) {
+		return (
+			<div className={cn("flex items-center justify-center p-8", className)}>
+				<Card className="w-full max-w-md">
+					<CardHeader>
+						<CardTitle className="flex items-center gap-2">
+							<Lock className="h-5 w-5" />
+							{title}
+						</CardTitle>
+					</CardHeader>
+					<CardContent className="space-y-4">
+						<p className="text-muted-foreground">{description}</p>
+						<Button onClick={handleTakePreTest} className="w-full">
+							{buttonText}
+						</Button>
+					</CardContent>
+				</Card>
+			</div>
+		);
+	}
+
+	// If unlocked (completed), render children
+	if (unlockStatus.isUnlocked) {
+		return <>{children}</>;
+	}
+
+	// Blocked state - show gateway UI
 
 	return (
 		<div className={cn("flex items-center justify-center p-8", className)}>

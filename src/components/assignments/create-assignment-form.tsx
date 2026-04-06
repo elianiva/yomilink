@@ -147,7 +147,8 @@ export function CreateAssignmentForm({ onSuccess, onCancel }: CreateAssignmentFo
 			case 1:
 				return state.config.goalMapId.length > 0;
 			case 2:
-				return true;
+				// Step 3 (Procedure): Pre-test is required, post-test is recommended
+				return state.procedure.preTestFormId.length > 0;
 			case 3:
 				return (
 					state.assignment.selectedCohorts.length > 0 ||
@@ -178,7 +179,7 @@ export function CreateAssignmentForm({ onSuccess, onCancel }: CreateAssignmentFo
 							startDate: parseDateInput(state.config.startDate) ?? Date.now(),
 							endDate: parseDateInput(state.config.endDate),
 							userIds: state.assignment.selectedUsers,
-							preTestFormId: state.procedure.preTestFormId || undefined,
+							preTestFormId: state.procedure.preTestFormId,
 							postTestFormId: state.procedure.postTestFormId || undefined,
 							delayedPostTestFormId:
 								state.procedure.delayedPostTestFormId || undefined,
@@ -312,7 +313,7 @@ export function CreateAssignmentForm({ onSuccess, onCancel }: CreateAssignmentFo
 				<div className="space-y-4">
 					<FormSelect
 						id="preTest"
-						label="Pre-Test"
+						label="Pre-Test *"
 						value={state.procedure.preTestFormId}
 						onChange={(v) =>
 							dispatch({
@@ -322,8 +323,14 @@ export function CreateAssignmentForm({ onSuccess, onCancel }: CreateAssignmentFo
 							})
 						}
 						forms={pretestForms}
-						placeholder="Select a pre-test form"
+						placeholder="Select a pre-test form (required)"
+						required
 					/>
+					{state.procedure.preTestFormId === "" && (
+						<p className="text-xs text-amber-600">
+							Pre-test is required by default for all assignments.
+						</p>
+					)}
 					<FormSelect
 						id="postTest"
 						label="Post-Test"
@@ -522,6 +529,7 @@ function FormSelect({
 	onChange,
 	forms,
 	placeholder,
+	required,
 }: {
 	id: string;
 	label: string;
@@ -529,10 +537,14 @@ function FormSelect({
 	onChange: (value: string) => void;
 	forms: { id: string; title: string; description: string }[];
 	placeholder: string;
+	required?: boolean;
 }) {
 	return (
 		<div className="space-y-2">
-			<Label htmlFor={id}>{label}</Label>
+			<Label htmlFor={id}>
+				{label}
+				{required && <span className="text-amber-600 ml-1">*</span>}
+			</Label>
 			<SearchableSelect
 				value={value}
 				onChange={onChange}

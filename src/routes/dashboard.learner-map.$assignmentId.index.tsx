@@ -1,8 +1,11 @@
-import { createFileRoute } from "@tanstack/react-router";
+import { createFileRoute, useParams } from "@tanstack/react-router";
 import { lazy, Suspense } from "react";
 
 import { Guard } from "@/components/auth/Guard";
 import { Skeleton } from "@/components/ui/skeleton";
+import { PreTestGateway } from "@/features/form/components/pre-test-gateway";
+import { useRpcQuery } from "@/hooks/use-rpc-query";
+import { LearnerMapRpc } from "@/server/rpc/learner-map";
 
 // Lazy load the heavy Learner Map Editor with React Flow
 const LearnerMapEditorWrapper = lazy(() =>
@@ -38,12 +41,41 @@ function LearnerMapSkeleton() {
 	);
 }
 
-export const Route = createFileRoute("/dashboard/learner-map/$assignmentId/")({
-	component: () => (
+function LearnerMapPage() {
+	const { assignmentId } = useParams({ from: "/dashboard/learner-map/$assignmentId/" });
+
+	const { data: assignmentData, isLoading } = useRpcQuery(
+		LearnerMapRpc.getAssignmentForStudent({ assignmentId }),
+	);
+
+	if (isLoading) {
+		return (
+			<Guard roles={["student"]}>
+				<LearnerMapSkeleton />
+			</Guard>
+		);
+	}
+
+	const preTestFormId = assignmentData?.assignment.preTestFormId;
+
+	return (
 		<Guard roles={["student"]}>
-			<Suspense fallback={<LearnerMapSkeleton />}>
-				<LearnerMapEditorWrapper />
-			</Suspense>
+			<PreTestGateway
+				preTestFormId={preTestFormId ?? ""}
+				assignmentId={assignmentId}
+				enabled={!!preTestFormId}
+				title="Pre-Test Required"
+				description="You must complete the pre-test before starting this assignment. This helps us measure your learning progress."
+				buttonText="Start Pre-Test"
+			>
+				<Suspense fallback={<LearnerMapSkeleton />}>
+					<LearnerMapEditorWrapper />
+				</Suspense>
+			</PreTestGateway>
 		</Guard>
-	),
+	);
+}
+
+export const Route = createFileRoute("/dashboard/learner-map/$assignmentId/")({
+	component: LearnerMapPage,
 });

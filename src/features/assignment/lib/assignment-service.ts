@@ -25,7 +25,7 @@ export const CreateAssignmentInput = Schema.Struct({
 	endDate: Schema.optionalWith(Schema.Number, { nullable: true }),
 	cohortIds: Schema.Array(NonEmpty("Cohort ID")),
 	userIds: Schema.Array(NonEmpty("User ID")),
-	preTestFormId: Schema.optionalWith(Schema.String, { nullable: true }),
+	preTestFormId: Schema.String,
 	postTestFormId: Schema.optionalWith(Schema.String, { nullable: true }),
 	delayedPostTestFormId: Schema.optionalWith(Schema.String, { nullable: true }),
 	delayedPostTestDelayDays: Schema.optionalWith(Schema.Number, {

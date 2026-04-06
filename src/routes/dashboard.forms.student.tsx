@@ -33,7 +33,7 @@ function StudentFormsPage() {
 
 	const availableForms = forms.filter((f) => f.unlockStatus === "available");
 	const completedForms = forms.filter((f) => f.unlockStatus === "completed");
-	const lockedForms = forms.filter((f) => f.unlockStatus === "locked");
+	// Locked forms are hidden - they should be discovered through assignment flow, not browsing
 
 	const handleFormClick = (form: StudentForm) => {
 		if (form.isUnlocked) {
@@ -178,46 +178,6 @@ function StudentFormsPage() {
 											<div className="flex items-center gap-2 text-sm text-green-600">
 												<CheckCircle2Icon className="h-4 w-4" />
 												Completed
-											</div>
-										</CardContent>
-									</Card>
-								))}
-							</div>
-						</div>
-					)}
-
-					{lockedForms.length > 0 && (
-						<div className="space-y-4">
-							<h2 className="text-lg font-semibold flex items-center gap-2">
-								<FileTextIcon className="size-5 text-gray-500" />
-								Locked Forms
-							</h2>
-							<div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
-								{lockedForms.map((form) => (
-									<Card key={form.id} className="opacity-75">
-										<CardHeader className="pb-3">
-											<div className="flex items-start justify-between">
-												<CardTitle className="text-lg">
-													{form.title}
-												</CardTitle>
-												<span
-													className={`text-xs px-2 py-1 rounded-full ${getTypeColor(
-														form.type,
-													)}`}
-												>
-													{getTypeLabel(form.type)}
-												</span>
-											</div>
-											{form.description && (
-												<CardDescription>
-													{form.description}
-												</CardDescription>
-											)}
-										</CardHeader>
-										<CardContent>
-											<div className="flex items-center gap-2 text-sm text-muted-foreground">
-												<FileTextIcon className="h-4 w-4" />
-												Complete prerequisites to unlock
 											</div>
 										</CardContent>
 									</Card>

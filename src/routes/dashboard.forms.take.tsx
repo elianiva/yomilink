@@ -14,13 +14,19 @@ export const Route = createFileRoute("/dashboard/forms/take")({
 	component: FormTakerPage,
 });
 
+type FormTakeSearch = {
+	formId?: string;
+	returnTo?: string;
+};
+
 function FormTakerPage() {
 	const navigate = useNavigate({ from: "/dashboard/forms/take" });
-	const searchParams = useSearch({ from: "/dashboard/forms/take" });
-	const formId = (searchParams as { formId?: string }).formId;
+	const searchParams = useSearch({ from: "/dashboard/forms/take" }) as FormTakeSearch;
+	const formId = searchParams.formId;
+	const returnTo = searchParams.returnTo;
 
 	const { data, isLoading, error } = useRpcQuery({
-		...FormRpc.getFormById(formId ?? ""),
+		...FormRpc.getStudentFormById(formId ?? ""),
 		enabled: !!formId,
 	});
 
@@ -99,7 +105,13 @@ function FormTakerPage() {
 	});
 
 	const handleSubmit = () => {
-		void navigate({ to: "/dashboard/forms/student" });
+		// Redirect back to specified URL or default to forms list
+		if (returnTo) {
+			// Use window.location for dynamic URLs not in route tree
+			window.location.href = returnTo;
+		} else {
+			void navigate({ to: "/dashboard/forms/student" });
+		}
 	};
 
 	return (

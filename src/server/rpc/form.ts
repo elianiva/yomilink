@@ -19,6 +19,7 @@ import {
 	getFormResponses,
 	getRegistrationFormStatus,
 	getStudentForms,
+	getStudentFormById,
 	listForms,
 	publishForm,
 	ReorderQuestionsInput,
@@ -98,6 +99,34 @@ export const getStudentFormsRpc = createServerFn()
 			Effect.provide(AppLayer),
 			Effect.catchAll(logAndReturnError("getStudentForms")),
 			Effect.catchAllDefect(logAndReturnDefect("getStudentForms")),
+			Effect.runPromise,
+		),
+	);
+
+export const GetStudentFormByIdInput = Schema.Struct({
+	formId: Schema.String,
+});
+
+export type GetStudentFormByIdInput = typeof GetStudentFormByIdInput.Type;
+
+export const getStudentFormByIdRpc = createServerFn()
+	.middleware([requireRoleMiddleware("student", "teacher", "admin")])
+	.inputValidator((raw) => Schema.decodeUnknownSync(GetStudentFormByIdInput)(raw))
+	.handler(({ data, context }) =>
+		getStudentFormById(data.formId, context.user.id).pipe(
+			Effect.map(Rpc.ok),
+			Effect.withSpan("getStudentFormById"),
+			Effect.tapError(logRpcError("getStudentFormById")),
+			Effect.provide(AppLayer),
+			Effect.catchTags({
+				FormNotFoundError: () => Rpc.notFound("Form"),
+				FormNotAccessibleError: () =>
+					Rpc.err(
+						"Form is not accessible. Complete prerequisites or wait for it to be published.",
+					),
+			}),
+			Effect.catchAll(logAndReturnError("getStudentFormById")),
+			Effect.catchAllDefect(logAndReturnDefect("getStudentFormById")),
 			Effect.runPromise,
 		),
 	);
@@ -384,6 +413,11 @@ export const FormRpc = {
 		queryOptions({
 			queryKey: [...FormRpc.forms(), "student"],
 			queryFn: () => getStudentFormsRpc(),
+		}),
+	getStudentFormById: (formId: string) =>
+		queryOptions({
+			queryKey: [...FormRpc.forms(), "studentById", formId],
+			queryFn: () => getStudentFormByIdRpc({ data: { formId } }),
 		}),
 	getRegistrationFormStatus: () =>
 		queryOptions({
