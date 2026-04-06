@@ -1,13 +1,14 @@
 import { useQueryClient } from "@tanstack/react-query";
 import { Link, useNavigate, getRouteApi } from "@tanstack/react-router";
-import type { Edge, MarkerType } from "@xyflow/react";
+import type { Edge, MarkerType, Node } from "@xyflow/react";
 import { Background, MiniMap, ReactFlow } from "@xyflow/react";
 
 import "@xyflow/react/dist/style.css";
 import { ArrowLeftIcon, RefreshCwIcon } from "lucide-react";
-import { useMemo } from "react";
+import { useCallback, useMemo, useState } from "react";
 
 import { Button } from "@/components/ui/button";
+import { Switch } from "@/components/ui/switch";
 import { ConnectorNode } from "@/features/kitbuild/components/connector-node";
 import { FloatingEdge } from "@/features/kitbuild/components/floating-edge";
 import { TextNode } from "@/features/kitbuild/components/text-node";
@@ -18,10 +19,96 @@ import { LearnerMapRpc } from "@/server/rpc/learner-map";
 
 const routeApi = getRouteApi("/dashboard/learner-map/$assignmentId/result");
 
+interface VisibilityState {
+	showGoalMap: boolean;
+	showLearnerMap: boolean;
+	showCorrectEdges: boolean;
+	showMissingEdges: boolean;
+	showExcessiveEdges: boolean;
+}
+
+function LegendDot({ color }: { color: string }) {
+	return <span className="inline-block size-3 rounded-full" style={{ backgroundColor: color }} />;
+}
+
+function ComparisonControls({
+	visibility,
+	onChange,
+}: {
+	visibility: VisibilityState;
+	onChange: (updates: Partial<VisibilityState>) => void;
+}) {
+	return (
+		<div className="space-y-3">
+			<div className="text-xs font-medium text-muted-foreground uppercase tracking-wide">
+				Map Visibility
+			</div>
+			<div className="flex items-center gap-4 flex-wrap">
+				<div className="flex items-center gap-2 text-xs">
+					<Switch
+						checked={visibility.showGoalMap}
+						onCheckedChange={(v) => onChange({ showGoalMap: v })}
+					/>
+					<span>Goal Map</span>
+				</div>
+				<div className="flex items-center gap-2 text-xs">
+					<Switch
+						checked={visibility.showLearnerMap}
+						onCheckedChange={(v) => onChange({ showLearnerMap: v })}
+					/>
+					<span>Your Map</span>
+				</div>
+			</div>
+
+			<div className="text-xs font-medium text-muted-foreground uppercase tracking-wide pt-2 border-t">
+				Edge Types
+			</div>
+			<div className="flex items-center gap-3 flex-wrap">
+				<div className="flex items-center gap-1.5 text-xs">
+					<Switch
+						checked={visibility.showCorrectEdges}
+						onCheckedChange={(v) => onChange({ showCorrectEdges: v })}
+					/>
+					<LegendDot color="#22c55e" />
+					<span>Correct</span>
+				</div>
+				<div className="flex items-center gap-1.5 text-xs">
+					<Switch
+						checked={visibility.showMissingEdges}
+						onCheckedChange={(v) => onChange({ showMissingEdges: v })}
+					/>
+					<LegendDot color="#f59e0b" />
+					<span>Missing</span>
+				</div>
+				<div className="flex items-center gap-1.5 text-xs">
+					<Switch
+						checked={visibility.showExcessiveEdges}
+						onCheckedChange={(v) => onChange({ showExcessiveEdges: v })}
+					/>
+					<LegendDot color="#ef4444" />
+					<span>Excessive</span>
+				</div>
+			</div>
+		</div>
+	);
+}
+
 export function LearnerMapResult() {
 	const { assignmentId } = routeApi.useParams();
 	const navigate = useNavigate();
 	const queryClient = useQueryClient();
+
+	const [visibility, setVisibility] = useState<VisibilityState>({
+		showGoalMap: true,
+		showLearnerMap: true,
+		showCorrectEdges: true,
+		showMissingEdges: true,
+		showExcessiveEdges: true,
+	});
+
+	const handleVisibilityChange = useCallback((updates: Partial<VisibilityState>) => {
+		setVisibility((prev) => ({ ...prev, ...updates }));
+	}, []);
 
 	const nodeTypes = useMemo(
 		() => ({
@@ -61,48 +148,138 @@ export function LearnerMapResult() {
 		}
 	};
 
-	// Process edges for visualization
+	// Merge nodes from goal map and learner map (goal map positions as source of truth)
+	const mergedNodes = useMemo(() => {
+		if (!data?.goalMap || !data?.learnerMap) return [];
+
+		const nodeMap = new Map<string, Node>();
+
+		// Add goal map nodes first
+		for (const node of data.goalMap.nodes) {
+			nodeMap.set(node.id, node);
+		}
+
+		// Merge learner map nodes, keeping goal map positions
+		for (const node of data.learnerMap.nodes) {
+			const existingNode = nodeMap.get(node.id);
+			if (existingNode) {
+				nodeMap.set(node.id, { ...node, position: existingNode.position });
+			} else {
+				nodeMap.set(node.id, node);
+			}
+		}
+
+		return Array.from(nodeMap.values());
+	}, [data]);
+
+	// Process edges for visualization based on visibility
 	const processedEdges = useMemo(() => {
-		if (!data?.diagnosis || !data?.learnerMap) return [];
+		if (!data?.diagnosis || !data?.learnerMap || !data?.goalMap) return [];
+
+		const edgesToDisplay: Edge[] = [];
+		const { showGoalMap, showLearnerMap, showCorrectEdges, showMissingEdges, showExcessiveEdges } =
+			visibility;
 
 		const correctSet = new Set(data.diagnosis.correct.map((e) => `${e.source}-${e.target}`));
+		const excessiveSet = new Set(data.diagnosis.excessive.map((e) => `${e.source}-${e.target}`));
 
-		// Color existing edges based on diagnosis
-		const coloredEdges = data.learnerMap.edges.map((edge) => {
-			const edgeKey = `${edge.source}-${edge.target}`;
-			const edgeType = correctSet.has(edgeKey) ? "correct" : "excessive";
+		if (showGoalMap && showLearnerMap) {
+			// Combined view: classify learner edges and show missing edges
+			for (const edge of data.learnerMap.edges) {
+				const edgeKey = `${edge.source}-${edge.target}`;
+				let edgeType: "correct" | "excessive" | "missing" = "missing";
+				if (correctSet.has(edgeKey)) edgeType = "correct";
+				else if (excessiveSet.has(edgeKey)) edgeType = "excessive";
 
-			const style = getEdgeStyleByType(edgeType);
+				let shouldShow = false;
+				switch (edgeType) {
+					case "correct":
+						shouldShow = showCorrectEdges;
+						break;
+					case "excessive":
+						shouldShow = showExcessiveEdges;
+						break;
+				}
 
-			return {
-				...edge,
-				type: "floating",
-				style,
-				markerEnd: {
-					type: "arrowclosed" as MarkerType,
-					color: style.stroke,
-				},
-			};
-		});
+				if (shouldShow) {
+					const style = getEdgeStyleByType(edgeType);
+					edgesToDisplay.push({
+						...edge,
+						type: "floating",
+						style,
+						markerEnd: {
+							type: "arrowclosed" as MarkerType,
+							color: style.stroke,
+						},
+					});
+				}
+			}
 
-		const missingEdges: Edge[] = data.diagnosis.missing.map((missing, index) => {
-			const style = getEdgeStyleByType("missing");
-			return {
-				id: `missing-${index}`,
-				source: missing.source,
-				target: missing.target,
-				type: "floating",
-				style,
-				animated: true,
-				markerEnd: {
-					type: "arrowclosed" as MarkerType,
-					color: style.stroke,
-				},
-			};
-		});
+			// Add missing edges from goal map
+			if (showMissingEdges) {
+				for (const missing of data.diagnosis.missing) {
+					const style = getEdgeStyleByType("missing");
+					edgesToDisplay.push({
+						id: `missing-${missing.source}-${missing.target}`,
+						source: missing.source,
+						target: missing.target,
+						type: "floating",
+						style,
+						animated: true,
+						markerEnd: {
+							type: "arrowclosed" as MarkerType,
+							color: style.stroke,
+						},
+					});
+				}
+			}
+		} else if (showGoalMap) {
+			// Show only goal map edges
+			for (const edge of data.goalMap.edges) {
+				edgesToDisplay.push({
+					...edge,
+					type: "floating",
+					style: { stroke: "#64748b", strokeWidth: 2 },
+					markerEnd: {
+						type: "arrowclosed" as MarkerType,
+						color: "#64748b",
+					},
+				});
+			}
+		} else if (showLearnerMap) {
+			// Show only learner edges (excluding missing)
+			for (const edge of data.learnerMap.edges) {
+				const edgeKey = `${edge.source}-${edge.target}`;
+				let edgeType: "correct" | "excessive" = "excessive";
+				if (correctSet.has(edgeKey)) edgeType = "correct";
 
-		return [...coloredEdges, ...missingEdges];
-	}, [data]);
+				let shouldShow = false;
+				switch (edgeType) {
+					case "correct":
+						shouldShow = showCorrectEdges;
+						break;
+					case "excessive":
+						shouldShow = showExcessiveEdges;
+						break;
+				}
+
+				if (shouldShow) {
+					const style = getEdgeStyleByType(edgeType);
+					edgesToDisplay.push({
+						...edge,
+						type: "floating",
+						style,
+						markerEnd: {
+							type: "arrowclosed" as MarkerType,
+							color: style.stroke,
+						},
+					});
+				}
+			}
+		}
+
+		return edgesToDisplay;
+	}, [data, visibility]);
 
 	if (isLoading) {
 		return (
@@ -183,29 +360,9 @@ export function LearnerMapResult() {
 						score={diagnosis.score ?? 0}
 					/>
 
-					{/* Legend */}
-					<div className="bg-card border rounded-lg p-4 space-y-3">
-						<h3 className="font-medium">Legend</h3>
-						<div className="space-y-2 text-sm">
-							<div className="flex items-center gap-2">
-								<div className="w-8 h-1 bg-green-500 rounded" />
-								<span>Correct connections</span>
-							</div>
-							<div className="flex items-center gap-2">
-								<div className="w-8 h-1 bg-red-500 rounded" />
-								<span>Excessive (wrong) connections</span>
-							</div>
-							<div className="flex items-center gap-2">
-								<div
-									className="w-8 h-1 rounded"
-									style={{
-										backgroundImage:
-											"repeating-linear-gradient(90deg, #f59e0b 0, #f59e0b 4px, transparent 4px, transparent 8px)",
-									}}
-								/>
-								<span>Missing connections</span>
-							</div>
-						</div>
+					{/* Map Comparison Controls */}
+					<div className="bg-card border rounded-lg p-4">
+						<ComparisonControls visibility={visibility} onChange={handleVisibilityChange} />
 					</div>
 
 					{diagnosis.summary && (
@@ -292,7 +449,7 @@ export function LearnerMapResult() {
 				{/* Map visualization */}
 				<div className="flex-1 relative">
 					<ReactFlow
-						nodes={[...learnerMap.nodes]}
+						nodes={mergedNodes}
 						edges={processedEdges}
 						nodeTypes={nodeTypes}
 						edgeTypes={edgeTypes}

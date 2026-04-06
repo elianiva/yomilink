@@ -253,6 +253,8 @@ function AnalyticsCanvasInner({
 								id: `${key}-${type}`,
 								source,
 								target,
+								sourceHandle: "right",
+								targetHandle: "left",
 								type: "floating",
 								style,
 								animated: type === "missing",
@@ -328,6 +330,8 @@ function AnalyticsCanvasInner({
 								id: `${key}-${index}`,
 								source: classification.edge.source,
 								target: classification.edge.target,
+								sourceHandle: "right",
+								targetHandle: "left",
 								type: "floating",
 								style,
 								animated: classification.type === "missing",
@@ -367,6 +371,8 @@ function AnalyticsCanvasInner({
 						const style = getEdgeStyleByType(classification.type);
 						edgesToDisplay.push({
 							...classification.edge,
+							sourceHandle: "right",
+							targetHandle: "left",
 							type: "floating",
 							style,
 							animated: classification.type === "missing",
@@ -389,6 +395,8 @@ function AnalyticsCanvasInner({
 			for (const edge of goalMap.edges) {
 				edgesToDisplay.push({
 					...edge,
+					sourceHandle: "right",
+					targetHandle: "left",
 					type: "floating",
 					style: {
 						stroke: "var(--edge-neutral)",
@@ -461,6 +469,8 @@ function AnalyticsCanvasInner({
 								id: `${key}-${type}`,
 								source,
 								target,
+								sourceHandle: "right",
+								targetHandle: "left",
 								type: "floating",
 								style,
 								markerEnd: {
@@ -533,6 +543,8 @@ function AnalyticsCanvasInner({
 								id: `${key}-${index}`,
 								source: classification.edge.source,
 								target: classification.edge.target,
+								sourceHandle: "right",
+								targetHandle: "left",
 								type: "floating",
 								style,
 								markerEnd: {
@@ -570,6 +582,8 @@ function AnalyticsCanvasInner({
 						const style = getEdgeStyleByType(classification.type);
 						edgesToDisplay.push({
 							...classification.edge,
+							sourceHandle: "right",
+							targetHandle: "left",
 							type: "floating",
 							style,
 							markerEnd: {
