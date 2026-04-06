@@ -40,7 +40,7 @@ export const Route = createFileRoute("/login")({
 	ssr: true,
 	beforeLoad: async () => {
 		const me = await getMe();
-		if (me.success) {
+		if (me?.success) {
 			const target = me.data.role === "student" ? "/dashboard/assignments" : "/dashboard";
 			throw redirect({ to: target });
 		}
@@ -78,7 +78,7 @@ function LoginPage() {
 					throw new Error(error.message ?? "Sign in failed");
 				}
 				const me = await getMe();
-				if (me.success) {
+				if (me?.success) {
 					const target =
 						me.data.role === "student" ? "/dashboard/assignments" : "/dashboard";
 					void navigate({ to: target });

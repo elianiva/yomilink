@@ -20,7 +20,7 @@ import { getMe, ProfileRpc } from "@/server/rpc/profile";
 export const Route = createFileRoute("/dashboard")({
 	beforeLoad: async () => {
 		const me = await getMe();
-		if (!me.success) throw redirect({ to: "/login" });
+		if (me?.success) throw redirect({ to: "/login" });
 
 		if (me.data.role === "student") {
 			const result = await getRegistrationFormStatusRpc();

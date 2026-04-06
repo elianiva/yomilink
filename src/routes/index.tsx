@@ -7,7 +7,7 @@ export const Route = createFileRoute("/")({
 	component: () => null,
 	beforeLoad: async () => {
 		const me = await getMe();
-		if (me.success) {
+		if (me?.success) {
 			const target = me.data.role === "student" ? "/dashboard/assignments" : "/dashboard";
 			throw redirect({ to: target });
 		}
