@@ -127,13 +127,6 @@ function StudentFormsPage() {
 												<CardTitle className="text-lg">
 													{form.title}
 												</CardTitle>
-												<span
-													className={`text-xs px-2 py-1 rounded-full ${getTypeColor(
-														form.type,
-													)}`}
-												>
-													{getTypeLabel(form.type)}
-												</span>
 											</div>
 											{form.description && (
 												<CardDescription>

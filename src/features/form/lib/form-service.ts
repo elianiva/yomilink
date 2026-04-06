@@ -925,15 +925,93 @@ export const getRegistrationFormStatus = Effect.fn("getRegistrationFormStatus")(
 
 // Get all published forms for students with unlock status
 
+// Form type priority order for sequential unlocking (research protocol)
+// pre_test → post_test → tam/control → delayed_test
+// Note: registration is handled during sign-up, so pre_test is first in dashboard
+const FORM_TYPE_PRIORITY: Record<FormType, number> = {
+	registration: -1, // Completed during sign-up, not shown in dashboard
+	pre_test: 0,
+	post_test: 1,
+	tam: 2,
+	control: 2,
+	delayed_test: 3,
+};
+
+function sortFormsByPriority(
+	a: { type: FormType; createdAt: Date },
+	b: { type: FormType; createdAt: Date },
+) {
+	const diff = FORM_TYPE_PRIORITY[a.type] - FORM_TYPE_PRIORITY[b.type];
+	return diff !== 0 ? diff : a.createdAt.getTime() - b.createdAt.getTime();
+}
+
+function areAllFormsOfTypeCompleted(
+	formsOfType: Array<{ id: string }>,
+	progressMap: Map<string, { status: string }>,
+): boolean {
+	if (formsOfType.length === 0) return false;
+	return formsOfType.every((f) => progressMap.get(f.id)?.status === "completed");
+}
+
+function getTypesAtPriority(priority: number): FormType[] {
+	return (Object.entries(FORM_TYPE_PRIORITY) as [FormType, number][])
+		.filter(([, p]) => p === priority)
+		.map(([type]) => type);
+}
+
+function getNextRequiredType(
+	completed: Set<FormType>,
+	available: Set<FormType>,
+	studyGroup: "experiment" | "control" | null,
+): FormType | null {
+	for (let priority = 0; priority <= 4; priority++) {
+		for (const type of getTypesAtPriority(priority)) {
+			// TAM only for experiment, control only for control group
+			if (type === "tam" && studyGroup === "control") continue;
+			if (type === "control" && studyGroup === "experiment") continue;
+
+			if (available.has(type) && !completed.has(type)) {
+				return type;
+			}
+		}
+	}
+	return null;
+}
+
+// Check if a form should be excluded based on study group or sign-up status
+function shouldExcludeForm(
+	formType: FormType,
+	studyGroup: "experiment" | "control" | null,
+): boolean {
+	// Registration forms are handled during sign-up
+	if (formType === "registration") return true;
+	// TAM only for experiment group
+	if (formType === "tam" && studyGroup !== "experiment") return true;
+	// Control/feedback only for control group
+	if (formType === "control" && studyGroup !== "control") return true;
+	return false;
+}
+
+// Get all published forms for students with sequential unlock status
+// Enforces order: registration → pre_test → post_test → (tam|control) → delayed_test
 export const getStudentForms = Effect.fn("getStudentForms")(function* (userId: string) {
 	const db = yield* Database;
 
+	// Get user study group
+	const userRows = yield* db
+		.select({ studyGroup: user.studyGroup })
+		.from(user)
+		.where(eq(user.id, userId))
+		.limit(1);
+	const studyGroup = userRows[0]?.studyGroup ?? null;
+
 	// Get all published forms
-	const publishedForms = yield* db
-		.select()
-		.from(forms)
-		.where(eq(forms.status, "published"))
-		.orderBy(forms.createdAt);
+	const publishedForms = yield* db.select().from(forms).where(eq(forms.status, "published"));
+
+	// Filter out forms that don't apply to this study group
+	const applicableForms = publishedForms.filter(
+		(f) => !shouldExcludeForm(f.type, studyGroup),
+	);
 
 	// Get user's progress for all forms
 	const userProgressRows = yield* db
@@ -943,49 +1021,62 @@ export const getStudentForms = Effect.fn("getStudentForms")(function* (userId: s
 
 	const progressMap = new Map(userProgressRows.map((p) => [p.formId, p]));
 
-	// Build response with unlock status - parse unlock conditions for each form
-	const formsWithStatus = yield* Effect.all(
-		publishedForms.map((form) =>
-			Effect.gen(function* () {
-				const progress = progressMap.get(form.id);
+	// Group applicable forms by type
+	const formsByType = new Map<FormType, typeof applicableForms>();
+	for (const f of applicableForms) {
+		const list = formsByType.get(f.type) ?? [];
+		list.push(f);
+		formsByType.set(f.type, list);
+	}
 
-				let unlockStatus: "locked" | "available" | "completed" = "locked";
-				let isUnlocked = false;
+	const availableTypes = new Set<FormType>(formsByType.keys());
 
-				// Check unlock conditions with proper parsing
-				const unlockConditions = yield* safeParseJson(
-					form.unlockConditions,
-					null,
-					FormUnlockConditionsNullable,
-				);
+	// Determine completed types
+	const completedTypes = new Set<FormType>();
+	for (const [type, list] of formsByType) {
+		if (areAllFormsOfTypeCompleted(list, progressMap)) {
+			completedTypes.add(type);
+		}
+	}
 
-				if (!unlockConditions || unlockConditions.conditions.length === 0) {
-					// No conditions = available by default
-					unlockStatus = progress?.status ?? "available";
-					isUnlocked = true;
-				} else if (progress) {
-					unlockStatus = progress.status;
-					isUnlocked = progress.status === "available" || progress.status === "completed";
+	// Find next required type to complete
+	const nextRequired = getNextRequiredType(completedTypes, availableTypes, studyGroup);
+	const nextPriority = nextRequired ? FORM_TYPE_PRIORITY[nextRequired] : Infinity;
+
+	// Sort applicable forms by priority order for sequential display
+	const sortedForms = applicableForms.sort(sortFormsByPriority);
+
+	// Build response with unlock status
+	const formsWithStatus = sortedForms.map((form) => {
+		const progress = progressMap.get(form.id);
+		let unlockStatus: "locked" | "available" | "completed" =
+			progress?.status ?? "locked";
+		let isUnlocked =
+			progress?.status === "available" || progress?.status === "completed";
+
+		// Lock future types until current priority is fully completed
+		const formPriority = FORM_TYPE_PRIORITY[form.type];
+		if (formPriority > nextPriority && unlockStatus !== "completed") {
+			unlockStatus = "locked";
+			isUnlocked = false;
+		}
+
+		return {
+			id: form.id,
+			title: form.title,
+			description: form.description,
+			type: form.type,
+			unlockStatus,
+			isUnlocked,
+			progress: progress
+				? {
+					status: progress.status,
+					unlockedAt: progress.unlockedAt,
+					completedAt: progress.completedAt,
 				}
-
-				return {
-					id: form.id,
-					title: form.title,
-					description: form.description,
-					type: form.type,
-					unlockStatus,
-					isUnlocked,
-					progress: progress
-						? {
-								status: progress.status,
-								unlockedAt: progress.unlockedAt,
-								completedAt: progress.completedAt,
-							}
-						: null,
-				};
-			}),
-		),
-	);
+				: null,
+		};
+	});
 
 	return formsWithStatus;
 });
