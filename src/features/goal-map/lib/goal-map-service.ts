@@ -3,6 +3,7 @@ import { Data, Effect, Schema } from "effect";
 
 import { validateNodes } from "@/features/goal-map/lib/validator";
 import { safeParseJson } from "@/lib/utils";
+import { NonEmpty } from "@/lib/validation-schemas";
 import { Database } from "@/server/db/client";
 import { goalMaps, kits, texts } from "@/server/db/schema/app-schema";
 
@@ -73,19 +74,19 @@ export class GoalMapAccessDeniedError extends Data.TaggedError("GoalMapAccessDen
 }> {}
 
 export const GetGoalMapInput = Schema.Struct({
-	goalMapId: Schema.NonEmptyString,
+	goalMapId: NonEmpty("Goal map ID"),
 });
 export type GetGoalMapInput = typeof GetGoalMapInput.Type;
 
 export const SaveGoalMapInput = Schema.Struct({
-	goalMapId: Schema.NonEmptyString,
-	title: Schema.NonEmptyString,
-	description: Schema.optionalWith(Schema.NonEmptyString, {
+	goalMapId: NonEmpty("Goal map ID"),
+	title: NonEmpty("Title"),
+	description: Schema.optionalWith(NonEmpty("Description"), {
 		nullable: true,
 	}),
 	nodes: Schema.Array(NodeSchema),
 	edges: Schema.Array(EdgeSchema),
-	topicId: Schema.optionalWith(Schema.NonEmptyString, { nullable: true }),
+	topicId: Schema.optionalWith(NonEmpty("Topic ID"), { nullable: true }),
 	materialText: Schema.optionalWith(Schema.String, { nullable: true }),
 	materialImages: Schema.optionalWith(Schema.Array(Schema.Any), {
 		nullable: true,
@@ -111,19 +112,19 @@ export type GoalMap = {
 };
 
 export const ListGoalMapsByTopicInput = Schema.Struct({
-	topicId: Schema.optionalWith(Schema.NonEmptyString, { nullable: true }),
+	topicId: Schema.optionalWith(NonEmpty("Topic ID"), { nullable: true }),
 });
 
 export type ListGoalMapsByTopicInput = typeof ListGoalMapsByTopicInput.Type;
 
 export const DeleteGoalMapInput = Schema.Struct({
-	goalMapId: Schema.NonEmptyString,
+	goalMapId: NonEmpty("Goal map ID"),
 });
 
 export type DeleteGoalMapInput = typeof DeleteGoalMapInput.Type;
 
 export const UpdateMaterialInput = Schema.Struct({
-	goalMapId: Schema.NonEmptyString,
+	goalMapId: NonEmpty("Goal map ID"),
 	materialText: Schema.optionalWith(Schema.String, { nullable: true }),
 	materialImages: Schema.optionalWith(Schema.Array(Schema.Any), { nullable: true }),
 });

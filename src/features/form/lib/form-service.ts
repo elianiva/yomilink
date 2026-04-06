@@ -2,6 +2,7 @@ import { and, count, desc, eq } from "drizzle-orm";
 import { Data, Effect, Schema } from "effect";
 
 import { parseJson, randomString, safeParseJson } from "@/lib/utils";
+import { NonEmpty } from "@/lib/validation-schemas";
 import { Database } from "@/server/db/client";
 import { formProgress, formResponses, forms, questions } from "@/server/db/schema/app-schema";
 import { user } from "@/server/db/schema/auth-schema";
@@ -24,8 +25,8 @@ export type FormType = (typeof FORM_TYPES)[number];
 export const FormTypeSchema = Schema.Union(...FORM_TYPES.map((t) => Schema.Literal(t)));
 
 export const CreateFormInput = Schema.Struct({
-	title: Schema.NonEmptyString,
-	description: Schema.optionalWith(Schema.NonEmptyString, {
+	title: NonEmpty("Title"),
+	description: Schema.optionalWith(NonEmpty("Description"), {
 		nullable: true,
 	}),
 	type: Schema.optionalWith(FormTypeSchema, { nullable: true }),
@@ -58,21 +59,21 @@ class FormAlreadySubmittedError extends Data.TaggedError("FormAlreadySubmittedEr
 }> {}
 
 export const CloneFormInput = Schema.Struct({
-	formId: Schema.NonEmptyString,
+	formId: NonEmpty("Form ID"),
 });
 
 export type CloneFormInput = typeof CloneFormInput.Type;
 
 // Input schemas for RPC layer - co-located with service
 export const GetFormByIdInput = Schema.Struct({
-	formId: Schema.NonEmptyString,
+	formId: NonEmpty("Form ID"),
 });
 
 export type GetFormByIdInput = typeof GetFormByIdInput.Type;
 
 export const UpdateFormInput = Schema.Struct({
-	formId: Schema.NonEmptyString,
-	title: Schema.optionalWith(Schema.NonEmptyString, { nullable: true }),
+	formId: NonEmpty("Form ID"),
+	title: Schema.optionalWith(NonEmpty("Title"), { nullable: true }),
 	description: Schema.optionalWith(Schema.String, { nullable: true }),
 	type: Schema.optionalWith(
 		Schema.Union(
@@ -95,7 +96,7 @@ export const UpdateFormInput = Schema.Struct({
 export type UpdateFormInput = typeof UpdateFormInput.Type;
 
 export const GetQuestionByIdInput = Schema.Struct({
-	id: Schema.NonEmptyString,
+	id: NonEmpty("Question ID"),
 });
 
 export type GetQuestionByIdInput = typeof GetQuestionByIdInput.Type;
@@ -395,8 +396,8 @@ export const cloneForm = Effect.fn("cloneForm")(function* (formId: string, userI
 });
 
 export const SubmitFormResponseInput = Schema.Struct({
-	formId: Schema.NonEmptyString,
-	userId: Schema.NonEmptyString,
+	formId: NonEmpty("Form ID"),
+	userId: NonEmpty("User ID"),
 	answers: Schema.Record({ key: Schema.String, value: Schema.Unknown }),
 	timeSpentSeconds: Schema.optionalWith(Schema.Int, { nullable: true }),
 });
@@ -404,7 +405,7 @@ export const SubmitFormResponseInput = Schema.Struct({
 export type SubmitFormResponseInput = typeof SubmitFormResponseInput.Type;
 
 export const GetFormResponsesInput = Schema.Struct({
-	formId: Schema.NonEmptyString,
+	formId: NonEmpty("Form ID"),
 	page: Schema.optionalWith(Schema.Number, { default: () => 1 }),
 	limit: Schema.optionalWith(Schema.Number, { default: () => 20 }),
 });
@@ -494,8 +495,8 @@ export const getFormResponses = Effect.fn("getFormResponses")(function* (
 });
 
 export const ReorderQuestionsInput = Schema.Struct({
-	formId: Schema.NonEmptyString,
-	questionIds: Schema.Array(Schema.NonEmptyString),
+	formId: NonEmpty("Form ID"),
+	questionIds: Schema.Array(NonEmpty("Question ID")),
 });
 
 export type ReorderQuestionsInput = typeof ReorderQuestionsInput.Type;
@@ -633,7 +634,7 @@ export const McqOptions = Schema.Struct({
 	options: Schema.Array(
 		Schema.Struct({
 			id: Schema.String,
-			text: Schema.NonEmptyString,
+			text: NonEmpty("Option text"),
 		}),
 	),
 	correctOptionIds: Schema.Array(Schema.String),
@@ -662,9 +663,9 @@ export type TextOptions = typeof TextOptions.Type;
 export const QuestionOptions = Schema.Union(McqOptions, LikertOptions, TextOptions);
 
 export const CreateQuestionInput = Schema.Struct({
-	formId: Schema.NonEmptyString,
+	formId: NonEmpty("Form ID"),
 	type: Schema.Union(Schema.Literal("mcq"), Schema.Literal("likert"), Schema.Literal("text")),
-	questionText: Schema.NonEmptyString,
+	questionText: NonEmpty("Question text"),
 	options: Schema.optionalWith(QuestionOptions, { nullable: true }),
 	required: Schema.optionalWith(Schema.Boolean, { default: () => true }),
 });
@@ -720,8 +721,8 @@ export const createQuestion = Effect.fn("createQuestion")(function* (data: Creat
 });
 
 export const UpdateQuestionInput = Schema.Struct({
-	questionId: Schema.NonEmptyString,
-	questionText: Schema.optionalWith(Schema.NonEmptyString, { nullable: true }),
+	questionId: NonEmpty("Question ID"),
+	questionText: Schema.optionalWith(NonEmpty("Question text"), { nullable: true }),
 	options: Schema.optionalWith(QuestionOptions, { nullable: true }),
 	required: Schema.optionalWith(Schema.Boolean, { nullable: true }),
 });

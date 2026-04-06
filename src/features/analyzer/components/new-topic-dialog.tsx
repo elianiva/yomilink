@@ -17,11 +17,12 @@ import {
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { useRpcMutation } from "@/hooks/use-rpc-query";
+import { MinLength } from "@/lib/validation-schemas";
 import { TopicRpc } from "@/server/rpc/topic";
 
 const TopicSchema = Schema.Struct({
-	title: Schema.String.pipe(Schema.minLength(4)),
-	description: Schema.String.pipe(Schema.minLength(4)),
+	title: MinLength("Title", 4),
+	description: MinLength("Description", 4),
 });
 
 export function NewTopicDialog() {

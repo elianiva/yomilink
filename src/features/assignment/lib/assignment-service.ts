@@ -2,6 +2,7 @@ import { and, desc, eq, inArray, isNotNull, sql } from "drizzle-orm";
 import { Data, Effect, Schema } from "effect";
 
 import { randomString } from "@/lib/utils";
+import { NonEmpty } from "@/lib/validation-schemas";
 import { Database } from "@/server/db/client";
 import {
 	assignments,
@@ -15,15 +16,15 @@ import {
 import { cohortMembers, cohorts, user } from "@/server/db/schema/auth-schema";
 
 export const CreateAssignmentInput = Schema.Struct({
-	title: Schema.NonEmptyString,
-	description: Schema.optionalWith(Schema.NonEmptyString, {
+	title: NonEmpty("Title"),
+	description: Schema.optionalWith(NonEmpty("Description"), {
 		nullable: true,
 	}),
-	goalMapId: Schema.NonEmptyString,
+	goalMapId: NonEmpty("Goal map ID"),
 	startDate: Schema.optionalWith(Schema.Number, { nullable: true }),
 	endDate: Schema.optionalWith(Schema.Number, { nullable: true }),
-	cohortIds: Schema.Array(Schema.NonEmptyString),
-	userIds: Schema.Array(Schema.NonEmptyString),
+	cohortIds: Schema.Array(NonEmpty("Cohort ID")),
+	userIds: Schema.Array(NonEmpty("User ID")),
 	preTestFormId: Schema.optionalWith(Schema.String, { nullable: true }),
 	postTestFormId: Schema.optionalWith(Schema.String, { nullable: true }),
 	delayedPostTestFormId: Schema.optionalWith(Schema.String, { nullable: true }),
@@ -34,10 +35,10 @@ export const CreateAssignmentInput = Schema.Struct({
 });
 
 export const SaveExperimentGroupsInput = Schema.Struct({
-	assignmentId: Schema.NonEmptyString,
+	assignmentId: NonEmpty("Assignment ID"),
 	groups: Schema.Array(
 		Schema.Struct({
-			userId: Schema.NonEmptyString,
+			userId: NonEmpty("User ID"),
 			groupName: Schema.optionalWith(Schema.String, { nullable: true }),
 			condition: Schema.Union(Schema.Literal("summarizing"), Schema.Literal("concept_map")),
 		}),
@@ -49,7 +50,7 @@ export type SaveExperimentGroupsInput = typeof SaveExperimentGroupsInput.Type;
 export type CreateAssignmentInput = typeof CreateAssignmentInput.Type;
 
 export const DeleteAssignmentInput = Schema.Struct({
-	id: Schema.NonEmptyString,
+	id: NonEmpty("Assignment ID"),
 });
 
 export type DeleteAssignmentInput = typeof DeleteAssignmentInput.Type;
@@ -608,7 +609,7 @@ export const getExperimentCondition = Effect.fn("getExperimentCondition")(functi
 // ============================================================================
 
 export const GetExperimentStatusInput = Schema.Struct({
-	assignmentId: Schema.NonEmptyString,
+	assignmentId: NonEmpty("Assignment ID"),
 });
 
 export type GetExperimentStatusInput = typeof GetExperimentStatusInput.Type;

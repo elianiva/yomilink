@@ -9,30 +9,31 @@ import {
 	NodeSchema,
 } from "@/features/learner-map/lib/comparator";
 import { parseJson } from "@/lib/utils";
+import { NonEmpty } from "@/lib/validation-schemas";
 import { Database } from "@/server/db/client";
 import { assignments, diagnoses, goalMaps, kits, learnerMaps } from "@/server/db/schema/app-schema";
 import { user } from "@/server/db/schema/auth-schema";
 
 export const GetAnalyticsForAssignmentInput = Schema.Struct({
-	assignmentId: Schema.NonEmptyString,
+	assignmentId: NonEmpty("Assignment ID"),
 });
 
 export type GetAnalyticsForAssignmentInput = typeof GetAnalyticsForAssignmentInput.Type;
 
 export const GetLearnerMapForAnalyticsInput = Schema.Struct({
-	learnerMapId: Schema.NonEmptyString,
+	learnerMapId: NonEmpty("Learner map ID"),
 });
 
 export type GetLearnerMapForAnalyticsInput = typeof GetLearnerMapForAnalyticsInput.Type;
 
 export const GetMultipleLearnerMapsInput = Schema.Struct({
-	learnerMapIds: Schema.Array(Schema.NonEmptyString),
+	learnerMapIds: Schema.Array(NonEmpty("Learner map ID")),
 });
 
 export type GetMultipleLearnerMapsInput = typeof GetMultipleLearnerMapsInput.Type;
 
 export const GetLearnerSummaryTextInput = Schema.Struct({
-	learnerMapId: Schema.NonEmptyString,
+	learnerMapId: NonEmpty("Learner map ID"),
 });
 
 export type GetLearnerSummaryTextInput = typeof GetLearnerSummaryTextInput.Type;

@@ -1,13 +1,14 @@
 import { Effect, Schema } from "effect";
 
 import { randomString } from "@/lib/utils";
+import { NonEmpty } from "@/lib/validation-schemas";
 import { Database } from "@/server/db/client";
 import { topics } from "@/server/db/schema/app-schema";
 
 export const TopicSchema = Schema.Struct({
-	id: Schema.NonEmptyString,
-	title: Schema.NonEmptyString,
-	description: Schema.optionalWith(Schema.NullOr(Schema.NonEmptyString), {
+	id: NonEmpty("Topic ID"),
+	title: NonEmpty("Title"),
+	description: Schema.optionalWith(Schema.NullOr(NonEmpty("Description")), {
 		exact: true,
 	}),
 });
@@ -15,8 +16,8 @@ export const TopicSchema = Schema.Struct({
 export type Topic = typeof TopicSchema.Type;
 
 export const CreateTopicInput = Schema.Struct({
-	title: Schema.NonEmptyString,
-	description: Schema.optionalWith(Schema.NonEmptyString, { nullable: true }),
+	title: NonEmpty("Title"),
+	description: Schema.optionalWith(NonEmpty("Description"), { nullable: true }),
 });
 
 export type CreateTopicInput = typeof CreateTopicInput.Type;

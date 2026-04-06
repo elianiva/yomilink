@@ -7,6 +7,7 @@ import { Button } from "@/components/ui/button";
 import { FieldInfo } from "@/components/ui/field-info";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { Email, Password } from "@/lib/validation-schemas";
 import { getMe } from "@/server/rpc/profile";
 
 import { authClient } from "../lib/auth-client";
@@ -49,8 +50,8 @@ export const Route = createFileRoute("/login")({
 });
 
 const LoginSchema = Schema.Struct({
-	email: Schema.NonEmptyString,
-	password: Schema.String.pipe(Schema.minLength(8)),
+	email: Email,
+	password: Password(8),
 });
 
 function LoginPage() {

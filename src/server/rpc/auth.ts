@@ -4,6 +4,7 @@ import { Data, Effect, Layer, Schema } from "effect";
 
 import { Auth } from "@/lib/auth";
 import { randomString } from "@/lib/utils";
+import { Email, NonEmpty, Password } from "@/lib/validation-schemas";
 import { authMiddlewareOptional } from "@/middlewares/auth";
 import { Database } from "@/server/db/client";
 import { cohortMembers, cohorts } from "@/server/db/schema/auth-schema";
@@ -24,13 +25,13 @@ export const StudyGroupSchema = Schema.NullOr(
 );
 
 export const SignUpInput = Schema.Struct({
-	name: Schema.NonEmptyString,
-	email: Schema.NonEmptyString,
-	password: Schema.String.pipe(Schema.minLength(8)),
+	name: NonEmpty("Name"),
+	email: Email,
+	password: Password(8),
 	age: Schema.NullOr(Schema.Number),
 	studentId: Schema.NullOr(Schema.String),
 	jlptLevel: JlptLevelSchema,
-	cohortId: Schema.NonEmptyString,
+	cohortId: NonEmpty("Cohort"),
 	studyGroup: StudyGroupSchema,
 	japaneseLearningDuration: Schema.NullOr(Schema.Number),
 	previousJapaneseScore: Schema.NullOr(Schema.Number),

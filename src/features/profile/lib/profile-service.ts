@@ -1,11 +1,12 @@
 import { eq } from "drizzle-orm";
 import { Data, Effect, Schema } from "effect";
 
+import { NonEmpty } from "@/lib/validation-schemas";
 import { Database } from "@/server/db/client";
 import { user } from "@/server/db/schema/auth-schema";
 
 export const ProfileSchema = Schema.Struct({
-	name: Schema.NonEmptyString,
+	name: NonEmpty("Name"),
 	age: Schema.NullOr(Schema.Number),
 	jlptLevel: Schema.Union(Schema.Literal("N5", "N4", "N3", "N2", "N1", "None")),
 	japaneseLearningDuration: Schema.NullOr(Schema.Number),

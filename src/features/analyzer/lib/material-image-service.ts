@@ -1,6 +1,8 @@
 import { env } from "cloudflare:workers";
 import { Effect, Schema } from "effect";
 
+import { NonEmpty } from "@/lib/validation-schemas";
+
 class InvalidFileTypeError extends Schema.TaggedError<InvalidFileTypeError>()(
 	"InvalidFileTypeError",
 	{
@@ -15,7 +17,7 @@ class FileTooLargeError extends Schema.TaggedError<FileTooLargeError>()("FileToo
 }) {}
 
 export const UploadMaterialImageInput = Schema.Struct({
-	goalMapId: Schema.NonEmptyString,
+	goalMapId: NonEmpty("Goal map ID"),
 	file: Schema.instanceOf(File),
 });
 

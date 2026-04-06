@@ -2,6 +2,7 @@ import { desc, eq } from "drizzle-orm";
 import { Data, Effect, Schema } from "effect";
 
 import { safeParseJson } from "@/lib/utils";
+import { NonEmpty } from "@/lib/validation-schemas";
 import { Database } from "@/server/db/client";
 import { goalMaps, kits } from "@/server/db/schema/app-schema";
 
@@ -18,19 +19,19 @@ const KitEdgeSchema = Schema.Record({ key: Schema.String, value: Schema.Any }).p
 );
 
 export const GetKitInput = Schema.Struct({
-	kitId: Schema.NonEmptyString,
+	kitId: NonEmpty("Kit ID"),
 });
 
 export type GetKitInput = typeof GetKitInput.Type;
 
 export const GetKitStatusInput = Schema.Struct({
-	goalMapId: Schema.NonEmptyString,
+	goalMapId: NonEmpty("Goal map ID"),
 });
 
 export type GetKitStatusInput = typeof GetKitStatusInput.Type;
 
 export const GenerateKitInput = Schema.Struct({
-	goalMapId: Schema.NonEmptyString,
+	goalMapId: NonEmpty("Goal map ID"),
 	layout: Schema.optionalWith(Schema.Union(Schema.Literal("preset"), Schema.Literal("random")), {
 		nullable: true,
 	}),

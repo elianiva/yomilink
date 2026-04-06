@@ -97,10 +97,10 @@ export const Role = Schema.Literal("teacher", "admin", "student").annotations({
 export const AuthUser = Schema.Struct({
 	id: Schema.String,
 	role: Schema.optionalWith(Role, { default: () => "student" }),
-	email: Schema.optionalWith(Schema.NonEmptyString, { nullable: true }),
-	name: Schema.optionalWith(Schema.NonEmptyString, { nullable: true }),
+	email: Schema.optionalWith(Schema.String, { nullable: true }),
+	name: Schema.optionalWith(Schema.String, { nullable: true }),
 	studentId: Schema.optionalWith(Schema.String, { nullable: true }),
-	image: Schema.optionalWith(Schema.NonEmptyString, { nullable: true }),
+	image: Schema.optionalWith(Schema.String, { nullable: true }),
 	age: Schema.optionalWith(Schema.Number, { nullable: true }),
 	jlptLevel: Schema.optionalWith(
 		Schema.Union(Schema.Literal("N5", "N4", "N3", "N2", "N1", "None")),

@@ -1,6 +1,7 @@
 import { Schema } from "effect";
 import { UserIcon, BookOpenIcon, SchoolIcon, CheckCircleIcon } from "lucide-react";
 
+import { Email, NonEmpty } from "@/lib/validation-schemas";
 import { JlptLevelSchema, StudyGroupSchema } from "@/server/rpc/auth";
 
 export const jlptOptions = [
@@ -13,8 +14,8 @@ export const jlptOptions = [
 ];
 
 export const SignUpSchema = Schema.Struct({
-	name: Schema.NonEmptyString,
-	email: Schema.NonEmptyString,
+	name: NonEmpty("Name"),
+	email: Email,
 	// Password validation disabled for students - easy to re-enable
 	// password: Schema.String.pipe(
 	// 	Schema.minLength(8),
@@ -33,7 +34,7 @@ export const SignUpSchema = Schema.Struct({
 	age: Schema.NullOr(Schema.Number),
 	studentId: Schema.NullOr(Schema.String),
 	jlptLevel: JlptLevelSchema,
-	cohortId: Schema.NonEmptyString,
+	cohortId: NonEmpty("Cohort"),
 	japaneseLearningDuration: Schema.NullOr(Schema.Number),
 	previousJapaneseScore: Schema.NullOr(Schema.Number),
 	studyGroup: StudyGroupSchema,

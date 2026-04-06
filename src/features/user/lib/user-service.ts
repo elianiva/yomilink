@@ -2,6 +2,7 @@ import { and, count, eq, ilike, inArray, or, sql } from "drizzle-orm";
 import { Data, Effect, Schema } from "effect";
 
 import { buildWhereClause, calculateOffset, createFuzzyPattern } from "@/lib/db-query-builder";
+import { NonEmpty } from "@/lib/validation-schemas";
 import { Database } from "@/server/db/client";
 import { cohorts, cohortMembers, user, verification } from "@/server/db/schema/auth-schema";
 
@@ -23,7 +24,7 @@ export const UserFilterInput = Schema.Struct({
 export type UserFilterInput = typeof UserFilterInput.Type;
 
 export const UpdateUserInput = Schema.Struct({
-	name: Schema.optional(Schema.NonEmptyString),
+	name: Schema.optional(NonEmpty("Name")),
 	email: Schema.optional(Schema.String),
 	studentId: Schema.optionalWith(Schema.String, { nullable: true }),
 	age: Schema.optionalWith(Schema.Number, { nullable: true }),
@@ -45,7 +46,7 @@ export type UpdateUserInput = typeof UpdateUserInput.Type;
 
 export const BanUserInput = Schema.Struct({
 	userId: Schema.String,
-	reason: Schema.NonEmptyString,
+	reason: NonEmpty("Reason"),
 	expiresAt: Schema.optional(Schema.Date),
 });
 

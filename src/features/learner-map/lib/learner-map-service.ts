@@ -3,6 +3,7 @@ import { Data, Effect, Schema } from "effect";
 
 import { PerLinkDiagnosisSchema } from "@/features/analyzer/lib/analytics-service";
 import { parseJson, randomString, roundToDecimals, safeParseJson } from "@/lib/utils";
+import { NonEmpty } from "@/lib/validation-schemas";
 import { Database } from "@/server/db/client";
 import {
 	assignments,
@@ -51,13 +52,13 @@ export class PreviousAttemptNotSubmittedError extends Data.TaggedError(
 }> {}
 
 export const GetAssignmentForStudentInput = Schema.Struct({
-	assignmentId: Schema.NonEmptyString,
+	assignmentId: NonEmpty("Assignment ID"),
 });
 
 export type GetAssignmentForStudentInput = typeof GetAssignmentForStudentInput.Type;
 
 export const SaveLearnerMapInput = Schema.Struct({
-	assignmentId: Schema.NonEmptyString,
+	assignmentId: NonEmpty("Assignment ID"),
 	nodes: Schema.optionalWith(Schema.String, { nullable: true }),
 	edges: Schema.optionalWith(Schema.String, { nullable: true }),
 	controlText: Schema.optionalWith(Schema.String, { nullable: true }),
@@ -66,32 +67,32 @@ export const SaveLearnerMapInput = Schema.Struct({
 export type SaveLearnerMapInput = typeof SaveLearnerMapInput.Type;
 
 export const SubmitLearnerMapInput = Schema.Struct({
-	assignmentId: Schema.NonEmptyString,
+	assignmentId: NonEmpty("Assignment ID"),
 });
 
 export type SubmitLearnerMapInput = typeof SubmitLearnerMapInput.Type;
 
 export const GetDiagnosisInput = Schema.Struct({
-	assignmentId: Schema.NonEmptyString,
+	assignmentId: NonEmpty("Assignment ID"),
 });
 
 export type GetDiagnosisInput = typeof GetDiagnosisInput.Type;
 
 export const StartNewAttemptInput = Schema.Struct({
-	assignmentId: Schema.NonEmptyString,
+	assignmentId: NonEmpty("Assignment ID"),
 });
 
 export type StartNewAttemptInput = typeof StartNewAttemptInput.Type;
 
 export const GetPeerStatsInput = Schema.Struct({
-	assignmentId: Schema.NonEmptyString,
+	assignmentId: NonEmpty("Assignment ID"),
 });
 
 export type GetPeerStatsInput = typeof GetPeerStatsInput.Type;
 
 export const SubmitControlTextInput = Schema.Struct({
-	assignmentId: Schema.NonEmptyString,
-	text: Schema.NonEmptyString,
+	assignmentId: NonEmpty("Assignment ID"),
+	text: NonEmpty("Text"),
 });
 
 export type SubmitControlTextInput = typeof SubmitControlTextInput.Type;
