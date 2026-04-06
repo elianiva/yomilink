@@ -4,111 +4,111 @@ description: "A student's daily routine in Japan"
 nodes:
     - id: "tanaka"
       type: "text"
-      position: { x: 340, y: 40 }
+      position: { x: 400, y: 50 }
       data: { label: "田中さん", color: "green" }
     - id: "weekday"
       type: "text"
-      position: { x: 200, y: 170 }
+      position: { x: 250, y: 250 }
       data: { label: "平日", color: "blue" }
     - id: "weekend"
       type: "text"
-      position: { x: 480, y: 170 }
+      position: { x: 550, y: 250 }
       data: { label: "週末", color: "blue" }
     - id: "wake-up"
       type: "text"
-      position: { x: 80, y: 330 }
+      position: { x: 100, y: 500 }
       data: { label: "起きる", color: "amber" }
     - id: "school"
       type: "text"
-      position: { x: 200, y: 330 }
+      position: { x: 250, y: 500 }
       data: { label: "学校", color: "amber" }
     - id: "study"
       type: "text"
-      position: { x: 320, y: 330 }
+      position: { x: 400, y: 500 }
       data: { label: "勉強", color: "amber" }
     - id: "lunch"
       type: "text"
-      position: { x: 80, y: 470 }
+      position: { x: 100, y: 750 }
       data: { label: "昼ご飯", color: "amber" }
     - id: "afternoon"
       type: "text"
-      position: { x: 200, y: 470 }
+      position: { x: 250, y: 750 }
       data: { label: "午後", color: "amber" }
     - id: "dinner"
       type: "text"
-      position: { x: 320, y: 470 }
+      position: { x: 400, y: 750 }
       data: { label: "晩ご飯", color: "amber" }
     - id: "sleep"
       type: "text"
-      position: { x: 440, y: 330 }
+      position: { x: 550, y: 500 }
       data: { label: "寝る", color: "amber" }
     - id: "saturday"
       type: "text"
-      position: { x: 440, y: 330 }
+      position: { x: 550, y: 500 }
       data: { label: "土曜日", color: "purple" }
     - id: "sunday"
       type: "text"
-      position: { x: 560, y: 330 }
+      position: { x: 700, y: 500 }
       data: { label: "日曜日", color: "purple" }
     - id: "work"
       type: "text"
-      position: { x: 440, y: 470 }
+      position: { x: 550, y: 750 }
       data: { label: "アルバイト", color: "amber" }
     - id: "fun"
       type: "text"
-      position: { x: 560, y: 470 }
+      position: { x: 700, y: 750 }
       data: { label: "たのしい", color: "amber" }
     - id: "conn-weekday"
       type: "connector"
-      position: { x: 200, y: 250 }
+      position: { x: 250, y: 150 }
       data: { label: "の生活" }
     - id: "conn-weekend"
       type: "connector"
-      position: { x: 480, y: 250 }
+      position: { x: 550, y: 150 }
       data: { label: "は" }
     - id: "conn-wake-up"
       type: "connector"
-      position: { x: 140, y: 250 }
+      position: { x: 175, y: 375 }
       data: { label: "に" }
     - id: "conn-school"
       type: "connector"
-      position: { x: 200, y: 250 }
+      position: { x: 250, y: 375 }
       data: { label: "へ行く" }
     - id: "conn-study"
       type: "connector"
-      position: { x: 260, y: 250 }
+      position: { x: 325, y: 375 }
       data: { label: "をする" }
     - id: "conn-lunch"
       type: "connector"
-      position: { x: 140, y: 400 }
+      position: { x: 175, y: 625 }
       data: { label: "を食べる" }
     - id: "conn-afternoon"
       type: "connector"
-      position: { x: 200, y: 400 }
+      position: { x: 250, y: 625 }
       data: { label: "の活動" }
     - id: "conn-dinner"
       type: "connector"
-      position: { x: 260, y: 400 }
+      position: { x: 325, y: 625 }
       data: { label: "を食べる" }
     - id: "conn-sleep"
       type: "connector"
-      position: { x: 320, y: 400 }
+      position: { x: 400, y: 375 }
       data: { label: "に寝る" }
     - id: "conn-saturday"
       type: "connector"
-      position: { x: 440, y: 250 }
+      position: { x: 550, y: 375 }
       data: { label: "の" }
     - id: "conn-sunday"
       type: "connector"
-      position: { x: 520, y: 250 }
+      position: { x: 625, y: 375 }
       data: { label: "の" }
     - id: "conn-work"
       type: "connector"
-      position: { x: 440, y: 400 }
+      position: { x: 550, y: 625 }
       data: { label: "をする" }
     - id: "conn-fun"
       type: "connector"
-      position: { x: 520, y: 400 }
+      position: { x: 625, y: 625 }
       data: { label: "時間" }
 edges:
     - id: "e1"

@@ -2,101 +2,105 @@
 title: "Frontend Web Development Basics"
 description: "Introduction to HTML, CSS, and JavaScript"
 nodes:
-    - id: "frontend"
+    - id: "web"
       type: "text"
-      position: { x: 340, y: 40 }
-      data: { label: "Frontend", color: "green" }
+      position: { x: 500, y: 40 }
+      data: { label: "Web Page", color: "green" }
     - id: "html"
       type: "text"
-      position: { x: 140, y: 170 }
+      position: { x: 200, y: 280 }
       data: { label: "HTML", color: "blue" }
     - id: "css"
       type: "text"
-      position: { x: 340, y: 170 }
+      position: { x: 500, y: 280 }
       data: { label: "CSS", color: "blue" }
     - id: "js"
       type: "text"
-      position: { x: 540, y: 170 }
+      position: { x: 800, y: 280 }
       data: { label: "JavaScript", color: "blue" }
     - id: "structure"
       type: "text"
-      position: { x: 60, y: 320 }
+      position: { x: 80, y: 520 }
       data: { label: "Structure", color: "amber" }
     - id: "tags"
       type: "text"
-      position: { x: 180, y: 320 }
+      position: { x: 260, y: 520 }
       data: { label: "Tags", color: "amber" }
-    - id: "dom"
+    - id: "style"
       type: "text"
-      position: { x: 60, y: 460 }
-      data: { label: "DOM", color: "amber" }
-    - id: "styling"
-      type: "text"
-      position: { x: 260, y: 320 }
-      data: { label: "Styling", color: "amber" }
+      position: { x: 380, y: 520 }
+      data: { label: "Style", color: "amber" }
     - id: "layout"
       type: "text"
-      position: { x: 380, y: 320 }
+      position: { x: 560, y: 520 }
       data: { label: "Layout", color: "amber" }
-    - id: "responsive"
+    - id: "color"
       type: "text"
-      position: { x: 260, y: 460 }
-      data: { label: "Responsive", color: "amber" }
-    - id: "logic"
+      position: { x: 380, y: 760 }
+      data: { label: "Color", color: "amber" }
+    - id: "size"
       type: "text"
-      position: { x: 500, y: 320 }
-      data: { label: "Logic", color: "amber" }
+      position: { x: 560, y: 760 }
+      data: { label: "Size", color: "amber" }
     - id: "events"
       type: "text"
-      position: { x: 620, y: 320 }
+      position: { x: 740, y: 520 }
       data: { label: "Events", color: "amber" }
-    - id: "async"
+    - id: "click"
       type: "text"
-      position: { x: 500, y: 460 }
-      data: { label: "Async", color: "amber" }
+      position: { x: 920, y: 520 }
+      data: { label: "Clicks", color: "amber" }
+    - id: "alert"
+      type: "text"
+      position: { x: 740, y: 760 }
+      data: { label: "Alerts", color: "amber" }
+    - id: "change"
+      type: "text"
+      position: { x: 920, y: 760 }
+      data: { label: "Changes", color: "amber" }
     - id: "conn-web"
       type: "connector"
-      position: { x: 340, y: 110 }
-      data: { label: "builds" }
+      position: { x: 500, y: 160 }
+      data: { label: "uses" }
     - id: "conn-structure"
       type: "connector"
-      position: { x: 140, y: 250 }
-      data: { label: "defines" }
+      position: { x: 140, y: 400 }
+      data: { label: "creates" }
     - id: "conn-tags"
       type: "connector"
-      position: { x: 200, y: 250 }
-      data: { label: "uses" }
-    - id: "conn-dom"
-      type: "connector"
-      position: { x: 100, y: 390 }
-      data: { label: "creates" }
+      position: { x: 230, y: 400 }
+      data: { label: "has" }
     - id: "conn-style"
       type: "connector"
-      position: { x: 340, y: 250 }
-      data: { label: "styles" }
+      position: { x: 470, y: 640 }
+      data: { label: "sets" }
+    - id: "conn-css-style"
+      type: "connector"
+      position: { x: 440, y: 400 }
+      data: { label: "applies" }
     - id: "conn-layout"
       type: "connector"
-      position: { x: 400, y: 250 }
+      position: { x: 530, y: 400 }
       data: { label: "arranges" }
-    - id: "conn-responsive"
-      type: "connector"
-      position: { x: 300, y: 390 }
-      data: { label: "adapts" }
-    - id: "conn-behavior"
-      type: "connector"
-      position: { x: 540, y: 250 }
-      data: { label: "adds" }
     - id: "conn-events"
       type: "connector"
-      position: { x: 600, y: 250 }
+      position: { x: 770, y: 400 }
       data: { label: "handles" }
-    - id: "conn-async"
+    - id: "conn-clicks"
       type: "connector"
-      position: { x: 480, y: 390 }
-      data: { label: "manages" }
+      position: { x: 830, y: 640 }
+      data: { label: "is" }
+    - id: "conn-alerts"
+      type: "connector"
+      position: { x: 740, y: 640 }
+      data: { label: "shows" }
+    - id: "conn-changes"
+      type: "connector"
+      position: { x: 830, y: 640 }
+      data: { label: "tracks" }
 edges:
     - id: "e1"
-      source: "frontend"
+      source: "web"
       target: "conn-web"
     - id: "e2"
       source: "conn-web"
@@ -120,111 +124,80 @@ edges:
       source: "conn-tags"
       target: "tags"
     - id: "e9"
-      source: "html"
-      target: "conn-dom"
+      source: "css"
+      target: "conn-css-style"
     - id: "e10"
-      source: "conn-dom"
-      target: "dom"
+      source: "conn-css-style"
+      target: "style"
     - id: "e11"
       source: "css"
-      target: "conn-style"
-    - id: "e12"
-      source: "conn-style"
-      target: "styling"
-    - id: "e13"
-      source: "css"
       target: "conn-layout"
-    - id: "e14"
+    - id: "e12"
       source: "conn-layout"
       target: "layout"
+    - id: "e13"
+      source: "style"
+      target: "conn-style"
+    - id: "e14"
+      source: "conn-style"
+      target: "color"
     - id: "e15"
-      source: "css"
-      target: "conn-responsive"
+      source: "conn-style"
+      target: "size"
     - id: "e16"
-      source: "conn-responsive"
-      target: "responsive"
-    - id: "e17"
-      source: "js"
-      target: "conn-behavior"
-    - id: "e18"
-      source: "conn-behavior"
-      target: "logic"
-    - id: "e19"
       source: "js"
       target: "conn-events"
-    - id: "e20"
+    - id: "e17"
       source: "conn-events"
       target: "events"
+    - id: "e18"
+      source: "events"
+      target: "conn-clicks"
+    - id: "e19"
+      source: "conn-clicks"
+      target: "click"
+    - id: "e20"
+      source: "events"
+      target: "conn-alerts"
     - id: "e21"
-      source: "js"
-      target: "conn-async"
+      source: "conn-alerts"
+      target: "alert"
     - id: "e22"
-      source: "conn-async"
-      target: "async"
+      source: "events"
+      target: "conn-changes"
+    - id: "e23"
+      source: "conn-changes"
+      target: "change"
 ---
 
 # Frontend Web Development Basics
 
-Frontend web development is the practice of building the user interface of websites and web applications. It involves three core technologies: HTML for structure, CSS for styling, and JavaScript for interactivity.
+Every web page you visit is built using three fundamental technologies. HTML provides the structural foundation, CSS handles the visual presentation, and JavaScript enables interactive behavior. These technologies work together to create the complete web experience.
 
-## HTML: The Structure
+## HTML: The Structural Foundation
 
-HTML, which stands for HyperText Markup Language, provides the structure and content of web pages. Think of it as the skeleton of a webpage that holds everything together.
+HTML, or HyperText Markup Language, serves as the backbone of every webpage. Its primary responsibility is creating the document structure—the hierarchy of headings, the organization of sections, and the overall skeleton that holds content together.
 
-### Basic HTML Tags
+The language accomplishes this through a system of tags. Each piece of content is wrapped in tags that define its purpose and meaning. Headings use tags like `<h1>` through `<h6>`, paragraphs use `<p>`, links use `<a>`, and containers use `<div>`. These tags tell the browser what each element represents and how it relates to other content on the page.
 
-Every HTML document follows a standard structure. It begins with a document type declaration, followed by HTML tags that contain a head section and a body section. The head holds metadata like the page title, while the body contains the visible content.
+## CSS: Visual Presentation and Layout
 
-Common HTML elements include headings, paragraphs, links, images, and lists. Headings use the h1 through h6 tags to define content hierarchy, with h1 being the most important. Paragraphs use the p tag to wrap blocks of text. Links use the anchor tag with a reference attribute to connect to other pages. Images use the img tag with source and alternative text attributes. Lists can be unordered using the ul tag with list items, or ordered using the ol tag.
+Once HTML establishes the structure, CSS takes over the visual design. Cascading Style Sheets define how elements appear—their colors, fonts, spacing, borders, and overall aesthetic qualities.
 
-### Block vs Inline Elements
+The core concept in CSS is styling. Through selectors that target specific elements, CSS applies visual rules that transform raw structure into polished interfaces. Styling encompasses fundamental properties like color, which controls text and background hues, and size, which manages dimensions, font sizing, and proportional relationships.
 
-HTML elements fall into two categories. Block elements like div, paragraph, and headings take up the full available width and start on new lines. Inline elements like span, anchor links, and strong text only take up as much space as needed and remain within the text flow.
+Beyond appearance, CSS also handles layout. Using modern systems like Flexbox and Grid, CSS arranges elements in rows, columns, and responsive patterns. This arrangement creates readable, balanced designs that adapt to different screen sizes.
 
-## CSS: The Presentation
+## JavaScript: Interactive Behavior
 
-CSS, or Cascading Style Sheets, controls how HTML elements look. It handles colors, fonts, sizes, spacing, and the arrangement of elements on the page.
+JavaScript brings web pages to life by enabling dynamic responses to user actions. Where HTML and CSS create static documents, JavaScript introduces interactivity.
 
-### Selectors and Properties
+At its core, JavaScript handles events. Every user interaction generates an event—mouse movements, key presses, form submissions—and JavaScript responds to these events with programmed behavior.
 
-CSS uses selectors to pick which elements to style and properties to define the styling. You can select elements by their tag name like targeting all h1 elements, by class using a dot before the class name, or by ID using a hash before the identifier. Common properties include color for text color, font size for text sizing, and background color for element backgrounds.
+Clicks represent the most common event type. When users interact with buttons or links, JavaScript detects these clicks and triggers corresponding actions. The language can also show alerts, popup messages that communicate directly with users when important situations occur. Additionally, JavaScript tracks changes in form inputs, data values, and page states, reacting immediately when modifications happen.
 
-### The Box Model
+## How the Technologies Work Together
 
-Every HTML element behaves like a rectangular box with four layers. The content layer holds the actual text or elements. Padding creates space around the content inside the border. The border forms the visible edge. Margin creates space outside the border, separating this element from others. Understanding these layers is essential for precise layout control.
+In practice, these three technologies form a pipeline. HTML creates the structural foundation using its tag system. CSS applies visual styling and arranges the layout of those structured elements. JavaScript then adds interactive behavior by handling events like clicks and changes.
 
-### Layout Systems
-
-Modern CSS offers flexible layout systems. Flexbox arranges elements in a row or column with properties to control spacing, alignment, and distribution of space. Grid creates two-dimensional layouts with rows and columns. These systems replace older approaches like floating elements and enable responsive designs.
-
-### Responsive Design
-
-Websites should adapt to different screen sizes. Media queries let you apply different styles based on conditions like screen width. This means a layout can be single-column on mobile phones and expand to multiple columns on tablets and desktop computers. The viewport meta tag in HTML ensures proper scaling on mobile devices.
-
-## JavaScript: The Behavior
-
-JavaScript adds interactivity and dynamic behavior to web pages. It responds to user actions, manipulates content, and communicates with servers.
-
-### Variables and Data Types
-
-JavaScript stores data in variables. The language supports several data types. Strings hold text content. Numbers include integers and decimals. Booleans represent true or false values. Arrays store ordered lists of items. Objects hold collections of labeled data with keys and values.
-
-### Functions
-
-Functions are reusable blocks of code that perform specific tasks. They can accept input values called parameters and return output values. Modern JavaScript introduces arrow functions that provide a more concise syntax for writing function expressions.
-
-### The DOM
-
-The Document Object Model represents the HTML structure as a tree of objects that JavaScript can access and modify. You can select elements using their ID, class name, or tag type. Once selected, you can change the text content, modify CSS styles, add or remove classes, or even create and insert new elements into the document.
-
-### Event Handling
-
-Events represent user interactions like mouse clicks, key presses, or form submissions. JavaScript can listen for these events and execute code in response. This enables interactive features like showing menus when buttons are clicked, validating form input as users type, or loading new content when scrolling.
-
-### Asynchronous Operations
-
-Some operations take time to complete, such as fetching data from a server or reading files. JavaScript handles these without blocking the rest of the code using promises and async functions. The await keyword pauses execution until an operation completes, making asynchronous code easier to read and write.
-
-## How They Work Together
-
-The three technologies form a complete frontend stack. HTML defines what content appears on the page. CSS controls how that content looks and is positioned. JavaScript determines how the page responds to user actions and updates dynamically. When building any feature, all three work together to create a complete experience for users.
+When building any web feature, all three technologies contribute. A button requires HTML for its structure, CSS for its visual appearance, and JavaScript for its click behavior. Understanding how they complement each other is essential for frontend development.
