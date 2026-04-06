@@ -74,9 +74,17 @@ function FormTakerPage() {
 
 	const questionData: QuestionWithOptions[] = data.questions.map((q) => {
 		let transformedOptions: QuestionWithOptions["options"];
+		let shuffle: boolean | undefined;
 
-		if (q.type === "mcq" && Array.isArray(q.options)) {
-			transformedOptions = q.options as { id: string; text: string }[];
+		if (q.type === "mcq" && q.options && !Array.isArray(q.options)) {
+			// Student form returns { type: "mcq", options: [...], shuffle: boolean }
+			const mcqOptions = q.options as {
+				type: "mcq";
+				options: { id: string; text: string }[];
+				shuffle: boolean;
+			};
+			transformedOptions = mcqOptions.options;
+			shuffle = mcqOptions.shuffle;
 		} else if (q.type === "likert" && q.options) {
 			transformedOptions = q.options as {
 				type: "likert";
@@ -90,6 +98,9 @@ function FormTakerPage() {
 				maxLength?: number;
 				placeholder?: string;
 			};
+		} else if (q.type === "mcq" && Array.isArray(q.options)) {
+			// Fallback for legacy format
+			transformedOptions = q.options as { id: string; text: string }[];
 		} else {
 			transformedOptions = [];
 		}
@@ -101,6 +112,7 @@ function FormTakerPage() {
 			orderIndex: q.orderIndex,
 			required: q.required,
 			options: transformedOptions,
+			shuffle,
 		};
 	});
 
