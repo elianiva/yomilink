@@ -31,7 +31,27 @@ function LegendDot({ color }: { color: string }) {
 	return <span className="inline-block size-3 rounded-full" style={{ backgroundColor: color }} />;
 }
 
-function ComparisonControls({
+function ToolbarToggle({
+	checked,
+	onChange,
+	label,
+	color,
+}: {
+	checked: boolean;
+	onChange: (v: boolean) => void;
+	label: string;
+	color?: string;
+}) {
+	return (
+		<div className="flex items-center gap-1.5">
+			<Switch checked={checked} onCheckedChange={onChange} />
+			{color && <LegendDot color={color} />}
+			<span className="text-xs">{label}</span>
+		</div>
+	);
+}
+
+function ComparisonToolbar({
 	visibility,
 	onChange,
 }: {
@@ -39,54 +59,46 @@ function ComparisonControls({
 	onChange: (updates: Partial<VisibilityState>) => void;
 }) {
 	return (
-		<div className="space-y-3">
-			<div className="text-xs font-medium text-muted-foreground uppercase tracking-wide">
-				Map Visibility
-			</div>
-			<div className="flex items-center gap-4 flex-wrap">
-				<div className="flex items-center gap-2 text-xs">
-					<Switch
+		<div className="border-b bg-background/70 backdrop-blur p-3">
+			<div className="flex items-center gap-6">
+				<div className="flex items-center gap-3">
+					<span className="text-xs font-medium text-muted-foreground uppercase">
+						Maps
+					</span>
+					<ToolbarToggle
 						checked={visibility.showGoalMap}
-						onCheckedChange={(v) => onChange({ showGoalMap: v })}
+						onChange={(v) => onChange({ showGoalMap: v })}
+						label="Goal Map"
 					/>
-					<span>Goal Map</span>
-				</div>
-				<div className="flex items-center gap-2 text-xs">
-					<Switch
+					<ToolbarToggle
 						checked={visibility.showLearnerMap}
-						onCheckedChange={(v) => onChange({ showLearnerMap: v })}
+						onChange={(v) => onChange({ showLearnerMap: v })}
+						label="Your Map"
 					/>
-					<span>Your Map</span>
 				</div>
-			</div>
-
-			<div className="text-xs font-medium text-muted-foreground uppercase tracking-wide pt-2 border-t">
-				Edge Types
-			</div>
-			<div className="flex items-center gap-3 flex-wrap">
-				<div className="flex items-center gap-1.5 text-xs">
-					<Switch
+				<div className="w-px h-5 bg-border" />
+				<div className="flex items-center gap-3">
+					<span className="text-xs font-medium text-muted-foreground uppercase">
+						Edges
+					</span>
+					<ToolbarToggle
 						checked={visibility.showCorrectEdges}
-						onCheckedChange={(v) => onChange({ showCorrectEdges: v })}
+						onChange={(v) => onChange({ showCorrectEdges: v })}
+						label="Correct"
+						color="#22c55e"
 					/>
-					<LegendDot color="#22c55e" />
-					<span>Correct</span>
-				</div>
-				<div className="flex items-center gap-1.5 text-xs">
-					<Switch
+					<ToolbarToggle
 						checked={visibility.showMissingEdges}
-						onCheckedChange={(v) => onChange({ showMissingEdges: v })}
+						onChange={(v) => onChange({ showMissingEdges: v })}
+						label="Missing"
+						color="#f59e0b"
 					/>
-					<LegendDot color="#f59e0b" />
-					<span>Missing</span>
-				</div>
-				<div className="flex items-center gap-1.5 text-xs">
-					<Switch
+					<ToolbarToggle
 						checked={visibility.showExcessiveEdges}
-						onCheckedChange={(v) => onChange({ showExcessiveEdges: v })}
+						onChange={(v) => onChange({ showExcessiveEdges: v })}
+						label="Excessive"
+						color="#ef4444"
 					/>
-					<LegendDot color="#ef4444" />
-					<span>Excessive</span>
 				</div>
 			</div>
 		</div>
@@ -177,11 +189,18 @@ export function LearnerMapResult() {
 		if (!data?.diagnosis || !data?.learnerMap || !data?.goalMap) return [];
 
 		const edgesToDisplay: Edge[] = [];
-		const { showGoalMap, showLearnerMap, showCorrectEdges, showMissingEdges, showExcessiveEdges } =
-			visibility;
+		const {
+			showGoalMap,
+			showLearnerMap,
+			showCorrectEdges,
+			showMissingEdges,
+			showExcessiveEdges,
+		} = visibility;
 
 		const correctSet = new Set(data.diagnosis.correct.map((e) => `${e.source}-${e.target}`));
-		const excessiveSet = new Set(data.diagnosis.excessive.map((e) => `${e.source}-${e.target}`));
+		const excessiveSet = new Set(
+			data.diagnosis.excessive.map((e) => `${e.source}-${e.target}`),
+		);
 
 		if (showGoalMap && showLearnerMap) {
 			// Combined view: classify learner edges and show missing edges
@@ -332,7 +351,7 @@ export function LearnerMapResult() {
 						</Link>
 					</Button>
 					<div>
-						<h1 className="font-semibold">Results</h1>
+						<h1 className="font-semibold">{assignment.title || "Assignment Results"}</h1>
 						<p className="text-sm text-muted-foreground">
 							Attempt {learnerMap.attempt}
 						</p>
@@ -359,11 +378,6 @@ export function LearnerMapResult() {
 						total={diagnosis.correct.length + diagnosis.missing.length}
 						score={diagnosis.score ?? 0}
 					/>
-
-					{/* Map Comparison Controls */}
-					<div className="bg-card border rounded-lg p-4">
-						<ComparisonControls visibility={visibility} onChange={handleVisibilityChange} />
-					</div>
 
 					{diagnosis.summary && (
 						<div className="bg-card border rounded-lg p-4">
@@ -447,22 +461,25 @@ export function LearnerMapResult() {
 				</div>
 
 				{/* Map visualization */}
-				<div className="flex-1 relative">
-					<ReactFlow
-						nodes={mergedNodes}
-						edges={processedEdges}
-						nodeTypes={nodeTypes}
-						edgeTypes={edgeTypes}
-						nodesDraggable={false}
-						nodesConnectable={false}
-						elementsSelectable={false}
-						panOnDrag
-						zoomOnScroll
-						fitView
-					>
-						<MiniMap />
-						<Background gap={16} />
-					</ReactFlow>
+				<div className="flex-1 flex flex-col overflow-hidden">
+					<ComparisonToolbar visibility={visibility} onChange={handleVisibilityChange} />
+					<div className="flex-1 relative">
+						<ReactFlow
+							nodes={mergedNodes}
+							edges={processedEdges}
+							nodeTypes={nodeTypes}
+							edgeTypes={edgeTypes}
+							nodesDraggable={false}
+							nodesConnectable={false}
+							elementsSelectable={false}
+							panOnDrag
+							zoomOnScroll
+							fitView
+						>
+							<MiniMap />
+							<Background gap={16} />
+						</ReactFlow>
+					</div>
 				</div>
 			</div>
 		</div>

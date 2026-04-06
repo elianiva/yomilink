@@ -85,19 +85,29 @@ export function pathToCrumbs(
 	dynamicTitle?: string | null,
 ): Array<{ href: string; label: string }> {
 	const segments = pathname.split("/").filter(Boolean);
-	return segments.map((seg, idx) => {
-		const href = `/${segments.slice(0, idx + 1).join("/")}`;
-		let label = decodeURIComponent(seg)
-			.replace(/[-_]/g, " ")
-			.split(" ")
-			.filter(Boolean)
-			.map((w) => w.charAt(0).toUpperCase() + w.slice(1))
-			.join(" ");
+	return segments
+		.map((seg, idx) => {
+			const href = `/${segments.slice(0, idx + 1).join("/")}`;
+			let label = decodeURIComponent(seg)
+				.replace(/[-_]/g, " ")
+				.split(" ")
+				.filter(Boolean)
+				.map((w) => w.charAt(0).toUpperCase() + w.slice(1))
+				.join(" ");
 
-		if (idx === segments.length - 1 && dynamicTitle) {
-			label = dynamicTitle;
-		}
+			if (idx === segments.length - 1 && dynamicTitle) {
+				label = dynamicTitle;
+			}
 
-		return { href, label };
-	});
+			return { href, label, seg };
+		})
+		.filter((item, idx, arr) => {
+			// Skip ID-like segments (long alphanumeric strings) in the middle of the path
+			// if the next segment exists (prevents ID from showing in breadcrumbs)
+			if (idx < arr.length - 1 && item.seg.length > 15 && /^[a-zA-Z0-9]+$/.test(item.seg)) {
+				return false;
+			}
+			return true;
+		})
+		.map(({ href, label }) => ({ href, label }));
 }

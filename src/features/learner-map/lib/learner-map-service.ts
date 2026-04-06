@@ -452,6 +452,7 @@ export const getDiagnosis = Effect.fn("getDiagnosis")(function* (
 				edges: goalMaps.edges,
 			},
 			assignment: {
+				title: assignments.title,
 				postTestFormId: assignments.postTestFormId,
 				tamFormId: assignments.tamFormId,
 			},
@@ -505,6 +506,7 @@ export const getDiagnosis = Effect.fn("getDiagnosis")(function* (
 			edges: goalMapEdges,
 		},
 		assignment: {
+			title: result.assignment.title,
 			postTestFormId: result.assignment.postTestFormId,
 			tamFormId: result.assignment.tamFormId,
 		},
