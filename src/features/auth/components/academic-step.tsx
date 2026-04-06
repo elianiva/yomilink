@@ -14,9 +14,10 @@ interface AcademicStepProps {
 	// biome-ignore lint/suspicious/noExplicitAny: <explanation>
 	form: any;
 	cohorts: Cohort[];
+	onLastFieldSubmit?: () => void;
 }
 
-export function AcademicStep({ form, cohorts }: AcademicStepProps) {
+export function AcademicStep({ form, cohorts, onLastFieldSubmit }: AcademicStepProps) {
 	return (
 		<fieldset className="space-y-5">
 			<form.Field name="cohortId">
@@ -49,6 +50,11 @@ export function AcademicStep({ form, cohorts }: AcademicStepProps) {
 							onChange={(e) => field.handleChange(e.target.value || null)}
 							onBlur={field.handleBlur}
 							autoComplete="off"
+							onKeyDown={(e) => {
+								if (e.key === "Enter" && onLastFieldSubmit) {
+									onLastFieldSubmit();
+								}
+							}}
 						/>
 						<FieldInfo field={field} />
 					</div>

@@ -8,9 +8,10 @@ import { Label } from "@/components/ui/label";
 interface AccountStepProps {
 	// biome-ignore lint/suspicious/noExplicitAny: <explanation>
 	form: any;
+	onLastFieldSubmit?: () => void;
 }
 
-export function AccountStep({ form }: AccountStepProps) {
+export function AccountStep({ form, onLastFieldSubmit }: AccountStepProps) {
 	return (
 		<fieldset className="space-y-5">
 			<form.Field name="name">
@@ -77,6 +78,11 @@ export function AccountStep({ form }: AccountStepProps) {
 							onChange={(e) => field.handleChange(e.target.value)}
 							onBlur={field.handleBlur}
 							autoComplete="new-password"
+							onKeyDown={(e) => {
+								if (e.key === "Enter" && onLastFieldSubmit) {
+									onLastFieldSubmit();
+								}
+							}}
 						/>
 						<FieldInfo field={field} />
 					</div>

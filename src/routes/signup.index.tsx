@@ -20,7 +20,7 @@ export const Route = createFileRoute("/signup/")({
 	ssr: true,
 	beforeLoad: async () => {
 		const me = await getMe();
-		if (me.success) {
+		if (me?.success) {
 			const target = me.data.role === "student" ? "/dashboard/assignments" : "/dashboard";
 			throw redirect({ to: target });
 		}
@@ -88,8 +88,8 @@ function SignUpPage() {
 		label: c.name,
 	}));
 
-	const handleNext = (e: React.MouseEvent) => {
-		e.preventDefault();
+	const handleNext = (e?: React.MouseEvent) => {
+		e?.preventDefault();
 		setCompletedSteps((prev) => new Set(prev).add(currentStep));
 		setStep([Math.min(currentStep + 1, steps.length - 1), 1]);
 	};
@@ -99,10 +99,15 @@ function SignUpPage() {
 	};
 
 	const stepComponents = [
-		<AccountStep key="account" form={form} />,
-		<PersonalStep key="personal" form={form} />,
-		<AcademicStep key="academic" form={form} cohorts={cohorts} />,
-		<ConsentStep key="consent" form={form} />,
+		<AccountStep key="account" form={form} onLastFieldSubmit={() => handleNext()} />,
+		<PersonalStep key="personal" form={form} onLastFieldSubmit={() => handleNext()} />,
+		<AcademicStep
+			key="academic"
+			form={form}
+			cohorts={cohorts}
+			onLastFieldSubmit={() => handleNext()}
+		/>,
+		<ConsentStep key="consent" form={form} onLastFieldSubmit={() => handleNext()} />,
 	];
 
 	return (
@@ -213,7 +218,7 @@ function SignUpPage() {
 									onClick={handlePrevious}
 									disabled={currentStep === 0}
 								>
-									<ChevronLeft className="h-4 w-4 mr-1" />
+									<ChevronLeft className="h-4 w-4" />
 									Previous
 								</Button>
 							) : (
@@ -302,7 +307,7 @@ function SignUpPage() {
 												disabled={!canProceed}
 											>
 												Next
-												<ChevronRight className="h-4 w-4 ml-1" />
+												<ChevronRight className="h-4 w-4" />
 											</Button>
 										);
 									}}

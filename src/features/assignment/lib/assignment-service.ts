@@ -7,6 +7,7 @@ import {
 	assignments,
 	assignmentTargets,
 	formResponses,
+	forms,
 	goalMaps,
 	kits,
 	learnerMaps,
@@ -541,7 +542,45 @@ export const getAssignmentById = Effect.fn("getAssignmentById")(function* (assig
 		return yield* new AssignmentNotFoundError({ assignmentId });
 	}
 
-	return rows[0];
+	const assignment = rows[0];
+
+	// Fetch form details for all attached forms
+	const formIds = [
+		assignment.preTestFormId,
+		assignment.postTestFormId,
+		assignment.delayedPostTestFormId,
+		assignment.tamFormId,
+	].filter((id): id is string => id !== null);
+
+	const formDetails =
+		formIds.length > 0
+			? yield* db
+					.select({
+						id: forms.id,
+						title: forms.title,
+						description: forms.description,
+						type: forms.type,
+						status: forms.status,
+					})
+					.from(forms)
+					.where(inArray(forms.id, formIds))
+			: [];
+
+	const formMap = new Map(formDetails.map((f) => [f.id, f]));
+
+	return {
+		...assignment,
+		preTestForm: assignment.preTestFormId
+			? (formMap.get(assignment.preTestFormId) ?? null)
+			: null,
+		postTestForm: assignment.postTestFormId
+			? (formMap.get(assignment.postTestFormId) ?? null)
+			: null,
+		delayedPostTestForm: assignment.delayedPostTestFormId
+			? (formMap.get(assignment.delayedPostTestFormId) ?? null)
+			: null,
+		tamForm: assignment.tamFormId ? (formMap.get(assignment.tamFormId) ?? null) : null,
+	};
 });
 
 export const getExperimentCondition = Effect.fn("getExperimentCondition")(function* (

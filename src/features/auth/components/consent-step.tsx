@@ -7,9 +7,10 @@ import { FieldInfo } from "@/components/ui/field-info";
 interface ConsentStepProps {
 	// biome-ignore lint/suspicious/noExplicitAny: <explanation>
 	form: any;
+	onLastFieldSubmit?: () => void;
 }
 
-export function ConsentStep({ form }: ConsentStepProps) {
+export function ConsentStep({ form, onLastFieldSubmit }: ConsentStepProps) {
 	return (
 		<fieldset className="space-y-5">
 			<div className="rounded-md border border-border/60 bg-muted/30 p-4 space-y-4 h-80 overflow-y-auto">
@@ -97,6 +98,11 @@ export function ConsentStep({ form }: ConsentStepProps) {
 								checked={field.state.value}
 								onCheckedChange={(checked) => field.handleChange(checked === true)}
 								onBlur={field.handleBlur}
+								onKeyDown={(e) => {
+									if (e.key === "Enter" && onLastFieldSubmit) {
+										onLastFieldSubmit();
+									}
+								}}
 							/>
 							<label
 								htmlFor="consentGiven"

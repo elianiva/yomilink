@@ -12,9 +12,10 @@ import { jlptOptions } from "../types";
 interface PersonalStepProps {
 	// biome-ignore lint/suspicious/noExplicitAny: <explanation>
 	form: any;
+	onLastFieldSubmit?: () => void;
 }
 
-export function PersonalStep({ form }: PersonalStepProps) {
+export function PersonalStep({ form, onLastFieldSubmit }: PersonalStepProps) {
 	return (
 		<fieldset className="space-y-5">
 			<div className="grid grid-cols-12 gap-4">
@@ -137,6 +138,12 @@ export function PersonalStep({ form }: PersonalStepProps) {
 							onChange={(e) => field.handleChange(e.target.value || null)}
 							onBlur={field.handleBlur}
 							rows={3}
+							onKeyDown={(e) => {
+								if (e.key === "Enter" && !e.shiftKey && onLastFieldSubmit) {
+									e.preventDefault();
+									onLastFieldSubmit();
+								}
+							}}
 						/>
 						<FieldInfo field={field} />
 					</div>

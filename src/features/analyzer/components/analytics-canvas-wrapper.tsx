@@ -71,7 +71,7 @@ export function AnalyticsCanvasWrapper({
 	}
 
 	return (
-		<div className="flex-1 m-3 rounded-md border-[0.5px] overflow-hidden">
+		<div className="flex-1 m-3 rounded-md overflow-hidden">
 			{multipleLearnerMapsLoading && selectedLearnerMapIds.size > 0 ? (
 				<CanvasSkeleton />
 			) : (

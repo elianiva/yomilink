@@ -90,7 +90,9 @@ function StudentFormsPage() {
 	return (
 		<div className="space-y-8">
 			<div className="flex items-center gap-3">
-				<FileTextIcon className="size-8 text-primary" />
+				<div className="p-3 bg-primary/20 rounded-xl">
+					<FileTextIcon className="size-4 text-primary" />
+				</div>
 				<div>
 					<h1 className="text-2xl font-semibold">My Forms</h1>
 					<p className="text-muted-foreground">
@@ -110,8 +112,7 @@ function StudentFormsPage() {
 				<>
 					{availableForms.length > 0 && (
 						<div className="space-y-4">
-							<h2 className="text-lg font-semibold flex items-center gap-2">
-								<BookOpenIcon className="size-5 text-blue-600" />
+							<h2 className="text-lg font-medium flex items-center gap-2">
 								Available Forms
 							</h2>
 							<div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">

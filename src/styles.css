@@ -5,7 +5,7 @@
 @custom-variant dark (&:is(.dark *));
 
 * {
-  corner-shape: squircle;
+	corner-shape: squircle;
 }
 
 body {
