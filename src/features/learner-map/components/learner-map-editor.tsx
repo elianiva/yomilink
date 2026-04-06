@@ -4,9 +4,11 @@ import type { Connection, NodeMouseHandler } from "@xyflow/react";
 import { addEdge, ReactFlowProvider, useReactFlow } from "@xyflow/react";
 
 import "@xyflow/react/dist/style.css";
-import { useAtom, useAtomValue, useSetAtom } from "jotai";
+import { useAtom, useSetAtom } from "jotai";
+import { AlertCircle, BookOpenIcon } from "lucide-react";
 import { useCallback, useEffect, useState } from "react";
 
+import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import {
 	AlertDialog,
 	AlertDialogAction,
@@ -32,7 +34,6 @@ import {
 	learnerMapIdAtom,
 	learnerNodesAtom,
 	materialDialogOpenAtom,
-	materialTextAtom,
 	searchOpenAtom,
 	submissionStatusAtom,
 } from "@/features/learner-map/lib/atoms";
@@ -42,6 +43,7 @@ import { useHistory } from "@/hooks/use-history";
 import { useRpcMutation, useRpcQuery } from "@/hooks/use-rpc-query";
 import { formatDuration } from "@/lib/date-utils";
 import { toast } from "@/lib/error-toast";
+import { pageTitleAtom } from "@/lib/page-title";
 import { areNodesConnected, isValidConnection } from "@/lib/react-flow-types";
 import { cn } from "@/lib/utils";
 import { AssignmentRpc } from "@/server/rpc/assignment";
@@ -49,15 +51,12 @@ import { LearnerMapRpc } from "@/server/rpc/learner-map";
 
 const routeApi = getRouteApi("/dashboard/learner-map/$assignmentId");
 
-import { AlertCircle } from "lucide-react";
-
-import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
-
 export function LearnerMapEditor() {
 	const { assignmentId } = routeApi.useParams();
 	const navigate = useNavigate();
 	const queryClient = useQueryClient();
 	const { zoomIn: rfZoomIn, zoomOut: rfZoomOut, fitView } = useReactFlow();
+	const setPageTitle = useSetAtom(pageTitleAtom);
 
 	// Atom state
 	const [nodes, setNodes] = useAtom(learnerNodesAtom);
@@ -66,8 +65,6 @@ export function LearnerMapEditor() {
 	const [materialOpen, setMaterialOpen] = useAtom(materialDialogOpenAtom);
 	const [contextMenu, setContextMenu] = useAtom(contextMenuAtom);
 	const [lastSavedSnapshot, setLastSavedSnapshot] = useAtom(lastSavedSnapshotAtom);
-	const materialText = useAtomValue(materialTextAtom);
-	const setMaterialText = useSetAtom(materialTextAtom);
 	const setAssignment = useSetAtom(assignmentAtom);
 	const setLearnerMapId = useSetAtom(learnerMapIdAtom);
 	const [status, setStatus] = useAtom(submissionStatusAtom);
@@ -75,19 +72,17 @@ export function LearnerMapEditor() {
 
 	// Local state
 	const [submitDialogOpen, setSubmitDialogOpen] = useState(false);
-	const [isHydrated, setIsHydrated] = useState(false);
 	const [timeRemaining, setTimeRemaining] = useState<number | null>(null);
 
 	const isSubmitted = status === "submitted";
 
-	// Use shared hooks for graph changes and history
 	const { onNodesChange, onEdgesChange } = useGraphChangeHandlers(setNodes, setEdges, {
 		disabled: isSubmitted,
 	});
 
 	const { undo, redo, canUndo, canRedo } = useHistory(nodes, edges, {
 		maxSnapshots: 50,
-		disabled: isSubmitted || !isHydrated,
+		disabled: isSubmitted,
 	});
 
 	const { data: assignmentData, isLoading } = useRpcQuery(
@@ -109,63 +104,57 @@ export function LearnerMapEditor() {
 		operation: "submit learner map",
 	});
 
+	// Set page title
 	useEffect(() => {
-		if (assignmentData && !isHydrated) {
+		if (assignmentData) {
+			setPageTitle(assignmentData.assignment.title || "Assignment");
 			setAssignment(assignmentData.assignment);
-			setMaterialText(assignmentData.materialText || "");
 
 			if (assignmentData.assignment.timeLimitMinutes && status === "not_started") {
 				setTimeRemaining(assignmentData.assignment.timeLimitMinutes * 60);
 			}
-
-			if (assignmentData.learnerMap) {
-				setNodes([...assignmentData.learnerMap.nodes]);
-				setEdges([...assignmentData.learnerMap.edges]);
-				setLearnerMapId(assignmentData.learnerMap.id);
-				setStatus(assignmentData.learnerMap.status);
-				setAttempt(assignmentData.learnerMap.attempt);
-				setLastSavedSnapshot(
-					condition === "summarizing"
-						? assignmentData.learnerMap.controlText || ""
-						: JSON.stringify({
-								nodes: assignmentData.learnerMap.nodes,
-								edges: assignmentData.learnerMap.edges,
-							}),
-				);
-			} else {
-				// New learner map - arrange kit nodes in grid
-				const arrangedNodes = arrangeNodesByType([...assignmentData.kit.nodes]);
-				setNodes(arrangedNodes);
-				setEdges([]);
-				setStatus("not_started");
-				setAttempt(0);
-				setLastSavedSnapshot(
-					condition === "summarizing"
-						? ""
-						: JSON.stringify({ nodes: arrangedNodes, edges: [] }),
-				);
-			}
-
-			setIsHydrated(true);
 		}
-	}, [
-		assignmentData,
-		condition,
-		isHydrated,
-		setAssignment,
-		setMaterialText,
-		setNodes,
-		setEdges,
-		setLearnerMapId,
-		setStatus,
-		setAttempt,
-		setLastSavedSnapshot,
-		status,
-	]);
+
+		return () => {
+			setPageTitle(null);
+		};
+	}, [assignmentData, setPageTitle, setAssignment, status]);
+
+	// Initialize nodes/edges when data loads
+	useEffect(() => {
+		if (!assignmentData) return;
+
+		if (assignmentData.learnerMap) {
+			setNodes([...assignmentData.learnerMap.nodes]);
+			setEdges([...assignmentData.learnerMap.edges]);
+			setLearnerMapId(assignmentData.learnerMap.id);
+			setStatus(assignmentData.learnerMap.status);
+			setAttempt(assignmentData.learnerMap.attempt);
+			setLastSavedSnapshot(
+				condition === "summarizing"
+					? assignmentData.learnerMap.controlText || ""
+					: JSON.stringify({
+							nodes: assignmentData.learnerMap.nodes,
+							edges: assignmentData.learnerMap.edges,
+						}),
+			);
+		} else {
+			const arrangedNodes = arrangeNodesByType([...assignmentData.kit.nodes]);
+			setNodes(arrangedNodes);
+			setEdges([]);
+			setStatus("not_started");
+			setAttempt(0);
+			setLastSavedSnapshot(
+				condition === "summarizing"
+					? ""
+					: JSON.stringify({ nodes: arrangedNodes, edges: [] }),
+			);
+		}
+	}, [assignmentData, condition]); // eslint-disable-line react-hooks/exhaustive-deps
 
 	// Auto-save effect
 	useEffect(() => {
-		if (!isHydrated || isSubmitted) return;
+		if (isSubmitted) return;
 
 		const timer = setTimeout(() => {
 			const currentSnapshot = JSON.stringify({ nodes, edges });
@@ -177,13 +166,12 @@ export function LearnerMapEditor() {
 				});
 				setLastSavedSnapshot(currentSnapshot);
 			}
-		}, 3000); // Debounce to 3 seconds
+		}, 3000);
 		return () => clearTimeout(timer);
 	}, [
 		nodes,
 		edges,
 		assignmentId,
-		isHydrated,
 		isSubmitted,
 		lastSavedSnapshot,
 		saveMutation,
@@ -205,7 +193,6 @@ export function LearnerMapEditor() {
 		(_event, node) => {
 			if (isSubmitted) return;
 
-			// Show context menu for connector nodes
 			if (node.type === "connector") {
 				const target = _event.target as HTMLElement;
 				const nodeElement = target.closest(".react-flow__node") as HTMLElement | null;
@@ -236,13 +223,10 @@ export function LearnerMapEditor() {
 			const sourceNode = nodes.find((n) => n.id === params.source);
 			const targetNode = nodes.find((n) => n.id === params.target);
 
-			// Only allow: concept -> connector or connector -> concept
-			// Also prevent connecting to the same node
 			if (
 				!isValidConnection(sourceNode?.type, targetNode?.type, params.source, params.target)
 			)
 				return;
-			// Prevent duplicate edges between same pair of nodes
 			if (areNodesConnected(edges, params.source, params.target)) return;
 
 			setEdges((eds) => addEdge(params, eds));
@@ -266,7 +250,6 @@ export function LearnerMapEditor() {
 		[nodes, edges, isSubmitted],
 	);
 
-	// Toolbar actions
 	const zoomIn = () => void rfZoomIn();
 	const zoomOut = () => void rfZoomOut();
 	const fit = () => void fitView({ padding: 0.2 });
@@ -295,9 +278,7 @@ export function LearnerMapEditor() {
 		setSearchOpen(false);
 	};
 
-	// Submit handler
 	const handleSubmit = async () => {
-		// Save first
 		const saveResult = await saveMutation.mutateAsync({
 			assignmentId,
 			nodes: JSON.stringify(nodes),
@@ -306,7 +287,6 @@ export function LearnerMapEditor() {
 
 		if (!saveResult.success) return;
 
-		// Then submit
 		const submitResult = await submitMutation.mutateAsync({ assignmentId });
 
 		if (submitResult.success) {
@@ -315,7 +295,6 @@ export function LearnerMapEditor() {
 			void queryClient.invalidateQueries({
 				queryKey: LearnerMapRpc.learnerMaps(),
 			});
-			// Navigate to result page
 			void navigate({
 				to: `/dashboard/learner-map/${assignmentId}/result`,
 			});
@@ -344,12 +323,8 @@ export function LearnerMapEditor() {
 			<SummarizingEditor
 				assignmentId={assignmentId}
 				assignmentData={assignmentData}
-				isHydrated={isHydrated}
 				isSubmitted={isSubmitted}
 				setStatus={setStatus}
-				materialOpen={materialOpen}
-				setMaterialOpen={setMaterialOpen}
-				materialText={materialText}
 				lastSavedSnapshot={lastSavedSnapshot}
 				setLastSavedSnapshot={setLastSavedSnapshot}
 			/>
@@ -358,10 +333,9 @@ export function LearnerMapEditor() {
 
 	return (
 		<div className="h-full relative">
-			{/* Header */}
 			<div className="absolute top-4 left-4 z-10 bg-background/80 backdrop-blur-sm border rounded-lg px-4 py-2">
-				<h2 className="font-medium">{assignmentData?.assignment.title}</h2>
-				{assignmentData?.assignment.description && (
+				<h2 className="font-medium">{assignmentData.assignment.title}</h2>
+				{assignmentData.assignment.description && (
 					<p className="text-sm text-muted-foreground">
 						{assignmentData.assignment.description}
 					</p>
@@ -370,7 +344,6 @@ export function LearnerMapEditor() {
 					<p className="text-xs text-muted-foreground mt-1">Attempt {attempt}</p>
 				)}
 			</div>
-			{/* Timer */}
 			{timeRemaining !== null && !isSubmitted && (
 				<div
 					className={cn(
@@ -381,7 +354,6 @@ export function LearnerMapEditor() {
 					⏱ {formatDuration(timeRemaining)}
 				</div>
 			)}
-			{/* Progress Indicator */}
 			{!isSubmitted && (
 				<div className="absolute top-4 right-4 z-10 bg-background/80 backdrop-blur-sm border rounded-lg px-4 py-2 w-48">
 					<div className="flex items-center justify-between text-xs mb-1">
@@ -398,20 +370,18 @@ export function LearnerMapEditor() {
 					</div>
 				</div>
 			)}
-			{/* Material Dialog */}
 			<MaterialDialog
 				open={materialOpen}
 				onOpenChange={setMaterialOpen}
-				content={materialText}
+				content={assignmentData.materialText || ""}
 			/>
-			{/* Submit Confirmation Dialog */}
 			<AlertDialog open={submitDialogOpen} onOpenChange={setSubmitDialogOpen}>
 				<AlertDialogContent>
 					<AlertDialogHeader>
 						<AlertDialogTitle>Submit your concept map?</AlertDialogTitle>
 						<AlertDialogDescription>
-							Your concept map will be compared against the teacher's goal map. You'll
-							see your results immediately after submission.
+							Your concept map will be compared against the teacher&apos;s goal map.
+							You&apos;ll see your results immediately after submission.
 							{attempt > 0 && " You can try again after viewing your results."}
 						</AlertDialogDescription>
 					</AlertDialogHeader>
@@ -426,7 +396,6 @@ export function LearnerMapEditor() {
 					</AlertDialogFooter>
 				</AlertDialogContent>
 			</AlertDialog>
-			{/* Canvas */}
 			<div className="rounded-xl border bg-card relative h-full overflow-hidden">
 				<ConceptMapCanvas
 					nodes={nodes}
@@ -447,7 +416,6 @@ export function LearnerMapEditor() {
 						onSelectNode={selectNode}
 					/>
 				</ConceptMapCanvas>
-				{/* Toolbar */}
 				<LearnerToolbar
 					onUndo={undo}
 					onRedo={redo}
@@ -462,10 +430,8 @@ export function LearnerMapEditor() {
 					canRedo={canRedo}
 					isSubmitting={submitMutation.isPending}
 					isSubmitted={isSubmitted}
-					hasMaterial={!!materialText}
+					hasMaterial={!!assignmentData.materialText}
 				/>
-
-				{/* Simple Context Menu for Connectors */}
 				{contextMenu && contextMenu.nodeType === "connector" && (
 					<div
 						className="absolute z-50 bg-background border rounded-lg shadow-lg p-1 min-w-30"
@@ -492,28 +458,23 @@ export function LearnerMapEditor() {
 function SummarizingEditor({
 	assignmentId,
 	assignmentData,
-	isHydrated,
 	isSubmitted,
 	setStatus,
-	materialOpen,
-	setMaterialOpen,
-	materialText,
 	lastSavedSnapshot,
 	setLastSavedSnapshot,
 }: {
 	assignmentId: string;
 	assignmentData: any;
-	isHydrated: boolean;
 	isSubmitted: boolean;
 	setStatus: (s: any) => void;
-	materialOpen: boolean;
-	setMaterialOpen: (o: boolean) => void;
-	materialText: string;
 	lastSavedSnapshot: string | null;
 	setLastSavedSnapshot: (s: string) => void;
 }) {
 	const queryClient = useQueryClient();
 	const [controlText, setControlText] = useState(assignmentData.learnerMap?.controlText || "");
+
+	const materialText = assignmentData.materialText || "";
+
 	const saveMutation = useRpcMutation(LearnerMapRpc.saveLearnerMap(), {
 		operation: "save summary draft",
 	});
@@ -522,9 +483,8 @@ function SummarizingEditor({
 		showSuccess: true,
 	});
 
-	// Auto-save summary with debounce
 	useEffect(() => {
-		if (!isHydrated || isSubmitted) return;
+		if (isSubmitted) return;
 		if (controlText !== lastSavedSnapshot) {
 			const timer = setTimeout(() => {
 				saveMutation.mutate({
@@ -537,13 +497,13 @@ function SummarizingEditor({
 		}
 	}, [
 		controlText,
-		isHydrated,
 		isSubmitted,
 		lastSavedSnapshot,
 		saveMutation,
 		assignmentId,
 		setLastSavedSnapshot,
 	]);
+
 	const handleSummarySubmit = async () => {
 		if (!controlText.trim()) {
 			toast.error("Please enter a summary");
@@ -561,58 +521,84 @@ function SummarizingEditor({
 			});
 		}
 	};
-	return (
-		<div className="h-full flex flex-col p-6 space-y-6 max-w-4xl mx-auto overflow-y-auto">
-			<div className="space-y-2">
-				<h1 className="text-2xl font-bold">{assignmentData.assignment.title}</h1>
-				<p className="text-muted-foreground">{assignmentData.assignment.description}</p>
-			</div>
-			<div className="flex-1 flex flex-col space-y-4">
-				<div className="flex items-center justify-between">
-					<h2 className="text-lg font-semibold">Summarizing Activity</h2>
-					<Button onClick={() => setMaterialOpen(true)} variant="outline">
-						View Reading Material
-					</Button>
-				</div>
-				<Alert variant="warning">
-					<AlertCircle className="h-4 w-4" />
-					<AlertTitle>Summary Task</AlertTitle>
-					<AlertDescription>
-						Please read the provided material and write a comprehensive summary covering
-						the key concepts and their relationships.
-					</AlertDescription>
-				</Alert>
-				<textarea
-					className="flex-1 w-full min-h-[300px] p-4 rounded-lg border bg-background resize-none focus:ring-2 focus:ring-primary outline-none disabled:opacity-50"
-					placeholder="Write your summary here..."
-					value={controlText}
-					onChange={(e) => setControlText(e.target.value)}
-					disabled={isSubmitted || submitControlTextMutation.isPending}
-				/>
-				<div className="flex justify-end gap-3">
-					<Button
-						onClick={handleSummarySubmit}
-						disabled={
-							isSubmitted ||
-							submitControlTextMutation.isPending ||
-							!controlText.trim()
-						}
-						className="px-8"
-					>
-						{submitControlTextMutation.isPending
-							? "Submitting..."
-							: isSubmitted
-								? "Submitted"
-								: "Submit Summary"}
-					</Button>
-				</div>
-			</div>
 
-			<MaterialDialog
-				open={materialOpen}
-				onOpenChange={setMaterialOpen}
-				content={materialText}
-			/>
+	return (
+		<div className="h-full flex flex-col">
+			{/* Header */}
+			<div className="px-6 py-4 border-b">
+				<h1 className="font-medium text-lg">{assignmentData.assignment.title}</h1>
+				{assignmentData.assignment.description && (
+					<p className="text-sm text-muted-foreground">
+						{assignmentData.assignment.description}
+					</p>
+				)}
+			</div>
+			{/* Split View */}
+			<div className="flex-1 flex overflow-hidden">
+				{/* Left - Editor */}
+				<div className="flex-1 flex flex-col min-w-0">
+					<div className="px-6 py-3 border-b bg-muted/30">
+						<h2 className="text-sm font-medium">Your Summary</h2>
+					</div>
+					<div className="flex-1 overflow-y-auto">
+						{materialText && (
+							<Alert className="mb-4">
+								<AlertCircle className="h-4 w-4" />
+								<AlertTitle>Summary Task</AlertTitle>
+								<AlertDescription className="text-sm">
+									Write a comprehensive summary of the reading material shown on
+									the right. Include key concepts and their relationships.
+								</AlertDescription>
+							</Alert>
+						)}
+						<textarea
+							className="w-full h-[calc(100%-80px)] p-4 rounded-lg resize-none outline-none disabled:opacity-50"
+							placeholder={
+								materialText
+									? "Write your summary here..."
+									: "No reading material provided. Write your response here..."
+							}
+							value={controlText}
+							onChange={(e) => setControlText(e.target.value)}
+							disabled={isSubmitted || submitControlTextMutation.isPending}
+						/>
+					</div>
+					<div className="px-6 py-4 border-t flex justify-end gap-3">
+						<Button
+							onClick={handleSummarySubmit}
+							disabled={
+								isSubmitted ||
+								submitControlTextMutation.isPending ||
+								!controlText.trim()
+							}
+						>
+							{submitControlTextMutation.isPending
+								? "Submitting..."
+								: isSubmitted
+									? "Submitted"
+									: "Submit Summary"}
+						</Button>
+					</div>
+				</div>
+				{/* Right - Reading Material */}
+				<div className="w-[45%] min-w-[350px] flex flex-col border-l bg-muted/10">
+					<div className="px-6 py-3 border-b bg-muted/30 flex items-center gap-2">
+						<BookOpenIcon className="h-4 w-4" />
+						<h2 className="text-sm font-medium">Reading Material</h2>
+					</div>
+					<div className="flex-1 overflow-y-auto p-6 space-y-4">
+						{materialText ? (
+							<div className="prose prose-sm max-w-none">
+								<div className="whitespace-pre-wrap">{materialText}</div>
+							</div>
+						) : (
+							<div className="flex items-center justify-center h-full text-muted-foreground text-sm">
+								No reading material provided.
+							</div>
+						)}
+					</div>
+				</div>
+			</div>
 		</div>
 	);
 }

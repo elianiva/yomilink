@@ -170,6 +170,7 @@ export const getAssignmentForStudent = Effect.fn("getAssignmentForStudent")(func
 ) {
 	const db = yield* Database;
 
+	// Fetch assignment with kit and goal map
 	const results = yield* db
 		.select({
 			assignment: {
@@ -193,7 +194,9 @@ export const getAssignmentForStudent = Effect.fn("getAssignmentForStudent")(func
 				edges: kits.edges,
 				textId: kits.textId,
 			},
-			materialText: texts.content,
+			goalMap: {
+				textId: goalMaps.textId,
+			},
 			learnerMap: {
 				id: learnerMaps.id,
 				nodes: learnerMaps.nodes,
@@ -205,7 +208,7 @@ export const getAssignmentForStudent = Effect.fn("getAssignmentForStudent")(func
 		})
 		.from(assignments)
 		.leftJoin(kits, eq(kits.id, assignments.kitId))
-		.leftJoin(texts, eq(texts.id, kits.textId))
+		.leftJoin(goalMaps, eq(goalMaps.id, assignments.goalMapId))
 		.leftJoin(
 			learnerMaps,
 			and(eq(learnerMaps.assignmentId, assignments.id), eq(learnerMaps.userId, userId)),
@@ -216,7 +219,9 @@ export const getAssignmentForStudent = Effect.fn("getAssignmentForStudent")(func
 	const result = results[0];
 	if (!result || !result.kit) return null;
 
-	const [kitNodes, kitEdges, learnerMapNodes, learnerMapEdges] = yield* Effect.all(
+	// Fetch reading material from kit or goal map
+	const textId = result.kit.textId || result.goalMap?.textId;
+	const [kitNodes, kitEdges, learnerMapNodes, learnerMapEdges, materialText] = yield* Effect.all(
 		[
 			safeParseJson(result.kit.nodes, [], Schema.Array(NodeSchema)),
 			safeParseJson(result.kit.edges, [], Schema.Array(EdgeSchema)),
@@ -226,6 +231,16 @@ export const getAssignmentForStudent = Effect.fn("getAssignmentForStudent")(func
 			result.learnerMap
 				? safeParseJson(result.learnerMap.edges, [], Schema.Array(EdgeSchema))
 				: Effect.succeed([]),
+			textId
+				? Effect.promise(() =>
+						db
+							.select({ content: texts.content })
+							.from(texts)
+							.where(eq(texts.id, textId))
+							.limit(1)
+							.then((rows) => rows[0]?.content ?? null),
+					)
+				: Effect.succeed(null),
 		],
 		{ concurrency: "unbounded" },
 	);
@@ -240,7 +255,7 @@ export const getAssignmentForStudent = Effect.fn("getAssignmentForStudent")(func
 			nodes: kitNodes,
 			edges: kitEdges,
 		},
-		materialText: result.assignment.readingMaterial || result.materialText || null,
+		materialText: result.assignment.readingMaterial || materialText || null,
 		learnerMap: result.learnerMap
 			? {
 					id: result.learnerMap.id,

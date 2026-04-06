@@ -485,7 +485,7 @@ export const getExperimentGroupsByAssignmentId = Effect.fn("getExperimentGroupsB
 				assignmentId: sql<string>`${assignmentId}`,
 				userId: user.id,
 				groupName: sql<string>`null`,
-				condition: sql<string>`case when ${user.studyGroup} = 'experiment' then 'concept_map' else 'summarizing' end`,
+				condition: sql<string>`case when ${user.studyGroup} = 'control' then 'summarizing' else 'concept_map' end`,
 			})
 			.from(user)
 			.innerJoin(assignmentTargets, eq(assignmentTargets.userId, user.id))
@@ -594,7 +594,7 @@ export const getExperimentCondition = Effect.fn("getExperimentCondition")(functi
 			id: user.id,
 			assignmentId: sql<string>`${assignmentId}`,
 			userId: user.id,
-			condition: sql<string>`case when ${user.studyGroup} = 'experiment' then 'concept_map' else 'summarizing' end`,
+			condition: sql<string>`case when ${user.studyGroup} = 'control' then 'summarizing' else 'concept_map' end`,
 		})
 		.from(user)
 		.where(eq(user.id, userId))

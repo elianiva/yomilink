@@ -312,6 +312,8 @@ export function GoalMapEditor() {
 				topicId: saveMeta.topicId || undefined,
 				nodes: graphNodes,
 				edges: graphEdges,
+				materialText: materialText || undefined,
+				materialImages: materialImages.length > 0 ? materialImages : undefined,
 			},
 			{
 				onSuccess: async () => {

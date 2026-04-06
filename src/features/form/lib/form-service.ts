@@ -1009,9 +1009,7 @@ export const getStudentForms = Effect.fn("getStudentForms")(function* (userId: s
 	const publishedForms = yield* db.select().from(forms).where(eq(forms.status, "published"));
 
 	// Filter out forms that don't apply to this study group
-	const applicableForms = publishedForms.filter(
-		(f) => !shouldExcludeForm(f.type, studyGroup),
-	);
+	const applicableForms = publishedForms.filter((f) => !shouldExcludeForm(f.type, studyGroup));
 
 	// Get user's progress for all forms
 	const userProgressRows = yield* db
@@ -1049,10 +1047,8 @@ export const getStudentForms = Effect.fn("getStudentForms")(function* (userId: s
 	// Build response with unlock status
 	const formsWithStatus = sortedForms.map((form) => {
 		const progress = progressMap.get(form.id);
-		let unlockStatus: "locked" | "available" | "completed" =
-			progress?.status ?? "locked";
-		let isUnlocked =
-			progress?.status === "available" || progress?.status === "completed";
+		let unlockStatus: "locked" | "available" | "completed" = progress?.status ?? "locked";
+		let isUnlocked = progress?.status === "available" || progress?.status === "completed";
 
 		// Lock future types until current priority is fully completed
 		const formPriority = FORM_TYPE_PRIORITY[form.type];
@@ -1070,10 +1066,10 @@ export const getStudentForms = Effect.fn("getStudentForms")(function* (userId: s
 			isUnlocked,
 			progress: progress
 				? {
-					status: progress.status,
-					unlockedAt: progress.unlockedAt,
-					completedAt: progress.completedAt,
-				}
+						status: progress.status,
+						unlockedAt: progress.unlockedAt,
+						completedAt: progress.completedAt,
+					}
 				: null,
 		};
 	});
