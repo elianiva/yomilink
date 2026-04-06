@@ -23,48 +23,53 @@ vp run deploy       # Deploy to Cloudflare
 ## Patterns
 
 **Effect Service:**
+
 ```typescript
 export class UserNotFoundError extends Data.TaggedError("UserNotFoundError")<{ userId: string }> {}
 
 export const getUser = Effect.fn("getUser")((userId: string) =>
-  Effect.gen(function* () {
-    const db = yield* Database;
-    if (!user) return yield* new UserNotFoundError({ userId });
-    return user;
-  }),
+	Effect.gen(function* () {
+		const db = yield* Database;
+		if (!user) return yield* new UserNotFoundError({ userId });
+		return user;
+	}),
 );
 ```
 
 **RPC Handler:**
+
 ```typescript
 export const getUserRpc = createServerFn()
-  .middleware([authMiddleware])
-  .inputValidator((raw) => Schema.decodeUnknownSync(UserIdInput)(raw))
-  .handler(({ data }) =>
-    Effect.gen(function* () {
-      const result = yield* getUser(data.userId);
-      return yield* Rpc.ok(result);
-    }).pipe(
-      Effect.catchTags({ UserNotFoundError: () => Rpc.notFound("User") }),
-      Effect.provide(AppLayer),
-      Effect.runPromise,
-    ),
-  );
+	.middleware([authMiddleware])
+	.inputValidator((raw) => Schema.decodeUnknownSync(UserIdInput)(raw))
+	.handler(({ data }) =>
+		Effect.gen(function* () {
+			const result = yield* getUser(data.userId);
+			return yield* Rpc.ok(result);
+		}).pipe(
+			Effect.catchTags({ UserNotFoundError: () => Rpc.notFound("User") }),
+			Effect.provide(AppLayer),
+			Effect.runPromise,
+		),
+	);
 ```
 
 **React Query:**
+
 ```typescript
 export const UserRpc = {
-  getUser: (userId: string) => queryOptions({
-    queryKey: ["users", userId],
-    queryFn: () => getUserRpc({ data: { userId } }),
-  }),
+	getUser: (userId: string) =>
+		queryOptions({
+			queryKey: ["users", userId],
+			queryFn: () => getUserRpc({ data: { userId } }),
+		}),
 };
 
 // Usage: const { data, rpcError } = useRpcQuery(UserRpc.getUser(id));
 ```
 
 **Tests:**
+
 ```typescript
 // UI (.test.tsx): import { render, screen } from "@testing-library/react";
 // Service (.test.ts): import { describe, it } from "@effect/vitest";
