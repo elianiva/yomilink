@@ -14,6 +14,7 @@
 	"main": "./src/server.ts",
 	"vars": {
 		"VITE_SENTRY_DSN": "https://5823410ade9efac97ee0a2281bb49bae@o4505224747352064.ingest.us.sentry.io/4510510883012608",
+		"VITE_APP_URL": "https://yomilink.elianiva.my.id",
 		"BETTER_AUTH_URL": "https://yomilink.elianiva.my.id",
 		"SITE_URL": "https://yomilink.elianiva.my.id",
 		"TURSO_DATABASE_URL": "libsql://yomilink-prod-elianiva.aws-ap-northeast-1.turso.io"
