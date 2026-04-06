@@ -43,4 +43,4 @@ jobs:
                   run-install: true
 
             - name: Run UI tests
-              run: pnpm test:ui
+              run: vp test -c vitest.ui.config.ts
