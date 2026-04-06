@@ -2,7 +2,7 @@ import { getRouteApi, useNavigate } from "@tanstack/react-router";
 import type { Connection } from "@xyflow/react";
 import { ReactFlowProvider, useReactFlow } from "@xyflow/react";
 import { useAtom, useAtomValue, useSetAtom } from "jotai";
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect } from "react";
 
 import { AddConceptDialog } from "@/features/goal-map/components/add-concept-dialog";
 
@@ -59,7 +59,6 @@ export function GoalMapEditor() {
 	const materialText = useAtomValue(materialTextAtom);
 	const setMaterialText = useSetAtom(materialTextAtom);
 	const materialDialogOpen = useAtomValue(materialDialogOpenAtom);
-	const [isSavingForKit, setIsSavingForKit] = useState(false);
 
 	const { goalMapId } = routeApi.useParams();
 	const navigate = useNavigate();
@@ -74,10 +73,6 @@ export function GoalMapEditor() {
 	const { data: kitStatus } = useRpcQuery({
 		...KitRpc.getKitStatus(goalMapId),
 		enabled: !isNewMap,
-	});
-
-	const generateKitMutation = useRpcMutation(KitRpc.generateKit(), {
-		operation: "generate kit",
 	});
 
 	useEffect(() => {
@@ -139,7 +134,7 @@ export function GoalMapEditor() {
 	const saveGoalMapMutation = useRpcMutation(GoalMapRpc.saveGoalMap(), {
 		operation: "save goal map",
 	});
-	const saving = saveGoalMapMutation.isPending && !isSavingForKit;
+	const saving = saveGoalMapMutation.isPending;
 
 	const doSave = useCallback(
 		(meta: { topicId: string; name: string; description?: string }, newGoalMapId?: string) => {
@@ -157,11 +152,24 @@ export function GoalMapEditor() {
 				edges: graphEdges,
 				materialText: materialText || undefined,
 				materialImages: materialImages.length > 0 ? materialImages : undefined,
+				// Auto-publish kit for existing maps (not when creating new map)
+				publish: !isCreatingNewMap && !!kitStatus?.exists,
 			};
 
 			saveGoalMapMutation.mutate(saveParams, {
-				onSuccess: () => {
+				onSuccess: (result) => {
 					setLastSavedSnapshot(JSON.stringify({ nodes: graphNodes, edges: graphEdges }));
+
+					// published is true when kit was auto-regenerated
+					if (
+						result &&
+						typeof result === "object" &&
+						"published" in result &&
+						result.published
+					) {
+						toast.success("Goal map and student activity saved successfully!");
+					}
+
 					if (isCreatingNewMap) {
 						void navigate({
 							to: "/dashboard/goal-map/$goalMapId",
@@ -204,6 +212,7 @@ export function GoalMapEditor() {
 			addWarning,
 			setLastSavedSnapshot,
 			saveGoalMapMutation,
+			kitStatus,
 		],
 	);
 
@@ -301,42 +310,6 @@ export function GoalMapEditor() {
 		doSave(meta, newId);
 		setSaveAsOpen(false);
 		updateMeta(meta);
-	};
-
-	const handleCreateKit = () => {
-		setIsSavingForKit(true);
-		saveGoalMapMutation.mutate(
-			{
-				goalMapId,
-				title: saveMeta.name || "Untitled",
-				topicId: saveMeta.topicId || undefined,
-				nodes: graphNodes,
-				edges: graphEdges,
-				materialText: materialText || undefined,
-				materialImages: materialImages.length > 0 ? materialImages : undefined,
-			},
-			{
-				onSuccess: async () => {
-					generateKitMutation.mutate(
-						{ goalMapId },
-						{
-							onSuccess: () => {
-								toast.success(
-									"Student activity published! Students can now build their understanding from this map.",
-								);
-								setIsSavingForKit(false);
-							},
-							onError: () => {
-								setIsSavingForKit(false);
-							},
-						},
-					);
-				},
-				onError: () => {
-					setIsSavingForKit(false);
-				},
-			},
-		);
 	};
 
 	useEffect(() => {
@@ -456,11 +429,8 @@ export function GoalMapEditor() {
 					onAutoLayout={autoLayout}
 					onDelete={deleteSelected}
 					onSave={() => doSave({ topicId: saveMeta.topicId, name: saveMeta.name })}
-					onCreateKit={handleCreateKit}
 					saving={saving}
 					isNewMap={isNewMap}
-					kitStatus={kitStatus}
-					isGeneratingKit={generateKitMutation.isPending}
 				/>
 
 				{contextMenu && (

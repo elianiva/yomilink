@@ -1,15 +1,5 @@
 import { useSetAtom } from "jotai";
-import {
-	BookOpen,
-	GraduationCap,
-	Grid3X3,
-	Loader2,
-	Plus,
-	Save,
-	Search,
-	Shuffle,
-	Trash2,
-} from "lucide-react";
+import { BookOpen, Grid3X3, Loader2, Plus, Save, Search, Shuffle, Trash2 } from "lucide-react";
 import { memo } from "react";
 
 import { ToolbarButton } from "@/components/toolbar/toolbar-button";
@@ -42,17 +32,8 @@ export type EditorToolbarProps = {
 	onAutoLayout: () => void;
 	onDelete: () => void;
 	onSave: () => void;
-	onCreateKit: () => void;
 	saving: boolean;
 	isNewMap: boolean;
-	kitStatus?: {
-		exists: boolean;
-		layout: "preset" | "random";
-		nodeCount: number;
-		updatedAt: number | null;
-		isOutdated: boolean;
-	} | null;
-	isGeneratingKit?: boolean;
 };
 
 const tooltipHandle = createTooltipHandle();
@@ -67,11 +48,8 @@ function EditorToolbarImpl({
 	onAutoLayout,
 	onDelete,
 	onSave,
-	onCreateKit,
 	saving,
 	isNewMap,
-	kitStatus,
-	isGeneratingKit,
 }: EditorToolbarProps) {
 	const setConceptDialogOpen = useSetAtom(conceptDialogOpenAtom);
 	const setLinkDialogOpen = useSetAtom(linkDialogOpenAtom);
@@ -215,67 +193,6 @@ function EditorToolbarImpl({
 					>
 						Save As
 					</Button>
-					{!isNewMap && (
-						<>
-							<ButtonGroupSeparator />
-							<TooltipTrigger
-								handle={tooltipHandle}
-								render={
-									<Button
-										size="sm"
-										variant={kitStatus?.exists ? "secondary" : "default"}
-										onClick={onCreateKit}
-										disabled={isGeneratingKit}
-									>
-										{isGeneratingKit ? (
-											<Loader2 className="size-4 animate-spin" />
-										) : (
-											<GraduationCap className="size-4" />
-										)}
-										{kitStatus?.exists && !kitStatus.isOutdated
-											? "Update Activity"
-											: "Create Activity"}
-									</Button>
-								}
-								payload={
-									kitStatus ? (
-										<div className="flex flex-col gap-2 max-w-xs">
-											<div className="flex items-center gap-2">
-												{kitStatus.exists ? (
-													<>
-														<div className="w-2 h-2 bg-green-500 rounded-full" />
-														<span className="font-medium">
-															Activity Published
-														</span>
-													</>
-												) : (
-													<>
-														<div className="w-2 h-2 bg-gray-400 rounded-full" />
-														<span className="font-medium">
-															No Student Activity
-														</span>
-													</>
-												)}
-											</div>
-											<p className="text-xs text-muted-foreground leading-relaxed">
-												{kitStatus.exists
-													? "Students can use this activity to build their understanding. Compare their maps to see where gaps exist."
-													: "Create a learning activity from this map. Students will use the concepts and links to demonstrate their understanding."}
-											</p>
-											{kitStatus.exists && kitStatus.isOutdated && (
-												<p className="text-xs text-amber-500">
-													Map changed since last publish. Update to sync
-													with current version.
-												</p>
-											)}
-										</div>
-									) : (
-										"Create a student learning activity from this map"
-									)
-								}
-							/>
-						</>
-					)}
 				</ButtonGroup>
 				<TooltipContent handle={tooltipHandle} />
 			</div>

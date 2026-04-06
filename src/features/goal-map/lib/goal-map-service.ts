@@ -5,6 +5,15 @@ import { validateNodes } from "@/features/goal-map/lib/validator";
 import { safeParseJson } from "@/lib/utils";
 import { Database } from "@/server/db/client";
 import { goalMaps, kits, texts } from "@/server/db/schema/app-schema";
+
+export const SaveGoalMapOutput = Schema.Struct({
+	errors: Schema.Array(Schema.String),
+	warnings: Schema.Array(Schema.String),
+	propositions: Schema.Array(Schema.String),
+	published: Schema.Boolean,
+});
+
+export type SaveGoalMapOutput = typeof SaveGoalMapOutput.Type;
 /** Constant for new goal map identifier */
 export const NEW_GOAL_MAP_ID = "new";
 /** Position schema for node positioning */
@@ -81,6 +90,8 @@ export const SaveGoalMapInput = Schema.Struct({
 	materialImages: Schema.optionalWith(Schema.Array(Schema.Any), {
 		nullable: true,
 	}),
+	/** When true, also regenerate the kit for this goal map */
+	publish: Schema.optionalWith(Schema.Boolean, { default: () => false }),
 });
 
 export type SaveGoalMapInput = typeof SaveGoalMapInput.Type;
@@ -264,10 +275,56 @@ export const saveGoalMap = Effect.fn("saveGoalMap")(function* (
 			set: payload,
 		});
 
+	// Auto-regenerate kit if publish flag is set or kit already exists
+	if (data.publish || data.goalMapId !== NEW_GOAL_MAP_ID) {
+		const kitRows = yield* db
+			.select({ id: kits.id, layout: kits.layout })
+			.from(kits)
+			.where(eq(kits.goalMapId, data.goalMapId))
+			.limit(1);
+
+		if (data.publish || kitRows[0]) {
+			// Always use "preset" layout for now; could be configurable
+			const layout = kitRows[0]?.layout ?? "preset";
+
+			const kitNodes = data.nodes.filter(
+				(n) => n?.type === "text" || n?.type === "connector",
+			);
+
+			const kitPayload = {
+				id: data.goalMapId,
+				kitId: data.goalMapId,
+				name: data.title,
+				goalMapId: data.goalMapId,
+				teacherId: userId,
+				layout,
+				nodes: JSON.stringify(kitNodes),
+				edges: JSON.stringify([]),
+				textId,
+			};
+
+			if (kitRows[0]) {
+				yield* db
+					.update(kits)
+					.set({
+						name: kitPayload.name,
+						layout: kitPayload.layout,
+						nodes: kitPayload.nodes,
+						edges: kitPayload.edges,
+						textId: kitPayload.textId,
+					})
+					.where(eq(kits.goalMapId, data.goalMapId));
+			} else if (data.publish) {
+				yield* db.insert(kits).values(kitPayload);
+			}
+		}
+	}
+
 	return {
 		errors: validationResult.errors,
 		warnings: validationResult.warnings,
 		propositions: validationResult.propositions,
+		published: data.publish || false,
 	};
 });
 
