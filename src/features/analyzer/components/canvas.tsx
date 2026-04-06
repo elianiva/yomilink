@@ -1,5 +1,12 @@
 import type { Edge, MarkerType, Node } from "@xyflow/react";
-import { Background, MiniMap, ReactFlow, ReactFlowProvider, useReactFlow } from "@xyflow/react";
+import {
+	Background,
+	ConnectionMode,
+	MiniMap,
+	ReactFlow,
+	ReactFlowProvider,
+	useReactFlow,
+} from "@xyflow/react";
 import { ZoomIn, ZoomOut } from "lucide-react";
 import { useEffect, useMemo, useState } from "react";
 
@@ -253,8 +260,6 @@ function AnalyticsCanvasInner({
 								id: `${key}-${type}`,
 								source,
 								target,
-								sourceHandle: "right",
-								targetHandle: "left",
 								type: "floating",
 								style,
 								animated: type === "missing",
@@ -655,6 +660,7 @@ function AnalyticsCanvasInner({
 				nodesDraggable={true}
 				nodesConnectable={false}
 				elementsSelectable={true}
+				connectionMode={ConnectionMode.Loose}
 				panOnDrag
 				zoomOnScroll
 				fitView

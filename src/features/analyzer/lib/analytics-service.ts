@@ -167,11 +167,13 @@ export const DiagnosisResultSchema = Schema.Struct({
 });
 
 export const EdgeClassificationSchema = Schema.Struct({
-	source: Schema.String,
-	target: Schema.String,
-	correct: Schema.Boolean,
-	missing: Schema.Boolean,
-	excessive: Schema.Boolean,
+	edge: EdgeSchema,
+	type: Schema.Union(
+		Schema.Literal("correct"),
+		Schema.Literal("missing"),
+		Schema.Literal("excessive"),
+		Schema.Literal("neutral"),
+	),
 });
 
 export const LearnerMapDetailsSchema = Schema.Struct({

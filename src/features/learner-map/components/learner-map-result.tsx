@@ -351,7 +351,9 @@ export function LearnerMapResult() {
 						</Link>
 					</Button>
 					<div>
-						<h1 className="font-semibold">{assignment.title || "Assignment Results"}</h1>
+						<h1 className="font-semibold">
+							{assignment.title || "Assignment Results"}
+						</h1>
 						<p className="text-sm text-muted-foreground">
 							Attempt {learnerMap.attempt}
 						</p>
