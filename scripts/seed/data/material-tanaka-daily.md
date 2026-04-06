@@ -66,6 +66,50 @@ nodes:
       type: "connector"
       position: { x: 480, y: 250 }
       data: { label: "は" }
+    - id: "conn-wake-up"
+      type: "connector"
+      position: { x: 140, y: 250 }
+      data: { label: "に" }
+    - id: "conn-school"
+      type: "connector"
+      position: { x: 200, y: 250 }
+      data: { label: "へ行く" }
+    - id: "conn-study"
+      type: "connector"
+      position: { x: 260, y: 250 }
+      data: { label: "をする" }
+    - id: "conn-lunch"
+      type: "connector"
+      position: { x: 140, y: 400 }
+      data: { label: "を食べる" }
+    - id: "conn-afternoon"
+      type: "connector"
+      position: { x: 200, y: 400 }
+      data: { label: "の活動" }
+    - id: "conn-dinner"
+      type: "connector"
+      position: { x: 260, y: 400 }
+      data: { label: "を食べる" }
+    - id: "conn-sleep"
+      type: "connector"
+      position: { x: 320, y: 400 }
+      data: { label: "に寝る" }
+    - id: "conn-saturday"
+      type: "connector"
+      position: { x: 440, y: 250 }
+      data: { label: "の" }
+    - id: "conn-sunday"
+      type: "connector"
+      position: { x: 520, y: 250 }
+      data: { label: "の" }
+    - id: "conn-work"
+      type: "connector"
+      position: { x: 440, y: 400 }
+      data: { label: "をする" }
+    - id: "conn-fun"
+      type: "connector"
+      position: { x: 520, y: 400 }
+      data: { label: "時間" }
 edges:
     - id: "e1"
       source: "tanaka"
@@ -81,36 +125,69 @@ edges:
       target: "weekend"
     - id: "e5"
       source: "weekday"
-      target: "wake-up"
+      target: "conn-wake-up"
     - id: "e6"
-      source: "weekday"
-      target: "school"
+      source: "conn-wake-up"
+      target: "wake-up"
     - id: "e7"
       source: "weekday"
-      target: "study"
+      target: "conn-school"
     - id: "e8"
-      source: "weekday"
-      target: "sleep"
+      source: "conn-school"
+      target: "school"
     - id: "e9"
       source: "weekday"
-      target: "lunch"
+      target: "conn-study"
     - id: "e10"
-      source: "weekday"
-      target: "afternoon"
+      source: "conn-study"
+      target: "study"
     - id: "e11"
       source: "weekday"
-      target: "dinner"
+      target: "conn-lunch"
     - id: "e12"
-      source: "weekend"
-      target: "saturday"
+      source: "conn-lunch"
+      target: "lunch"
     - id: "e13"
-      source: "weekend"
-      target: "sunday"
+      source: "weekday"
+      target: "conn-afternoon"
     - id: "e14"
-      source: "saturday"
-      target: "work"
+      source: "conn-afternoon"
+      target: "afternoon"
     - id: "e15"
+      source: "weekday"
+      target: "conn-dinner"
+    - id: "e16"
+      source: "conn-dinner"
+      target: "dinner"
+    - id: "e17"
+      source: "weekday"
+      target: "conn-sleep"
+    - id: "e18"
+      source: "conn-sleep"
+      target: "sleep"
+    - id: "e19"
+      source: "weekend"
+      target: "conn-saturday"
+    - id: "e20"
+      source: "conn-saturday"
+      target: "saturday"
+    - id: "e21"
+      source: "weekend"
+      target: "conn-sunday"
+    - id: "e22"
+      source: "conn-sunday"
+      target: "sunday"
+    - id: "e23"
+      source: "saturday"
+      target: "conn-work"
+    - id: "e24"
+      source: "conn-work"
+      target: "work"
+    - id: "e25"
       source: "sunday"
+      target: "conn-fun"
+    - id: "e26"
+      source: "conn-fun"
       target: "fun"
 ---
 
