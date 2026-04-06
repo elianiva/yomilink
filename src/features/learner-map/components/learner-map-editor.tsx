@@ -49,7 +49,7 @@ import { cn } from "@/lib/utils";
 import { AssignmentRpc } from "@/server/rpc/assignment";
 import { LearnerMapRpc } from "@/server/rpc/learner-map";
 
-const routeApi = getRouteApi("/dashboard/learner-map/$assignmentId");
+const routeApi = getRouteApi("/dashboard/learner-map/$assignmentId/");
 
 export function LearnerMapEditor() {
 	const { assignmentId } = routeApi.useParams();

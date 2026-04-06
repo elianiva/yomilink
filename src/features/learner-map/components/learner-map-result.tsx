@@ -224,6 +224,8 @@ export function LearnerMapResult() {
 					const style = getEdgeStyleByType(edgeType);
 					edgesToDisplay.push({
 						...edge,
+						sourceHandle: "right",
+						targetHandle: "left",
 						type: "floating",
 						style,
 						markerEnd: {
@@ -242,6 +244,8 @@ export function LearnerMapResult() {
 						id: `missing-${missing.source}-${missing.target}`,
 						source: missing.source,
 						target: missing.target,
+						sourceHandle: "right",
+						targetHandle: "left",
 						type: "floating",
 						style,
 						animated: true,
@@ -257,6 +261,8 @@ export function LearnerMapResult() {
 			for (const edge of data.goalMap.edges) {
 				edgesToDisplay.push({
 					...edge,
+					sourceHandle: "right",
+					targetHandle: "left",
 					type: "floating",
 					style: { stroke: "#64748b", strokeWidth: 2 },
 					markerEnd: {
@@ -286,6 +292,8 @@ export function LearnerMapResult() {
 					const style = getEdgeStyleByType(edgeType);
 					edgesToDisplay.push({
 						...edge,
+						sourceHandle: "right",
+						targetHandle: "left",
 						type: "floating",
 						style,
 						markerEnd: {
@@ -466,21 +474,34 @@ export function LearnerMapResult() {
 				<div className="flex-1 flex flex-col overflow-hidden">
 					<ComparisonToolbar visibility={visibility} onChange={handleVisibilityChange} />
 					<div className="flex-1 relative">
-						<ReactFlow
-							nodes={mergedNodes}
-							edges={processedEdges}
-							nodeTypes={nodeTypes}
-							edgeTypes={edgeTypes}
-							nodesDraggable={false}
-							nodesConnectable={false}
-							elementsSelectable={false}
-							panOnDrag
-							zoomOnScroll
-							fitView
-						>
-							<MiniMap />
-							<Background gap={16} />
-						</ReactFlow>
+						{mergedNodes.length === 0 ? (
+							<div className="absolute inset-0 flex items-center justify-center bg-muted/30">
+								<div className="text-center text-muted-foreground">
+									<p className="text-sm">No map data available</p>
+									<p className="text-xs mt-1">
+										Goal: {data?.goalMap?.nodes?.length ?? 0} nodes
+										<br />
+										Yours: {data?.learnerMap?.nodes?.length ?? 0} nodes
+									</p>
+								</div>
+							</div>
+						) : (
+							<ReactFlow
+								nodes={mergedNodes}
+								edges={processedEdges}
+								nodeTypes={nodeTypes}
+								edgeTypes={edgeTypes}
+								nodesDraggable={false}
+								nodesConnectable={false}
+								elementsSelectable={false}
+								panOnDrag
+								zoomOnScroll
+								fitView
+							>
+								<MiniMap />
+								<Background gap={16} />
+							</ReactFlow>
+						)}
 					</div>
 				</div>
 			</div>

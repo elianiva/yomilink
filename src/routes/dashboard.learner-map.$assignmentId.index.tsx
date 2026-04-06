@@ -38,7 +38,7 @@ function LearnerMapSkeleton() {
 	);
 }
 
-export const Route = createFileRoute("/dashboard/learner-map/$assignmentId")({
+export const Route = createFileRoute("/dashboard/learner-map/$assignmentId/")({
 	component: () => (
 		<Guard roles={["student"]}>
 			<Suspense fallback={<LearnerMapSkeleton />}>
