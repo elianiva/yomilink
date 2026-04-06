@@ -1,19 +1,14 @@
 import { useQueryClient } from "@tanstack/react-query";
 import { Link, useNavigate, getRouteApi } from "@tanstack/react-router";
-import type { Edge, MarkerType, Node } from "@xyflow/react";
-import { Background, MiniMap, ReactFlow } from "@xyflow/react";
-
-import "@xyflow/react/dist/style.css";
+import type { Edge } from "@xyflow/react";
 import { ArrowLeftIcon, RefreshCwIcon } from "lucide-react";
 import { useCallback, useMemo, useState } from "react";
 
+import "@xyflow/react/dist/style.css";
 import { Button } from "@/components/ui/button";
 import { Switch } from "@/components/ui/switch";
-import { ConnectorNode } from "@/features/kitbuild/components/connector-node";
-import { FloatingEdge } from "@/features/kitbuild/components/floating-edge";
-import { TextNode } from "@/features/kitbuild/components/text-node";
+import { AnalyticsCanvas } from "@/features/analyzer/components/canvas";
 import { DiagnosisStats } from "@/features/learner-map/components/diagnosis/diagnosis-stats";
-import { getEdgeStyleByType } from "@/features/learner-map/lib/comparator";
 import { useRpcMutation, useRpcQuery } from "@/hooks/use-rpc-query";
 import { LearnerMapRpc } from "@/server/rpc/learner-map";
 
@@ -25,6 +20,9 @@ interface VisibilityState {
 	showCorrectEdges: boolean;
 	showMissingEdges: boolean;
 	showExcessiveEdges: boolean;
+	showNeutralEdges: boolean;
+	consolidatedView: boolean;
+	showNamesOnHover: boolean;
 }
 
 function LegendDot({ color }: { color: string }) {
@@ -116,26 +114,14 @@ export function LearnerMapResult() {
 		showCorrectEdges: true,
 		showMissingEdges: true,
 		showExcessiveEdges: true,
+		showNeutralEdges: true,
+		consolidatedView: true,
+		showNamesOnHover: false,
 	});
 
 	const handleVisibilityChange = useCallback((updates: Partial<VisibilityState>) => {
 		setVisibility((prev) => ({ ...prev, ...updates }));
 	}, []);
-
-	const nodeTypes = useMemo(
-		() => ({
-			text: TextNode,
-			connector: ConnectorNode,
-		}),
-		[],
-	);
-
-	const edgeTypes = useMemo(
-		() => ({
-			floating: FloatingEdge,
-		}),
-		[],
-	);
 
 	const { data, isLoading } = useRpcQuery(LearnerMapRpc.getDiagnosis({ assignmentId }));
 
@@ -160,153 +146,40 @@ export function LearnerMapResult() {
 		}
 	};
 
-	// Merge nodes from goal map and learner map (goal map positions as source of truth)
-	const mergedNodes = useMemo(() => {
-		if (!data?.goalMap || !data?.learnerMap) return [];
+	// Build edgeClassifications from diagnosis for AnalyticsCanvas
+	// Convert simple {source, target} links to proper Edge objects
+	const edgeClassifications = useMemo(() => {
+		if (!data?.diagnosis) return [];
 
-		const nodeMap = new Map<string, Node>();
+		const classifications: Array<{
+			edge: Edge;
+			type: "correct" | "missing" | "excessive" | "neutral";
+		}> = [];
 
-		// Add goal map nodes first
-		for (const node of data.goalMap.nodes) {
-			nodeMap.set(node.id, node);
+		// Helper to create a proper Edge from a link
+		const createEdge = (link: { source: string; target: string }): Edge => ({
+			id: `${link.source}-${link.target}`,
+			source: link.source,
+			target: link.target,
+		});
+
+		// Add correct edges
+		for (const link of data.diagnosis.correct) {
+			classifications.push({ edge: createEdge(link), type: "correct" });
 		}
 
-		// Merge learner map nodes, keeping goal map positions
-		for (const node of data.learnerMap.nodes) {
-			const existingNode = nodeMap.get(node.id);
-			if (existingNode) {
-				nodeMap.set(node.id, { ...node, position: existingNode.position });
-			} else {
-				nodeMap.set(node.id, node);
-			}
+		// Add missing edges
+		for (const link of data.diagnosis.missing) {
+			classifications.push({ edge: createEdge(link), type: "missing" });
 		}
 
-		return Array.from(nodeMap.values());
+		// Add excessive edges
+		for (const link of data.diagnosis.excessive) {
+			classifications.push({ edge: createEdge(link), type: "excessive" });
+		}
+
+		return classifications;
 	}, [data]);
-
-	// Process edges for visualization based on visibility
-	const processedEdges = useMemo(() => {
-		if (!data?.diagnosis || !data?.learnerMap || !data?.goalMap) return [];
-
-		const edgesToDisplay: Edge[] = [];
-		const {
-			showGoalMap,
-			showLearnerMap,
-			showCorrectEdges,
-			showMissingEdges,
-			showExcessiveEdges,
-		} = visibility;
-
-		const correctSet = new Set(data.diagnosis.correct.map((e) => `${e.source}-${e.target}`));
-		const excessiveSet = new Set(
-			data.diagnosis.excessive.map((e) => `${e.source}-${e.target}`),
-		);
-
-		if (showGoalMap && showLearnerMap) {
-			// Combined view: classify learner edges and show missing edges
-			for (const edge of data.learnerMap.edges) {
-				const edgeKey = `${edge.source}-${edge.target}`;
-				let edgeType: "correct" | "excessive" | "missing" = "missing";
-				if (correctSet.has(edgeKey)) edgeType = "correct";
-				else if (excessiveSet.has(edgeKey)) edgeType = "excessive";
-
-				let shouldShow = false;
-				switch (edgeType) {
-					case "correct":
-						shouldShow = showCorrectEdges;
-						break;
-					case "excessive":
-						shouldShow = showExcessiveEdges;
-						break;
-				}
-
-				if (shouldShow) {
-					const style = getEdgeStyleByType(edgeType);
-					edgesToDisplay.push({
-						...edge,
-						sourceHandle: "right",
-						targetHandle: "left",
-						type: "floating",
-						style,
-						markerEnd: {
-							type: "arrowclosed" as MarkerType,
-							color: style.stroke,
-						},
-					});
-				}
-			}
-
-			// Add missing edges from goal map
-			if (showMissingEdges) {
-				for (const missing of data.diagnosis.missing) {
-					const style = getEdgeStyleByType("missing");
-					edgesToDisplay.push({
-						id: `missing-${missing.source}-${missing.target}`,
-						source: missing.source,
-						target: missing.target,
-						sourceHandle: "right",
-						targetHandle: "left",
-						type: "floating",
-						style,
-						animated: true,
-						markerEnd: {
-							type: "arrowclosed" as MarkerType,
-							color: style.stroke,
-						},
-					});
-				}
-			}
-		} else if (showGoalMap) {
-			// Show only goal map edges
-			for (const edge of data.goalMap.edges) {
-				edgesToDisplay.push({
-					...edge,
-					sourceHandle: "right",
-					targetHandle: "left",
-					type: "floating",
-					style: { stroke: "#64748b", strokeWidth: 2 },
-					markerEnd: {
-						type: "arrowclosed" as MarkerType,
-						color: "#64748b",
-					},
-				});
-			}
-		} else if (showLearnerMap) {
-			// Show only learner edges (excluding missing)
-			for (const edge of data.learnerMap.edges) {
-				const edgeKey = `${edge.source}-${edge.target}`;
-				let edgeType: "correct" | "excessive" = "excessive";
-				if (correctSet.has(edgeKey)) edgeType = "correct";
-
-				let shouldShow = false;
-				switch (edgeType) {
-					case "correct":
-						shouldShow = showCorrectEdges;
-						break;
-					case "excessive":
-						shouldShow = showExcessiveEdges;
-						break;
-				}
-
-				if (shouldShow) {
-					const style = getEdgeStyleByType(edgeType);
-					edgesToDisplay.push({
-						...edge,
-						sourceHandle: "right",
-						targetHandle: "left",
-						type: "floating",
-						style,
-						markerEnd: {
-							type: "arrowclosed" as MarkerType,
-							color: style.stroke,
-						},
-					});
-				}
-			}
-		}
-
-		return edgesToDisplay;
-	}, [data, visibility]);
 
 	if (isLoading) {
 		return (
@@ -474,7 +347,7 @@ export function LearnerMapResult() {
 				<div className="flex-1 flex flex-col overflow-hidden">
 					<ComparisonToolbar visibility={visibility} onChange={handleVisibilityChange} />
 					<div className="flex-1 relative">
-						{mergedNodes.length === 0 ? (
+						{!data?.goalMap ? (
 							<div className="absolute inset-0 flex items-center justify-center bg-muted/30">
 								<div className="text-center text-muted-foreground">
 									<p className="text-sm">No map data available</p>
@@ -486,21 +359,23 @@ export function LearnerMapResult() {
 								</div>
 							</div>
 						) : (
-							<ReactFlow
-								nodes={mergedNodes}
-								edges={processedEdges}
-								nodeTypes={nodeTypes}
-								edgeTypes={edgeTypes}
-								nodesDraggable={false}
-								nodesConnectable={false}
-								elementsSelectable={false}
-								panOnDrag
-								zoomOnScroll
-								fitView
-							>
-								<MiniMap />
-								<Background gap={16} />
-							</ReactFlow>
+							<AnalyticsCanvas
+								goalMap={{
+									id: data.goalMap.id,
+									title: data.goalMap.title,
+									nodes: data.goalMap.nodes,
+									edges: data.goalMap.edges,
+									direction: data.goalMap.direction as "bi" | "uni" | "multi",
+								}}
+								learnerMap={{
+									...data.learnerMap,
+									userId: data.learnerMap.userId,
+									userName: "You",
+								}}
+								edgeClassifications={edgeClassifications}
+								visibility={visibility}
+								isMultiView={false}
+							/>
 						)}
 					</div>
 				</div>

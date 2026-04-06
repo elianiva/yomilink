@@ -390,15 +390,28 @@ export const submitLearnerMap = Effect.fn("submitLearnerMap")(function* (
 		return yield* new LearnerMapAlreadySubmittedError({ learnerMapId: learnerMap.id });
 	}
 
+	// Fetch assignment to get the correct goalMapId (handles kit-based assignments)
+	const assignmentRows = yield* db
+		.select({ goalMapId: assignments.goalMapId })
+		.from(assignments)
+		.where(eq(assignments.id, input.assignmentId))
+		.limit(1);
+
+	const assignment = assignmentRows[0];
+	if (!assignment) {
+		return yield* new AssignmentNotFoundError({ assignmentId: input.assignmentId });
+	}
+
+	// Use assignment's goalMapId for comparison (not learnerMap.goalMapId which may be null for kits)
 	const goalMapRows = yield* db
 		.select({ edges: goalMaps.edges })
 		.from(goalMaps)
-		.where(eq(goalMaps.id, learnerMap.goalMapId))
+		.where(eq(goalMaps.id, assignment.goalMapId))
 		.limit(1);
 
 	const goalMap = goalMapRows[0];
 	if (!goalMap) {
-		return yield* new GoalMapNotFoundError({ goalMapId: learnerMap.goalMapId });
+		return yield* new GoalMapNotFoundError({ goalMapId: assignment.goalMapId });
 	}
 
 	const goalMapEdges = Array.isArray(goalMap.edges) ? goalMap.edges : [];
@@ -441,17 +454,16 @@ export const getDiagnosis = Effect.fn("getDiagnosis")(function* (
 		.select({
 			learnerMap: {
 				id: learnerMaps.id,
+				userId: learnerMaps.userId,
 				nodes: learnerMaps.nodes,
 				edges: learnerMaps.edges,
 				status: learnerMaps.status,
 				attempt: learnerMaps.attempt,
+				submittedAt: learnerMaps.submittedAt,
 				goalMapId: learnerMaps.goalMapId,
 			},
-			goalMap: {
-				nodes: goalMaps.nodes,
-				edges: goalMaps.edges,
-			},
 			assignment: {
+				goalMapId: assignments.goalMapId,
 				title: assignments.title,
 				postTestFormId: assignments.postTestFormId,
 				tamFormId: assignments.tamFormId,
@@ -465,7 +477,6 @@ export const getDiagnosis = Effect.fn("getDiagnosis")(function* (
 			},
 		})
 		.from(learnerMaps)
-		.innerJoin(goalMaps, eq(goalMaps.id, learnerMaps.goalMapId))
 		.innerJoin(assignments, eq(assignments.id, learnerMaps.assignmentId))
 		.leftJoin(diagnoses, eq(diagnoses.learnerMapId, learnerMaps.id))
 		.where(
@@ -479,6 +490,25 @@ export const getDiagnosis = Effect.fn("getDiagnosis")(function* (
 		return null;
 	}
 
+	// Fetch the goal map from the assignment's goalMapId (not learnerMap's goalMapId)
+	// This ensures kit-based assignments use the correct goal map for diagnosis
+	const goalMapRows = yield* db
+		.select({
+			id: goalMaps.id,
+			title: goalMaps.title,
+			nodes: goalMaps.nodes,
+			edges: goalMaps.edges,
+			direction: goalMaps.direction,
+		})
+		.from(goalMaps)
+		.where(eq(goalMaps.id, result.assignment.goalMapId))
+		.limit(1);
+
+	const goalMap = goalMapRows[0];
+	if (!goalMap) {
+		return yield* new GoalMapNotFoundError({ goalMapId: result.assignment.goalMapId });
+	}
+
 	const diagnosisData = result.diagnosis?.perLink
 		? yield* parseJson(result.diagnosis.perLink, PerLinkDiagnosisSchema)
 		: null;
@@ -487,8 +517,8 @@ export const getDiagnosis = Effect.fn("getDiagnosis")(function* (
 		[
 			safeParseJson(result.learnerMap.nodes, [], Schema.Array(NodeSchema)),
 			safeParseJson(result.learnerMap.edges, [], Schema.Array(EdgeSchema)),
-			safeParseJson(result.goalMap.nodes, [], Schema.Array(NodeSchema)),
-			safeParseJson(result.goalMap.edges, [], Schema.Array(EdgeSchema)),
+			safeParseJson(goalMap.nodes, [], Schema.Array(NodeSchema)),
+			safeParseJson(goalMap.edges, [], Schema.Array(EdgeSchema)),
 		],
 		{ concurrency: "unbounded" },
 	);
@@ -496,14 +526,19 @@ export const getDiagnosis = Effect.fn("getDiagnosis")(function* (
 	return {
 		learnerMap: {
 			id: result.learnerMap.id,
+			userId: result.learnerMap.userId,
 			nodes: learnerMapNodes,
 			edges: learnerMapEdges,
 			status: result.learnerMap.status,
 			attempt: result.learnerMap.attempt,
+			submittedAt: result.learnerMap.submittedAt?.getTime() ?? null,
 		},
 		goalMap: {
+			id: goalMap.id,
+			title: goalMap.title,
 			nodes: goalMapNodes,
 			edges: goalMapEdges,
+			direction: goalMap.direction,
 		},
 		assignment: {
 			title: result.assignment.title,
