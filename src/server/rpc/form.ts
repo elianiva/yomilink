@@ -24,7 +24,6 @@ import {
 	publishForm,
 	ReorderQuestionsInput,
 	reorderQuestions,
-	SubmitFormResponseInput,
 	submitFormResponse,
 	UpdateQuestionInput,
 	unpublishForm,
@@ -246,11 +245,22 @@ export const getFormResponsesRpc = createServerFn()
 		),
 	);
 
+export const SubmitFormResponseInput = Schema.Struct({
+	formId: Schema.String,
+	answers: Schema.Record({ key: Schema.String, value: Schema.Unknown }),
+	timeSpentSeconds: Schema.optionalWith(Schema.Int, { nullable: true }),
+});
+
+export type SubmitFormResponseInput = typeof SubmitFormResponseInput.Type;
+
 export const submitFormResponseRpc = createServerFn({ method: "POST" })
 	.middleware([requireRoleMiddleware("student", "teacher", "admin")])
 	.inputValidator((raw) => Schema.decodeUnknownSync(SubmitFormResponseInput)(raw))
-	.handler(({ data }) =>
-		submitFormResponse(data).pipe(
+	.handler(({ data, context }) =>
+		submitFormResponse({
+			...data,
+			userId: context.user.id,
+		}).pipe(
 			Effect.map(() => Rpc.ok(true)),
 			Effect.withSpan("submitFormResponse"),
 			Effect.tapError(logRpcError("submitFormResponse")),
@@ -457,7 +467,8 @@ export const FormRpc = {
 	submitFormResponse: () =>
 		mutationOptions({
 			mutationKey: [...FormRpc.forms(), "submit"],
-			mutationFn: (data: SubmitFormResponseInput) => submitFormResponseRpc({ data }),
+			mutationFn: (data: Omit<SubmitFormResponseInput, "userId">) =>
+				submitFormResponseRpc({ data }),
 		}),
 	reorderQuestions: () =>
 		mutationOptions({

@@ -1,3 +1,4 @@
+import { useQueryClient } from "@tanstack/react-query";
 import { createFileRoute, useNavigate, useSearch } from "@tanstack/react-router";
 import { ArrowLeftIcon, Loader2 } from "lucide-react";
 
@@ -7,7 +8,7 @@ import {
 	type FormData,
 	type QuestionWithOptions,
 } from "@/features/form/components/form-taker";
-import { useRpcQuery } from "@/hooks/use-rpc-query";
+import { useRpcMutation, useRpcQuery } from "@/hooks/use-rpc-query";
 import { FormRpc } from "@/server/rpc/form";
 
 export const Route = createFileRoute("/dashboard/forms/take")({
@@ -21,6 +22,7 @@ type FormTakeSearch = {
 
 function FormTakerPage() {
 	const navigate = useNavigate({ from: "/dashboard/forms/take" });
+	const queryClient = useQueryClient();
 	const searchParams = useSearch({ from: "/dashboard/forms/take" }) as FormTakeSearch;
 	const formId = searchParams.formId;
 	const returnTo = searchParams.returnTo;
@@ -28,6 +30,21 @@ function FormTakerPage() {
 	const { data, isLoading, error } = useRpcQuery({
 		...FormRpc.getStudentFormById(formId ?? ""),
 		enabled: !!formId,
+	});
+
+	const submitMutation = useRpcMutation(FormRpc.submitFormResponse(), {
+		operation: "submit form",
+		showSuccess: true,
+		successMessage: "Form submitted successfully!",
+		onSuccess: () => {
+			// Invalidate related queries to refresh status
+			void queryClient.invalidateQueries({ queryKey: FormRpc.forms() });
+			if (returnTo) {
+				window.location.href = returnTo;
+			} else {
+				void navigate({ to: "/dashboard/forms/student" });
+			}
+		},
 	});
 
 	const handleBack = () => {
@@ -116,14 +133,12 @@ function FormTakerPage() {
 		};
 	});
 
-	const handleSubmit = () => {
-		// Redirect back to specified URL or default to forms list
-		if (returnTo) {
-			// Use window.location for dynamic URLs not in route tree
-			window.location.href = returnTo;
-		} else {
-			void navigate({ to: "/dashboard/forms/student" });
-		}
+	const handleSubmit = (answers: Record<string, string | number>) => {
+		if (!formId) return;
+		submitMutation.mutate({
+			formId,
+			answers,
+		});
 	};
 
 	return (
@@ -133,7 +148,12 @@ function FormTakerPage() {
 				Back to Forms
 			</Button>
 
-			<FormTaker form={formData} questions={questionData} onSubmit={handleSubmit} />
+			<FormTaker
+				form={formData}
+				questions={questionData}
+				onSubmit={handleSubmit}
+				submitting={submitMutation.isPending}
+			/>
 		</div>
 	);
 }
