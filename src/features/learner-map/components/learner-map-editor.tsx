@@ -588,9 +588,10 @@ function SummarizingEditor({
 					</div>
 					<div className="flex-1 overflow-y-auto p-6 space-y-4">
 						{materialText ? (
-							<div className="prose prose-sm max-w-none">
-								<div className="whitespace-pre-wrap">{materialText}</div>
-							</div>
+							<div
+								className="prose prose-sm max-w-none dark:prose-invert prose-p:my-2 prose-headings:my-2 prose-ul:my-2 prose-ol:my-2 prose-blockquote:my-2 prose-li:my-0.5 prose-pre:bg-muted prose-pre:text-foreground prose-pre:border prose-pre:border-border prose-pre:rounded-md prose-pre:p-3 prose-pre:my-2 prose-code:bg-muted/50 prose-code:text-foreground prose-code:px-1 prose-code:py-0.5 prose-code:rounded prose-code:text-xs prose-code:before:content-none prose-code:after:content-none prose-headings:font-medium prose-headings:text-foreground prose-h1:text-xl prose-h2:text-lg prose-h3:text-base prose-h4:text-base prose-strong:font-semibold prose-b:font-semibold prose-ul:list-disc prose-ol:list-decimal prose-ul:pl-5 prose-ol:pl-5 prose-ul:marker:text-foreground prose-ol:marker:text-foreground prose-a:text-primary prose-a:no-underline hover:prose-a:underline"
+								dangerouslySetInnerHTML={{ __html: materialText }}
+							/>
 						) : (
 							<div className="flex items-center justify-center h-full text-muted-foreground text-sm">
 								No reading material provided.
