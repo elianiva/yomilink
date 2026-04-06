@@ -318,7 +318,13 @@ export function GoalMapEditor() {
 					generateKitMutation.mutate(
 						{ goalMapId },
 						{
-							onSettled: () => {
+							onSuccess: () => {
+								toast.success(
+									"Student activity published! Students can now build their understanding from this map.",
+								);
+								setIsSavingForKit(false);
+							},
+							onError: () => {
 								setIsSavingForKit(false);
 							},
 						},

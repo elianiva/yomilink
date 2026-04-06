@@ -129,7 +129,6 @@ test.describe("Teacher - User Management", () => {
 
 		// Check if pagination exists (may not if less than page size)
 		const nextButton = teacherPage.locator('button:has-text("Next")');
-		const prevButton = teacherPage.locator('button:has-text("Previous")');
 
 		// If pagination exists, test it
 		const hasNext = await nextButton.isVisible().catch(() => false);

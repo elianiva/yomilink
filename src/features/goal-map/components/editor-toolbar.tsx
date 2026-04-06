@@ -1,5 +1,15 @@
 import { useSetAtom } from "jotai";
-import { BookOpen, Grid3X3, Loader2, Plus, Save, Search, Shuffle, Trash2 } from "lucide-react";
+import {
+	BookOpen,
+	GraduationCap,
+	Grid3X3,
+	Loader2,
+	Plus,
+	Save,
+	Search,
+	Shuffle,
+	Trash2,
+} from "lucide-react";
 import { memo } from "react";
 
 import { ToolbarButton } from "@/components/toolbar/toolbar-button";
@@ -220,44 +230,47 @@ function EditorToolbarImpl({
 										{isGeneratingKit ? (
 											<Loader2 className="size-4 animate-spin" />
 										) : (
-											<Plus className="size-4" />
+											<GraduationCap className="size-4" />
 										)}
 										{kitStatus?.exists && !kitStatus.isOutdated
-											? "Update Kit"
-											: "Create Kit"}
+											? "Update Activity"
+											: "Create Activity"}
 									</Button>
 								}
 								payload={
 									kitStatus ? (
-										<div className="flex flex-col gap-1">
+										<div className="flex flex-col gap-2 max-w-xs">
 											<div className="flex items-center gap-2">
 												{kitStatus.exists ? (
 													<>
 														<div className="w-2 h-2 bg-green-500 rounded-full" />
 														<span className="font-medium">
-															Kit Generated
+															Activity Published
 														</span>
 													</>
 												) : (
 													<>
 														<div className="w-2 h-2 bg-gray-400 rounded-full" />
-														<span className="font-medium">No Kit</span>
+														<span className="font-medium">
+															No Student Activity
+														</span>
 													</>
 												)}
 											</div>
-											{kitStatus.exists && (
-												<div className="text-xs text-muted-foreground">
-													{kitStatus.nodeCount} nodes
-													{kitStatus.isOutdated && (
-														<span className="text-amber-500 ml-1">
-															(Outdated)
-														</span>
-													)}
-												</div>
+											<p className="text-xs text-muted-foreground leading-relaxed">
+												{kitStatus.exists
+													? "Students can use this activity to build their understanding. Compare their maps to see where gaps exist."
+													: "Create a learning activity from this map. Students will use the concepts and links to demonstrate their understanding."}
+											</p>
+											{kitStatus.exists && kitStatus.isOutdated && (
+												<p className="text-xs text-amber-500">
+													Map changed since last publish. Update to sync
+													with current version.
+												</p>
 											)}
 										</div>
 									) : (
-										"Create a kit from this map"
+										"Create a student learning activity from this map"
 									)
 								}
 							/>
