@@ -54,7 +54,7 @@ function StudentFormsPage() {
 			case "tam":
 				return "TAM Survey";
 			case "control":
-				return "Control";
+				return "Questionnaire";
 			default:
 				return type;
 		}

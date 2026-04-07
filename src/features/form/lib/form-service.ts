@@ -1159,8 +1159,8 @@ function shouldExcludeForm(
 	if (formType === "registration") return true;
 	// TAM only for experiment group
 	if (formType === "tam" && studyGroup !== "experiment") return true;
-	// Control/feedback only for control group
-	if (formType === "control" && studyGroup !== "control") return true;
+	// Feedback questionnaires are experiment-group only
+	if (formType === "control" && studyGroup !== "experiment") return true;
 	return false;
 }
 
