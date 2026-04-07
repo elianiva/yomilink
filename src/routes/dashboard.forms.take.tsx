@@ -46,7 +46,7 @@ function FormTakerPage() {
 			}
 
 			if (data?.form.type === "post_test") {
-				void navigate({ to: "/dashboard/assignments/" });
+				void navigate({ to: "/dashboard/assignments" });
 				return;
 			}
 

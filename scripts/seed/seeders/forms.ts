@@ -5,13 +5,12 @@ import { randomString } from "@/lib/utils";
 import { Database } from "@/server/db/client";
 import { forms, questions } from "@/server/db/schema/app-schema";
 
-import { copyFormWithQuestions } from "./form-copy.js";
-
 import {
 	FEEDBACK_QUESTIONS,
 	READING_COMPREHENSION_QUESTIONS,
 	TAM_QUESTIONS,
 } from "../data/questions.js";
+import { copyFormWithQuestions } from "./form-copy.js";
 
 export function seedForms(teacherId: string) {
 	return Effect.gen(function* () {
@@ -179,30 +178,34 @@ export function seedForms(teacherId: string) {
 			.orderBy(questions.orderIndex);
 
 		if (preTestQuestions.length === 0) {
-			yield* Effect.log(`  Creating ${READING_COMPREHENSION_QUESTIONS.length} questions for Pre-Test...`);
-			yield* Effect.all(
-			READING_COMPREHENSION_QUESTIONS.map((q, index) =>
-				Effect.gen(function* () {
-					const mcqOptions = {
-						type: "mcq" as const,
-						options: q.options,
-						correctOptionIds: [q.correctOptionId],
-						shuffle: false,
-					};
-					yield* db.insert(questions).values({
-						id: randomString(),
-						formId: preTestFormId,
-						type: "mcq",
-						questionText: `[${q.bloomLevel}] ${q.questionText}`,
-						options: JSON.stringify(mcqOptions),
-						orderIndex: index,
-						required: true,
-					});
-				}),
-			),
-			{ concurrency: 10 },
+			yield* Effect.log(
+				`  Creating ${READING_COMPREHENSION_QUESTIONS.length} questions for Pre-Test...`,
 			);
-			yield* Effect.log(`  Created ${READING_COMPREHENSION_QUESTIONS.length} questions for Pre-Test`);
+			yield* Effect.all(
+				READING_COMPREHENSION_QUESTIONS.map((q, index) =>
+					Effect.gen(function* () {
+						const mcqOptions = {
+							type: "mcq" as const,
+							options: q.options,
+							correctOptionIds: [q.correctOptionId],
+							shuffle: false,
+						};
+						yield* db.insert(questions).values({
+							id: randomString(),
+							formId: preTestFormId,
+							type: "mcq",
+							questionText: `[${q.bloomLevel}] ${q.questionText}`,
+							options: JSON.stringify(mcqOptions),
+							orderIndex: index,
+							required: true,
+						});
+					}),
+				),
+				{ concurrency: 10 },
+			);
+			yield* Effect.log(
+				`  Created ${READING_COMPREHENSION_QUESTIONS.length} questions for Pre-Test`,
+			);
 		}
 
 		const postTestFormId = yield* copyFormWithQuestions({

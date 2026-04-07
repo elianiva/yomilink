@@ -265,55 +265,55 @@ export function FormList({
 												</Button>
 											</DropdownMenuTrigger>
 											<DropdownMenuContent
-								align="end"
-								className="border-stone-200"
-							>
-								{onViewResults && (
-									<DropdownMenuItem
-										onClick={(e) => {
-											e.stopPropagation();
-											onViewResults(form);
-										}}
-									>
-										<BarChart3 className="mr-2 size-4" />
-										View Results
-									</DropdownMenuItem>
-								)}
-								{onEdit && (
-									<DropdownMenuItem
-										onClick={(e) => {
-											e.stopPropagation();
-											onEdit(form);
-										}}
-									>
-										<Pencil className="mr-2 size-4" />
-										Edit
-									</DropdownMenuItem>
-								)}
-								{onDuplicate && (
-									<DropdownMenuItem
-										onClick={(e) => {
-											e.stopPropagation();
-											onDuplicate(form);
-										}}
-									>
-										<Copy className="mr-2 size-4" />
-										Duplicate
-									</DropdownMenuItem>
-								)}
-								{onDelete && (
-									<DropdownMenuItem
-										onClick={(e) => {
-											e.stopPropagation();
-											onDelete(form.id);
-										}}
-										className="text-stone-700"
-									>
-										<Trash2 className="mr-2 size-4" />
-										Delete
-									</DropdownMenuItem>
-								)}
-						</DropdownMenuContent>
+												align="end"
+												className="border-stone-200"
+											>
+												{onViewResults && (
+													<DropdownMenuItem
+														onClick={(e) => {
+															e.stopPropagation();
+															onViewResults(form);
+														}}
+													>
+														<BarChart3 className="mr-2 size-4" />
+														View Results
+													</DropdownMenuItem>
+												)}
+												{onEdit && (
+													<DropdownMenuItem
+														onClick={(e) => {
+															e.stopPropagation();
+															onEdit(form);
+														}}
+													>
+														<Pencil className="mr-2 size-4" />
+														Edit
+													</DropdownMenuItem>
+												)}
+												{onDuplicate && (
+													<DropdownMenuItem
+														onClick={(e) => {
+															e.stopPropagation();
+															onDuplicate(form);
+														}}
+													>
+														<Copy className="mr-2 size-4" />
+														Duplicate
+													</DropdownMenuItem>
+												)}
+												{onDelete && (
+													<DropdownMenuItem
+														onClick={(e) => {
+															e.stopPropagation();
+															onDelete(form.id);
+														}}
+														className="text-stone-700"
+													>
+														<Trash2 className="mr-2 size-4" />
+														Delete
+													</DropdownMenuItem>
+												)}
+											</DropdownMenuContent>
 										</DropdownMenu>
 									)}
 								</div>

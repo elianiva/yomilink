@@ -1088,10 +1088,7 @@ function areAllFormsOfTypeCompleted(
 const OPTIONAL_FORM_TYPES = new Set<FormType>(["tam", "control"]);
 const REQUIRED_FORM_TYPES: FormType[] = ["pre_test", "post_test", "delayed_test"];
 
-function getNextRequiredType(
-	completed: Set<FormType>,
-	available: Set<FormType>,
-): FormType | null {
+function getNextRequiredType(completed: Set<FormType>, available: Set<FormType>): FormType | null {
 	for (const type of REQUIRED_FORM_TYPES) {
 		if (available.has(type) && !completed.has(type)) {
 			return type;

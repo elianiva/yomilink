@@ -6,10 +6,9 @@ import { Database } from "@/server/db/client";
 import { forms, goalMaps, questions, texts, topics } from "@/server/db/schema/app-schema";
 import { cohorts } from "@/server/db/schema/auth-schema";
 
-import { copyFormWithQuestions } from "./form-copy.js";
-
 import { FRONTEND_QUESTIONS } from "../data/frontend-questions.js";
 import { FEEDBACK_QUESTIONS, TAM_QUESTIONS } from "../data/questions.js";
+import { copyFormWithQuestions } from "./form-copy.js";
 
 const WRI_2026_COHORT = {
 	name: "WRI 2026",
@@ -152,7 +151,11 @@ export function seedWri2026Forms(teacherId: string) {
 
 		// Frontend Basics Tests (Pre/Post/Delayed)
 		const preTestFormTitle = "Frontend Basics Pre-Test";
-		const existingPreTest = yield* db.select().from(forms).where(eq(forms.title, preTestFormTitle)).limit(1);
+		const existingPreTest = yield* db
+			.select()
+			.from(forms)
+			.where(eq(forms.title, preTestFormTitle))
+			.limit(1);
 
 		let preTestFormId: string;
 		if (existingPreTest[0]) {
