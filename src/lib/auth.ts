@@ -117,27 +117,26 @@ export const AuthUser = Schema.Struct({
 	consentGiven: Schema.optionalWith(Schema.Boolean, { nullable: true }),
 });
 
-export const getServerUser = (headers: Headers) =>
-	Effect.gen(function* () {
-		const auth = yield* Auth;
-		const session = yield* Effect.tryPromise(() => auth.api.getSession({ headers })).pipe(
-			Effect.catchTag("UnknownException", (e) => {
-				const errorDetails =
-					e instanceof Error
-						? {
-								message: e.message,
-								stack: e.stack,
-							}
-						: {
-								message: String(e),
-							};
-				return Effect.logError("Failed to get user session from auth", errorDetails).pipe(
-					Effect.andThen(Effect.succeed(null)),
-				);
-			}),
-		);
-		if (!session) return null;
+export const getServerUser = Effect.fn("getServerUser")(function* (headers: Headers) {
+	const auth = yield* Auth;
+	const session = yield* Effect.tryPromise(() => auth.api.getSession({ headers })).pipe(
+		Effect.catchTag("UnknownException", (e) => {
+			const errorDetails =
+				e instanceof Error
+					? {
+							message: e.message,
+							stack: e.stack,
+						}
+					: {
+							message: String(e),
+						};
+			return Effect.logError("Failed to get user session from auth", errorDetails).pipe(
+				Effect.andThen(Effect.succeed(null)),
+			);
+		}),
+	);
+	if (!session) return null;
 
-		const user = yield* Schema.decodeUnknown(AuthUser)(session.user);
-		return user;
-	}).pipe(Effect.withSpan("getServerUser"));
+	const user = yield* Schema.decodeUnknown(AuthUser)(session.user);
+	return user;
+});

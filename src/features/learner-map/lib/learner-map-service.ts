@@ -2,6 +2,7 @@ import { and, desc, eq, inArray, or } from "drizzle-orm";
 import { Data, Effect, Schema } from "effect";
 
 import { PerLinkDiagnosisSchema } from "@/features/analyzer/lib/analytics-service";
+import { unlockPostTestAfterAssignment } from "@/features/form/lib/unlock-service";
 import { parseJson, randomString, roundToDecimals, safeParseJson } from "@/lib/utils";
 import { NonEmpty } from "@/lib/validation-schemas";
 import { Database } from "@/server/db/client";
@@ -391,9 +392,14 @@ export const submitLearnerMap = Effect.fn("submitLearnerMap")(function* (
 		return yield* new LearnerMapAlreadySubmittedError({ learnerMapId: learnerMap.id });
 	}
 
-	// Fetch assignment to get the correct goalMapId (handles kit-based assignments)
+	// Fetch assignment to get the correct goalMapId and form unlock configuration
 	const assignmentRows = yield* db
-		.select({ goalMapId: assignments.goalMapId })
+		.select({
+			goalMapId: assignments.goalMapId,
+			postTestFormId: assignments.postTestFormId,
+			delayedPostTestFormId: assignments.delayedPostTestFormId,
+			delayedPostTestDelayDays: assignments.delayedPostTestDelayDays,
+		})
 		.from(assignments)
 		.where(eq(assignments.id, input.assignmentId))
 		.limit(1);
@@ -438,6 +444,26 @@ export const submitLearnerMap = Effect.fn("submitLearnerMap")(function* (
 		score: diagnosis.score,
 		rubricVersion: "1.0",
 	});
+
+	// Unlock post-test immediately if configured
+	if (assignment.postTestFormId) {
+		yield* unlockPostTestAfterAssignment({
+			assignmentId: input.assignmentId,
+			userId,
+			postTestFormId: assignment.postTestFormId,
+			delayDays: 0, // Unlock immediately
+		});
+	}
+
+	// Schedule delayed post-test unlock if configured
+	if (assignment.delayedPostTestFormId && assignment.delayedPostTestDelayDays) {
+		yield* unlockPostTestAfterAssignment({
+			assignmentId: input.assignmentId,
+			userId,
+			postTestFormId: assignment.delayedPostTestFormId,
+			delayDays: assignment.delayedPostTestDelayDays,
+		});
+	}
 
 	return {
 		diagnosisId,
@@ -660,12 +686,15 @@ export const submitControlText = Effect.fn("submitControlText")(function* (
 ) {
 	const db = yield* Database;
 
-	// Verify assignment exists
+	// Verify assignment exists and get form unlock configuration
 	const assignmentRows = yield* db
 		.select({
 			id: assignments.id,
 			goalMapId: assignments.goalMapId,
 			kitId: assignments.kitId,
+			postTestFormId: assignments.postTestFormId,
+			delayedPostTestFormId: assignments.delayedPostTestFormId,
+			delayedPostTestDelayDays: assignments.delayedPostTestDelayDays,
 		})
 		.from(assignments)
 		.where(eq(assignments.id, input.assignmentId))
@@ -700,25 +729,43 @@ export const submitControlText = Effect.fn("submitControlText")(function* (
 				submittedAt: new Date(),
 			})
 			.where(eq(learnerMaps.id, existing.id));
-
-		return true;
+	} else {
+		// Create new learner map with control text
+		const learnerMapId = randomString();
+		yield* db.insert(learnerMaps).values({
+			id: learnerMapId,
+			assignmentId: input.assignmentId,
+			goalMapId: assignment.goalMapId,
+			kitId: assignment.kitId,
+			userId,
+			controlText: input.text,
+			nodes: null,
+			edges: null,
+			status: "submitted",
+			attempt: 1,
+			submittedAt: new Date(),
+		});
 	}
 
-	// Create new learner map with control text
-	const learnerMapId = randomString();
-	yield* db.insert(learnerMaps).values({
-		id: learnerMapId,
-		assignmentId: input.assignmentId,
-		goalMapId: assignment.goalMapId,
-		kitId: assignment.kitId,
-		userId,
-		controlText: input.text,
-		nodes: null,
-		edges: null,
-		status: "submitted",
-		attempt: 1,
-		submittedAt: new Date(),
-	});
+	// Unlock post-test immediately if configured
+	if (assignment.postTestFormId) {
+		yield* unlockPostTestAfterAssignment({
+			assignmentId: input.assignmentId,
+			userId,
+			postTestFormId: assignment.postTestFormId,
+			delayDays: 0, // Unlock immediately
+		});
+	}
+
+	// Schedule delayed post-test unlock if configured
+	if (assignment.delayedPostTestFormId && assignment.delayedPostTestDelayDays) {
+		yield* unlockPostTestAfterAssignment({
+			assignmentId: input.assignmentId,
+			userId,
+			postTestFormId: assignment.delayedPostTestFormId,
+			delayDays: assignment.delayedPostTestDelayDays,
+		});
+	}
 
 	return true;
 });
