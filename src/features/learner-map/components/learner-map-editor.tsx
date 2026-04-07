@@ -43,7 +43,6 @@ import { useHistory } from "@/hooks/use-history";
 import { useRpcMutation, useRpcQuery } from "@/hooks/use-rpc-query";
 import { formatDuration } from "@/lib/date-utils";
 import { toast } from "@/lib/error-toast";
-import { pageTitleAtom } from "@/lib/page-title";
 import { areNodesConnected, isValidConnection } from "@/lib/react-flow-types";
 import { cn } from "@/lib/utils";
 import { AssignmentRpc } from "@/server/rpc/assignment";
@@ -56,7 +55,6 @@ export function LearnerMapEditor() {
 	const navigate = useNavigate();
 	const queryClient = useQueryClient();
 	const { zoomIn: rfZoomIn, zoomOut: rfZoomOut, fitView } = useReactFlow();
-	const setPageTitle = useSetAtom(pageTitleAtom);
 
 	// Atom state
 	const [nodes, setNodes] = useAtom(learnerNodesAtom);
@@ -104,21 +102,15 @@ export function LearnerMapEditor() {
 		operation: "submit learner map",
 	});
 
-	// Set page title
 	useEffect(() => {
 		if (assignmentData) {
-			setPageTitle(assignmentData.assignment.title || "Assignment");
 			setAssignment(assignmentData.assignment);
 
 			if (assignmentData.assignment.timeLimitMinutes && status === "not_started") {
 				setTimeRemaining(assignmentData.assignment.timeLimitMinutes * 60);
 			}
 		}
-
-		return () => {
-			setPageTitle(null);
-		};
-	}, [assignmentData, setPageTitle, setAssignment, status]);
+	}, [assignmentData, setAssignment, status]);
 
 	// Initialize nodes/edges when data loads
 	useEffect(() => {

@@ -38,7 +38,6 @@ import { NodeContextMenu } from "@/features/kitbuild/components/node-context-men
 import { SearchNodesPanel } from "@/features/kitbuild/components/search-nodes-panel";
 import { useRpcMutation, useRpcQuery } from "@/hooks/use-rpc-query";
 import { toast } from "@/lib/error-toast";
-import { pageTitleAtom } from "@/lib/page-title";
 import { areNodesConnected } from "@/lib/react-flow-types";
 import { randomString } from "@/lib/utils";
 import { GoalMapRpc } from "@/server/rpc/goal-map";
@@ -49,7 +48,6 @@ const routeApi = getRouteApi("/dashboard/goal-map/$goalMapId");
 
 export function GoalMapEditor() {
 	const { getViewport } = useReactFlow();
-	const setPageTitle = useSetAtom(pageTitleAtom);
 	const [conceptDialogOpen, setConceptDialogOpen] = useAtom(conceptDialogOpenAtom);
 	const [linkDialogOpen, setLinkDialogOpen] = useAtom(linkDialogOpenAtom);
 	const [searchOpen, setSearchOpen] = useAtom(searchOpenAtom);
@@ -74,20 +72,6 @@ export function GoalMapEditor() {
 		...KitRpc.getKitStatus(goalMapId),
 		enabled: !isNewMap,
 	});
-
-	useEffect(() => {
-		if (isNewMap) {
-			setPageTitle("New Goal Map");
-		} else if (existing?.title) {
-			setPageTitle(existing.title);
-		} else {
-			setPageTitle(null);
-		}
-
-		return () => {
-			setPageTitle(null);
-		};
-	}, [isNewMap, existing?.title, setPageTitle]);
 
 	const { undo, redo } = useHistory();
 	const { getNodeType, addTextNode, addConnectorNode, deleteSelected, selectNode } =

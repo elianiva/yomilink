@@ -1,17 +1,8 @@
-import { createFileRoute, Link, Outlet, redirect } from "@tanstack/react-router";
+import { createFileRoute, Outlet, redirect } from "@tanstack/react-router";
 
 import { AppSidebar } from "@/components/app-sidebar";
-import {
-	Breadcrumb,
-	BreadcrumbItem,
-	BreadcrumbLink,
-	BreadcrumbList,
-	BreadcrumbPage,
-	BreadcrumbSeparator,
-} from "@/components/ui/breadcrumb";
 import { Separator } from "@/components/ui/separator";
 import { SidebarInset, SidebarProvider, SidebarTrigger } from "@/components/ui/sidebar";
-import { useBreadcrumbs } from "@/lib/breadcrumbs";
 import { getRegistrationFormStatusRpc } from "@/server/rpc/form";
 import { getMe, ProfileRpc } from "@/server/rpc/profile";
 
@@ -46,8 +37,6 @@ export const Route = createFileRoute("/dashboard")({
 });
 
 function DashboardLayout() {
-	const crumbs = useBreadcrumbs();
-
 	return (
 		<SidebarProvider>
 			<AppSidebar className="border-none" />
@@ -58,31 +47,8 @@ function DashboardLayout() {
 							<SidebarTrigger className="-ml-1" />
 							<Separator
 								orientation="vertical"
-								className="mr-2 data-[orientation=vertical]:h-4"
+								className="data-[orientation=vertical]:h-4"
 							/>
-							<Breadcrumb>
-								<BreadcrumbList>
-									{crumbs.flatMap((c, i) => {
-										const isLast = i === crumbs.length - 1;
-										const item = (
-											<BreadcrumbItem key={c.href}>
-												{isLast ? (
-													<BreadcrumbPage>{c.label}</BreadcrumbPage>
-												) : (
-													<BreadcrumbLink asChild>
-														<Link to={c.href} preload="intent">
-															{c.label}
-														</Link>
-													</BreadcrumbLink>
-												)}
-											</BreadcrumbItem>
-										);
-										return isLast
-											? [item]
-											: [item, <BreadcrumbSeparator key={`sep-${c.href}`} />];
-									})}
-								</BreadcrumbList>
-							</Breadcrumb>
 						</div>
 					</header>
 					<div className="p-4 pt-0 flex-1">
