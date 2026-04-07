@@ -201,7 +201,7 @@ class FormNotAccessibleError extends Data.TaggedError("FormNotAccessibleError")<
  */
 export const getStudentFormById = Effect.fn("getStudentFormById")(function* (
 	formId: string,
-	_userId: string,
+	userId: string,
 ) {
 	const db = yield* Database;
 
@@ -224,6 +224,15 @@ export const getStudentFormById = Effect.fn("getStudentFormById")(function* (
 		.where(eq(questions.formId, formId))
 		.orderBy(questions.orderIndex);
 
+	const responseRows = yield* db
+		.select()
+		.from(formResponses)
+		.where(and(eq(formResponses.formId, formId), eq(formResponses.userId, userId)))
+		.limit(1);
+
+	const responseRow = responseRows[0] ?? null;
+	const responseAnswers = responseRow?.answers as Record<string, unknown> | undefined;
+
 	const unlockConditions = yield* safeParseJson(
 		formRow.unlockConditions,
 		null,
@@ -242,6 +251,9 @@ export const getStudentFormById = Effect.fn("getStudentFormById")(function* (
 		updatedAt: formRow.updatedAt,
 	};
 
+	let correctCount = 0;
+	let scoredQuestionCount = 0;
+
 	// Map questions and strip correctOptionIds for MCQ
 	const mappedQuestions = yield* Effect.all(
 		questionRows.map((q) =>
@@ -251,6 +263,28 @@ export const getStudentFormById = Effect.fn("getStudentFormById")(function* (
 					null,
 					Schema.NullOr(QuestionOptions),
 				);
+
+				if (
+					responseRow &&
+					parsedOptions?.type === "mcq" &&
+					parsedOptions.correctOptionIds.length > 0
+				) {
+					scoredQuestionCount += 1;
+					const answer = responseAnswers?.[q.id];
+					const selectedAnswerIds = Array.isArray(answer)
+						? answer.map((value) => String(value))
+						: typeof answer === "string" || typeof answer === "number"
+							? [String(answer)]
+							: [];
+
+					if (
+						selectedAnswerIds.some((selected) =>
+							parsedOptions.correctOptionIds.includes(selected),
+						)
+					) {
+						correctCount += 1;
+					}
+				}
 
 				// Strip correctOptionIds from MCQ options for student view
 				// eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -280,6 +314,16 @@ export const getStudentFormById = Effect.fn("getStudentFormById")(function* (
 		{ concurrency: "unbounded" },
 	);
 
+	const submission = responseRow
+		? {
+				submittedAt: responseRow.submittedAt?.getTime() ?? null,
+				timeSpentSeconds: responseRow.timeSpentSeconds,
+				score: scoredQuestionCount > 0 ? correctCount / scoredQuestionCount : null,
+				correctCount,
+				totalQuestions: scoredQuestionCount,
+			}
+		: null;
+
 	return yield* Schema.encode(GetStudentFormByIdOutputSchema)({
 		form: {
 			...form,
@@ -287,6 +331,7 @@ export const getStudentFormById = Effect.fn("getStudentFormById")(function* (
 			updatedAt: form.updatedAt.getTime(),
 		},
 		questions: mappedQuestions,
+		submission,
 	});
 });
 
@@ -962,9 +1007,18 @@ export const StudentQuestionOutputSchema = Schema.Struct({
 	updatedAt: Schema.Number,
 });
 
+export const StudentFormSubmissionSchema = Schema.Struct({
+	submittedAt: Schema.NullOr(Schema.Number),
+	timeSpentSeconds: Schema.NullOr(Schema.Number),
+	score: Schema.NullOr(Schema.Number),
+	correctCount: Schema.Number,
+	totalQuestions: Schema.Number,
+});
+
 export const GetStudentFormByIdOutputSchema = Schema.Struct({
 	form: FormOutputSchema,
 	questions: Schema.Array(StudentQuestionOutputSchema),
+	submission: Schema.NullOr(StudentFormSubmissionSchema),
 });
 
 export const ResponseUserSchema = Schema.Struct({

@@ -13,6 +13,7 @@ import { DiagnosisStats } from "@/features/learner-map/components/diagnosis/diag
 import { classifyEdges } from "@/features/learner-map/lib/comparator";
 import { useRpcMutation, useRpcQuery } from "@/hooks/use-rpc-query";
 import { AnalyticsRpc } from "@/server/rpc/analytics";
+import { FormRpc } from "@/server/rpc/form";
 import { LearnerMapRpc } from "@/server/rpc/learner-map";
 
 const routeApi = getRouteApi("/dashboard/learner-map/$assignmentId/result");
@@ -50,6 +51,7 @@ export function LearnerMapResult() {
 
 	const { data, isLoading, rpcError } = useRpcQuery(LearnerMapRpc.getDiagnosis({ assignmentId }));
 	const { data: peerStats } = useRpcQuery(LearnerMapRpc.getPeerStats({ assignmentId }));
+	const { data: studentForms } = useRpcQuery(FormRpc.getStudentForms());
 	const learnerMapId = data?.learnerMap.id ?? null;
 	const { data: analyticsData } = useRpcQuery({
 		...AnalyticsRpc.getLearnerMapForAnalytics(learnerMapId ?? ""),
@@ -67,6 +69,13 @@ export function LearnerMapResult() {
 		if (!data) return [];
 		return classifyEdges(data.goalMap.edges, data.learnerMap.edges);
 	}, [analyticsData, data]);
+
+	const postTestForm = studentForms?.find((form) => form.id === data?.assignment.postTestFormId);
+	const postTestCompleted = postTestForm?.unlockStatus === "completed";
+	const postTestButtonLabel = postTestCompleted ? "View post-test result" : "Take Post-Test";
+	const postTestDescription = postTestCompleted
+		? "You've completed this assignment. Review your submission before leaving."
+		: "Complete the post-test flow before leaving the assignment.";
 
 	const handleTryAgain = async () => {
 		try {
@@ -308,12 +317,18 @@ export function LearnerMapResult() {
 												<FileTextIcon className="size-4 text-primary-foreground" />
 											</div>
 											<p className="text-sm font-medium text-foreground">
-												Next step required
+												{postTestCompleted
+													? "Completed"
+													: "Next step required"}
 											</p>
+											{postTestCompleted && (
+												<Badge className="bg-emerald-600 text-white">
+													Done
+												</Badge>
+											)}
 										</div>
 										<p className="text-sm text-muted-foreground">
-											Complete the post-test flow before leaving the
-											assignment.
+											{postTestDescription}
 										</p>
 										<Button asChild className="w-full gap-2" size="lg">
 											<Link
@@ -322,7 +337,7 @@ export function LearnerMapResult() {
 													formId: assignment.postTestFormId,
 												}}
 											>
-												Take Post-Test
+												{postTestButtonLabel}
 											</Link>
 										</Button>
 									</div>

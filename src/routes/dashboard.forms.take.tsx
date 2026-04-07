@@ -1,8 +1,10 @@
 import { useQueryClient } from "@tanstack/react-query";
-import { createFileRoute, useNavigate, useSearch } from "@tanstack/react-router";
-import { ArrowLeftIcon, Loader2 } from "lucide-react";
+import { Link, createFileRoute, useNavigate, useSearch } from "@tanstack/react-router";
+import { ArrowLeftIcon, CheckCircle2Icon, Loader2 } from "lucide-react";
 
+import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import {
 	FormTaker,
 	type FormData,
@@ -59,7 +61,12 @@ function FormTakerPage() {
 	});
 
 	const handleBack = () => {
-		void navigate({ to: "/dashboard/forms/student" });
+		void navigate({
+			to:
+				data?.form.type === "post_test" && data.submission
+					? "/dashboard/assignments"
+					: "/dashboard/forms/student",
+		});
 	};
 
 	if (!formId) {
@@ -88,6 +95,67 @@ function FormTakerPage() {
 				<Button variant="link" onClick={handleBack} className="mt-2">
 					Go back to forms
 				</Button>
+			</div>
+		);
+	}
+
+	if (data.submission) {
+		const scorePercentage =
+			data.submission.score === null ? null : Math.round(data.submission.score * 100);
+		const backTo =
+			data.form.type === "post_test" ? "/dashboard/assignments" : "/dashboard/forms/student";
+
+		return (
+			<div className="container mx-auto max-w-2xl px-4 py-8">
+				<Button variant="ghost" size="sm" asChild className="mb-4">
+					<Link to={backTo}>
+						<ArrowLeftIcon className="mr-2 h-4 w-4" />
+						Back
+					</Link>
+				</Button>
+
+				<Card className="overflow-hidden py-0">
+					<CardHeader className="space-y-2 border-b bg-muted/30 pt-4">
+						<div className="flex items-center gap-2">
+							<CheckCircle2Icon className="h-5 w-5 text-emerald-600" />
+							<Badge className="bg-emerald-600 text-white">Completed</Badge>
+						</div>
+						<CardTitle className="text-2xl">{data.form.title}</CardTitle>
+						<CardDescription>
+							You&apos;ve completed this form. Retakes are disabled.
+						</CardDescription>
+					</CardHeader>
+					<CardContent className="pb-6">
+						<div className="grid sm:grid-cols-2">
+							<div className="rounded-tl-xl border border-r-0 bg-muted/20 p-3">
+								<p className="text-sm text-muted-foreground">Score</p>
+								<p className="text-2xl font-semibold">
+									{scorePercentage === null ? "Submitted" : `${scorePercentage}%`}
+								</p>
+							</div>
+							<div className="rounded-tr-xl border bg-muted/20 p-3">
+								<p className="text-sm text-muted-foreground">Correct answers</p>
+								<p className="text-2xl font-semibold">
+									{data.submission.correctCount}/{data.submission.totalQuestions}
+								</p>
+							</div>
+						</div>
+						<div className="rounded-b-xl border border-t-0 bg-background py-2 px-3 text-sm text-muted-foreground">
+							Submitted at{" "}
+							{data.submission.submittedAt
+								? new Date(data.submission.submittedAt).toLocaleString()
+								: "unknown"}
+							.
+						</div>
+						<Button asChild className="w-full mt-4">
+							<Link to={backTo}>
+								{data.form.type === "post_test"
+									? "Back to assignments"
+									: "Back to forms"}
+							</Link>
+						</Button>
+					</CardContent>
+				</Card>
 			</div>
 		);
 	}
