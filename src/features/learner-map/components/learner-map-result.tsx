@@ -1,15 +1,19 @@
 import { useQueryClient } from "@tanstack/react-query";
-import { Link, useNavigate, getRouteApi } from "@tanstack/react-router";
-import type { Edge } from "@xyflow/react";
+import { Link, getRouteApi, useNavigate } from "@tanstack/react-router";
 import { ArrowLeftIcon, ArrowRightIcon, FileTextIcon, RefreshCwIcon } from "lucide-react";
 import { useCallback, useMemo, useState } from "react";
 
 import "@xyflow/react/dist/style.css";
+import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { Switch } from "@/components/ui/switch";
+import { ScrollArea } from "@/components/ui/scroll-area";
+import { Separator } from "@/components/ui/separator";
+import { AnalyticsControls } from "@/features/analyzer/components/analytics-controls";
 import { AnalyticsCanvas } from "@/features/analyzer/components/canvas";
 import { DiagnosisStats } from "@/features/learner-map/components/diagnosis/diagnosis-stats";
+import { classifyEdges } from "@/features/learner-map/lib/comparator";
 import { useRpcMutation, useRpcQuery } from "@/hooks/use-rpc-query";
+import { AnalyticsRpc } from "@/server/rpc/analytics";
 import { LearnerMapRpc } from "@/server/rpc/learner-map";
 
 const routeApi = getRouteApi("/dashboard/learner-map/$assignmentId/result");
@@ -25,84 +29,6 @@ interface VisibilityState {
 	showNamesOnHover: boolean;
 }
 
-function LegendDot({ color }: { color: string }) {
-	return <span className="inline-block size-3 rounded-full" style={{ backgroundColor: color }} />;
-}
-
-function ToolbarToggle({
-	checked,
-	onChange,
-	label,
-	color,
-}: {
-	checked: boolean;
-	onChange: (v: boolean) => void;
-	label: string;
-	color?: string;
-}) {
-	return (
-		<div className="flex items-center gap-1.5">
-			<Switch checked={checked} onCheckedChange={onChange} />
-			{color && <LegendDot color={color} />}
-			<span className="text-xs">{label}</span>
-		</div>
-	);
-}
-
-function ComparisonToolbar({
-	visibility,
-	onChange,
-}: {
-	visibility: VisibilityState;
-	onChange: (updates: Partial<VisibilityState>) => void;
-}) {
-	return (
-		<div className="border-b bg-background/70 backdrop-blur p-3">
-			<div className="flex items-center gap-6">
-				<div className="flex items-center gap-3">
-					<span className="text-xs font-medium text-muted-foreground uppercase">
-						Maps
-					</span>
-					<ToolbarToggle
-						checked={visibility.showGoalMap}
-						onChange={(v) => onChange({ showGoalMap: v })}
-						label="Goal Map"
-					/>
-					<ToolbarToggle
-						checked={visibility.showLearnerMap}
-						onChange={(v) => onChange({ showLearnerMap: v })}
-						label="Your Map"
-					/>
-				</div>
-				<div className="w-px h-5 bg-border" />
-				<div className="flex items-center gap-3">
-					<span className="text-xs font-medium text-muted-foreground uppercase">
-						Edges
-					</span>
-					<ToolbarToggle
-						checked={visibility.showCorrectEdges}
-						onChange={(v) => onChange({ showCorrectEdges: v })}
-						label="Correct"
-						color="#22c55e"
-					/>
-					<ToolbarToggle
-						checked={visibility.showMissingEdges}
-						onChange={(v) => onChange({ showMissingEdges: v })}
-						label="Missing"
-						color="#f59e0b"
-					/>
-					<ToolbarToggle
-						checked={visibility.showExcessiveEdges}
-						onChange={(v) => onChange({ showExcessiveEdges: v })}
-						label="Excessive"
-						color="#ef4444"
-					/>
-				</div>
-			</div>
-		</div>
-	);
-}
-
 export function LearnerMapResult() {
 	const { assignmentId } = routeApi.useParams();
 	const navigate = useNavigate();
@@ -116,7 +42,7 @@ export function LearnerMapResult() {
 		showExcessiveEdges: true,
 		showNeutralEdges: true,
 		consolidatedView: true,
-		showNamesOnHover: false,
+		showNamesOnHover: true,
 	});
 
 	const handleVisibilityChange = useCallback((updates: Partial<VisibilityState>) => {
@@ -124,8 +50,12 @@ export function LearnerMapResult() {
 	}, []);
 
 	const { data, isLoading } = useRpcQuery(LearnerMapRpc.getDiagnosis({ assignmentId }));
-
 	const { data: peerStats } = useRpcQuery(LearnerMapRpc.getPeerStats({ assignmentId }));
+	const learnerMapId = data?.learnerMap.id ?? null;
+	const { data: analyticsData } = useRpcQuery({
+		...AnalyticsRpc.getLearnerMapForAnalytics(learnerMapId ?? ""),
+		enabled: learnerMapId !== null,
+	});
 
 	const newAttemptMutation = useRpcMutation(LearnerMapRpc.startNewAttempt(), {
 		operation: "start new attempt",
@@ -146,40 +76,41 @@ export function LearnerMapResult() {
 		}
 	};
 
-	// Build edgeClassifications from diagnosis for AnalyticsCanvas
-	// Convert simple {source, target} links to proper Edge objects
+	const { assignment } = data;
+	const resultData = analyticsData ?? data;
+	const learnerMap = resultData?.learnerMap;
+	const goalMap = resultData?.goalMap;
+	const diagnosis = resultData?.diagnosis;
 	const edgeClassifications = useMemo(() => {
-		if (!data?.diagnosis) return [];
+		if (analyticsData) return analyticsData.edgeClassifications ?? [];
+		return classifyEdges(data.goalMap.edges, data.learnerMap.edges);
+	}, [analyticsData, data.goalMap.edges, data.learnerMap.edges]);
 
-		const classifications: Array<{
-			edge: Edge;
-			type: "correct" | "missing" | "excessive" | "neutral";
-		}> = [];
+	if (!diagnosis || !learnerMap || !goalMap) {
+		return (
+			<div className="h-full flex items-center justify-center">
+				<div className="text-center space-y-4">
+					<p className="text-muted-foreground">
+						No diagnosis available. Submit your map first.
+					</p>
+					<Button asChild>
+						<a href={`/dashboard/learner-map/${assignmentId}`}>Go to Editor</a>
+					</Button>
+				</div>
+			</div>
+		);
+	}
 
-		// Helper to create a proper Edge from a link
-		const createEdge = (link: { source: string; target: string }): Edge => ({
-			id: `${link.source}-${link.target}`,
-			source: link.source,
-			target: link.target,
-		});
-
-		// Add correct edges
-		for (const link of data.diagnosis.correct) {
-			classifications.push({ edge: createEdge(link), type: "correct" });
-		}
-
-		// Add missing edges
-		for (const link of data.diagnosis.missing) {
-			classifications.push({ edge: createEdge(link), type: "missing" });
-		}
-
-		// Add excessive edges
-		for (const link of data.diagnosis.excessive) {
-			classifications.push({ edge: createEdge(link), type: "excessive" });
-		}
-
-		return classifications;
-	}, [data]);
+	const correctEdges = diagnosis.correct ?? [];
+	const missingEdges = diagnosis.missing ?? [];
+	const excessiveEdges = diagnosis.excessive ?? [];
+	const totalGoalEdges =
+		"totalGoalEdges" in diagnosis
+			? (diagnosis.totalGoalEdges ?? 0)
+			: correctEdges.length + missingEdges.length;
+	const totalLearnerEdges = correctEdges.length + excessiveEdges.length;
+	const hasEdgeDetails = totalGoalEdges > 0 || totalLearnerEdges > 0;
+	const scorePercentage = totalGoalEdges > 0 ? Math.round((diagnosis.score ?? 0) * 100) : 0;
 
 	if (isLoading) {
 		return (
@@ -204,189 +135,264 @@ export function LearnerMapResult() {
 		);
 	}
 
-	const { learnerMap, diagnosis, assignment } = data;
-
-	if (!diagnosis) {
-		return (
-			<div className="h-full flex items-center justify-center">
-				<div className="text-center space-y-4">
-					<p className="text-muted-foreground">
-						No diagnosis available. Submit your map first.
-					</p>
-					<Button asChild>
-						<a href={`/dashboard/learner-map/${assignmentId}`}>Go to Editor</a>
-					</Button>
-				</div>
-			</div>
-		);
-	}
-
 	return (
-		<div className="h-full flex flex-col">
-			{/* Header */}
-			<div className="border-b bg-background p-4 flex items-center justify-between">
-				<div className="flex items-center gap-4">
-					<Button variant="ghost" size="icon" asChild>
-						<Link to="/dashboard/assignments" preload="intent">
-							<ArrowLeftIcon className="size-4" />
-						</Link>
-					</Button>
-					<div>
-						<h1 className="font-semibold">
-							{assignment.title || "Assignment Results"}
-						</h1>
-						<p className="text-sm text-muted-foreground">
-							Attempt {learnerMap.attempt}
-						</p>
+		<div className="flex h-full min-h-0 flex-col gap-3">
+			<header className="rounded-2xl border border-border/60 bg-card/95 p-4 shadow-sm">
+				<div className="flex flex-col gap-3 xl:flex-row xl:items-end xl:justify-between">
+					<div className="space-y-2">
+						<div className="flex items-start gap-3">
+							<Button variant="ghost" size="icon" asChild className="-ml-2 mt-0">
+								<Link to="/dashboard/assignments" preload="intent">
+									<ArrowLeftIcon className="size-4" />
+								</Link>
+							</Button>
+							<div className="space-y-2">
+								<div className="flex flex-wrap items-center gap-2">
+									<h1 className="text-xl font-semibold tracking-tight">
+										{assignment.title || "Assignment Results"}
+									</h1>
+									<Badge variant="outline">Attempt {learnerMap.attempt}</Badge>
+									<Badge className="bg-emerald-600 text-white">Submitted</Badge>
+								</div>
+								<p className="max-w-2xl text-sm text-muted-foreground">
+									Side-by-side map review with edge-level breakdown, peer context,
+									and a cleaner diagnostic canvas.
+								</p>
+							</div>
+						</div>
+
+						<div className="flex flex-wrap gap-2">
+							<Badge
+								variant="outline"
+								className="rounded-full px-2.5 py-0.5 text-[11px]"
+							>
+								{scorePercentage}% score
+							</Badge>
+							<Badge
+								variant="outline"
+								className="rounded-full px-2.5 py-0.5 text-[11px]"
+							>
+								{correctEdges.length} correct
+							</Badge>
+							<Badge
+								variant="outline"
+								className="rounded-full px-2.5 py-0.5 text-[11px]"
+							>
+								{missingEdges.length} missing
+							</Badge>
+							<Badge
+								variant="outline"
+								className="rounded-full px-2.5 py-0.5 text-[11px]"
+							>
+								{excessiveEdges.length} excessive
+							</Badge>
+						</div>
+					</div>
+
+					<div className="flex flex-wrap items-center gap-2">
+						<Button variant="outline" asChild>
+							<Link to="/dashboard/assignments" preload="intent">
+								Back to assignments
+							</Link>
+						</Button>
+						<Button
+							onClick={handleTryAgain}
+							disabled={newAttemptMutation.isPending}
+							className="gap-2"
+						>
+							<RefreshCwIcon className="size-4" />
+							{newAttemptMutation.isPending ? "Starting..." : "Try Again"}
+						</Button>
 					</div>
 				</div>
-				<Button
-					onClick={handleTryAgain}
-					disabled={newAttemptMutation.isPending}
-					className="gap-2"
-				>
-					<RefreshCwIcon className="size-4" />
-					{newAttemptMutation.isPending ? "Starting..." : "Try Again"}
-				</Button>
-			</div>
+			</header>
 
-			{/* Content */}
-			<div className="flex-1 flex overflow-hidden">
-				{/* Sidebar with stats */}
-				<div className="w-80 border-r p-4 overflow-y-auto space-y-4">
-					<DiagnosisStats
-						correct={diagnosis.correct.length}
-						missing={diagnosis.missing.length}
-						excessive={diagnosis.excessive.length}
-						total={diagnosis.correct.length + diagnosis.missing.length}
-						score={diagnosis.score ?? 0}
-					/>
-
-					{diagnosis.summary && (
-						<div className="bg-card border rounded-lg p-4">
-							<h3 className="font-medium mb-2">Summary</h3>
-							<p className="text-sm text-muted-foreground">{diagnosis.summary}</p>
+			<div className="grid min-h-0 flex-1 gap-3 lg:grid-cols-[21rem_minmax(0,1fr)]">
+				<aside className="min-h-0">
+					<ScrollArea className="h-full pr-2">
+						<div className="overflow-hidden rounded-xl border border-border/60 bg-card/90 shadow-sm">
+							<div className="p-3">
+								<DiagnosisStats
+									correct={correctEdges.length}
+									missing={missingEdges.length}
+									excessive={excessiveEdges.length}
+									total={totalGoalEdges}
+									score={diagnosis.score ?? 0}
+								/>
+							</div>
+							{!hasEdgeDetails && (
+								<>
+									<Separator />
+									<div className="p-3 text-sm text-muted-foreground">
+										No edge-level data came through for this result. If this
+										should show a map, the source data may be empty or
+										malformed.
+									</div>
+								</>
+							)}
+							{"summary" in diagnosis && diagnosis.summary && (
+								<>
+									<Separator />
+									<div className="p-3 space-y-2">
+										<p className="text-sm font-medium">Summary</p>
+										<p className="text-sm text-muted-foreground">
+											{diagnosis.summary}
+										</p>
+									</div>
+								</>
+							)}
+							{peerStats && peerStats.count > 0 && (
+								<>
+									<Separator />
+									<div className="p-3 space-y-2 text-sm">
+										<p className="text-sm font-medium">Peer comparison</p>
+										<div className="flex items-center justify-between gap-3">
+											<span className="text-muted-foreground">
+												Students submitted
+											</span>
+											<span className="font-medium">{peerStats.count}</span>
+										</div>
+										<div className="flex items-center justify-between gap-3">
+											<span className="text-muted-foreground">
+												Average score
+											</span>
+											<span className="font-medium">
+												{Math.round((peerStats.avgScore ?? 0) * 100)}%
+											</span>
+										</div>
+										<div className="flex items-center justify-between gap-3">
+											<span className="text-muted-foreground">
+												Median score
+											</span>
+											<span className="font-medium">
+												{Math.round((peerStats.medianScore ?? 0) * 100)}%
+											</span>
+										</div>
+										<div className="flex items-center justify-between gap-3">
+											<span className="text-muted-foreground">
+												Your ranking
+											</span>
+											<span className="font-medium">
+												Top {peerStats.userPercentile}%
+											</span>
+										</div>
+									</div>
+								</>
+							)}
+							{(assignment.postTestFormId || assignment.tamFormId) && (
+								<>
+									<Separator />
+									<div className="p-3 space-y-2.5">
+										<div className="flex items-center gap-2">
+											<div className="rounded-md bg-primary p-1.5">
+												<FileTextIcon className="size-4 text-primary-foreground" />
+											</div>
+											<p className="text-sm font-medium text-foreground">
+												Next step required
+											</p>
+										</div>
+										<p className="text-sm text-muted-foreground">
+											Complete the post-test flow before leaving the
+											assignment.
+										</p>
+										<div className="space-y-2">
+											{assignment.postTestFormId && (
+												<Button asChild className="w-full gap-2" size="lg">
+													<Link
+														to="/dashboard/forms/take"
+														search={{
+															formId: assignment.postTestFormId,
+															returnTo: `/dashboard/learner-map/${assignmentId}/result`,
+														}}
+													>
+														Take Post-Test
+														<ArrowRightIcon className="size-4" />
+													</Link>
+												</Button>
+											)}
+											{assignment.tamFormId && (
+												<Button
+													asChild
+													variant="outline"
+													className="w-full justify-start"
+												>
+													<Link
+														to="/dashboard/forms/take"
+														search={{
+															formId: assignment.tamFormId,
+															returnTo: `/dashboard/learner-map/${assignmentId}/result`,
+														}}
+													>
+														Take TAM Survey
+													</Link>
+												</Button>
+											)}
+										</div>
+									</div>
+								</>
+							)}
 						</div>
-					)}
+					</ScrollArea>
+				</aside>
 
-					{/* Peer Comparison */}
-					{peerStats && peerStats.count > 0 && (
-						<div className="bg-card border rounded-lg p-4">
-							<h3 className="font-medium mb-3">Peer Comparison</h3>
-							<div className="space-y-2 text-sm">
-								<div className="flex justify-between">
-									<span className="text-muted-foreground">
-										Students Submitted
-									</span>
-									<span className="font-medium">{peerStats.count}</span>
-								</div>
-								<div className="flex justify-between">
-									<span className="text-muted-foreground">Average Score</span>
-									<span className="font-medium">
-										{Math.round(peerStats.avgScore! * 100)}%
-									</span>
-								</div>
-								<div className="flex justify-between">
-									<span className="text-muted-foreground">Median Score</span>
-									<span className="font-medium">
-										{Math.round(peerStats.medianScore! * 100)}%
-									</span>
-								</div>
-								<div className="flex justify-between">
-									<span className="text-muted-foreground">Your Ranking</span>
-									<span className="font-medium">
-										Top {peerStats.userPercentile}%
-									</span>
-								</div>
+				<section className="min-h-0 flex flex-col gap-3">
+					<div className="flex min-h-0 flex-1 flex-col overflow-hidden rounded-xl border border-border/60 bg-card/90 shadow-sm">
+						<div className="flex flex-col gap-3 border-b border-border/60 bg-muted/20 px-4 py-3 xl:flex-row xl:items-center xl:justify-between">
+							<div className="space-y-1">
+								<p className="text-sm font-medium">Comparison canvas</p>
+								<p className="text-xs text-muted-foreground">
+									Goal map on top of your submission. Toggle layers and edge types
+									below.
+								</p>
+							</div>
+							<div className="flex flex-wrap gap-2">
+								<Badge
+									variant="outline"
+									className="h-6 rounded-full px-2 text-[11px]"
+								>
+									Goal map
+								</Badge>
+								<Badge
+									variant="outline"
+									className="h-6 rounded-full px-2 text-[11px]"
+								>
+									Your map
+								</Badge>
+								<Badge
+									variant="outline"
+									className="h-6 rounded-full px-2 text-[11px]"
+								>
+									Names on hover
+								</Badge>
 							</div>
 						</div>
-					)}
-
-					{/* Next Steps */}
-					{(assignment.postTestFormId || assignment.tamFormId) && (
-						<div className="bg-primary/10 border border-primary/30 rounded-lg p-4 space-y-3">
-							<div className="flex items-center gap-2">
-								<div className="p-1.5 rounded-md bg-primary">
-									<FileTextIcon className="h-4 w-4 text-primary-foreground" />
-								</div>
-								<h3 className="font-semibold text-primary">Next Step Required</h3>
-							</div>
-							<p className="text-sm text-muted-foreground">
-								Please complete the post-test to finish this assignment.
-							</p>
-							<div className="space-y-2">
-								{assignment.postTestFormId && (
-									<Button asChild className="w-full" size="lg">
-										<Link
-											to="/dashboard/forms/take"
-											search={{
-												formId: assignment.postTestFormId,
-												returnTo: `/dashboard/learner-map/${assignmentId}/result`,
-											}}
-										>
-											Take Post-Test
-											<ArrowRightIcon className="ml-2 h-4 w-4" />
-										</Link>
-									</Button>
-								)}
-								{assignment.tamFormId && (
-									<Button
-										asChild
-										variant="outline"
-										className="w-full justify-start"
-									>
-										<Link
-											to="/dashboard/forms/take"
-											search={{
-												formId: assignment.tamFormId,
-												returnTo: `/dashboard/learner-map/${assignmentId}/result`,
-											}}
-										>
-											Take TAM Survey
-										</Link>
-									</Button>
-								)}
-							</div>
-						</div>
-					)}
-				</div>
-
-				{/* Map visualization */}
-				<div className="flex-1 flex flex-col overflow-hidden">
-					<ComparisonToolbar visibility={visibility} onChange={handleVisibilityChange} />
-					<div className="flex-1 relative">
-						{!data?.goalMap ? (
-							<div className="absolute inset-0 flex items-center justify-center bg-muted/30">
-								<div className="text-center text-muted-foreground">
-									<p className="text-sm">No map data available</p>
-									<p className="text-xs mt-1">
-										Goal: {data?.goalMap?.nodes?.length ?? 0} nodes
-										<br />
-										Yours: {data?.learnerMap?.nodes?.length ?? 0} nodes
-									</p>
-								</div>
-							</div>
-						) : (
+						<AnalyticsControls
+							visibility={visibility}
+							onChange={handleVisibilityChange}
+							showDisplayOptions={false}
+						/>
+						<Separator />
+						<div className="relative min-h-130 flex-1 bg-[radial-gradient(circle_at_top,rgba(0,0,0,0.03),transparent_55%)]">
 							<AnalyticsCanvas
 								goalMap={{
-									id: data.goalMap.id,
-									title: data.goalMap.title,
-									nodes: data.goalMap.nodes,
-									edges: data.goalMap.edges,
-									direction: data.goalMap.direction as "bi" | "uni" | "multi",
+									id: goalMap.id,
+									title: goalMap.title,
+									nodes: goalMap.nodes,
+									edges: goalMap.edges,
+									direction: goalMap.direction as "bi" | "uni" | "multi",
 								}}
 								learnerMap={{
-									...data.learnerMap,
-									userId: data.learnerMap.userId,
+									...learnerMap,
+									userId: learnerMap.userId,
 									userName: "You",
 								}}
 								edgeClassifications={edgeClassifications}
 								visibility={visibility}
 								isMultiView={false}
 							/>
-						)}
+						</div>
 					</div>
-				</div>
+				</section>
 			</div>
 		</div>
 	);
