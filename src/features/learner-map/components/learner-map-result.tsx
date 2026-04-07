@@ -1,9 +1,8 @@
 import { useQueryClient } from "@tanstack/react-query";
 import { Link, getRouteApi, useNavigate } from "@tanstack/react-router";
-import { ArrowLeftIcon, ArrowRightIcon, FileTextIcon, RefreshCwIcon } from "lucide-react";
+import { ArrowLeftIcon, FileTextIcon, RefreshCwIcon } from "lucide-react";
 import { useCallback, useMemo, useState } from "react";
 
-import "@xyflow/react/dist/style.css";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { ScrollArea } from "@/components/ui/scroll-area";
@@ -49,7 +48,7 @@ export function LearnerMapResult() {
 		setVisibility((prev) => ({ ...prev, ...updates }));
 	}, []);
 
-	const { data, isLoading } = useRpcQuery(LearnerMapRpc.getDiagnosis({ assignmentId }));
+	const { data, isLoading, rpcError } = useRpcQuery(LearnerMapRpc.getDiagnosis({ assignmentId }));
 	const { data: peerStats } = useRpcQuery(LearnerMapRpc.getPeerStats({ assignmentId }));
 	const learnerMapId = data?.learnerMap.id ?? null;
 	const { data: analyticsData } = useRpcQuery({
@@ -63,59 +62,48 @@ export function LearnerMapResult() {
 		successMessage: "New attempt started successfully",
 	});
 
-	const handleTryAgain = async () => {
-		const result = await newAttemptMutation.mutateAsync({ assignmentId });
+	const edgeClassifications = useMemo(() => {
+		if (analyticsData) return analyticsData.edgeClassifications ?? [];
+		if (!data) return [];
+		return classifyEdges(data.goalMap.edges, data.learnerMap.edges);
+	}, [analyticsData, data]);
 
-		if (result.success) {
+	const handleTryAgain = async () => {
+		try {
+			const result = await newAttemptMutation.mutateAsync({ assignmentId });
+
+			if (!result.success) return;
+
 			void queryClient.invalidateQueries({
 				queryKey: LearnerMapRpc.learnerMaps(),
 			});
 			void navigate({
 				to: `/dashboard/learner-map/${assignmentId}`,
 			});
+		} catch {
+			// handled by mutation toast
 		}
 	};
-
-	const { assignment } = data;
-	const resultData = analyticsData ?? data;
-	const learnerMap = resultData?.learnerMap;
-	const goalMap = resultData?.goalMap;
-	const diagnosis = resultData?.diagnosis;
-	const edgeClassifications = useMemo(() => {
-		if (analyticsData) return analyticsData.edgeClassifications ?? [];
-		return classifyEdges(data.goalMap.edges, data.learnerMap.edges);
-	}, [analyticsData, data.goalMap.edges, data.learnerMap.edges]);
-
-	if (!diagnosis || !learnerMap || !goalMap) {
-		return (
-			<div className="h-full flex items-center justify-center">
-				<div className="text-center space-y-4">
-					<p className="text-muted-foreground">
-						No diagnosis available. Submit your map first.
-					</p>
-					<Button asChild>
-						<a href={`/dashboard/learner-map/${assignmentId}`}>Go to Editor</a>
-					</Button>
-				</div>
-			</div>
-		);
-	}
-
-	const correctEdges = diagnosis.correct ?? [];
-	const missingEdges = diagnosis.missing ?? [];
-	const excessiveEdges = diagnosis.excessive ?? [];
-	const totalGoalEdges =
-		"totalGoalEdges" in diagnosis
-			? (diagnosis.totalGoalEdges ?? 0)
-			: correctEdges.length + missingEdges.length;
-	const totalLearnerEdges = correctEdges.length + excessiveEdges.length;
-	const hasEdgeDetails = totalGoalEdges > 0 || totalLearnerEdges > 0;
-	const scorePercentage = totalGoalEdges > 0 ? Math.round((diagnosis.score ?? 0) * 100) : 0;
 
 	if (isLoading) {
 		return (
 			<div className="h-full flex items-center justify-center">
 				<div className="text-muted-foreground">Loading results...</div>
+			</div>
+		);
+	}
+
+	if (rpcError) {
+		return (
+			<div className="h-full flex items-center justify-center">
+				<div className="text-center space-y-4">
+					<p className="text-muted-foreground">{rpcError}</p>
+					<Button asChild variant="outline">
+						<Link to="/dashboard/assignments" preload="intent">
+							Back to Assignments
+						</Link>
+					</Button>
+				</div>
 			</div>
 		);
 	}
@@ -134,6 +122,38 @@ export function LearnerMapResult() {
 			</div>
 		);
 	}
+
+	const { assignment, learnerMap, goalMap } = data;
+	const diagnosis = data.diagnosis;
+
+	if (!diagnosis) {
+		return (
+			<div className="h-full flex items-center justify-center">
+				<div className="text-center space-y-4">
+					<p className="text-muted-foreground">
+						No diagnosis available. Submit your map first.
+					</p>
+					<Button asChild>
+						<Link
+							to="/dashboard/learner-map/$assignmentId"
+							params={{ assignmentId }}
+							preload="intent"
+						>
+							Go to Editor
+						</Link>
+					</Button>
+				</div>
+			</div>
+		);
+	}
+
+	const correctEdges = diagnosis.correct ?? [];
+	const missingEdges = diagnosis.missing ?? [];
+	const excessiveEdges = diagnosis.excessive ?? [];
+	const totalGoalEdges = correctEdges.length + missingEdges.length;
+	const totalLearnerEdges = correctEdges.length + excessiveEdges.length;
+	const hasEdgeDetails = totalGoalEdges > 0 || totalLearnerEdges > 0;
+	const scorePercentage = totalGoalEdges > 0 ? Math.round((diagnosis.score ?? 0) * 100) : 0;
 
 	return (
 		<div className="flex h-full min-h-0 flex-col gap-3">
@@ -279,7 +299,7 @@ export function LearnerMapResult() {
 									</div>
 								</>
 							)}
-							{(assignment.postTestFormId || assignment.tamFormId) && (
+							{assignment.postTestFormId && (
 								<>
 									<Separator />
 									<div className="p-3 space-y-2.5">
@@ -295,39 +315,17 @@ export function LearnerMapResult() {
 											Complete the post-test flow before leaving the
 											assignment.
 										</p>
-										<div className="space-y-2">
-											{assignment.postTestFormId && (
-												<Button asChild className="w-full gap-2" size="lg">
-													<Link
-														to="/dashboard/forms/take"
-														search={{
-															formId: assignment.postTestFormId,
-															returnTo: `/dashboard/learner-map/${assignmentId}/result`,
-														}}
-													>
-														Take Post-Test
-														<ArrowRightIcon className="size-4" />
-													</Link>
-												</Button>
-											)}
-											{assignment.tamFormId && (
-												<Button
-													asChild
-													variant="outline"
-													className="w-full justify-start"
-												>
-													<Link
-														to="/dashboard/forms/take"
-														search={{
-															formId: assignment.tamFormId,
-															returnTo: `/dashboard/learner-map/${assignmentId}/result`,
-														}}
-													>
-														Take TAM Survey
-													</Link>
-												</Button>
-											)}
-										</div>
+										<Button asChild className="w-full gap-2" size="lg">
+											<Link
+												to="/dashboard/forms/take"
+												search={{
+													formId: assignment.postTestFormId,
+													returnTo: `/dashboard/learner-map/${assignmentId}/result`,
+												}}
+											>
+												Take Post-Test
+											</Link>
+										</Button>
 									</div>
 								</>
 							)}
