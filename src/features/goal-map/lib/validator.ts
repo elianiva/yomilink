@@ -238,7 +238,6 @@ export function findConnectedComponents(
 }
 
 export function detectCycles(nodes: Readonly<Node[]>, edges: Readonly<Edge[]>): boolean {
-	// Build adjacency list
 	const adjacency = new Map<string, string[]>();
 	for (const edge of edges) {
 		const neighbors = adjacency.get(edge.source) ?? [];

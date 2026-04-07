@@ -489,7 +489,6 @@ export const updateMaterial = Effect.fn("updateMaterial")(function* (
 
 	if (hasMaterial) {
 		if (existing.textId) {
-			// Update existing text record
 			yield* db
 				.update(texts)
 				.set({
@@ -502,7 +501,6 @@ export const updateMaterial = Effect.fn("updateMaterial")(function* (
 				})
 				.where(eq(texts.id, existing.textId));
 		} else {
-			// Create new text record
 			textId = crypto.randomUUID();
 			yield* db.insert(texts).values({
 				id: textId,

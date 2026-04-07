@@ -205,7 +205,6 @@ export const getStudentFormById = Effect.fn("getStudentFormById")(function* (
 ) {
 	const db = yield* Database;
 
-	// Get form
 	const formRows = yield* db.select().from(forms).where(eq(forms.id, formId)).limit(1);
 
 	const formRow = formRows[0];
@@ -219,7 +218,6 @@ export const getStudentFormById = Effect.fn("getStudentFormById")(function* (
 		return yield* new FormNotAccessibleError({ formId });
 	}
 
-	// Get questions
 	const questionRows = yield* db
 		.select()
 		.from(questions)
@@ -309,7 +307,6 @@ export const listForms = Effect.fn("listForms")(function* (userId: string) {
 					FormUnlockConditionsNullable,
 				);
 
-				// Get progress stats for this form
 				const progressRows = yield* db
 					.select({
 						status: formProgress.status,
@@ -1012,15 +1009,12 @@ export type QuestionOutput = typeof QuestionOutputSchema.Type;
 export type StudentQuestionOutput = typeof StudentQuestionOutputSchema.Type;
 export type FormResponseOutput = typeof FormResponseOutputSchema.Type;
 
-// Check if user has completed the registration form
 // Returns the registration form ID if it exists and user's completion status
-
 export const getRegistrationFormStatus = Effect.fn("getRegistrationFormStatus")(function* (
 	userId: string,
 ) {
 	const db = yield* Database;
 
-	// Get the first published registration form
 	const registrationForms = yield* db
 		.select()
 		.from(forms)
@@ -1038,7 +1032,6 @@ export const getRegistrationFormStatus = Effect.fn("getRegistrationFormStatus")(
 		};
 	}
 
-	// Check if user has completed this form
 	const userProgress = yield* db
 		.select()
 		.from(formProgress)
@@ -1115,7 +1108,6 @@ function getNextRequiredType(
 	return null;
 }
 
-// Check if a form should be excluded based on study group or sign-up status
 function shouldExcludeForm(
 	formType: FormType,
 	studyGroup: "experiment" | "control" | null,
@@ -1134,7 +1126,6 @@ function shouldExcludeForm(
 export const getStudentForms = Effect.fn("getStudentForms")(function* (userId: string) {
 	const db = yield* Database;
 
-	// Get user study group
 	const userRows = yield* db
 		.select({ studyGroup: user.studyGroup })
 		.from(user)
@@ -1142,13 +1133,10 @@ export const getStudentForms = Effect.fn("getStudentForms")(function* (userId: s
 		.limit(1);
 	const studyGroup = userRows[0]?.studyGroup ?? null;
 
-	// Get all published forms
 	const publishedForms = yield* db.select().from(forms).where(eq(forms.status, "published"));
 
-	// Filter out forms that don't apply to this study group
 	const applicableForms = publishedForms.filter((f) => !shouldExcludeForm(f.type, studyGroup));
 
-	// Get user's progress for all forms
 	const userProgressRows = yield* db
 		.select()
 		.from(formProgress)
@@ -1181,7 +1169,6 @@ export const getStudentForms = Effect.fn("getStudentForms")(function* (userId: s
 	// Sort applicable forms by priority order for sequential display
 	const sortedForms = applicableForms.sort(sortFormsByPriority);
 
-	// Build response with unlock status
 	const formsWithStatus = sortedForms.map((form) => {
 		const progress = progressMap.get(form.id);
 		let unlockStatus: "locked" | "available" | "completed" = progress?.status ?? "locked";

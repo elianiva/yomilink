@@ -112,7 +112,6 @@ export function LearnerMapEditor() {
 		}
 	}, [assignmentData, setAssignment, status]);
 
-	// Initialize nodes/edges when data loads
 	useEffect(() => {
 		if (!assignmentData) return;
 

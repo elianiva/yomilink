@@ -152,11 +152,9 @@ function AnalyticsCanvasInner({
 	const edgeKeyFor = (edge: Pick<Edge, "source" | "target">) =>
 		JSON.stringify([edge.source, edge.target]);
 
-	// Compute merged nodes from goal map and all learner maps
 	const mergedNodes = useMemo(() => {
 		const nodeMap = new Map<string, Node>();
 
-		// First, add all goal map nodes with their positions
 		for (const node of goalMap.nodes) {
 			nodeMap.set(node.id, {
 				...node,
@@ -166,18 +164,15 @@ function AnalyticsCanvasInner({
 			});
 		}
 
-		// Then merge all learner map nodes, keeping goal map position if exists
 		for (const lm of currentLearnerMaps) {
 			for (const node of lm.nodes) {
 				const existingNode = nodeMap.get(node.id);
 				if (existingNode) {
-					// Node exists in goal map, keep goal map position
 					nodeMap.set(node.id, {
 						...node,
 						position: existingNode.position,
 					});
 				} else {
-					// Node only in learner map, add it
 					nodeMap.set(node.id, node);
 				}
 			}
@@ -186,7 +181,6 @@ function AnalyticsCanvasInner({
 		return Array.from(nodeMap.values());
 	}, [goalMap.nodes, currentLearnerMaps]);
 
-	// Initialize nodes when merged nodes change (e.g., when selecting different learner)
 	useEffect(() => {
 		setNodes(mergedNodes);
 	}, [mergedNodes]);
@@ -200,8 +194,6 @@ function AnalyticsCanvasInner({
 		if (showGoalMap && showLearnerMap) {
 			if (isMultiView) {
 				if (consolidatedView) {
-					// Multi-view consolidated: Aggregate edges and create separate edges per type with badges
-					// Track counts and creators per edge key and per type
 					const edgeData = new Map<
 						string,
 						{
@@ -212,7 +204,6 @@ function AnalyticsCanvasInner({
 						}
 					>();
 
-					// Count edge classifications per edge key and track creators per type
 					for (const classification of currentEdgeClassifications) {
 						const key = edgeKeyFor(classification.edge);
 						const data = edgeData.get(key) || {
@@ -229,7 +220,6 @@ function AnalyticsCanvasInner({
 						edgeData.set(key, data);
 					}
 
-					// Create separate edges for each type with symmetric curves
 					for (const [key, data] of edgeData.entries()) {
 						const [source, target] = JSON.parse(key) as [string, string];
 						const types: Array<"correct" | "missing" | "excessive" | "neutral"> = [
@@ -326,7 +316,6 @@ function AnalyticsCanvasInner({
 						edgeGroups.set(key, group);
 					}
 
-					// Create individual edges with curve offsets
 					for (const [key, group] of edgeGroups.entries()) {
 						for (const [index, item] of group.entries()) {
 							const { classification } = item;
@@ -427,7 +416,6 @@ function AnalyticsCanvasInner({
 						}
 					>();
 
-					// Count edge classifications per edge key and track creators per type
 					for (const classification of currentEdgeClassifications) {
 						if (classification.type === "missing") continue;
 
@@ -446,7 +434,6 @@ function AnalyticsCanvasInner({
 						edgeData.set(key, data);
 					}
 
-					// Create separate edges for each type with symmetric curves
 					for (const [key, data] of edgeData.entries()) {
 						const [source, target] = JSON.parse(key) as [string, string];
 						const types: Array<"correct" | "excessive" | "neutral"> = [
@@ -539,7 +526,6 @@ function AnalyticsCanvasInner({
 						edgeGroups.set(key, group);
 					}
 
-					// Create individual edges with curve offsets
 					for (const [key, group] of edgeGroups.entries()) {
 						for (const [index, item] of group.entries()) {
 							const { classification } = item;

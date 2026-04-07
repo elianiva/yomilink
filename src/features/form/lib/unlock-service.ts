@@ -188,7 +188,6 @@ export const checkAssignmentCondition = Effect.fn("checkAssignmentCondition")(fu
 
 	const assignmentId = (condition as { assignmentId: string }).assignmentId;
 
-	// Check if learner has submitted a learner map for this assignment
 	const learnerMapRows = yield* db
 		.select()
 		.from(learnerMaps)
@@ -284,7 +283,6 @@ export const checkFormUnlock = Effect.fn("checkFormUnlock")(function* (
 
 			if (assignmentRows.length > 0) {
 				const assignment = assignmentRows[0];
-				// Check if user has submitted learner map for this assignment
 				const submittedMapRows = yield* db
 					.select()
 					.from(learnerMaps)
@@ -483,7 +481,6 @@ export const unlockPostTestAfterAssignment = Effect.fn("unlockPostTestAfterAssig
 ) {
 	const db = yield* Database;
 
-	// Check if the assignment was submitted by checking learner_maps
 	const learnerMapRows = yield* db
 		.select()
 		.from(learnerMaps)
@@ -520,7 +517,6 @@ export const unlockPostTestAfterAssignment = Effect.fn("unlockPostTestAfterAssig
 		const unlockAt = new Date(completedAt);
 		unlockAt.setDate(unlockAt.getDate() + input.delayDays);
 
-		// Check if unlock time has passed
 		if (unlockAt > now) {
 			return {
 				scheduled: true,

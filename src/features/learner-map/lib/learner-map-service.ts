@@ -705,7 +705,6 @@ export const submitControlText = Effect.fn("submitControlText")(function* (
 		return yield* new AssignmentNotFoundError({ assignmentId: input.assignmentId });
 	}
 
-	// Check for existing submission
 	const existingRows = yield* db
 		.select({ id: learnerMaps.id, status: learnerMaps.status })
 		.from(learnerMaps)
@@ -720,7 +719,6 @@ export const submitControlText = Effect.fn("submitControlText")(function* (
 	}
 
 	if (existing) {
-		// Update existing draft with control text and mark as submitted
 		yield* db
 			.update(learnerMaps)
 			.set({
@@ -730,7 +728,6 @@ export const submitControlText = Effect.fn("submitControlText")(function* (
 			})
 			.where(eq(learnerMaps.id, existing.id));
 	} else {
-		// Create new learner map with control text
 		const learnerMapId = randomString();
 		yield* db.insert(learnerMaps).values({
 			id: learnerMapId,

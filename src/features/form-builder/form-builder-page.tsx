@@ -240,7 +240,6 @@ export function FormBuilderPage() {
 				status: metadata.status,
 			});
 		} else {
-			// Create form first, then questions will be created in onSuccess
 			await createFormMutation.mutateAsync({
 				title: metadata.title,
 				description: metadata.description ?? undefined,
@@ -274,7 +273,6 @@ export function FormBuilderPage() {
 
 		if (editingQuestion) {
 			if (isDraftId(editingQuestion.id)) {
-				// Update draft question locally
 				setQuestions((prev) =>
 					prev.map((q) =>
 						q.id === editingQuestion.id
@@ -288,7 +286,6 @@ export function FormBuilderPage() {
 					),
 				);
 			} else if (formId) {
-				// Update existing question in database
 				const input: UpdateQuestionInput = {
 					questionId: editingQuestion.id,
 					questionText: questionData.questionText,
@@ -298,7 +295,6 @@ export function FormBuilderPage() {
 				await updateQuestionMutation.mutateAsync(input);
 			}
 		} else if (questionDialog.questionType) {
-			// Create new question
 			const newQuestion: QuestionWithOptions = {
 				id: generateDraftId(),
 				formId: formId ?? generateDraftId(),
@@ -312,7 +308,6 @@ export function FormBuilderPage() {
 			};
 
 			if (formId && !isDraftId(formId)) {
-				// Save to database for existing forms
 				const input: CreateQuestionInput = {
 					formId,
 					type: questionDialog.questionType,

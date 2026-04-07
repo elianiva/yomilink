@@ -120,7 +120,6 @@ export const listUsers = Effect.fn("listUsers")((input: UserFilterInput) =>
 
 		const { search, role: roleFilter, banned: bannedFilter, cohortId, page, pageSize } = input;
 
-		// Handle cohort filtering first (special case)
 		let userIdFilter: string[] | undefined;
 		if (cohortId) {
 			const memberIds = yield* db
@@ -140,7 +139,6 @@ export const listUsers = Effect.fn("listUsers")((input: UserFilterInput) =>
 			userIdFilter = memberIds.map((m) => m.userId);
 		}
 
-		// Build where conditions using query builder
 		const whereClause = buildWhereClause([
 			search
 				? or(
@@ -153,11 +151,9 @@ export const listUsers = Effect.fn("listUsers")((input: UserFilterInput) =>
 			userIdFilter ? inArray(user.id, userIdFilter) : null,
 		]);
 
-		// Get total count
 		const countRows = yield* db.select({ total: count() }).from(user).where(whereClause);
 		const total = countRows[0]?.total ?? 0;
 
-		// Get users with cohort info
 		const offset = calculateOffset({ page, pageSize });
 		const users_ = yield* db
 			.select({
@@ -250,7 +246,6 @@ export const getUserById = Effect.fn("getUserById")((userId: string) =>
 			return yield* new UserNotFoundError({ userId });
 		}
 
-		// Get cohorts
 		const cohorts_ = yield* db
 			.select({ id: cohorts.id, name: cohorts.name })
 			.from(cohortMembers)
@@ -269,14 +264,12 @@ export const updateUser = Effect.fn("updateUser")(
 		Effect.gen(function* () {
 			const db = yield* Database;
 
-			// Check user exists
 			const existingRows = yield* db.select().from(user).where(eq(user.id, userId)).limit(1);
 
 			if (existingRows.length === 0) {
 				return yield* new UserNotFoundError({ userId });
 			}
 
-			// Build update object
 			const updateData: Record<string, unknown> = {};
 
 			if (data.name !== undefined) updateData.name = data.name;

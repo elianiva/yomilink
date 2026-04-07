@@ -27,7 +27,6 @@ export type RpcResult<T> = RpcSuccess<T> | RpcError;
  * Handles various error types including Effect errors, exceptions, and arbitrary values.
  */
 const formatError = (error: unknown): { message: string; cause?: unknown } => {
-	// Handle Effect tagged errors with _tag
 	if (error && typeof error === "object" && "_tag" in error) {
 		const err = error as { _tag: string; message?: string; cause?: unknown };
 		return {
@@ -36,7 +35,6 @@ const formatError = (error: unknown): { message: string; cause?: unknown } => {
 		};
 	}
 
-	// Handle standard Error objects
 	if (error instanceof Error) {
 		return {
 			message: error.message,
@@ -44,12 +42,10 @@ const formatError = (error: unknown): { message: string; cause?: unknown } => {
 		};
 	}
 
-	// Handle strings
 	if (typeof error === "string") {
 		return { message: error };
 	}
 
-	// Handle anything else
 	return {
 		message: String(error),
 		cause: error,

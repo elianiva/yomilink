@@ -463,7 +463,6 @@ export const saveExperimentGroups = Effect.fn("saveExperimentGroups")(function* 
 ) {
 	const db = yield* Database;
 
-	// Update studyGroup for each user
 	for (const g of input.groups) {
 		yield* db
 			.update(user)
@@ -709,7 +708,6 @@ export const getAssignmentExperimentStatus = Effect.fn("getAssignmentExperimentS
 		};
 	}
 
-	// Get user details
 	const users = yield* db
 		.select({
 			id: user.id,
@@ -722,7 +720,6 @@ export const getAssignmentExperimentStatus = Effect.fn("getAssignmentExperimentS
 
 	const userMap = new Map(users.map((u) => [u.id, u]));
 
-	// Get pre-test responses
 	const preTestResponses = assignment.preTestFormId
 		? yield* db
 				.select({
@@ -749,7 +746,6 @@ export const getAssignmentExperimentStatus = Effect.fn("getAssignmentExperimentS
 		]),
 	);
 
-	// Get post-test responses
 	const postTestResponses = assignment.postTestFormId
 		? yield* db
 				.select({
@@ -837,7 +833,6 @@ export const getAssignmentExperimentStatus = Effect.fn("getAssignmentExperimentS
 		]),
 	);
 
-	// Calculate scores for pre-test (count correct answers if MCQ)
 	const calculateScore = (answers: Array<{ questionId: string; answer: string }> | null) => {
 		if (!answers || !Array.isArray(answers)) return null;
 		// Simple scoring: count non-empty answers for now
@@ -846,7 +841,6 @@ export const getAssignmentExperimentStatus = Effect.fn("getAssignmentExperimentS
 		return answered;
 	};
 
-	// Build student statuses
 	const students: StudentExperimentStatus[] = allUserIds.map((userId) => {
 		const userInfo = userMap.get(userId);
 		const preTest = preTestMap.get(userId);
@@ -861,7 +855,6 @@ export const getAssignmentExperimentStatus = Effect.fn("getAssignmentExperimentS
 				: "summarizing"
 			: null;
 
-		// Calculate delayed test unlock time
 		let delayedTestUnlocksAt: number | null = null;
 		if (assignment.delayedPostTestDelayDays && learnerMap?.submittedAt) {
 			const unlockDate = new Date(learnerMap.submittedAt);
@@ -900,7 +893,6 @@ export const getAssignmentExperimentStatus = Effect.fn("getAssignmentExperimentS
 		};
 	});
 
-	// Calculate summary
 	const summary = {
 		totalStudents: students.length,
 		preTestCompleted: students.filter((s) => s.preTest.completed).length,
