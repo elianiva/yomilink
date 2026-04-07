@@ -83,9 +83,6 @@ export class Auth extends Effect.Service<Auth>()("Auth", {
 	dependencies: [DatabaseLive],
 }) {}
 
-// dummy function just for better-auth, do not use directly
-export const auth = Auth.pipe(Effect.provide(Auth.Default), Effect.runSync);
-
 export const Role = Schema.Literal("teacher", "admin", "student").annotations({
 	message: (issue) => ({
 		message: `Invalid role: ${JSON.stringify(issue.actual)}`,

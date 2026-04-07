@@ -1,6 +1,6 @@
 import { mutationOptions, queryOptions } from "@tanstack/react-query";
 import { createServerFn } from "@tanstack/react-start";
-import { Effect, Runtime, Schema } from "effect";
+import { Effect, Schema } from "effect";
 
 import {
 	createAssignment,
@@ -29,8 +29,7 @@ export const createAssignmentRpc = createServerFn({ method: "POST" })
 	.middleware([requireRoleMiddleware("teacher", "admin")])
 	.inputValidator((raw) => Schema.decodeUnknownSync(CreateAssignmentInput)(raw))
 	.handler(({ data, context }) =>
-		Runtime.runPromise(
-			AppRuntime,
+		AppRuntime.runPromise(
 			createAssignment(context.user.id, data).pipe(
 				Effect.map(Rpc.ok),
 				Effect.withSpan("createAssignment"),
@@ -47,8 +46,7 @@ export const createAssignmentRpc = createServerFn({ method: "POST" })
 export const listTeacherAssignmentsRpc = createServerFn()
 	.middleware([requireRoleMiddleware("teacher", "admin")])
 	.handler(({ context }) =>
-		Runtime.runPromise(
-			AppRuntime,
+		AppRuntime.runPromise(
 			listTeacherAssignments(context.user.id).pipe(
 				Effect.map(Rpc.ok),
 				Effect.withSpan("listTeacherAssignments"),
@@ -63,8 +61,7 @@ export const deleteAssignmentRpc = createServerFn({ method: "POST" })
 	.middleware([requireRoleMiddleware("teacher", "admin")])
 	.inputValidator((raw) => Schema.decodeUnknownSync(DeleteAssignmentInput)(raw))
 	.handler(({ data, context }) =>
-		Runtime.runPromise(
-			AppRuntime,
+		AppRuntime.runPromise(
 			deleteAssignment(context.user.id, data).pipe(
 				Effect.map(() => Rpc.ok(true)),
 				Effect.withSpan("deleteAssignment"),
@@ -81,8 +78,7 @@ export const deleteAssignmentRpc = createServerFn({ method: "POST" })
 export const getAvailableCohortsRpc = createServerFn()
 	.middleware([requireRoleMiddleware("teacher", "admin")])
 	.handler(() =>
-		Runtime.runPromise(
-			AppRuntime,
+		AppRuntime.runPromise(
 			getAvailableCohorts().pipe(
 				Effect.map(Rpc.ok),
 				Effect.withSpan("getAvailableCohorts"),
@@ -96,8 +92,7 @@ export const getAvailableCohortsRpc = createServerFn()
 export const getAvailableUsersRpc = createServerFn()
 	.middleware([requireRoleMiddleware("teacher", "admin")])
 	.handler(() =>
-		Runtime.runPromise(
-			AppRuntime,
+		AppRuntime.runPromise(
 			getAvailableUsers().pipe(
 				Effect.map(Rpc.ok),
 				Effect.withSpan("getAvailableUsers"),
@@ -111,8 +106,7 @@ export const getAvailableUsersRpc = createServerFn()
 export const getTeacherGoalMapsRpc = createServerFn()
 	.middleware([requireRoleMiddleware("teacher", "admin")])
 	.handler(() =>
-		Runtime.runPromise(
-			AppRuntime,
+		AppRuntime.runPromise(
 			getTeacherGoalMaps().pipe(
 				Effect.map(Rpc.ok),
 				Effect.withSpan("getTeacherGoalMaps"),
@@ -127,8 +121,7 @@ export const saveExperimentGroupsRpc = createServerFn({ method: "POST" })
 	.middleware([requireRoleMiddleware("teacher", "admin")])
 	.inputValidator((raw) => Schema.decodeUnknownSync(SaveExperimentGroupsInput)(raw))
 	.handler(({ data }) =>
-		Runtime.runPromise(
-			AppRuntime,
+		AppRuntime.runPromise(
 			saveExperimentGroups(data).pipe(
 				Effect.map(() => Rpc.ok(true)),
 				Effect.withSpan("saveExperimentGroups"),
@@ -145,8 +138,7 @@ export const getExperimentGroupsByAssignmentIdRpc = createServerFn()
 		Schema.decodeUnknownSync(Schema.Struct({ assignmentId: Schema.String }))(raw),
 	)
 	.handler(({ data }) =>
-		Runtime.runPromise(
-			AppRuntime,
+		AppRuntime.runPromise(
 			getExperimentGroupsByAssignmentId(data.assignmentId).pipe(
 				Effect.map(Rpc.ok),
 				Effect.withSpan("getExperimentGroupsByAssignmentId"),
@@ -163,8 +155,7 @@ export const getAssignmentByPreTestFormIdRpc = createServerFn()
 		Schema.decodeUnknownSync(Schema.Struct({ formId: Schema.String }))(raw),
 	)
 	.handler(({ data }) =>
-		Runtime.runPromise(
-			AppRuntime,
+		AppRuntime.runPromise(
 			getAssignmentByPreTestFormId(data.formId).pipe(
 				Effect.map(Rpc.ok),
 				Effect.withSpan("getAssignmentByPreTestFormId"),
@@ -181,8 +172,7 @@ export const getAssignmentByIdRpc = createServerFn()
 		Schema.decodeUnknownSync(Schema.Struct({ assignmentId: Schema.String }))(raw),
 	)
 	.handler(({ data }) =>
-		Runtime.runPromise(
-			AppRuntime,
+		AppRuntime.runPromise(
 			getAssignmentById(data.assignmentId).pipe(
 				Effect.map(Rpc.ok),
 				Effect.withSpan("getAssignmentById"),
@@ -202,8 +192,7 @@ export const getExperimentConditionRpc = createServerFn()
 		Schema.decodeUnknownSync(Schema.Struct({ assignmentId: Schema.String }))(raw),
 	)
 	.handler(({ data, context }) =>
-		Runtime.runPromise(
-			AppRuntime,
+		AppRuntime.runPromise(
 			getExperimentCondition(data.assignmentId, context.user.id).pipe(
 				Effect.map(Rpc.ok),
 				Effect.withSpan("getExperimentCondition"),
@@ -218,8 +207,7 @@ export const getAssignmentExperimentStatusRpc = createServerFn()
 	.middleware([requireRoleMiddleware("teacher", "admin")])
 	.inputValidator((raw) => Schema.decodeUnknownSync(GetExperimentStatusInput)(raw))
 	.handler(({ data }) =>
-		Runtime.runPromise(
-			AppRuntime,
+		AppRuntime.runPromise(
 			getAssignmentExperimentStatus(data).pipe(
 				Effect.map(Rpc.ok),
 				Effect.withSpan("getAssignmentExperimentStatus"),

@@ -1,5 +1,4 @@
-import { createFileRoute, Link, Outlet, redirect, useLocation } from "@tanstack/react-router";
-import { useAtomValue } from "jotai";
+import { createFileRoute, Link, Outlet, redirect } from "@tanstack/react-router";
 
 import { AppSidebar } from "@/components/app-sidebar";
 import {
@@ -12,8 +11,7 @@ import {
 } from "@/components/ui/breadcrumb";
 import { Separator } from "@/components/ui/separator";
 import { SidebarInset, SidebarProvider, SidebarTrigger } from "@/components/ui/sidebar";
-import { pageTitleAtom } from "@/lib/page-title";
-import { pathToCrumbs } from "@/lib/utils";
+import { useBreadcrumbs } from "@/lib/breadcrumbs";
 import { getRegistrationFormStatusRpc } from "@/server/rpc/form";
 import { getMe, ProfileRpc } from "@/server/rpc/profile";
 
@@ -48,10 +46,7 @@ export const Route = createFileRoute("/dashboard")({
 });
 
 function DashboardLayout() {
-	const location = useLocation();
-	const dynamicTitle = useAtomValue(pageTitleAtom);
-
-	const crumbs = pathToCrumbs(location.pathname, dynamicTitle);
+	const crumbs = useBreadcrumbs();
 
 	return (
 		<SidebarProvider>
@@ -68,22 +63,23 @@ function DashboardLayout() {
 							<Breadcrumb>
 								<BreadcrumbList>
 									{crumbs.flatMap((c, i) => {
+										const isLast = i === crumbs.length - 1;
 										const item = (
 											<BreadcrumbItem key={c.href}>
-												{i < crumbs.length - 1 ? (
+												{isLast ? (
+													<BreadcrumbPage>{c.label}</BreadcrumbPage>
+												) : (
 													<BreadcrumbLink asChild>
 														<Link to={c.href} preload="intent">
 															{c.label}
 														</Link>
 													</BreadcrumbLink>
-												) : (
-													<BreadcrumbPage>{c.label}</BreadcrumbPage>
 												)}
 											</BreadcrumbItem>
 										);
-										return i < crumbs.length - 1
-											? [item, <BreadcrumbSeparator key={`sep-${c.href}`} />]
-											: [item];
+										return isLast
+											? [item]
+											: [item, <BreadcrumbSeparator key={`sep-${c.href}`} />];
 									})}
 								</BreadcrumbList>
 							</Breadcrumb>

@@ -1,6 +1,6 @@
 import { mutationOptions, queryOptions } from "@tanstack/react-query";
 import { createServerFn } from "@tanstack/react-start";
-import { Effect, Runtime, Schema } from "effect";
+import { Effect, Schema } from "effect";
 
 import {
 	DeleteGoalMapInput,
@@ -24,8 +24,7 @@ export const getGoalMapRpc = createServerFn()
 	.middleware([authMiddleware])
 	.inputValidator((raw) => Schema.decodeUnknownSync(GetGoalMapInput)(raw))
 	.handler(({ data }) =>
-		Runtime.runPromise(
-			AppRuntime,
+		AppRuntime.runPromise(
 			getGoalMap(data).pipe(
 				Effect.map(Rpc.ok),
 				Effect.withSpan("getGoalMap"),
@@ -40,8 +39,7 @@ export const saveGoalMapRpc = createServerFn({ method: "POST" })
 	.middleware([authMiddleware]) // Only check authentication, not authorization
 	.inputValidator((raw) => Schema.decodeUnknownSync(SaveGoalMapInput)(raw))
 	.handler(({ data, context }) =>
-		Runtime.runPromise(
-			AppRuntime,
+		AppRuntime.runPromise(
 			saveGoalMap(context.user.id, data).pipe(
 				Effect.map(Rpc.ok),
 				Effect.withSpan("saveGoalMap"),
@@ -61,8 +59,7 @@ export const saveGoalMapRpc = createServerFn({ method: "POST" })
 export const listGoalMapsRpc = createServerFn()
 	.middleware([authMiddleware])
 	.handler(({ context }) =>
-		Runtime.runPromise(
-			AppRuntime,
+		AppRuntime.runPromise(
 			listGoalMaps(context.user.id).pipe(Effect.map(Rpc.ok), Effect.withSpan("listGoalMaps")),
 		),
 	);
@@ -71,8 +68,7 @@ export const listGoalMapsByTopicRpc = createServerFn()
 	.middleware([authMiddleware])
 	.inputValidator((raw) => Schema.decodeUnknownSync(ListGoalMapsByTopicInput)(raw))
 	.handler(({ data }) =>
-		Runtime.runPromise(
-			AppRuntime,
+		AppRuntime.runPromise(
 			listGoalMapsByTopic(data).pipe(
 				Effect.map(Rpc.ok),
 				Effect.withSpan("listGoalMapsByTopic"),
@@ -87,8 +83,7 @@ export const deleteGoalMapRpc = createServerFn({ method: "POST" })
 	.middleware([authMiddleware])
 	.inputValidator((raw) => Schema.decodeUnknownSync(DeleteGoalMapInput)(raw))
 	.handler(({ data, context }) =>
-		Runtime.runPromise(
-			AppRuntime,
+		AppRuntime.runPromise(
 			deleteGoalMap(context.user.id, data).pipe(
 				Effect.map(() => Rpc.ok(true)),
 				Effect.withSpan("deleteGoalMap"),
@@ -108,8 +103,7 @@ export const updateMaterialRpc = createServerFn({ method: "POST" })
 	.middleware([authMiddleware])
 	.inputValidator((raw) => Schema.decodeUnknownSync(UpdateMaterialInput)(raw))
 	.handler(({ data, context }) =>
-		Runtime.runPromise(
-			AppRuntime,
+		AppRuntime.runPromise(
 			updateMaterial(context.user.id, data).pipe(
 				Effect.map(Rpc.ok),
 				Effect.withSpan("updateMaterial"),

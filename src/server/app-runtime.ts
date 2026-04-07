@@ -1,4 +1,4 @@
-import { Effect, Layer } from "effect";
+import { ManagedRuntime } from "effect";
 
 import { AppLayer } from "./app-layer";
 
@@ -8,5 +8,8 @@ import { AppLayer } from "./app-layer";
  *
  * This singleton runtime contains all dependencies (Database, Logger, Config, etc.)
  * and is shared across all server function invocations.
+ *
+ * IMPORTANT: ManagedRuntime keeps the scope open for the application lifetime.
+ * The DB connection remains alive until explicitly disposed.
  */
-export const AppRuntime = Effect.runSync(Layer.toRuntime(AppLayer).pipe(Effect.scoped));
+export const AppRuntime = ManagedRuntime.make(AppLayer);

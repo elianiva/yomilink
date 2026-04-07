@@ -1,6 +1,6 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { env } from "cloudflare:workers";
-import { Effect, Runtime } from "effect";
+import { Effect } from "effect";
 
 import { getServerUser } from "@/lib/auth";
 import { requireGoalMapAccess } from "@/lib/auth-authorization";
@@ -43,7 +43,7 @@ export const Route = createFileRoute("/api/materials/images/$goalMapId/$imageId"
 					return new Response(object.body, { headers });
 				});
 
-				const result = await Runtime.runPromise(AppRuntime, effect);
+				const result = await AppRuntime.runPromise(effect);
 
 				return result;
 			},

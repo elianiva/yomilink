@@ -1,6 +1,6 @@
 import { queryOptions, mutationOptions } from "@tanstack/react-query";
 import { createServerFn } from "@tanstack/react-start";
-import { Data, Effect, Runtime, Schema } from "effect";
+import { Data, Effect, Schema } from "effect";
 
 import { Auth } from "@/lib/auth";
 import { randomString } from "@/lib/utils";
@@ -62,8 +62,7 @@ export const signUpRpc = createServerFn({ method: "POST" })
 	.middleware([authMiddlewareOptional])
 	.inputValidator((raw) => Schema.decodeUnknownSync(SignUpInput)(raw))
 	.handler(({ data }) =>
-		Runtime.runPromise(
-			AppRuntime,
+		AppRuntime.runPromise(
 			Effect.gen(function* () {
 				const auth = yield* Auth;
 				const db = yield* Database;
@@ -132,8 +131,7 @@ export const AuthRpc = {
 export const listCohortsRpc = createServerFn()
 	.middleware([authMiddlewareOptional])
 	.handler(() =>
-		Runtime.runPromise(
-			AppRuntime,
+		AppRuntime.runPromise(
 			Effect.gen(function* () {
 				const db = yield* Database;
 				const rows = yield* db

@@ -1,6 +1,6 @@
 import { mutationOptions, queryOptions } from "@tanstack/react-query";
 import { createServerFn } from "@tanstack/react-start";
-import { Effect, Runtime, Schema } from "effect";
+import { Effect, Schema } from "effect";
 
 import { UpdateProfileInput, updateProfile } from "@/features/profile/lib/profile-service";
 import { authMiddleware, authMiddlewareOptional } from "@/middlewares/auth";
@@ -11,8 +11,7 @@ import { Rpc, logRpcError, logAndReturnError, logAndReturnDefect } from "../rpc-
 export const getMe = createServerFn()
 	.middleware([authMiddlewareOptional])
 	.handler(({ context }) =>
-		Runtime.runPromise(
-			AppRuntime,
+		AppRuntime.runPromise(
 			Effect.fromNullable(context.user).pipe(
 				Effect.map(Rpc.ok),
 				Effect.withSpan("getMe"),
@@ -25,8 +24,7 @@ export const updateProfileRpc = createServerFn({ method: "POST" })
 	.middleware([authMiddleware])
 	.inputValidator((raw) => Schema.decodeUnknownSync(UpdateProfileInput)(raw))
 	.handler(({ data, context }) =>
-		Runtime.runPromise(
-			AppRuntime,
+		AppRuntime.runPromise(
 			updateProfile(context.user.id, data).pipe(
 				Effect.map(Rpc.ok),
 				Effect.withSpan("updateProfile"),

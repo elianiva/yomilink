@@ -1,6 +1,6 @@
 import { mutationOptions, queryOptions } from "@tanstack/react-query";
 import { createServerFn } from "@tanstack/react-start";
-import { Effect, Runtime, Schema } from "effect";
+import { Effect, Schema } from "effect";
 
 import {
 	ExportAnalyticsDataInput,
@@ -23,8 +23,7 @@ import { Rpc, logRpcError, logAndReturnError, logAndReturnDefect } from "../rpc-
 export const getTeacherAssignmentsRpc = createServerFn()
 	.middleware([authMiddleware])
 	.handler(({ context }) =>
-		Runtime.runPromise(
-			AppRuntime,
+		AppRuntime.runPromise(
 			getTeacherAssignments(context.user.id).pipe(
 				Effect.map(Rpc.ok),
 				Effect.withSpan("getTeacherAssignments"),
@@ -39,8 +38,7 @@ export const getAnalyticsForAssignmentRpc = createServerFn()
 	.middleware([authMiddleware])
 	.inputValidator((raw) => Schema.decodeUnknownSync(GetAnalyticsForAssignmentInput)(raw))
 	.handler(({ data, context }) =>
-		Runtime.runPromise(
-			AppRuntime,
+		AppRuntime.runPromise(
 			getAnalyticsForAssignment(context.user.id, data).pipe(
 				Effect.map(Rpc.ok),
 				Effect.withSpan("getAnalyticsForAssignment"),
@@ -59,8 +57,7 @@ export const getLearnerMapForAnalyticsRpc = createServerFn()
 	.middleware([authMiddleware])
 	.inputValidator((raw) => Schema.decodeUnknownSync(GetLearnerMapForAnalyticsInput)(raw))
 	.handler(({ data }) =>
-		Runtime.runPromise(
-			AppRuntime,
+		AppRuntime.runPromise(
 			getLearnerMapForAnalytics(data).pipe(
 				Effect.map(Rpc.ok),
 				Effect.withSpan("getLearnerMapForAnalytics"),
@@ -79,8 +76,7 @@ export const getMultipleLearnerMapsRpc = createServerFn()
 	.middleware([authMiddleware])
 	.inputValidator((raw) => Schema.decodeUnknownSync(GetMultipleLearnerMapsInput)(raw))
 	.handler(({ data }) =>
-		Runtime.runPromise(
-			AppRuntime,
+		AppRuntime.runPromise(
 			getMultipleLearnerMaps(data).pipe(
 				Effect.map(Rpc.ok),
 				Effect.withSpan("getMultipleLearnerMaps"),
@@ -95,8 +91,7 @@ export const getLearnerSummaryTextRpc = createServerFn()
 	.middleware([authMiddleware])
 	.inputValidator((raw) => Schema.decodeUnknownSync(GetLearnerSummaryTextInput)(raw))
 	.handler(({ data }) =>
-		Runtime.runPromise(
-			AppRuntime,
+		AppRuntime.runPromise(
 			getLearnerSummaryText(data).pipe(
 				Effect.map(Rpc.ok),
 				Effect.withSpan("getLearnerSummaryText"),
@@ -114,8 +109,7 @@ export const exportAnalyticsDataRpc = createServerFn({ method: "POST" })
 	.middleware([authMiddleware])
 	.inputValidator((raw) => Schema.decodeUnknownSync(ExportAnalyticsDataInput)(raw))
 	.handler(({ data }) =>
-		Runtime.runPromise(
-			AppRuntime,
+		AppRuntime.runPromise(
 			exportAnalyticsData(data).pipe(
 				Effect.map(Rpc.ok),
 				Effect.withSpan("exportAnalyticsData"),

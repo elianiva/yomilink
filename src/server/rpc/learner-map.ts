@@ -1,6 +1,6 @@
 import { mutationOptions, queryOptions } from "@tanstack/react-query";
 import { createServerFn } from "@tanstack/react-start";
-import { Effect, Runtime, Schema } from "effect";
+import { Effect, Schema } from "effect";
 
 import {
 	listStudentAssignments,
@@ -27,8 +27,7 @@ import { Rpc, logRpcError, logAndReturnError, logAndReturnDefect } from "../rpc-
 export const listStudentAssignmentsRpc = createServerFn()
 	.middleware([authMiddleware])
 	.handler(({ context }) =>
-		Runtime.runPromise(
-			AppRuntime,
+		AppRuntime.runPromise(
 			listStudentAssignments(context.user.id).pipe(
 				Effect.map(Rpc.ok),
 				Effect.withSpan("listStudentAssignments"),
@@ -43,8 +42,7 @@ export const getAssignmentForStudentRpc = createServerFn()
 	.middleware([authMiddleware])
 	.inputValidator((raw) => Schema.decodeUnknownSync(GetAssignmentForStudentInput)(raw))
 	.handler(({ data, context }) =>
-		Runtime.runPromise(
-			AppRuntime,
+		AppRuntime.runPromise(
 			getAssignmentForStudent(context.user.id, data).pipe(
 				Effect.map(Rpc.ok),
 				Effect.withSpan("getAssignmentForStudent"),
@@ -59,8 +57,7 @@ export const saveLearnerMapRpc = createServerFn({ method: "POST" })
 	.middleware([authMiddleware])
 	.inputValidator((raw) => Schema.decodeUnknownSync(SaveLearnerMapInput)(raw))
 	.handler(({ data, context }) =>
-		Runtime.runPromise(
-			AppRuntime,
+		AppRuntime.runPromise(
 			saveLearnerMap(context.user.id, data).pipe(
 				Effect.map(() => Rpc.ok(true)),
 				Effect.withSpan("saveLearnerMap"),
@@ -78,8 +75,7 @@ export const submitLearnerMapRpc = createServerFn({ method: "POST" })
 	.middleware([authMiddleware])
 	.inputValidator((raw) => Schema.decodeUnknownSync(SubmitLearnerMapInput)(raw))
 	.handler(({ data, context }) =>
-		Runtime.runPromise(
-			AppRuntime,
+		AppRuntime.runPromise(
 			submitLearnerMap(context.user.id, data).pipe(
 				Effect.map(Rpc.ok),
 				Effect.withSpan("submitLearnerMap"),
@@ -97,8 +93,7 @@ export const getDiagnosisRpc = createServerFn()
 	.middleware([authMiddleware])
 	.inputValidator((raw) => Schema.decodeUnknownSync(GetDiagnosisInput)(raw))
 	.handler(({ data, context }) =>
-		Runtime.runPromise(
-			AppRuntime,
+		AppRuntime.runPromise(
 			getDiagnosis(context.user.id, data).pipe(
 				Effect.map(Rpc.ok),
 				Effect.withSpan("getDiagnosis"),
@@ -113,8 +108,7 @@ export const startNewAttemptRpc = createServerFn({ method: "POST" })
 	.middleware([authMiddleware])
 	.inputValidator((raw) => Schema.decodeUnknownSync(StartNewAttemptInput)(raw))
 	.handler(({ data, context }) =>
-		Runtime.runPromise(
-			AppRuntime,
+		AppRuntime.runPromise(
 			startNewAttempt(context.user.id, data).pipe(
 				Effect.map(() => Rpc.ok(true)),
 				Effect.withSpan("startNewAttempt"),
@@ -132,8 +126,7 @@ export const getPeerStatsRpc = createServerFn()
 	.middleware([authMiddleware])
 	.inputValidator((raw) => Schema.decodeUnknownSync(GetPeerStatsInput)(raw))
 	.handler(({ data, context }) =>
-		Runtime.runPromise(
-			AppRuntime,
+		AppRuntime.runPromise(
 			getPeerStats(context.user.id, data).pipe(
 				Effect.map(Rpc.ok),
 				Effect.withSpan("getPeerStats"),
@@ -148,8 +141,7 @@ export const submitControlTextRpc = createServerFn({ method: "POST" })
 	.middleware([authMiddleware])
 	.inputValidator((raw) => Schema.decodeUnknownSync(SubmitControlTextInput)(raw))
 	.handler(({ data, context }) =>
-		Runtime.runPromise(
-			AppRuntime,
+		AppRuntime.runPromise(
 			submitControlText(context.user.id, data).pipe(
 				Effect.map(() => Rpc.ok(true)),
 				Effect.withSpan("submitControlText"),

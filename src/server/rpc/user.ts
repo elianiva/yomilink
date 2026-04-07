@@ -1,6 +1,6 @@
 import { mutationOptions, queryOptions } from "@tanstack/react-query";
 import { createServerFn } from "@tanstack/react-start";
-import { Effect, Runtime, Schema } from "effect";
+import { Effect, Schema } from "effect";
 
 import {
 	BanUserInput,
@@ -28,8 +28,7 @@ export const listUsersRpc = createServerFn()
 	.middleware([requireRoleMiddleware("teacher", "admin")])
 	.inputValidator((raw) => Schema.decodeUnknownSync(UserFilterInput)(raw))
 	.handler(({ data }) =>
-		Runtime.runPromise(
-			AppRuntime,
+		AppRuntime.runPromise(
 			listUsers(data).pipe(
 				Effect.map(Rpc.ok),
 				Effect.withSpan("listUsers"),
@@ -48,8 +47,7 @@ export const getUserByIdRpc = createServerFn()
 		Schema.decodeUnknownSync(Schema.Struct({ userId: Schema.String }))(raw),
 	)
 	.handler(({ data }) =>
-		Runtime.runPromise(
-			AppRuntime,
+		AppRuntime.runPromise(
 			getUserById(data.userId).pipe(
 				Effect.map(Rpc.ok),
 				Effect.withSpan("getUserById"),
@@ -76,8 +74,7 @@ export const updateUserRpc = createServerFn({ method: "POST" })
 		)(raw),
 	)
 	.handler(({ data, context }) =>
-		Runtime.runPromise(
-			AppRuntime,
+		AppRuntime.runPromise(
 			updateUser(context.user.id, data.userId, data.data).pipe(
 				Effect.map(Rpc.ok),
 				Effect.withSpan("updateUser"),
@@ -97,8 +94,7 @@ export const updateUserRoleRpc = createServerFn({ method: "POST" })
 	.middleware([requireRoleMiddleware("admin")])
 	.inputValidator((raw) => Schema.decodeUnknownSync(UpdateRoleInput)(raw))
 	.handler(({ data, context }) =>
-		Runtime.runPromise(
-			AppRuntime,
+		AppRuntime.runPromise(
 			updateUserRole(context.user.id, data).pipe(
 				Effect.map(Rpc.ok),
 				Effect.withSpan("updateUserRole"),
@@ -120,8 +116,7 @@ export const banUserRpc = createServerFn({ method: "POST" })
 	.middleware([requireRoleMiddleware("admin")])
 	.inputValidator((raw) => Schema.decodeUnknownSync(BanUserInput)(raw))
 	.handler(({ data, context }) =>
-		Runtime.runPromise(
-			AppRuntime,
+		AppRuntime.runPromise(
 			banUser(context.user.id, data).pipe(
 				Effect.map(Rpc.ok),
 				Effect.withSpan("banUser"),
@@ -145,8 +140,7 @@ export const unbanUserRpc = createServerFn({ method: "POST" })
 		Schema.decodeUnknownSync(Schema.Struct({ userId: Schema.String }))(raw),
 	)
 	.handler(({ data, context }) =>
-		Runtime.runPromise(
-			AppRuntime,
+		AppRuntime.runPromise(
 			unbanUser(context.user.id, data.userId).pipe(
 				Effect.map(Rpc.ok),
 				Effect.withSpan("unbanUser"),
@@ -167,8 +161,7 @@ export const bulkAssignCohortRpc = createServerFn({ method: "POST" })
 	.middleware([requireRoleMiddleware("teacher", "admin")])
 	.inputValidator((raw) => Schema.decodeUnknownSync(BulkCohortAssignInput)(raw))
 	.handler(({ data }) =>
-		Runtime.runPromise(
-			AppRuntime,
+		AppRuntime.runPromise(
 			bulkAssignCohort(data).pipe(
 				Effect.map(Rpc.ok),
 				Effect.withSpan("bulkAssignCohort"),
@@ -187,8 +180,7 @@ export const triggerPasswordResetRpc = createServerFn({ method: "POST" })
 		Schema.decodeUnknownSync(Schema.Struct({ userId: Schema.String }))(raw),
 	)
 	.handler(({ data }) =>
-		Runtime.runPromise(
-			AppRuntime,
+		AppRuntime.runPromise(
 			triggerPasswordReset(data.userId).pipe(
 				Effect.map(Rpc.ok),
 				Effect.withSpan("triggerPasswordReset"),

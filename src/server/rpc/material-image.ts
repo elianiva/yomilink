@@ -1,6 +1,6 @@
 import { mutationOptions } from "@tanstack/react-query";
 import { createServerFn } from "@tanstack/react-start";
-import { Effect, Runtime, Schema } from "effect";
+import { Effect, Schema } from "effect";
 
 import {
 	uploadMaterialImage,
@@ -15,8 +15,7 @@ export const uploadMaterialImageRpc = createServerFn({ method: "POST" })
 	.middleware([authMiddleware])
 	.inputValidator((raw) => Schema.decodeUnknownSync(UploadMaterialImageInput)(raw))
 	.handler(({ data }) =>
-		Runtime.runPromise(
-			AppRuntime,
+		AppRuntime.runPromise(
 			uploadMaterialImage(data).pipe(
 				Effect.map(Rpc.ok),
 				Effect.withSpan("uploadMaterialImage"),

@@ -1,6 +1,6 @@
 import { mutationOptions, queryOptions } from "@tanstack/react-query";
 import { createServerFn } from "@tanstack/react-start";
-import { Effect, Runtime, Schema } from "effect";
+import { Effect, Schema } from "effect";
 
 import {
 	CloneFormInput,
@@ -45,8 +45,7 @@ export const createFormRpc = createServerFn({ method: "POST" })
 	.middleware([requireRoleMiddleware("teacher", "admin")])
 	.inputValidator((raw) => Schema.decodeUnknownSync(CreateFormInput)(raw))
 	.handler(({ data, context }) =>
-		Runtime.runPromise(
-			AppRuntime,
+		AppRuntime.runPromise(
 			createForm(context.user.id, data).pipe(
 				Effect.map((result) => Rpc.ok(result)),
 				Effect.withSpan("createForm"),
@@ -61,8 +60,7 @@ export const getFormByIdRpc = createServerFn()
 	.middleware([requireRoleMiddleware("teacher", "admin")])
 	.inputValidator((raw) => Schema.decodeUnknownSync(GetFormByIdInput)(raw))
 	.handler(({ data }) =>
-		Runtime.runPromise(
-			AppRuntime,
+		AppRuntime.runPromise(
 			getFormById(data.formId).pipe(
 				Effect.map(Rpc.ok),
 				Effect.withSpan("getFormById"),
@@ -79,8 +77,7 @@ export const getFormByIdRpc = createServerFn()
 export const listFormsRpc = createServerFn()
 	.middleware([requireRoleMiddleware("teacher", "admin")])
 	.handler(({ context }) =>
-		Runtime.runPromise(
-			AppRuntime,
+		AppRuntime.runPromise(
 			listForms(context.user.id).pipe(
 				Effect.map(Rpc.ok),
 				Effect.withSpan("listForms"),
@@ -94,8 +91,7 @@ export const listFormsRpc = createServerFn()
 export const getStudentFormsRpc = createServerFn()
 	.middleware([requireRoleMiddleware("student", "teacher", "admin")])
 	.handler(({ context }) =>
-		Runtime.runPromise(
-			AppRuntime,
+		AppRuntime.runPromise(
 			getStudentForms(context.user.id).pipe(
 				Effect.map(Rpc.ok),
 				Effect.withSpan("getStudentForms"),
@@ -116,8 +112,7 @@ export const getStudentFormByIdRpc = createServerFn()
 	.middleware([requireRoleMiddleware("student", "teacher", "admin")])
 	.inputValidator((raw) => Schema.decodeUnknownSync(GetStudentFormByIdInput)(raw))
 	.handler(({ data, context }) =>
-		Runtime.runPromise(
-			AppRuntime,
+		AppRuntime.runPromise(
 			getStudentFormById(data.formId, context.user.id).pipe(
 				Effect.map(Rpc.ok),
 				Effect.withSpan("getStudentFormById"),
@@ -139,8 +134,7 @@ export const deleteFormRpc = createServerFn({ method: "POST" })
 	.middleware([requireRoleMiddleware("teacher", "admin")])
 	.inputValidator((raw) => Schema.decodeUnknownSync(GetFormByIdInput)(raw))
 	.handler(({ data }) =>
-		Runtime.runPromise(
-			AppRuntime,
+		AppRuntime.runPromise(
 			deleteForm(data.formId).pipe(
 				Effect.map(() => Rpc.ok(true)),
 				Effect.withSpan("deleteForm"),
@@ -158,8 +152,7 @@ export const publishFormRpc = createServerFn({ method: "POST" })
 	.middleware([requireRoleMiddleware("teacher", "admin")])
 	.inputValidator((raw) => Schema.decodeUnknownSync(GetFormByIdInput)(raw))
 	.handler(({ data }) =>
-		Runtime.runPromise(
-			AppRuntime,
+		AppRuntime.runPromise(
 			publishForm(data.formId).pipe(
 				Effect.map(() => Rpc.ok(true)),
 				Effect.withSpan("publishForm"),
@@ -177,8 +170,7 @@ export const unpublishFormRpc = createServerFn({ method: "POST" })
 	.middleware([requireRoleMiddleware("teacher", "admin")])
 	.inputValidator((raw) => Schema.decodeUnknownSync(GetFormByIdInput)(raw))
 	.handler(({ data }) =>
-		Runtime.runPromise(
-			AppRuntime,
+		AppRuntime.runPromise(
 			unpublishForm(data.formId).pipe(
 				Effect.map(() => Rpc.ok(true)),
 				Effect.withSpan("unpublishForm"),
@@ -196,8 +188,7 @@ export const updateFormRpc = createServerFn({ method: "POST" })
 	.middleware([requireRoleMiddleware("teacher", "admin")])
 	.inputValidator((raw) => Schema.decodeUnknownSync(UpdateFormInput)(raw))
 	.handler(({ data }) =>
-		Runtime.runPromise(
-			AppRuntime,
+		AppRuntime.runPromise(
 			updateForm(data.formId, {
 				title: data.title,
 				description: data.description,
@@ -222,8 +213,7 @@ export const cloneFormRpc = createServerFn({ method: "POST" })
 	.middleware([requireRoleMiddleware("teacher", "admin")])
 	.inputValidator((raw) => Schema.decodeUnknownSync(CloneFormInput)(raw))
 	.handler(({ data, context }) =>
-		Runtime.runPromise(
-			AppRuntime,
+		AppRuntime.runPromise(
 			cloneForm(data.formId, context.user.id).pipe(
 				Effect.map(() => Rpc.ok(true)),
 				Effect.withSpan("cloneForm"),
@@ -241,8 +231,7 @@ export const getFormResponsesRpc = createServerFn()
 	.middleware([requireRoleMiddleware("teacher", "admin")])
 	.inputValidator((raw) => Schema.decodeUnknownSync(GetFormResponsesInput)(raw))
 	.handler(({ data }) =>
-		Runtime.runPromise(
-			AppRuntime,
+		AppRuntime.runPromise(
 			getFormResponses(data).pipe(
 				Effect.map(Rpc.ok),
 				Effect.withSpan("getFormResponses"),
@@ -268,8 +257,7 @@ export const submitFormResponseRpc = createServerFn({ method: "POST" })
 	.middleware([requireRoleMiddleware("student", "teacher", "admin")])
 	.inputValidator((raw) => Schema.decodeUnknownSync(SubmitFormResponseInput)(raw))
 	.handler(({ data, context }) =>
-		Runtime.runPromise(
-			AppRuntime,
+		AppRuntime.runPromise(
 			submitFormResponse({
 				...data,
 				userId: context.user.id,
@@ -293,8 +281,7 @@ export const reorderQuestionsRpc = createServerFn({ method: "POST" })
 	.middleware([requireRoleMiddleware("teacher", "admin")])
 	.inputValidator((raw) => Schema.decodeUnknownSync(ReorderQuestionsInput)(raw))
 	.handler(({ data }) =>
-		Runtime.runPromise(
-			AppRuntime,
+		AppRuntime.runPromise(
 			reorderQuestions(data).pipe(
 				Effect.map(() => Rpc.ok(true)),
 				Effect.withSpan("reorderQuestions"),
@@ -316,8 +303,7 @@ export const createQuestionRpc = createServerFn({ method: "POST" })
 	.middleware([requireRoleMiddleware("teacher", "admin")])
 	.inputValidator((raw) => Schema.decodeUnknownSync(CreateQuestionInput)(raw))
 	.handler(({ data }) =>
-		Runtime.runPromise(
-			AppRuntime,
+		AppRuntime.runPromise(
 			createQuestion(data).pipe(
 				Effect.map(() => Rpc.ok(true)),
 				Effect.withSpan("createQuestion"),
@@ -337,8 +323,7 @@ export const updateQuestionRpc = createServerFn({ method: "POST" })
 	.middleware([requireRoleMiddleware("teacher", "admin")])
 	.inputValidator((raw) => Schema.decodeUnknownSync(UpdateQuestionInput)(raw))
 	.handler(({ data }) =>
-		Runtime.runPromise(
-			AppRuntime,
+		AppRuntime.runPromise(
 			updateQuestion(data).pipe(
 				Effect.map(() => Rpc.ok(true)),
 				Effect.withSpan("updateQuestion"),
@@ -358,8 +343,7 @@ export const deleteQuestionRpc = createServerFn({ method: "POST" })
 	.middleware([requireRoleMiddleware("teacher", "admin")])
 	.inputValidator((raw) => Schema.decodeUnknownSync(GetQuestionByIdInput)(raw))
 	.handler(({ data }) =>
-		Runtime.runPromise(
-			AppRuntime,
+		AppRuntime.runPromise(
 			deleteQuestion(data.id).pipe(
 				Effect.map(() => Rpc.ok(true)),
 				Effect.withSpan("deleteQuestion"),
@@ -379,8 +363,7 @@ export const checkFormUnlockRpc = createServerFn()
 	.middleware([requireRoleMiddleware("student", "teacher", "admin")])
 	.inputValidator((raw) => Schema.decodeUnknownSync(CheckFormUnlockInput)(raw))
 	.handler(({ data, context }) =>
-		Runtime.runPromise(
-			AppRuntime,
+		AppRuntime.runPromise(
 			checkFormUnlock({ formId: data.formId, userId: context.user.id }).pipe(
 				Effect.map(Rpc.ok),
 				Effect.withSpan("checkFormUnlock"),
@@ -398,8 +381,7 @@ export const unlockFormRpc = createServerFn({ method: "POST" })
 	.middleware([requireRoleMiddleware("teacher", "admin")])
 	.inputValidator((raw) => Schema.decodeUnknownSync(UnlockFormInput)(raw))
 	.handler(({ data }) =>
-		Runtime.runPromise(
-			AppRuntime,
+		AppRuntime.runPromise(
 			unlockForm({ formId: data.formId, userId: data.userId }).pipe(
 				Effect.map(() => Rpc.ok(true)),
 				Effect.withSpan("unlockForm"),
@@ -413,8 +395,7 @@ export const unlockFormRpc = createServerFn({ method: "POST" })
 export const getRegistrationFormStatusRpc = createServerFn()
 	.middleware([requireRoleMiddleware("student", "teacher", "admin")])
 	.handler(({ context }) =>
-		Runtime.runPromise(
-			AppRuntime,
+		AppRuntime.runPromise(
 			getRegistrationFormStatus(context.user.id).pipe(
 				Effect.map(Rpc.ok),
 				Effect.withSpan("getRegistrationFormStatus"),

@@ -1,6 +1,6 @@
 import { mutationOptions, queryOptions } from "@tanstack/react-query";
 import { createServerFn } from "@tanstack/react-start";
-import { Effect, Runtime, Schema } from "effect";
+import { Effect, Schema } from "effect";
 
 import { listTopics, createTopic, CreateTopicInput } from "@/features/analyzer/lib/topic-service";
 import { authMiddleware } from "@/middlewares/auth";
@@ -11,8 +11,7 @@ import { Rpc, logRpcError, logAndReturnError, logAndReturnDefect } from "../rpc-
 export const listTopicsRpc = createServerFn()
 	.middleware([authMiddleware])
 	.handler(() =>
-		Runtime.runPromise(
-			AppRuntime,
+		AppRuntime.runPromise(
 			listTopics().pipe(
 				Effect.map(Rpc.ok),
 				Effect.withSpan("listTopics"),
@@ -27,8 +26,7 @@ export const createTopicRpc = createServerFn({ method: "POST" })
 	.middleware([authMiddleware])
 	.inputValidator((raw) => Schema.decodeUnknownSync(CreateTopicInput)(raw))
 	.handler(({ data }) =>
-		Runtime.runPromise(
-			AppRuntime,
+		AppRuntime.runPromise(
 			createTopic(data).pipe(
 				Effect.map(Rpc.ok),
 				Effect.withSpan("createTopic"),

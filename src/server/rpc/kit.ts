@@ -1,6 +1,6 @@
 import { mutationOptions, queryOptions } from "@tanstack/react-query";
 import { createServerFn } from "@tanstack/react-start";
-import { Effect, Runtime, Schema } from "effect";
+import { Effect, Schema } from "effect";
 
 import {
 	GenerateKitInput,
@@ -19,8 +19,7 @@ import { Rpc, logRpcError, logAndReturnError, logAndReturnDefect } from "../rpc-
 export const listStudentKitsRpc = createServerFn()
 	.middleware([requireRoleMiddleware("teacher", "admin")])
 	.handler(() =>
-		Runtime.runPromise(
-			AppRuntime,
+		AppRuntime.runPromise(
 			listStudentKits().pipe(
 				Effect.map(Rpc.ok),
 				Effect.withSpan("listStudentKits"),
@@ -35,8 +34,7 @@ export const getKitRpc = createServerFn()
 	.middleware([requireRoleMiddleware("teacher", "admin")])
 	.inputValidator((raw) => Schema.decodeUnknownSync(GetKitInput)(raw))
 	.handler(({ data }) =>
-		Runtime.runPromise(
-			AppRuntime,
+		AppRuntime.runPromise(
 			getKit(data).pipe(
 				Effect.map(Rpc.ok),
 				Effect.withSpan("getKit"),
@@ -51,8 +49,7 @@ export const getKitStatusRpc = createServerFn()
 	.middleware([requireRoleMiddleware("teacher", "admin")])
 	.inputValidator((raw) => Schema.decodeUnknownSync(GetKitStatusInput)(raw))
 	.handler(({ data }) =>
-		Runtime.runPromise(
-			AppRuntime,
+		AppRuntime.runPromise(
 			getKitStatus(data).pipe(
 				Effect.map(Rpc.ok),
 				Effect.withSpan("getKitStatus"),
@@ -67,8 +64,7 @@ export const generateKitRpc = createServerFn({ method: "POST" })
 	.middleware([requireRoleMiddleware("teacher", "admin")])
 	.inputValidator((raw) => Schema.decodeUnknownSync(GenerateKitInput)(raw))
 	.handler(({ data, context }) =>
-		Runtime.runPromise(
-			AppRuntime,
+		AppRuntime.runPromise(
 			generateKit(context.user.id, data).pipe(
 				Effect.map(() => Rpc.ok(true)),
 				Effect.withSpan("generateKit"),
