@@ -8,7 +8,6 @@ import {
 	type FormData,
 	type QuestionWithOptions,
 } from "@/features/form/components/form-taker";
-import { unwrap } from "@/hooks/use-rpc-error";
 import { useRpcMutation, useRpcQuery } from "@/hooks/use-rpc-query";
 import { FormRpc } from "@/server/rpc/form";
 
@@ -32,8 +31,6 @@ function FormTakerPage() {
 		...FormRpc.getStudentFormById(formId ?? ""),
 		enabled: !!formId,
 	});
-	const { data: studentForms } = useRpcQuery(FormRpc.getStudentForms());
-
 	const submitMutation = useRpcMutation(FormRpc.submitFormResponse(), {
 		operation: "submit form",
 		showSuccess: true,
@@ -49,16 +46,8 @@ function FormTakerPage() {
 			}
 
 			if (data?.form.type === "post_test") {
-				const forms =
-					studentForms ??
-					unwrap(await queryClient.fetchQuery(FormRpc.getStudentForms())) ??
-					[];
-				const tamForm = forms.find((form) => form.type === "tam" && form.isUnlocked);
-
-				if (tamForm) {
-					window.location.href = `/dashboard/forms/take?formId=${tamForm.id}${returnTo ? `&returnTo=${encodeURIComponent(returnTo)}` : ""}`;
-					return;
-				}
+				void navigate({ to: "/dashboard/assignments/" });
+				return;
 			}
 
 			if (returnTo) {

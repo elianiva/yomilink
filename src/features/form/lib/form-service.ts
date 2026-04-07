@@ -1055,9 +1055,9 @@ export const getRegistrationFormStatus = Effect.fn("getRegistrationFormStatus")(
 
 // Get all published forms for students with unlock status
 
-// Form type priority order for sequential unlocking (research protocol)
-// pre_test → post_test → tam/control → delayed_test
-// Note: registration is handled during sign-up, so pre_test is first in dashboard
+// Form type priority order for display and required flow
+// registration → pre_test → post_test → delayed_test
+// TAM/control are optional questionnaires, shown once published for the matching group
 const FORM_TYPE_PRIORITY: Record<FormType, number> = {
 	registration: -1, // Completed during sign-up, not shown in dashboard
 	pre_test: 0,
@@ -1083,26 +1083,16 @@ function areAllFormsOfTypeCompleted(
 	return formsOfType.every((f) => progressMap.get(f.id)?.status === "completed");
 }
 
-function getTypesAtPriority(priority: number): FormType[] {
-	return (Object.entries(FORM_TYPE_PRIORITY) as [FormType, number][])
-		.filter(([, p]) => p === priority)
-		.map(([type]) => type);
-}
+const OPTIONAL_FORM_TYPES = new Set<FormType>(["tam", "control"]);
+const REQUIRED_FORM_TYPES: FormType[] = ["pre_test", "post_test", "delayed_test"];
 
 function getNextRequiredType(
 	completed: Set<FormType>,
 	available: Set<FormType>,
-	studyGroup: "experiment" | "control" | null,
 ): FormType | null {
-	for (let priority = 0; priority <= 4; priority++) {
-		for (const type of getTypesAtPriority(priority)) {
-			// TAM only for experiment, control only for control group
-			if (type === "tam" && studyGroup === "control") continue;
-			if (type === "control" && studyGroup === "experiment") continue;
-
-			if (available.has(type) && !completed.has(type)) {
-				return type;
-			}
+	for (const type of REQUIRED_FORM_TYPES) {
+		if (available.has(type) && !completed.has(type)) {
+			return type;
 		}
 	}
 	return null;
@@ -1122,7 +1112,7 @@ function shouldExcludeForm(
 }
 
 // Get all published forms for students with sequential unlock status
-// Enforces order: registration → pre_test → post_test → (tam|control) → delayed_test
+// Enforces order: registration → pre_test → post_test → delayed_test
 export const getStudentForms = Effect.fn("getStudentForms")(function* (userId: string) {
 	const db = yield* Database;
 
@@ -1163,7 +1153,7 @@ export const getStudentForms = Effect.fn("getStudentForms")(function* (userId: s
 	}
 
 	// Find next required type to complete
-	const nextRequired = getNextRequiredType(completedTypes, availableTypes, studyGroup);
+	const nextRequired = getNextRequiredType(completedTypes, availableTypes);
 	const nextPriority = nextRequired ? FORM_TYPE_PRIORITY[nextRequired] : Infinity;
 
 	// Sort applicable forms by priority order for sequential display
@@ -1171,14 +1161,20 @@ export const getStudentForms = Effect.fn("getStudentForms")(function* (userId: s
 
 	const formsWithStatus = sortedForms.map((form) => {
 		const progress = progressMap.get(form.id);
+		const isOptionalForm = OPTIONAL_FORM_TYPES.has(form.type);
 		let unlockStatus: "locked" | "available" | "completed" = progress?.status ?? "locked";
 		let isUnlocked = progress?.status === "available" || progress?.status === "completed";
 
-		// Lock future types until current priority is fully completed
-		const formPriority = FORM_TYPE_PRIORITY[form.type];
-		if (formPriority > nextPriority && unlockStatus !== "completed") {
-			unlockStatus = "locked";
-			isUnlocked = false;
+		if (isOptionalForm) {
+			unlockStatus = progress?.status === "completed" ? "completed" : "available";
+			isUnlocked = true;
+		} else {
+			// Lock future types until current required priority is fully completed
+			const formPriority = FORM_TYPE_PRIORITY[form.type];
+			if (formPriority > nextPriority && unlockStatus !== "completed") {
+				unlockStatus = "locked";
+				isUnlocked = false;
+			}
 		}
 
 		return {

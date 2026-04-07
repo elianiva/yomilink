@@ -320,8 +320,7 @@ export function LearnerMapResult() {
 												to="/dashboard/forms/take"
 												search={{
 													formId: assignment.postTestFormId,
-													returnTo: `/dashboard/learner-map/${assignmentId}/result`,
-												}}
+																	}}
 											>
 												Take Post-Test
 											</Link>
