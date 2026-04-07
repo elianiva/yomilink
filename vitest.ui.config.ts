@@ -26,6 +26,7 @@ export default defineConfig({
 			"src/features/kitbuild/lib/floating-edge-utils.test.ts",
 			"src/features/learner-map/lib/grid-layout.test.ts",
 			"src/features/learner-map/lib/comparator.test.ts",
+			"src/features/form/components/prerequisite-gateway.test.tsx",
 		],
 		setupFiles: ["./src/__tests__/setup/ui.ts"],
 		name: "ui",

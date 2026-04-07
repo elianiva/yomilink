@@ -3,7 +3,7 @@ import { lazy, Suspense } from "react";
 
 import { Guard } from "@/components/auth/Guard";
 import { Skeleton } from "@/components/ui/skeleton";
-import { PreTestGateway } from "@/features/form/components/pre-test-gateway";
+import { PrerequisiteGateway } from "@/features/form/components/prerequisite-gateway";
 import { useRpcQuery } from "@/hooks/use-rpc-query";
 import { LearnerMapRpc } from "@/server/rpc/learner-map";
 
@@ -60,9 +60,10 @@ function LearnerMapPage() {
 
 	return (
 		<Guard roles={["student"]}>
-			<PreTestGateway
-				preTestFormId={preTestFormId ?? ""}
-				assignmentId={assignmentId}
+			<PrerequisiteGateway
+				requiredFormId={preTestFormId ?? ""}
+				type="pre-test"
+				returnTo={`/dashboard/learner-map/${assignmentId}`}
 				enabled={!!preTestFormId}
 				title="Pre-Test Required"
 				description="You must complete the pre-test before starting this assignment. This helps us measure your learning progress."
@@ -71,7 +72,7 @@ function LearnerMapPage() {
 				<Suspense fallback={<LearnerMapSkeleton />}>
 					<LearnerMapEditorWrapper />
 				</Suspense>
-			</PreTestGateway>
+			</PrerequisiteGateway>
 		</Guard>
 	);
 }

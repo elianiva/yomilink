@@ -4,7 +4,7 @@ import { Data, Effect, Schema } from "effect";
 
 import { safeParseJson } from "@/lib/utils";
 import { Database } from "@/server/db/client";
-import { formProgress, forms, learnerMaps } from "@/server/db/schema/app-schema";
+import { assignments, formProgress, forms, learnerMaps } from "@/server/db/schema/app-schema";
 
 const TimeBasedCondition = Schema.Struct({
 	type: Schema.Literal("time"),
@@ -24,10 +24,16 @@ const ManualCondition = Schema.Struct({
 	type: Schema.Literal("manual"),
 });
 
+const AssignmentCondition = Schema.Struct({
+	type: Schema.Literal("assignment"),
+	assignmentId: Schema.String,
+});
+
 export const UnlockConditionSchema = Schema.Union(
 	TimeBasedCondition,
 	PrerequisiteCondition,
 	ManualCondition,
+	AssignmentCondition,
 );
 
 export const FormUnlockConditionsSchema = Schema.Struct({
@@ -166,6 +172,45 @@ export const checkManualCondition = Effect.fn("checkManualCondition")(function* 
 	};
 });
 
+export const checkAssignmentCondition = Effect.fn("checkAssignmentCondition")(function* (
+	condition: UnlockConditionType,
+	userId: string,
+) {
+	if (condition.type !== "assignment") {
+		return {
+			isUnlocked: false,
+			reason: "Invalid condition type",
+			unlockAt: null as string | null,
+		};
+	}
+
+	const db = yield* Database;
+
+	const assignmentId = (condition as { assignmentId: string }).assignmentId;
+
+	// Check if learner has submitted a learner map for this assignment
+	const learnerMapRows = yield* db
+		.select()
+		.from(learnerMaps)
+		.where(
+			and(
+				eq(learnerMaps.assignmentId, assignmentId),
+				eq(learnerMaps.userId, userId),
+				eq(learnerMaps.status, "submitted"),
+				isNotNull(learnerMaps.submittedAt),
+			),
+		)
+		.limit(1);
+
+	const isUnlocked = learnerMapRows.length > 0;
+
+	return {
+		isUnlocked,
+		reason: isUnlocked ? null : "Complete the assignment tasks first",
+		unlockAt: null as string | null,
+	};
+});
+
 const checkUnlockCondition = Effect.fn("checkUnlockCondition")(function* (
 	condition: UnlockConditionType,
 	userId: string,
@@ -179,6 +224,9 @@ const checkUnlockCondition = Effect.fn("checkUnlockCondition")(function* (
 	}
 	if (condition.type === "manual") {
 		return yield* checkManualCondition(condition, userId, formId);
+	}
+	if (condition.type === "assignment") {
+		return yield* checkAssignmentCondition(condition, userId);
 	}
 	return {
 		isUnlocked: false,
@@ -218,7 +266,71 @@ export const checkFormUnlock = Effect.fn("checkFormUnlock")(function* (
 		FormUnlockConditionsNullable,
 	);
 
+	// If no explicit unlock conditions, check if this is a post-test or delayed-test
+	// linked to an assignment that requires completion
 	if (!unlockConditions || unlockConditions.conditions.length === 0) {
+		// For post_test and delayed_test types, check assignment completion
+		if (form.type === "post_test" || form.type === "delayed_test") {
+			// Find assignment that uses this form
+			const assignmentRows = yield* db
+				.select()
+				.from(assignments)
+				.where(
+					form.type === "post_test"
+						? eq(assignments.postTestFormId, input.formId)
+						: eq(assignments.delayedPostTestFormId, input.formId),
+				)
+				.limit(1);
+
+			if (assignmentRows.length > 0) {
+				const assignment = assignmentRows[0];
+				// Check if user has submitted learner map for this assignment
+				const submittedMapRows = yield* db
+					.select()
+					.from(learnerMaps)
+					.where(
+						and(
+							eq(learnerMaps.assignmentId, assignment.id),
+							eq(learnerMaps.userId, input.userId),
+							eq(learnerMaps.status, "submitted"),
+							isNotNull(learnerMaps.submittedAt),
+						),
+					)
+					.limit(1);
+
+				const isUnlocked = submittedMapRows.length > 0;
+
+				// For delayed test, also check time delay
+				if (
+					isUnlocked &&
+					form.type === "delayed_test" &&
+					assignment.delayedPostTestDelayDays
+				) {
+					const submittedAt = submittedMapRows[0].submittedAt;
+					if (submittedAt) {
+						const unlockAt = new Date(submittedAt);
+						unlockAt.setDate(unlockAt.getDate() + assignment.delayedPostTestDelayDays);
+						const now = new Date();
+						const isTimeUnlocked = unlockAt <= now;
+
+						return {
+							isUnlocked: isTimeUnlocked,
+							reason: isTimeUnlocked
+								? null
+								: `Available after ${unlockAt.toLocaleDateString()}`,
+							earliestUnlockAt: isTimeUnlocked ? null : unlockAt.toISOString(),
+						};
+					}
+				}
+
+				return {
+					isUnlocked,
+					reason: isUnlocked ? null : "Complete the assignment tasks first",
+					earliestUnlockAt: null,
+				};
+			}
+		}
+
 		return {
 			isUnlocked: true,
 			reason: null,

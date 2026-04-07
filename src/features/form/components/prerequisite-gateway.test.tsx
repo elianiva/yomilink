@@ -3,7 +3,7 @@ import { beforeEach, describe, expect, it, vi } from "vite-plus/test";
 
 import * as useFormUnlock from "@/hooks/use-form-unlock";
 
-import { PreTestGateway } from "./pre-test-gateway";
+import { PrerequisiteGateway } from "./prerequisite-gateway";
 
 vi.mock("@/hooks/use-form-unlock", () => ({
 	useFormUnlock: vi.fn(),
@@ -13,12 +13,12 @@ vi.mock("@tanstack/react-router", () => ({
 	useNavigate: () => vi.fn(),
 }));
 
-describe("PreTestGateway", () => {
+describe("PrerequisiteGateway", () => {
 	beforeEach(() => {
 		vi.clearAllMocks();
 	});
 
-	it("renders children when no preTestFormId provided", () => {
+	it("renders children when no requiredFormId provided", () => {
 		const mockUseFormUnlock = vi.mocked(useFormUnlock.useFormUnlock);
 		mockUseFormUnlock.mockReturnValue({
 			data: undefined,
@@ -30,9 +30,9 @@ describe("PreTestGateway", () => {
 		} as any);
 
 		render(
-			<PreTestGateway preTestFormId="">
+			<PrerequisiteGateway requiredFormId="">
 				<div data-testid="children">Child Content</div>
-			</PreTestGateway>,
+			</PrerequisiteGateway>,
 		);
 
 		expect(screen.getByTestId("children")).toBeInTheDocument();
@@ -50,9 +50,9 @@ describe("PreTestGateway", () => {
 		} as any);
 
 		render(
-			<PreTestGateway preTestFormId="form-123" enabled={false}>
+			<PrerequisiteGateway requiredFormId="form-123" enabled={false}>
 				<div data-testid="children">Child Content</div>
-			</PreTestGateway>,
+			</PrerequisiteGateway>,
 		);
 
 		expect(screen.getByTestId("children")).toBeInTheDocument();
@@ -74,9 +74,9 @@ describe("PreTestGateway", () => {
 		} as any);
 
 		render(
-			<PreTestGateway preTestFormId="form-123" assignmentId="assign-1">
+			<PrerequisiteGateway requiredFormId="form-123">
 				<div data-testid="children">Child Content</div>
-			</PreTestGateway>,
+			</PrerequisiteGateway>,
 		);
 
 		await waitFor(() => {
@@ -84,7 +84,7 @@ describe("PreTestGateway", () => {
 		});
 	});
 
-	it("renders gateway when form is locked", async () => {
+	it("renders pre-test gateway when form is locked", async () => {
 		const mockUseFormUnlock = vi.mocked(useFormUnlock.useFormUnlock);
 		mockUseFormUnlock.mockReturnValue({
 			data: {
@@ -104,13 +104,78 @@ describe("PreTestGateway", () => {
 		} as any);
 
 		render(
-			<PreTestGateway preTestFormId="form-123" assignmentId="assign-1">
+			<PrerequisiteGateway requiredFormId="form-123" type="pre-test">
 				<div data-testid="children">Child Content</div>
-			</PreTestGateway>,
+			</PrerequisiteGateway>,
 		);
 
 		await waitFor(() => {
 			expect(screen.getByText("Pre-Test Required")).toBeInTheDocument();
+		});
+	});
+
+	it("renders post-test gateway with default config", async () => {
+		const mockUseFormUnlock = vi.mocked(useFormUnlock.useFormUnlock);
+		mockUseFormUnlock.mockReturnValue({
+			data: {
+				isUnlocked: false,
+				reason: "Complete assignment tasks first",
+				earliestUnlockAt: null,
+			},
+			isLoading: false,
+			error: null,
+			status: {
+				isUnlocked: false,
+				reason: "Complete assignment tasks first",
+				earliestUnlockAt: null,
+			},
+			isUnlocked: false,
+			refetch: vi.fn(),
+		} as any);
+
+		render(
+			<PrerequisiteGateway requiredFormId="form-123" type="post-test">
+				<div data-testid="children">Child Content</div>
+			</PrerequisiteGateway>,
+		);
+
+		await waitFor(() => {
+			expect(screen.getByText("Assignment Task Required")).toBeInTheDocument();
+			expect(
+				screen.getByText(
+					"You must complete the assignment tasks before taking the post-test.",
+				),
+			).toBeInTheDocument();
+		});
+	});
+
+	it("renders delayed-test gateway with default config", async () => {
+		const mockUseFormUnlock = vi.mocked(useFormUnlock.useFormUnlock);
+		mockUseFormUnlock.mockReturnValue({
+			data: {
+				isUnlocked: false,
+				reason: "Waiting period required",
+				earliestUnlockAt: null,
+			},
+			isLoading: false,
+			error: null,
+			status: {
+				isUnlocked: false,
+				reason: "Waiting period required",
+				earliestUnlockAt: null,
+			},
+			isUnlocked: false,
+			refetch: vi.fn(),
+		} as any);
+
+		render(
+			<PrerequisiteGateway requiredFormId="form-123" type="delayed-test">
+				<div data-testid="children">Child Content</div>
+			</PrerequisiteGateway>,
+		);
+
+		await waitFor(() => {
+			expect(screen.getByText("Waiting Period Required")).toBeInTheDocument();
 		});
 	});
 
@@ -134,13 +199,13 @@ describe("PreTestGateway", () => {
 		} as any);
 
 		render(
-			<PreTestGateway
-				preTestFormId="form-123"
+			<PrerequisiteGateway
+				requiredFormId="form-123"
 				title="Custom Title"
 				description="Custom Description"
 			>
 				<div data-testid="children">Child Content</div>
-			</PreTestGateway>,
+			</PrerequisiteGateway>,
 		);
 
 		await waitFor(() => {
@@ -149,7 +214,7 @@ describe("PreTestGateway", () => {
 		});
 	});
 
-	it("shows error state when error is present", async () => {
+	it("shows gateway when error is present", async () => {
 		const mockUseFormUnlock = vi.mocked(useFormUnlock.useFormUnlock);
 		mockUseFormUnlock.mockReturnValue({
 			data: undefined,
@@ -161,13 +226,13 @@ describe("PreTestGateway", () => {
 		} as any);
 
 		render(
-			<PreTestGateway preTestFormId="form-123">
+			<PrerequisiteGateway requiredFormId="form-123" type="pre-test">
 				<div data-testid="children">Child Content</div>
-			</PreTestGateway>,
+			</PrerequisiteGateway>,
 		);
 
 		await waitFor(() => {
-			expect(screen.getByText("Failed to check pre-test status")).toBeInTheDocument();
+			expect(screen.getByText("Pre-Test Required")).toBeInTheDocument();
 		});
 	});
 
@@ -183,9 +248,9 @@ describe("PreTestGateway", () => {
 		} as any);
 
 		render(
-			<PreTestGateway preTestFormId="form-123">
+			<PrerequisiteGateway requiredFormId="form-123">
 				<div data-testid="children">Child Content</div>
-			</PreTestGateway>,
+			</PrerequisiteGateway>,
 		);
 
 		expect(screen.queryByTestId("children")).not.toBeInTheDocument();

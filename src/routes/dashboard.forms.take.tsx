@@ -8,6 +8,10 @@ import {
 	type FormData,
 	type QuestionWithOptions,
 } from "@/features/form/components/form-taker";
+import {
+	PrerequisiteGateway,
+	type PrerequisiteType,
+} from "@/features/form/components/prerequisite-gateway";
 import { useRpcMutation, useRpcQuery } from "@/hooks/use-rpc-query";
 import { FormRpc } from "@/server/rpc/form";
 
@@ -141,6 +145,22 @@ function FormTakerPage() {
 		});
 	};
 
+	// Determine gateway type based on form type
+	const getGatewayType = (formType: string): PrerequisiteType => {
+		switch (formType) {
+			case "pre_test":
+				return "pre-test";
+			case "post_test":
+				return "post-test";
+			case "delayed_test":
+				return "delayed-test";
+			default:
+				return "generic";
+		}
+	};
+
+	const gatewayType = getGatewayType(data.form.type);
+
 	return (
 		<div className="container max-w-2xl mx-auto py-8 px-4">
 			<Button variant="ghost" size="sm" onClick={handleBack} className="mb-4">
@@ -148,12 +168,21 @@ function FormTakerPage() {
 				Back to Forms
 			</Button>
 
-			<FormTaker
-				form={formData}
-				questions={questionData}
-				onSubmit={handleSubmit}
-				submitting={submitMutation.isPending}
-			/>
+			<PrerequisiteGateway
+				requiredFormId={formId}
+				type={gatewayType}
+				returnTo={returnTo}
+				enabled={!!formId}
+				navigateTo="/dashboard/forms/take"
+				navigateParams={{ formId }}
+			>
+				<FormTaker
+					form={formData}
+					questions={questionData}
+					onSubmit={handleSubmit}
+					submitting={submitMutation.isPending}
+				/>
+			</PrerequisiteGateway>
 		</div>
 	);
 }
