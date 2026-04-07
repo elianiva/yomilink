@@ -1,10 +1,10 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { env } from "cloudflare:workers";
-import { Effect } from "effect";
+import { Effect, Runtime } from "effect";
 
 import { getServerUser } from "@/lib/auth";
 import { requireGoalMapAccess } from "@/lib/auth-authorization";
-import { DatabaseLive } from "@/server/db/client";
+import { AppRuntime } from "@/server/app-runtime";
 
 export const Route = createFileRoute("/api/materials/images/$goalMapId/$imageId")({
 	server: {
@@ -12,8 +12,8 @@ export const Route = createFileRoute("/api/materials/images/$goalMapId/$imageId"
 			GET: async ({ params, request }) => {
 				const { goalMapId, imageId } = params;
 
-				const result = await Effect.gen(function* () {
-					const user = yield* Effect.tryPromise(() => getServerUser(request.headers));
+				const effect = Effect.gen(function* () {
+					const user = yield* getServerUser(request.headers);
 
 					if (!user) {
 						return new Response("Unauthorized", { status: 401 });
@@ -41,17 +41,9 @@ export const Route = createFileRoute("/api/materials/images/$goalMapId/$imageId"
 					headers.set("Cache-Control", "public, max-age=86400");
 
 					return new Response(object.body, { headers });
-				}).pipe(
-					Effect.provide(DatabaseLive),
-					Effect.catchTag("UnknownException", (e) =>
-						Effect.succeed(
-							new Response(e instanceof Error ? e.message : "Unknown error", {
-								status: 500,
-							}),
-						),
-					),
-					Effect.runPromise,
-				);
+				});
+
+				const result = await Runtime.runPromise(AppRuntime, effect);
 
 				return result;
 			},

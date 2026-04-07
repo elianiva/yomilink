@@ -1,6 +1,6 @@
 import { queryOptions, mutationOptions } from "@tanstack/react-query";
 import { createServerFn } from "@tanstack/react-start";
-import { Data, Effect, Layer, Schema } from "effect";
+import { Data, Effect, Runtime, Schema } from "effect";
 
 import { Auth } from "@/lib/auth";
 import { randomString } from "@/lib/utils";
@@ -9,14 +9,8 @@ import { authMiddlewareOptional } from "@/middlewares/auth";
 import { Database } from "@/server/db/client";
 import { cohortMembers, cohorts } from "@/server/db/schema/auth-schema";
 
-import { AppLayer } from "../app-layer";
-import {
-	Rpc,
-	logRpcError,
-	logAndReturnError,
-	logAndReturnDefect,
-	type RpcResult,
-} from "../rpc-helper";
+import { AppRuntime } from "../app-runtime";
+import { Rpc, logRpcError, logAndReturnError, logAndReturnDefect } from "../rpc-helper";
 
 export const JlptLevelSchema = Schema.Union(Schema.Literal("N5", "N4", "N3", "N2", "N1", "None"));
 
@@ -68,54 +62,56 @@ export const signUpRpc = createServerFn({ method: "POST" })
 	.middleware([authMiddlewareOptional])
 	.inputValidator((raw) => Schema.decodeUnknownSync(SignUpInput)(raw))
 	.handler(({ data }) =>
-		Effect.gen(function* () {
-			const auth = yield* Auth;
-			const db = yield* Database;
+		Runtime.runPromise(
+			AppRuntime,
+			Effect.gen(function* () {
+				const auth = yield* Auth;
+				const db = yield* Database;
 
-			const result = yield* Effect.tryPromise({
-				try: () =>
-					auth.api.signUpEmail({
-						body: {
-							name: data.name,
-							email: data.email,
-							password: data.password,
-							age: data.age ?? undefined,
-							studentId: data.studentId ?? undefined,
-							jlptLevel: data.jlptLevel,
-							japaneseLearningDuration: data.japaneseLearningDuration ?? undefined,
-							previousJapaneseScore: data.previousJapaneseScore ?? undefined,
-							mediaConsumption: data.mediaConsumption ?? undefined,
-							motivation: data.motivation ?? undefined,
-							studyGroup: data.studyGroup,
-							consentGiven: data.consentGiven,
-						},
-					}),
-				catch: (e) => new SignUpFailedError({ message: getFriendlySignUpError(e) }),
-			});
+				const result = yield* Effect.tryPromise({
+					try: () =>
+						auth.api.signUpEmail({
+							body: {
+								name: data.name,
+								email: data.email,
+								password: data.password,
+								age: data.age ?? undefined,
+								studentId: data.studentId ?? undefined,
+								jlptLevel: data.jlptLevel,
+								japaneseLearningDuration:
+									data.japaneseLearningDuration ?? undefined,
+								previousJapaneseScore: data.previousJapaneseScore ?? undefined,
+								mediaConsumption: data.mediaConsumption ?? undefined,
+								motivation: data.motivation ?? undefined,
+								studyGroup: data.studyGroup,
+								consentGiven: data.consentGiven,
+							},
+						}),
+					catch: (e) => new SignUpFailedError({ message: getFriendlySignUpError(e) }),
+				});
 
-			if (!result || !result.user) {
-				return yield* new SignUpFailedError({ message: "Signup returned no result" });
-			}
+				if (!result || !result.user) {
+					return yield* new SignUpFailedError({ message: "Signup returned no result" });
+				}
 
-			// Add user to the selected cohort
-			yield* db.insert(cohortMembers).values({
-				id: randomString(),
-				userId: result.user.id,
-				cohortId: data.cohortId,
-				role: "member",
-			});
+				// Add user to the selected cohort
+				yield* db.insert(cohortMembers).values({
+					id: randomString(),
+					userId: result.user.id,
+					cohortId: data.cohortId,
+					role: "member",
+				});
 
-			return Rpc.ok({ success: true });
-		}).pipe(
-			Effect.withSpan("signUp"),
-			Effect.tapError(logRpcError("signUp")),
-			Effect.catchTags({
-				SignUpFailedError: (e) => Rpc.err(e.message),
-			}),
-			Effect.catchAll(logAndReturnError("signUp")),
-			Effect.catchAllDefect(logAndReturnDefect("signUp")),
-			Effect.provide(Layer.merge(AppLayer, Auth.Default)),
-			Effect.runPromise,
+				return Rpc.ok({ success: true });
+			}).pipe(
+				Effect.withSpan("signUp"),
+				Effect.tapError(logRpcError("signUp")),
+				Effect.catchTags({
+					SignUpFailedError: (e) => Rpc.err(e.message),
+				}),
+				Effect.catchAll(logAndReturnError("signUp")),
+				Effect.catchAllDefect(logAndReturnDefect("signUp")),
+			),
 		),
 	);
 
@@ -129,30 +125,31 @@ export const AuthRpc = {
 	listCohorts: () =>
 		queryOptions({
 			queryKey: [...AuthRpc.auth(), "cohorts"],
-			queryFn: () => listCohortsRpc() as Promise<RpcResult<{ id: string; name: string }[]>>,
+			queryFn: () => listCohortsRpc(),
 		}),
 };
 
 export const listCohortsRpc = createServerFn()
 	.middleware([authMiddlewareOptional])
 	.handler(() =>
-		Effect.gen(function* () {
-			const db = yield* Database;
-			const rows = yield* db
-				.select({
-					id: cohorts.id,
-					name: cohorts.name,
-				})
-				.from(cohorts)
-				.orderBy(cohorts.name);
+		Runtime.runPromise(
+			AppRuntime,
+			Effect.gen(function* () {
+				const db = yield* Database;
+				const rows = yield* db
+					.select({
+						id: cohorts.id,
+						name: cohorts.name,
+					})
+					.from(cohorts)
+					.orderBy(cohorts.name);
 
-			return Rpc.ok(rows);
-		}).pipe(
-			Effect.withSpan("listCohorts"),
-			Effect.tapError(logRpcError("listCohorts")),
-			Effect.catchAll(logAndReturnError("listCohorts")),
-			Effect.catchAllDefect(logAndReturnDefect("listCohorts")),
-			Effect.provide(AppLayer),
-			Effect.runPromise,
+				return Rpc.ok(rows);
+			}).pipe(
+				Effect.withSpan("listCohorts"),
+				Effect.tapError(logRpcError("listCohorts")),
+				Effect.catchAll(logAndReturnError("listCohorts")),
+				Effect.catchAllDefect(logAndReturnDefect("listCohorts")),
+			),
 		),
 	);

@@ -1,6 +1,6 @@
 import { mutationOptions, queryOptions } from "@tanstack/react-query";
 import { createServerFn } from "@tanstack/react-start";
-import { Effect, Schema } from "effect";
+import { Effect, Runtime, Schema } from "effect";
 
 import {
 	listStudentAssignments,
@@ -21,20 +21,21 @@ import {
 } from "@/features/learner-map/lib/learner-map-service";
 import { authMiddleware } from "@/middlewares/auth";
 
-import { AppLayer } from "../app-layer";
+import { AppRuntime } from "../app-runtime";
 import { Rpc, logRpcError, logAndReturnError, logAndReturnDefect } from "../rpc-helper";
 
 export const listStudentAssignmentsRpc = createServerFn()
 	.middleware([authMiddleware])
 	.handler(({ context }) =>
-		listStudentAssignments(context.user.id).pipe(
-			Effect.map(Rpc.ok),
-			Effect.withSpan("listStudentAssignments"),
-			Effect.tapError(logRpcError("listStudentAssignments")),
-			Effect.catchAll(logAndReturnError("listStudentAssignments")),
-			Effect.catchAllDefect(logAndReturnDefect("listStudentAssignments")),
-			Effect.provide(AppLayer),
-			Effect.runPromise,
+		Runtime.runPromise(
+			AppRuntime,
+			listStudentAssignments(context.user.id).pipe(
+				Effect.map(Rpc.ok),
+				Effect.withSpan("listStudentAssignments"),
+				Effect.tapError(logRpcError("listStudentAssignments")),
+				Effect.catchAll(logAndReturnError("listStudentAssignments")),
+				Effect.catchAllDefect(logAndReturnDefect("listStudentAssignments")),
+			),
 		),
 	);
 
@@ -42,14 +43,15 @@ export const getAssignmentForStudentRpc = createServerFn()
 	.middleware([authMiddleware])
 	.inputValidator((raw) => Schema.decodeUnknownSync(GetAssignmentForStudentInput)(raw))
 	.handler(({ data, context }) =>
-		getAssignmentForStudent(context.user.id, data).pipe(
-			Effect.map(Rpc.ok),
-			Effect.withSpan("getAssignmentForStudent"),
-			Effect.tapError(logRpcError("getAssignmentForStudent")),
-			Effect.catchAll(logAndReturnError("getAssignmentForStudent")),
-			Effect.catchAllDefect(logAndReturnDefect("getAssignmentForStudent")),
-			Effect.provide(AppLayer),
-			Effect.runPromise,
+		Runtime.runPromise(
+			AppRuntime,
+			getAssignmentForStudent(context.user.id, data).pipe(
+				Effect.map(Rpc.ok),
+				Effect.withSpan("getAssignmentForStudent"),
+				Effect.tapError(logRpcError("getAssignmentForStudent")),
+				Effect.catchAll(logAndReturnError("getAssignmentForStudent")),
+				Effect.catchAllDefect(logAndReturnDefect("getAssignmentForStudent")),
+			),
 		),
 	);
 
@@ -57,17 +59,18 @@ export const saveLearnerMapRpc = createServerFn({ method: "POST" })
 	.middleware([authMiddleware])
 	.inputValidator((raw) => Schema.decodeUnknownSync(SaveLearnerMapInput)(raw))
 	.handler(({ data, context }) =>
-		saveLearnerMap(context.user.id, data).pipe(
-			Effect.map(() => Rpc.ok(true)),
-			Effect.withSpan("saveLearnerMap"),
-			Effect.tapError(logRpcError("saveLearnerMap")),
-			Effect.catchTags({
-				AssignmentNotFoundError: () => Rpc.notFound("Assignment"),
-				AccessDeniedError: () => Rpc.forbidden("Access denied"),
-				LearnerMapAlreadySubmittedError: () => Rpc.err("Cannot edit submitted map"),
-			}),
-			Effect.provide(AppLayer),
-			Effect.runPromise,
+		Runtime.runPromise(
+			AppRuntime,
+			saveLearnerMap(context.user.id, data).pipe(
+				Effect.map(() => Rpc.ok(true)),
+				Effect.withSpan("saveLearnerMap"),
+				Effect.tapError(logRpcError("saveLearnerMap")),
+				Effect.catchTags({
+					AssignmentNotFoundError: () => Rpc.notFound("Assignment"),
+					AccessDeniedError: () => Rpc.forbidden("Access denied"),
+					LearnerMapAlreadySubmittedError: () => Rpc.err("Cannot edit submitted map"),
+				}),
+			),
 		),
 	);
 
@@ -75,17 +78,18 @@ export const submitLearnerMapRpc = createServerFn({ method: "POST" })
 	.middleware([authMiddleware])
 	.inputValidator((raw) => Schema.decodeUnknownSync(SubmitLearnerMapInput)(raw))
 	.handler(({ data, context }) =>
-		submitLearnerMap(context.user.id, data).pipe(
-			Effect.map(Rpc.ok),
-			Effect.withSpan("submitLearnerMap"),
-			Effect.tapError(logRpcError("submitLearnerMap")),
-			Effect.catchTags({
-				LearnerMapNotFoundError: () => Rpc.notFound("Learner map"),
-				LearnerMapAlreadySubmittedError: () => Rpc.err("Already submitted"),
-				GoalMapNotFoundError: () => Rpc.notFound("Goal map"),
-			}),
-			Effect.provide(AppLayer),
-			Effect.runPromise,
+		Runtime.runPromise(
+			AppRuntime,
+			submitLearnerMap(context.user.id, data).pipe(
+				Effect.map(Rpc.ok),
+				Effect.withSpan("submitLearnerMap"),
+				Effect.tapError(logRpcError("submitLearnerMap")),
+				Effect.catchTags({
+					LearnerMapNotFoundError: () => Rpc.notFound("Learner map"),
+					LearnerMapAlreadySubmittedError: () => Rpc.err("Already submitted"),
+					GoalMapNotFoundError: () => Rpc.notFound("Goal map"),
+				}),
+			),
 		),
 	);
 
@@ -93,14 +97,15 @@ export const getDiagnosisRpc = createServerFn()
 	.middleware([authMiddleware])
 	.inputValidator((raw) => Schema.decodeUnknownSync(GetDiagnosisInput)(raw))
 	.handler(({ data, context }) =>
-		getDiagnosis(context.user.id, data).pipe(
-			Effect.map(Rpc.ok),
-			Effect.withSpan("getDiagnosis"),
-			Effect.tapError(logRpcError("getDiagnosis")),
-			Effect.catchAll(logAndReturnError("getDiagnosis")),
-			Effect.catchAllDefect(logAndReturnDefect("getDiagnosis")),
-			Effect.provide(AppLayer),
-			Effect.runPromise,
+		Runtime.runPromise(
+			AppRuntime,
+			getDiagnosis(context.user.id, data).pipe(
+				Effect.map(Rpc.ok),
+				Effect.withSpan("getDiagnosis"),
+				Effect.tapError(logRpcError("getDiagnosis")),
+				Effect.catchAll(logAndReturnError("getDiagnosis")),
+				Effect.catchAllDefect(logAndReturnDefect("getDiagnosis")),
+			),
 		),
 	);
 
@@ -108,16 +113,18 @@ export const startNewAttemptRpc = createServerFn({ method: "POST" })
 	.middleware([authMiddleware])
 	.inputValidator((raw) => Schema.decodeUnknownSync(StartNewAttemptInput)(raw))
 	.handler(({ data, context }) =>
-		startNewAttempt(context.user.id, data).pipe(
-			Effect.map(() => Rpc.ok(true)),
-			Effect.withSpan("startNewAttempt"),
-			Effect.tapError(logRpcError("startNewAttempt")),
-			Effect.catchTags({
-				NoPreviousAttemptError: () => Rpc.err("No previous attempt found"),
-				PreviousAttemptNotSubmittedError: () => Rpc.err("Previous attempt not submitted"),
-			}),
-			Effect.provide(AppLayer),
-			Effect.runPromise,
+		Runtime.runPromise(
+			AppRuntime,
+			startNewAttempt(context.user.id, data).pipe(
+				Effect.map(() => Rpc.ok(true)),
+				Effect.withSpan("startNewAttempt"),
+				Effect.tapError(logRpcError("startNewAttempt")),
+				Effect.catchTags({
+					NoPreviousAttemptError: () => Rpc.err("No previous attempt found"),
+					PreviousAttemptNotSubmittedError: () =>
+						Rpc.err("Previous attempt not submitted"),
+				}),
+			),
 		),
 	);
 
@@ -125,14 +132,15 @@ export const getPeerStatsRpc = createServerFn()
 	.middleware([authMiddleware])
 	.inputValidator((raw) => Schema.decodeUnknownSync(GetPeerStatsInput)(raw))
 	.handler(({ data, context }) =>
-		getPeerStats(context.user.id, data).pipe(
-			Effect.map(Rpc.ok),
-			Effect.withSpan("getPeerStats"),
-			Effect.tapError(logRpcError("getPeerStats")),
-			Effect.catchAll(logAndReturnError("getPeerStats")),
-			Effect.catchAllDefect(logAndReturnDefect("getPeerStats")),
-			Effect.provide(AppLayer),
-			Effect.runPromise,
+		Runtime.runPromise(
+			AppRuntime,
+			getPeerStats(context.user.id, data).pipe(
+				Effect.map(Rpc.ok),
+				Effect.withSpan("getPeerStats"),
+				Effect.tapError(logRpcError("getPeerStats")),
+				Effect.catchAll(logAndReturnError("getPeerStats")),
+				Effect.catchAllDefect(logAndReturnDefect("getPeerStats")),
+			),
 		),
 	);
 
@@ -140,16 +148,17 @@ export const submitControlTextRpc = createServerFn({ method: "POST" })
 	.middleware([authMiddleware])
 	.inputValidator((raw) => Schema.decodeUnknownSync(SubmitControlTextInput)(raw))
 	.handler(({ data, context }) =>
-		submitControlText(context.user.id, data).pipe(
-			Effect.map(() => Rpc.ok(true)),
-			Effect.withSpan("submitControlText"),
-			Effect.tapError(logRpcError("submitControlText")),
-			Effect.catchTags({
-				AssignmentNotFoundError: () => Rpc.notFound("Assignment"),
-				LearnerMapAlreadySubmittedError: () => Rpc.err("Already submitted"),
-			}),
-			Effect.provide(AppLayer),
-			Effect.runPromise,
+		Runtime.runPromise(
+			AppRuntime,
+			submitControlText(context.user.id, data).pipe(
+				Effect.map(() => Rpc.ok(true)),
+				Effect.withSpan("submitControlText"),
+				Effect.tapError(logRpcError("submitControlText")),
+				Effect.catchTags({
+					AssignmentNotFoundError: () => Rpc.notFound("Assignment"),
+					LearnerMapAlreadySubmittedError: () => Rpc.err("Already submitted"),
+				}),
+			),
 		),
 	);
 

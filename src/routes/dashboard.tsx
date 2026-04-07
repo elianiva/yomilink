@@ -20,7 +20,7 @@ import { getMe, ProfileRpc } from "@/server/rpc/profile";
 export const Route = createFileRoute("/dashboard")({
 	beforeLoad: async () => {
 		const me = await getMe();
-		if (me?.success) throw redirect({ to: "/login" });
+		if (!me.success) throw redirect({ to: "/login" });
 
 		if (me.data.role === "student") {
 			const result = await getRegistrationFormStatusRpc();
@@ -28,7 +28,7 @@ export const Route = createFileRoute("/dashboard")({
 			if (!result.success) {
 				// Error checking registration status - allow through to avoid loop
 				// The form will be accessible, worst case they see an error
-				return { me };
+				return { me: me.data };
 			}
 			// If there's a registration form and it's not completed, redirect to it
 			if (result.data.hasRegistrationForm && !result.data.isCompleted && result.data.formId) {

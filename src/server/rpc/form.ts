@@ -1,6 +1,6 @@
 import { mutationOptions, queryOptions } from "@tanstack/react-query";
 import { createServerFn } from "@tanstack/react-start";
-import { Effect, Schema } from "effect";
+import { Effect, Runtime, Schema } from "effect";
 
 import {
 	CloneFormInput,
@@ -38,21 +38,22 @@ import {
 } from "@/features/form/lib/unlock-service";
 import { requireRoleMiddleware } from "@/middlewares/auth";
 
-import { AppLayer } from "../app-layer";
+import { AppRuntime } from "../app-runtime";
 import { Rpc, logRpcError, logAndReturnError, logAndReturnDefect } from "../rpc-helper";
 
 export const createFormRpc = createServerFn({ method: "POST" })
 	.middleware([requireRoleMiddleware("teacher", "admin")])
 	.inputValidator((raw) => Schema.decodeUnknownSync(CreateFormInput)(raw))
 	.handler(({ data, context }) =>
-		createForm(context.user.id, data).pipe(
-			Effect.map((result) => Rpc.ok(result)),
-			Effect.withSpan("createForm"),
-			Effect.tapError(logRpcError("createForm")),
-			Effect.provide(AppLayer),
-			Effect.catchAll(logAndReturnError("createForm")),
-			Effect.catchAllDefect(logAndReturnDefect("createForm")),
-			Effect.runPromise,
+		Runtime.runPromise(
+			AppRuntime,
+			createForm(context.user.id, data).pipe(
+				Effect.map((result) => Rpc.ok(result)),
+				Effect.withSpan("createForm"),
+				Effect.tapError(logRpcError("createForm")),
+				Effect.catchAll(logAndReturnError("createForm")),
+				Effect.catchAllDefect(logAndReturnDefect("createForm")),
+			),
 		),
 	);
 
@@ -60,45 +61,48 @@ export const getFormByIdRpc = createServerFn()
 	.middleware([requireRoleMiddleware("teacher", "admin")])
 	.inputValidator((raw) => Schema.decodeUnknownSync(GetFormByIdInput)(raw))
 	.handler(({ data }) =>
-		getFormById(data.formId).pipe(
-			Effect.map(Rpc.ok),
-			Effect.withSpan("getFormById"),
-			Effect.tapError(logRpcError("getFormById")),
-			Effect.provide(AppLayer),
-			Effect.catchTags({
-				FormNotFoundError: () => Rpc.notFound("Form"),
-			}),
-			Effect.catchAll(logAndReturnError("getFormById")),
-			Effect.catchAllDefect(logAndReturnDefect("getFormById")),
-			Effect.runPromise,
+		Runtime.runPromise(
+			AppRuntime,
+			getFormById(data.formId).pipe(
+				Effect.map(Rpc.ok),
+				Effect.withSpan("getFormById"),
+				Effect.tapError(logRpcError("getFormById")),
+				Effect.catchTags({
+					FormNotFoundError: () => Rpc.notFound("Form"),
+				}),
+				Effect.catchAll(logAndReturnError("getFormById")),
+				Effect.catchAllDefect(logAndReturnDefect("getFormById")),
+			),
 		),
 	);
 
 export const listFormsRpc = createServerFn()
 	.middleware([requireRoleMiddleware("teacher", "admin")])
 	.handler(({ context }) =>
-		listForms(context.user.id).pipe(
-			Effect.map(Rpc.ok),
-			Effect.withSpan("listForms"),
-			Effect.tapError(logRpcError("listForms")),
-			Effect.provide(AppLayer),
-			Effect.catchAll(logAndReturnError("listForms")),
-			Effect.catchAllDefect(logAndReturnDefect("listForms")),
-			Effect.runPromise,
+		Runtime.runPromise(
+			AppRuntime,
+			listForms(context.user.id).pipe(
+				Effect.map(Rpc.ok),
+				Effect.withSpan("listForms"),
+				Effect.tapError(logRpcError("listForms")),
+				Effect.catchAll(logAndReturnError("listForms")),
+				Effect.catchAllDefect(logAndReturnDefect("listForms")),
+			),
 		),
 	);
 
 export const getStudentFormsRpc = createServerFn()
 	.middleware([requireRoleMiddleware("student", "teacher", "admin")])
 	.handler(({ context }) =>
-		getStudentForms(context.user.id).pipe(
-			Effect.map(Rpc.ok),
-			Effect.withSpan("getStudentForms"),
-			Effect.tapError(logRpcError("getStudentForms")),
-			Effect.provide(AppLayer),
-			Effect.catchAll(logAndReturnError("getStudentForms")),
-			Effect.catchAllDefect(logAndReturnDefect("getStudentForms")),
-			Effect.runPromise,
+		Runtime.runPromise(
+			AppRuntime,
+			getStudentForms(context.user.id).pipe(
+				Effect.map(Rpc.ok),
+				Effect.withSpan("getStudentForms"),
+				Effect.tapError(logRpcError("getStudentForms")),
+				Effect.catchAll(logAndReturnError("getStudentForms")),
+				Effect.catchAllDefect(logAndReturnDefect("getStudentForms")),
+			),
 		),
 	);
 
@@ -112,21 +116,22 @@ export const getStudentFormByIdRpc = createServerFn()
 	.middleware([requireRoleMiddleware("student", "teacher", "admin")])
 	.inputValidator((raw) => Schema.decodeUnknownSync(GetStudentFormByIdInput)(raw))
 	.handler(({ data, context }) =>
-		getStudentFormById(data.formId, context.user.id).pipe(
-			Effect.map(Rpc.ok),
-			Effect.withSpan("getStudentFormById"),
-			Effect.tapError(logRpcError("getStudentFormById")),
-			Effect.provide(AppLayer),
-			Effect.catchTags({
-				FormNotFoundError: () => Rpc.notFound("Form"),
-				FormNotAccessibleError: () =>
-					Rpc.err(
-						"Form is not accessible. Complete prerequisites or wait for it to be published.",
-					),
-			}),
-			Effect.catchAll(logAndReturnError("getStudentFormById")),
-			Effect.catchAllDefect(logAndReturnDefect("getStudentFormById")),
-			Effect.runPromise,
+		Runtime.runPromise(
+			AppRuntime,
+			getStudentFormById(data.formId, context.user.id).pipe(
+				Effect.map(Rpc.ok),
+				Effect.withSpan("getStudentFormById"),
+				Effect.tapError(logRpcError("getStudentFormById")),
+				Effect.catchTags({
+					FormNotFoundError: () => Rpc.notFound("Form"),
+					FormNotAccessibleError: () =>
+						Rpc.err(
+							"Form is not accessible. Complete prerequisites or wait for it to be published.",
+						),
+				}),
+				Effect.catchAll(logAndReturnError("getStudentFormById")),
+				Effect.catchAllDefect(logAndReturnDefect("getStudentFormById")),
+			),
 		),
 	);
 
@@ -134,17 +139,18 @@ export const deleteFormRpc = createServerFn({ method: "POST" })
 	.middleware([requireRoleMiddleware("teacher", "admin")])
 	.inputValidator((raw) => Schema.decodeUnknownSync(GetFormByIdInput)(raw))
 	.handler(({ data }) =>
-		deleteForm(data.formId).pipe(
-			Effect.map(() => Rpc.ok(true)),
-			Effect.withSpan("deleteForm"),
-			Effect.tapError(logRpcError("deleteForm")),
-			Effect.provide(AppLayer),
-			Effect.catchTags({
-				FormNotFoundError: () => Rpc.notFound("Form"),
-			}),
-			Effect.catchAll(logAndReturnError("deleteForm")),
-			Effect.catchAllDefect(logAndReturnDefect("deleteForm")),
-			Effect.runPromise,
+		Runtime.runPromise(
+			AppRuntime,
+			deleteForm(data.formId).pipe(
+				Effect.map(() => Rpc.ok(true)),
+				Effect.withSpan("deleteForm"),
+				Effect.tapError(logRpcError("deleteForm")),
+				Effect.catchTags({
+					FormNotFoundError: () => Rpc.notFound("Form"),
+				}),
+				Effect.catchAll(logAndReturnError("deleteForm")),
+				Effect.catchAllDefect(logAndReturnDefect("deleteForm")),
+			),
 		),
 	);
 
@@ -152,17 +158,18 @@ export const publishFormRpc = createServerFn({ method: "POST" })
 	.middleware([requireRoleMiddleware("teacher", "admin")])
 	.inputValidator((raw) => Schema.decodeUnknownSync(GetFormByIdInput)(raw))
 	.handler(({ data }) =>
-		publishForm(data.formId).pipe(
-			Effect.map(() => Rpc.ok(true)),
-			Effect.withSpan("publishForm"),
-			Effect.tapError(logRpcError("publishForm")),
-			Effect.provide(AppLayer),
-			Effect.catchTags({
-				FormNotFoundError: () => Rpc.notFound("Form"),
-			}),
-			Effect.catchAll(logAndReturnError("publishForm")),
-			Effect.catchAllDefect(logAndReturnDefect("publishForm")),
-			Effect.runPromise,
+		Runtime.runPromise(
+			AppRuntime,
+			publishForm(data.formId).pipe(
+				Effect.map(() => Rpc.ok(true)),
+				Effect.withSpan("publishForm"),
+				Effect.tapError(logRpcError("publishForm")),
+				Effect.catchTags({
+					FormNotFoundError: () => Rpc.notFound("Form"),
+				}),
+				Effect.catchAll(logAndReturnError("publishForm")),
+				Effect.catchAllDefect(logAndReturnDefect("publishForm")),
+			),
 		),
 	);
 
@@ -170,17 +177,18 @@ export const unpublishFormRpc = createServerFn({ method: "POST" })
 	.middleware([requireRoleMiddleware("teacher", "admin")])
 	.inputValidator((raw) => Schema.decodeUnknownSync(GetFormByIdInput)(raw))
 	.handler(({ data }) =>
-		unpublishForm(data.formId).pipe(
-			Effect.map(() => Rpc.ok(true)),
-			Effect.withSpan("unpublishForm"),
-			Effect.tapError(logRpcError("unpublishForm")),
-			Effect.provide(AppLayer),
-			Effect.catchTags({
-				FormNotFoundError: () => Rpc.notFound("Form"),
-			}),
-			Effect.catchAll(logAndReturnError("unpublishForm")),
-			Effect.catchAllDefect(logAndReturnDefect("unpublishForm")),
-			Effect.runPromise,
+		Runtime.runPromise(
+			AppRuntime,
+			unpublishForm(data.formId).pipe(
+				Effect.map(() => Rpc.ok(true)),
+				Effect.withSpan("unpublishForm"),
+				Effect.tapError(logRpcError("unpublishForm")),
+				Effect.catchTags({
+					FormNotFoundError: () => Rpc.notFound("Form"),
+				}),
+				Effect.catchAll(logAndReturnError("unpublishForm")),
+				Effect.catchAllDefect(logAndReturnDefect("unpublishForm")),
+			),
 		),
 	);
 
@@ -188,24 +196,25 @@ export const updateFormRpc = createServerFn({ method: "POST" })
 	.middleware([requireRoleMiddleware("teacher", "admin")])
 	.inputValidator((raw) => Schema.decodeUnknownSync(UpdateFormInput)(raw))
 	.handler(({ data }) =>
-		updateForm(data.formId, {
-			title: data.title,
-			description: data.description,
-			type: data.type,
-			status: data.status,
-			unlockConditions: data.unlockConditions,
-		}).pipe(
-			Effect.map(Rpc.ok),
-			Effect.withSpan("updateForm"),
-			Effect.tapError(logRpcError("updateForm")),
-			Effect.provide(AppLayer),
-			Effect.catchTags({
-				FormNotFoundError: () => Rpc.notFound("Form"),
-				FormHasResponsesError: () => Rpc.err("Cannot update form: form has responses"),
-			}),
-			Effect.catchAll(logAndReturnError("updateForm")),
-			Effect.catchAllDefect(logAndReturnDefect("updateForm")),
-			Effect.runPromise,
+		Runtime.runPromise(
+			AppRuntime,
+			updateForm(data.formId, {
+				title: data.title,
+				description: data.description,
+				type: data.type,
+				status: data.status,
+				unlockConditions: data.unlockConditions,
+			}).pipe(
+				Effect.map(Rpc.ok),
+				Effect.withSpan("updateForm"),
+				Effect.tapError(logRpcError("updateForm")),
+				Effect.catchTags({
+					FormNotFoundError: () => Rpc.notFound("Form"),
+					FormHasResponsesError: () => Rpc.err("Cannot update form: form has responses"),
+				}),
+				Effect.catchAll(logAndReturnError("updateForm")),
+				Effect.catchAllDefect(logAndReturnDefect("updateForm")),
+			),
 		),
 	);
 
@@ -213,17 +222,18 @@ export const cloneFormRpc = createServerFn({ method: "POST" })
 	.middleware([requireRoleMiddleware("teacher", "admin")])
 	.inputValidator((raw) => Schema.decodeUnknownSync(CloneFormInput)(raw))
 	.handler(({ data, context }) =>
-		cloneForm(data.formId, context.user.id).pipe(
-			Effect.map(() => Rpc.ok(true)),
-			Effect.withSpan("cloneForm"),
-			Effect.tapError(logRpcError("cloneForm")),
-			Effect.provide(AppLayer),
-			Effect.catchTags({
-				FormNotFoundError: () => Rpc.notFound("Form"),
-			}),
-			Effect.catchAll(logAndReturnError("cloneForm")),
-			Effect.catchAllDefect(logAndReturnDefect("cloneForm")),
-			Effect.runPromise,
+		Runtime.runPromise(
+			AppRuntime,
+			cloneForm(data.formId, context.user.id).pipe(
+				Effect.map(() => Rpc.ok(true)),
+				Effect.withSpan("cloneForm"),
+				Effect.tapError(logRpcError("cloneForm")),
+				Effect.catchTags({
+					FormNotFoundError: () => Rpc.notFound("Form"),
+				}),
+				Effect.catchAll(logAndReturnError("cloneForm")),
+				Effect.catchAllDefect(logAndReturnDefect("cloneForm")),
+			),
 		),
 	);
 
@@ -231,17 +241,18 @@ export const getFormResponsesRpc = createServerFn()
 	.middleware([requireRoleMiddleware("teacher", "admin")])
 	.inputValidator((raw) => Schema.decodeUnknownSync(GetFormResponsesInput)(raw))
 	.handler(({ data }) =>
-		getFormResponses(data).pipe(
-			Effect.map(Rpc.ok),
-			Effect.withSpan("getFormResponses"),
-			Effect.tapError(logRpcError("getFormResponses")),
-			Effect.provide(AppLayer),
-			Effect.catchTags({
-				FormNotFoundError: () => Rpc.notFound("Form"),
-			}),
-			Effect.catchAll(logAndReturnError("getFormResponses")),
-			Effect.catchAllDefect(logAndReturnDefect("getFormResponses")),
-			Effect.runPromise,
+		Runtime.runPromise(
+			AppRuntime,
+			getFormResponses(data).pipe(
+				Effect.map(Rpc.ok),
+				Effect.withSpan("getFormResponses"),
+				Effect.tapError(logRpcError("getFormResponses")),
+				Effect.catchTags({
+					FormNotFoundError: () => Rpc.notFound("Form"),
+				}),
+				Effect.catchAll(logAndReturnError("getFormResponses")),
+				Effect.catchAllDefect(logAndReturnDefect("getFormResponses")),
+			),
 		),
 	);
 
@@ -257,22 +268,24 @@ export const submitFormResponseRpc = createServerFn({ method: "POST" })
 	.middleware([requireRoleMiddleware("student", "teacher", "admin")])
 	.inputValidator((raw) => Schema.decodeUnknownSync(SubmitFormResponseInput)(raw))
 	.handler(({ data, context }) =>
-		submitFormResponse({
-			...data,
-			userId: context.user.id,
-		}).pipe(
-			Effect.map(() => Rpc.ok(true)),
-			Effect.withSpan("submitFormResponse"),
-			Effect.tapError(logRpcError("submitFormResponse")),
-			Effect.provide(AppLayer),
-			Effect.catchTags({
-				FormNotFoundError: () => Rpc.notFound("Form"),
-				FormNotPublishedError: () => Rpc.err("Form is not published"),
-				FormAlreadySubmittedError: () => Rpc.err("You have already submitted this form"),
-			}),
-			Effect.catchAll(logAndReturnError("submitFormResponse")),
-			Effect.catchAllDefect(logAndReturnDefect("submitFormResponse")),
-			Effect.runPromise,
+		Runtime.runPromise(
+			AppRuntime,
+			submitFormResponse({
+				...data,
+				userId: context.user.id,
+			}).pipe(
+				Effect.map(() => Rpc.ok(true)),
+				Effect.withSpan("submitFormResponse"),
+				Effect.tapError(logRpcError("submitFormResponse")),
+				Effect.catchTags({
+					FormNotFoundError: () => Rpc.notFound("Form"),
+					FormNotPublishedError: () => Rpc.err("Form is not published"),
+					FormAlreadySubmittedError: () =>
+						Rpc.err("You have already submitted this form"),
+				}),
+				Effect.catchAll(logAndReturnError("submitFormResponse")),
+				Effect.catchAllDefect(logAndReturnDefect("submitFormResponse")),
+			),
 		),
 	);
 
@@ -280,21 +293,22 @@ export const reorderQuestionsRpc = createServerFn({ method: "POST" })
 	.middleware([requireRoleMiddleware("teacher", "admin")])
 	.inputValidator((raw) => Schema.decodeUnknownSync(ReorderQuestionsInput)(raw))
 	.handler(({ data }) =>
-		reorderQuestions(data).pipe(
-			Effect.map(() => Rpc.ok(true)),
-			Effect.withSpan("reorderQuestions"),
-			Effect.tapError(logRpcError("reorderQuestions")),
-			Effect.provide(AppLayer),
-			Effect.catchTags({
-				FormNotFoundError: () => Rpc.notFound("Form"),
-				FormHasResponsesError: () =>
-					Rpc.err("Cannot reorder questions: form has responses"),
-				InvalidQuestionOrderError: () =>
-					Rpc.err("Invalid question order: question count mismatch or invalid IDs"),
-			}),
-			Effect.catchAll(logAndReturnError("reorderQuestions")),
-			Effect.catchAllDefect(logAndReturnDefect("reorderQuestions")),
-			Effect.runPromise,
+		Runtime.runPromise(
+			AppRuntime,
+			reorderQuestions(data).pipe(
+				Effect.map(() => Rpc.ok(true)),
+				Effect.withSpan("reorderQuestions"),
+				Effect.tapError(logRpcError("reorderQuestions")),
+				Effect.catchTags({
+					FormNotFoundError: () => Rpc.notFound("Form"),
+					FormHasResponsesError: () =>
+						Rpc.err("Cannot reorder questions: form has responses"),
+					InvalidQuestionOrderError: () =>
+						Rpc.err("Invalid question order: question count mismatch or invalid IDs"),
+				}),
+				Effect.catchAll(logAndReturnError("reorderQuestions")),
+				Effect.catchAllDefect(logAndReturnDefect("reorderQuestions")),
+			),
 		),
 	);
 
@@ -302,18 +316,20 @@ export const createQuestionRpc = createServerFn({ method: "POST" })
 	.middleware([requireRoleMiddleware("teacher", "admin")])
 	.inputValidator((raw) => Schema.decodeUnknownSync(CreateQuestionInput)(raw))
 	.handler(({ data }) =>
-		createQuestion(data).pipe(
-			Effect.map(() => Rpc.ok(true)),
-			Effect.withSpan("createQuestion"),
-			Effect.tapError(logRpcError("createQuestion")),
-			Effect.provide(AppLayer),
-			Effect.catchTags({
-				FormNotFoundError: () => Rpc.notFound("Form"),
-				FormHasResponsesError: () => Rpc.err("Cannot add questions: form has responses"),
-			}),
-			Effect.catchAll(logAndReturnError("createQuestion")),
-			Effect.catchAllDefect(logAndReturnDefect("createQuestion")),
-			Effect.runPromise,
+		Runtime.runPromise(
+			AppRuntime,
+			createQuestion(data).pipe(
+				Effect.map(() => Rpc.ok(true)),
+				Effect.withSpan("createQuestion"),
+				Effect.tapError(logRpcError("createQuestion")),
+				Effect.catchTags({
+					FormNotFoundError: () => Rpc.notFound("Form"),
+					FormHasResponsesError: () =>
+						Rpc.err("Cannot add questions: form has responses"),
+				}),
+				Effect.catchAll(logAndReturnError("createQuestion")),
+				Effect.catchAllDefect(logAndReturnDefect("createQuestion")),
+			),
 		),
 	);
 
@@ -321,18 +337,20 @@ export const updateQuestionRpc = createServerFn({ method: "POST" })
 	.middleware([requireRoleMiddleware("teacher", "admin")])
 	.inputValidator((raw) => Schema.decodeUnknownSync(UpdateQuestionInput)(raw))
 	.handler(({ data }) =>
-		updateQuestion(data).pipe(
-			Effect.map(() => Rpc.ok(true)),
-			Effect.withSpan("updateQuestion"),
-			Effect.tapError(logRpcError("updateQuestion")),
-			Effect.provide(AppLayer),
-			Effect.catchTags({
-				QuestionNotFoundError: () => Rpc.notFound("Question"),
-				FormHasResponsesError: () => Rpc.err("Cannot edit question: form has responses"),
-			}),
-			Effect.catchAll(logAndReturnError("updateQuestion")),
-			Effect.catchAllDefect(logAndReturnDefect("updateQuestion")),
-			Effect.runPromise,
+		Runtime.runPromise(
+			AppRuntime,
+			updateQuestion(data).pipe(
+				Effect.map(() => Rpc.ok(true)),
+				Effect.withSpan("updateQuestion"),
+				Effect.tapError(logRpcError("updateQuestion")),
+				Effect.catchTags({
+					QuestionNotFoundError: () => Rpc.notFound("Question"),
+					FormHasResponsesError: () =>
+						Rpc.err("Cannot edit question: form has responses"),
+				}),
+				Effect.catchAll(logAndReturnError("updateQuestion")),
+				Effect.catchAllDefect(logAndReturnDefect("updateQuestion")),
+			),
 		),
 	);
 
@@ -340,18 +358,20 @@ export const deleteQuestionRpc = createServerFn({ method: "POST" })
 	.middleware([requireRoleMiddleware("teacher", "admin")])
 	.inputValidator((raw) => Schema.decodeUnknownSync(GetQuestionByIdInput)(raw))
 	.handler(({ data }) =>
-		deleteQuestion(data.id).pipe(
-			Effect.map(() => Rpc.ok(true)),
-			Effect.withSpan("deleteQuestion"),
-			Effect.tapError(logRpcError("deleteQuestion")),
-			Effect.provide(AppLayer),
-			Effect.catchTags({
-				QuestionNotFoundError: () => Rpc.notFound("Question"),
-				FormHasResponsesError: () => Rpc.err("Cannot delete question: form has responses"),
-			}),
-			Effect.catchAll(logAndReturnError("deleteQuestion")),
-			Effect.catchAllDefect(logAndReturnDefect("deleteQuestion")),
-			Effect.runPromise,
+		Runtime.runPromise(
+			AppRuntime,
+			deleteQuestion(data.id).pipe(
+				Effect.map(() => Rpc.ok(true)),
+				Effect.withSpan("deleteQuestion"),
+				Effect.tapError(logRpcError("deleteQuestion")),
+				Effect.catchTags({
+					QuestionNotFoundError: () => Rpc.notFound("Question"),
+					FormHasResponsesError: () =>
+						Rpc.err("Cannot delete question: form has responses"),
+				}),
+				Effect.catchAll(logAndReturnError("deleteQuestion")),
+				Effect.catchAllDefect(logAndReturnDefect("deleteQuestion")),
+			),
 		),
 	);
 
@@ -359,17 +379,18 @@ export const checkFormUnlockRpc = createServerFn()
 	.middleware([requireRoleMiddleware("student", "teacher", "admin")])
 	.inputValidator((raw) => Schema.decodeUnknownSync(CheckFormUnlockInput)(raw))
 	.handler(({ data, context }) =>
-		checkFormUnlock({ formId: data.formId, userId: context.user.id }).pipe(
-			Effect.map(Rpc.ok),
-			Effect.withSpan("checkFormUnlock"),
-			Effect.tapError(logRpcError("checkFormUnlock")),
-			Effect.provide(AppLayer),
-			Effect.catchTags({
-				FormNotFoundError: () => Rpc.notFound("Form"),
-			}),
-			Effect.catchAll(logAndReturnError("checkFormUnlock")),
-			Effect.catchAllDefect(logAndReturnDefect("checkFormUnlock")),
-			Effect.runPromise,
+		Runtime.runPromise(
+			AppRuntime,
+			checkFormUnlock({ formId: data.formId, userId: context.user.id }).pipe(
+				Effect.map(Rpc.ok),
+				Effect.withSpan("checkFormUnlock"),
+				Effect.tapError(logRpcError("checkFormUnlock")),
+				Effect.catchTags({
+					FormNotFoundError: () => Rpc.notFound("Form"),
+				}),
+				Effect.catchAll(logAndReturnError("checkFormUnlock")),
+				Effect.catchAllDefect(logAndReturnDefect("checkFormUnlock")),
+			),
 		),
 	);
 
@@ -377,28 +398,30 @@ export const unlockFormRpc = createServerFn({ method: "POST" })
 	.middleware([requireRoleMiddleware("teacher", "admin")])
 	.inputValidator((raw) => Schema.decodeUnknownSync(UnlockFormInput)(raw))
 	.handler(({ data }) =>
-		unlockForm({ formId: data.formId, userId: data.userId }).pipe(
-			Effect.map(() => Rpc.ok(true)),
-			Effect.withSpan("unlockForm"),
-			Effect.tapError(logRpcError("unlockForm")),
-			Effect.provide(AppLayer),
-			Effect.catchAll(logAndReturnError("getRegistrationFormStatus")),
-			Effect.catchAllDefect(logAndReturnDefect("getRegistrationFormStatus")),
-			Effect.runPromise,
+		Runtime.runPromise(
+			AppRuntime,
+			unlockForm({ formId: data.formId, userId: data.userId }).pipe(
+				Effect.map(() => Rpc.ok(true)),
+				Effect.withSpan("unlockForm"),
+				Effect.tapError(logRpcError("unlockForm")),
+				Effect.catchAll(logAndReturnError("getRegistrationFormStatus")),
+				Effect.catchAllDefect(logAndReturnDefect("getRegistrationFormStatus")),
+			),
 		),
 	);
 
 export const getRegistrationFormStatusRpc = createServerFn()
 	.middleware([requireRoleMiddleware("student", "teacher", "admin")])
 	.handler(({ context }) =>
-		getRegistrationFormStatus(context.user.id).pipe(
-			Effect.map(Rpc.ok),
-			Effect.withSpan("getRegistrationFormStatus"),
-			Effect.tapError(logRpcError("getRegistrationFormStatus")),
-			Effect.provide(AppLayer),
-			Effect.catchAll(logAndReturnError("getRegistrationFormStatus")),
-			Effect.catchAllDefect(logAndReturnDefect("getRegistrationFormStatus")),
-			Effect.runPromise,
+		Runtime.runPromise(
+			AppRuntime,
+			getRegistrationFormStatus(context.user.id).pipe(
+				Effect.map(Rpc.ok),
+				Effect.withSpan("getRegistrationFormStatus"),
+				Effect.tapError(logRpcError("getRegistrationFormStatus")),
+				Effect.catchAll(logAndReturnError("getRegistrationFormStatus")),
+				Effect.catchAllDefect(logAndReturnDefect("getRegistrationFormStatus")),
+			),
 		),
 	);
 

@@ -17,7 +17,7 @@ export const Route = createFileRoute("/dashboard/profile")({
 	component: ProfilePage,
 	loader: async ({ context }) => {
 		const me = await getMe();
-		if (me?.success) {
+		if (!me.success) {
 			// TODO: handle error
 			return null;
 		}

@@ -1,6 +1,6 @@
 import { mutationOptions } from "@tanstack/react-query";
 import { createServerFn } from "@tanstack/react-start";
-import { Effect, Schema } from "effect";
+import { Effect, Runtime, Schema } from "effect";
 
 import {
 	uploadMaterialImage,
@@ -8,32 +8,33 @@ import {
 } from "@/features/analyzer/lib/material-image-service";
 import { authMiddleware } from "@/middlewares/auth";
 
-import { AppLayer } from "../app-layer";
+import { AppRuntime } from "../app-runtime";
 import { Rpc, logRpcError } from "../rpc-helper";
 
 export const uploadMaterialImageRpc = createServerFn({ method: "POST" })
 	.middleware([authMiddleware])
 	.inputValidator((raw) => Schema.decodeUnknownSync(UploadMaterialImageInput)(raw))
 	.handler(({ data }) =>
-		uploadMaterialImage(data).pipe(
-			Effect.map(Rpc.ok),
-			Effect.withSpan("uploadMaterialImage"),
-			Effect.tapError(logRpcError("uploadMaterialImage")),
-			Effect.catchTags({
-				InvalidFileTypeError: (e) =>
-					Rpc.err(`Invalid file type: ${e.type}. Allowed: ${e.allowed.join(", ")}`),
-				FileTooLargeError: (e) =>
-					Rpc.err(`File too large: ${e.size} bytes. Max: ${e.maxSize} bytes`),
-				UnknownException: () => Rpc.err("Failed to upload image"),
-			}),
-			Effect.catchAll((error) =>
-				Effect.gen(function* () {
-					yield* Effect.logError("Upload failed", error);
-					return yield* Rpc.err("Failed to upload image", undefined, error);
+		Runtime.runPromise(
+			AppRuntime,
+			uploadMaterialImage(data).pipe(
+				Effect.map(Rpc.ok),
+				Effect.withSpan("uploadMaterialImage"),
+				Effect.tapError(logRpcError("uploadMaterialImage")),
+				Effect.catchTags({
+					InvalidFileTypeError: (e) =>
+						Rpc.err(`Invalid file type: ${e.type}. Allowed: ${e.allowed.join(", ")}`),
+					FileTooLargeError: (e) =>
+						Rpc.err(`File too large: ${e.size} bytes. Max: ${e.maxSize} bytes`),
+					UnknownException: () => Rpc.err("Failed to upload image"),
 				}),
+				Effect.catchAll((error) =>
+					Effect.gen(function* () {
+						yield* Effect.logError("Upload failed", error);
+						return yield* Rpc.err("Failed to upload image", undefined, error);
+					}),
+				),
 			),
-			Effect.provide(AppLayer),
-			Effect.runPromise,
 		),
 	);
 

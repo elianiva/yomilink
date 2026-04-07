@@ -1,6 +1,6 @@
 import { mutationOptions, queryOptions } from "@tanstack/react-query";
 import { createServerFn } from "@tanstack/react-start";
-import { Effect, Schema } from "effect";
+import { Effect, Runtime, Schema } from "effect";
 
 import {
 	createAssignment,
@@ -22,38 +22,40 @@ import {
 } from "@/features/assignment/lib/assignment-service";
 import { requireRoleMiddleware } from "@/middlewares/auth";
 
-import { AppLayer } from "../app-layer";
+import { AppRuntime } from "../app-runtime";
 import { Rpc, logRpcError, logAndReturnError, logAndReturnDefect } from "../rpc-helper";
 
 export const createAssignmentRpc = createServerFn({ method: "POST" })
 	.middleware([requireRoleMiddleware("teacher", "admin")])
 	.inputValidator((raw) => Schema.decodeUnknownSync(CreateAssignmentInput)(raw))
 	.handler(({ data, context }) =>
-		createAssignment(context.user.id, data).pipe(
-			Effect.map(Rpc.ok),
-			Effect.withSpan("createAssignment"),
-			Effect.tapError(logRpcError("createAssignment")),
-			Effect.provide(AppLayer),
-			Effect.catchTags({
-				KitNotFoundError: () => Rpc.notFound("Kit"),
-			}),
-			Effect.catchAll(logAndReturnError("createAssignment")),
-			Effect.catchAllDefect(logAndReturnDefect("createAssignment")),
-			Effect.runPromise,
+		Runtime.runPromise(
+			AppRuntime,
+			createAssignment(context.user.id, data).pipe(
+				Effect.map(Rpc.ok),
+				Effect.withSpan("createAssignment"),
+				Effect.tapError(logRpcError("createAssignment")),
+				Effect.catchTags({
+					KitNotFoundError: () => Rpc.notFound("Kit"),
+				}),
+				Effect.catchAll(logAndReturnError("createAssignment")),
+				Effect.catchAllDefect(logAndReturnDefect("createAssignment")),
+			),
 		),
 	);
 
 export const listTeacherAssignmentsRpc = createServerFn()
 	.middleware([requireRoleMiddleware("teacher", "admin")])
 	.handler(({ context }) =>
-		listTeacherAssignments(context.user.id).pipe(
-			Effect.map(Rpc.ok),
-			Effect.withSpan("listTeacherAssignments"),
-			Effect.tapError(logRpcError("listTeacherAssignments")),
-			Effect.catchAll(logAndReturnError("listTeacherAssignments")),
-			Effect.catchAllDefect(logAndReturnDefect("listTeacherAssignments")),
-			Effect.provide(AppLayer),
-			Effect.runPromise,
+		Runtime.runPromise(
+			AppRuntime,
+			listTeacherAssignments(context.user.id).pipe(
+				Effect.map(Rpc.ok),
+				Effect.withSpan("listTeacherAssignments"),
+				Effect.tapError(logRpcError("listTeacherAssignments")),
+				Effect.catchAll(logAndReturnError("listTeacherAssignments")),
+				Effect.catchAllDefect(logAndReturnDefect("listTeacherAssignments")),
+			),
 		),
 	);
 
@@ -61,59 +63,63 @@ export const deleteAssignmentRpc = createServerFn({ method: "POST" })
 	.middleware([requireRoleMiddleware("teacher", "admin")])
 	.inputValidator((raw) => Schema.decodeUnknownSync(DeleteAssignmentInput)(raw))
 	.handler(({ data, context }) =>
-		deleteAssignment(context.user.id, data).pipe(
-			Effect.map(() => Rpc.ok(true)),
-			Effect.withSpan("deleteAssignment"),
-			Effect.tapError(logRpcError("deleteAssignment")),
-			Effect.catchTags({
-				AssignmentNotFoundError: () => Rpc.notFound("Assignment"),
-			}),
-			Effect.catchAll(logAndReturnError("deleteAssignment")),
-			Effect.catchAllDefect(logAndReturnDefect("deleteAssignment")),
-			Effect.provide(AppLayer),
-			Effect.runPromise,
+		Runtime.runPromise(
+			AppRuntime,
+			deleteAssignment(context.user.id, data).pipe(
+				Effect.map(() => Rpc.ok(true)),
+				Effect.withSpan("deleteAssignment"),
+				Effect.tapError(logRpcError("deleteAssignment")),
+				Effect.catchTags({
+					AssignmentNotFoundError: () => Rpc.notFound("Assignment"),
+				}),
+				Effect.catchAll(logAndReturnError("deleteAssignment")),
+				Effect.catchAllDefect(logAndReturnDefect("deleteAssignment")),
+			),
 		),
 	);
 
 export const getAvailableCohortsRpc = createServerFn()
 	.middleware([requireRoleMiddleware("teacher", "admin")])
 	.handler(() =>
-		getAvailableCohorts().pipe(
-			Effect.map(Rpc.ok),
-			Effect.withSpan("getAvailableCohorts"),
-			Effect.tapError(logRpcError("getAvailableCohorts")),
-			Effect.catchAll(logAndReturnError("getAvailableCohorts")),
-			Effect.catchAllDefect(logAndReturnDefect("getAvailableCohorts")),
-			Effect.provide(AppLayer),
-			Effect.runPromise,
+		Runtime.runPromise(
+			AppRuntime,
+			getAvailableCohorts().pipe(
+				Effect.map(Rpc.ok),
+				Effect.withSpan("getAvailableCohorts"),
+				Effect.tapError(logRpcError("getAvailableCohorts")),
+				Effect.catchAll(logAndReturnError("getAvailableCohorts")),
+				Effect.catchAllDefect(logAndReturnDefect("getAvailableCohorts")),
+			),
 		),
 	);
 
 export const getAvailableUsersRpc = createServerFn()
 	.middleware([requireRoleMiddleware("teacher", "admin")])
 	.handler(() =>
-		getAvailableUsers().pipe(
-			Effect.map(Rpc.ok),
-			Effect.withSpan("getAvailableUsers"),
-			Effect.tapError(logRpcError("getAvailableUsers")),
-			Effect.catchAll(logAndReturnError("getAvailableUsers")),
-			Effect.catchAllDefect(logAndReturnDefect("getAvailableUsers")),
-			Effect.provide(AppLayer),
-			Effect.runPromise,
+		Runtime.runPromise(
+			AppRuntime,
+			getAvailableUsers().pipe(
+				Effect.map(Rpc.ok),
+				Effect.withSpan("getAvailableUsers"),
+				Effect.tapError(logRpcError("getAvailableUsers")),
+				Effect.catchAll(logAndReturnError("getAvailableUsers")),
+				Effect.catchAllDefect(logAndReturnDefect("getAvailableUsers")),
+			),
 		),
 	);
 
 export const getTeacherGoalMapsRpc = createServerFn()
 	.middleware([requireRoleMiddleware("teacher", "admin")])
 	.handler(() =>
-		getTeacherGoalMaps().pipe(
-			Effect.map(Rpc.ok),
-			Effect.withSpan("getTeacherGoalMaps"),
-			Effect.tapError(logRpcError("getTeacherGoalMaps")),
-			Effect.catchAll(logAndReturnError("getTeacherGoalMaps")),
-			Effect.catchAllDefect(logAndReturnDefect("getTeacherGoalMaps")),
-			Effect.provide(AppLayer),
-			Effect.runPromise,
+		Runtime.runPromise(
+			AppRuntime,
+			getTeacherGoalMaps().pipe(
+				Effect.map(Rpc.ok),
+				Effect.withSpan("getTeacherGoalMaps"),
+				Effect.tapError(logRpcError("getTeacherGoalMaps")),
+				Effect.catchAll(logAndReturnError("getTeacherGoalMaps")),
+				Effect.catchAllDefect(logAndReturnDefect("getTeacherGoalMaps")),
+			),
 		),
 	);
 
@@ -121,14 +127,15 @@ export const saveExperimentGroupsRpc = createServerFn({ method: "POST" })
 	.middleware([requireRoleMiddleware("teacher", "admin")])
 	.inputValidator((raw) => Schema.decodeUnknownSync(SaveExperimentGroupsInput)(raw))
 	.handler(({ data }) =>
-		saveExperimentGroups(data).pipe(
-			Effect.map(() => Rpc.ok(true)),
-			Effect.withSpan("saveExperimentGroups"),
-			Effect.tapError(logRpcError("saveExperimentGroups")),
-			Effect.catchAll(logAndReturnError("saveExperimentGroups")),
-			Effect.catchAllDefect(logAndReturnDefect("saveExperimentGroups")),
-			Effect.provide(AppLayer),
-			Effect.runPromise,
+		Runtime.runPromise(
+			AppRuntime,
+			saveExperimentGroups(data).pipe(
+				Effect.map(() => Rpc.ok(true)),
+				Effect.withSpan("saveExperimentGroups"),
+				Effect.tapError(logRpcError("saveExperimentGroups")),
+				Effect.catchAll(logAndReturnError("saveExperimentGroups")),
+				Effect.catchAllDefect(logAndReturnDefect("saveExperimentGroups")),
+			),
 		),
 	);
 
@@ -138,14 +145,15 @@ export const getExperimentGroupsByAssignmentIdRpc = createServerFn()
 		Schema.decodeUnknownSync(Schema.Struct({ assignmentId: Schema.String }))(raw),
 	)
 	.handler(({ data }) =>
-		getExperimentGroupsByAssignmentId(data.assignmentId).pipe(
-			Effect.map(Rpc.ok),
-			Effect.withSpan("getExperimentGroupsByAssignmentId"),
-			Effect.tapError(logRpcError("getExperimentGroupsByAssignmentId")),
-			Effect.catchAll(logAndReturnError("getExperimentGroupsByAssignmentId")),
-			Effect.catchAllDefect(logAndReturnDefect("getExperimentGroupsByAssignmentId")),
-			Effect.provide(AppLayer),
-			Effect.runPromise,
+		Runtime.runPromise(
+			AppRuntime,
+			getExperimentGroupsByAssignmentId(data.assignmentId).pipe(
+				Effect.map(Rpc.ok),
+				Effect.withSpan("getExperimentGroupsByAssignmentId"),
+				Effect.tapError(logRpcError("getExperimentGroupsByAssignmentId")),
+				Effect.catchAll(logAndReturnError("getExperimentGroupsByAssignmentId")),
+				Effect.catchAllDefect(logAndReturnDefect("getExperimentGroupsByAssignmentId")),
+			),
 		),
 	);
 
@@ -155,14 +163,15 @@ export const getAssignmentByPreTestFormIdRpc = createServerFn()
 		Schema.decodeUnknownSync(Schema.Struct({ formId: Schema.String }))(raw),
 	)
 	.handler(({ data }) =>
-		getAssignmentByPreTestFormId(data.formId).pipe(
-			Effect.map(Rpc.ok),
-			Effect.withSpan("getAssignmentByPreTestFormId"),
-			Effect.tapError(logRpcError("getAssignmentByPreTestFormId")),
-			Effect.catchAll(logAndReturnError("getAssignmentByPreTestFormId")),
-			Effect.catchAllDefect(logAndReturnDefect("getAssignmentByPreTestFormId")),
-			Effect.provide(AppLayer),
-			Effect.runPromise,
+		Runtime.runPromise(
+			AppRuntime,
+			getAssignmentByPreTestFormId(data.formId).pipe(
+				Effect.map(Rpc.ok),
+				Effect.withSpan("getAssignmentByPreTestFormId"),
+				Effect.tapError(logRpcError("getAssignmentByPreTestFormId")),
+				Effect.catchAll(logAndReturnError("getAssignmentByPreTestFormId")),
+				Effect.catchAllDefect(logAndReturnDefect("getAssignmentByPreTestFormId")),
+			),
 		),
 	);
 
@@ -172,17 +181,18 @@ export const getAssignmentByIdRpc = createServerFn()
 		Schema.decodeUnknownSync(Schema.Struct({ assignmentId: Schema.String }))(raw),
 	)
 	.handler(({ data }) =>
-		getAssignmentById(data.assignmentId).pipe(
-			Effect.map(Rpc.ok),
-			Effect.withSpan("getAssignmentById"),
-			Effect.tapError(logRpcError("getAssignmentById")),
-			Effect.catchTags({
-				AssignmentNotFoundError: () => Rpc.notFound("Assignment"),
-			}),
-			Effect.catchAll(logAndReturnError("getAssignmentById")),
-			Effect.catchAllDefect(logAndReturnDefect("getAssignmentById")),
-			Effect.provide(AppLayer),
-			Effect.runPromise,
+		Runtime.runPromise(
+			AppRuntime,
+			getAssignmentById(data.assignmentId).pipe(
+				Effect.map(Rpc.ok),
+				Effect.withSpan("getAssignmentById"),
+				Effect.tapError(logRpcError("getAssignmentById")),
+				Effect.catchTags({
+					AssignmentNotFoundError: () => Rpc.notFound("Assignment"),
+				}),
+				Effect.catchAll(logAndReturnError("getAssignmentById")),
+				Effect.catchAllDefect(logAndReturnDefect("getAssignmentById")),
+			),
 		),
 	);
 
@@ -192,14 +202,15 @@ export const getExperimentConditionRpc = createServerFn()
 		Schema.decodeUnknownSync(Schema.Struct({ assignmentId: Schema.String }))(raw),
 	)
 	.handler(({ data, context }) =>
-		getExperimentCondition(data.assignmentId, context.user.id).pipe(
-			Effect.map(Rpc.ok),
-			Effect.withSpan("getExperimentCondition"),
-			Effect.tapError(logRpcError("getExperimentCondition")),
-			Effect.catchAll(logAndReturnError("getExperimentCondition")),
-			Effect.catchAllDefect(logAndReturnDefect("getExperimentCondition")),
-			Effect.provide(AppLayer),
-			Effect.runPromise,
+		Runtime.runPromise(
+			AppRuntime,
+			getExperimentCondition(data.assignmentId, context.user.id).pipe(
+				Effect.map(Rpc.ok),
+				Effect.withSpan("getExperimentCondition"),
+				Effect.tapError(logRpcError("getExperimentCondition")),
+				Effect.catchAll(logAndReturnError("getExperimentCondition")),
+				Effect.catchAllDefect(logAndReturnDefect("getExperimentCondition")),
+			),
 		),
 	);
 
@@ -207,17 +218,18 @@ export const getAssignmentExperimentStatusRpc = createServerFn()
 	.middleware([requireRoleMiddleware("teacher", "admin")])
 	.inputValidator((raw) => Schema.decodeUnknownSync(GetExperimentStatusInput)(raw))
 	.handler(({ data }) =>
-		getAssignmentExperimentStatus(data).pipe(
-			Effect.map(Rpc.ok),
-			Effect.withSpan("getAssignmentExperimentStatus"),
-			Effect.tapError(logRpcError("getAssignmentExperimentStatus")),
-			Effect.catchTags({
-				AssignmentNotFoundError: () => Rpc.notFound("Assignment"),
-			}),
-			Effect.catchAll(logAndReturnError("getAssignmentExperimentStatus")),
-			Effect.catchAllDefect(logAndReturnDefect("getAssignmentExperimentStatus")),
-			Effect.provide(AppLayer),
-			Effect.runPromise,
+		Runtime.runPromise(
+			AppRuntime,
+			getAssignmentExperimentStatus(data).pipe(
+				Effect.map(Rpc.ok),
+				Effect.withSpan("getAssignmentExperimentStatus"),
+				Effect.tapError(logRpcError("getAssignmentExperimentStatus")),
+				Effect.catchTags({
+					AssignmentNotFoundError: () => Rpc.notFound("Assignment"),
+				}),
+				Effect.catchAll(logAndReturnError("getAssignmentExperimentStatus")),
+				Effect.catchAllDefect(logAndReturnDefect("getAssignmentExperimentStatus")),
+			),
 		),
 	);
 

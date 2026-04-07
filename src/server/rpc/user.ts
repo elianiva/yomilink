@@ -1,6 +1,6 @@
 import { mutationOptions, queryOptions } from "@tanstack/react-query";
 import { createServerFn } from "@tanstack/react-start";
-import { Effect, Schema } from "effect";
+import { Effect, Runtime, Schema } from "effect";
 
 import {
 	BanUserInput,
@@ -19,7 +19,7 @@ import {
 } from "@/features/user/lib/user-service";
 import { requireRoleMiddleware } from "@/middlewares/auth";
 
-import { AppLayer } from "../app-layer";
+import { AppRuntime } from "../app-runtime";
 import { Rpc, logRpcError, logAndReturnError, logAndReturnDefect } from "../rpc-helper";
 
 // === List Users ===
@@ -28,14 +28,15 @@ export const listUsersRpc = createServerFn()
 	.middleware([requireRoleMiddleware("teacher", "admin")])
 	.inputValidator((raw) => Schema.decodeUnknownSync(UserFilterInput)(raw))
 	.handler(({ data }) =>
-		listUsers(data).pipe(
-			Effect.map(Rpc.ok),
-			Effect.withSpan("listUsers"),
-			Effect.tapError(logRpcError("listUsers")),
-			Effect.catchAll(logAndReturnError("listUsers")),
-			Effect.catchAllDefect(logAndReturnDefect("listUsers")),
-			Effect.provide(AppLayer),
-			Effect.runPromise,
+		Runtime.runPromise(
+			AppRuntime,
+			listUsers(data).pipe(
+				Effect.map(Rpc.ok),
+				Effect.withSpan("listUsers"),
+				Effect.tapError(logRpcError("listUsers")),
+				Effect.catchAll(logAndReturnError("listUsers")),
+				Effect.catchAllDefect(logAndReturnDefect("listUsers")),
+			),
 		),
 	);
 
@@ -47,17 +48,18 @@ export const getUserByIdRpc = createServerFn()
 		Schema.decodeUnknownSync(Schema.Struct({ userId: Schema.String }))(raw),
 	)
 	.handler(({ data }) =>
-		getUserById(data.userId).pipe(
-			Effect.map(Rpc.ok),
-			Effect.withSpan("getUserById"),
-			Effect.tapError(logRpcError("getUserById")),
-			Effect.catchTags({
-				UserNotFoundError: () => Rpc.notFound("User"),
-			}),
-			Effect.catchAll(logAndReturnError("getUserById")),
-			Effect.catchAllDefect(logAndReturnDefect("getUserById")),
-			Effect.provide(AppLayer),
-			Effect.runPromise,
+		Runtime.runPromise(
+			AppRuntime,
+			getUserById(data.userId).pipe(
+				Effect.map(Rpc.ok),
+				Effect.withSpan("getUserById"),
+				Effect.tapError(logRpcError("getUserById")),
+				Effect.catchTags({
+					UserNotFoundError: () => Rpc.notFound("User"),
+				}),
+				Effect.catchAll(logAndReturnError("getUserById")),
+				Effect.catchAllDefect(logAndReturnDefect("getUserById")),
+			),
 		),
 	);
 
@@ -74,17 +76,18 @@ export const updateUserRpc = createServerFn({ method: "POST" })
 		)(raw),
 	)
 	.handler(({ data, context }) =>
-		updateUser(context.user.id, data.userId, data.data).pipe(
-			Effect.map(Rpc.ok),
-			Effect.withSpan("updateUser"),
-			Effect.tapError(logRpcError("updateUser")),
-			Effect.catchTags({
-				UserNotFoundError: () => Rpc.notFound("User"),
-			}),
-			Effect.catchAll(logAndReturnError("updateUser")),
-			Effect.catchAllDefect(logAndReturnDefect("updateUser")),
-			Effect.provide(AppLayer),
-			Effect.runPromise,
+		Runtime.runPromise(
+			AppRuntime,
+			updateUser(context.user.id, data.userId, data.data).pipe(
+				Effect.map(Rpc.ok),
+				Effect.withSpan("updateUser"),
+				Effect.tapError(logRpcError("updateUser")),
+				Effect.catchTags({
+					UserNotFoundError: () => Rpc.notFound("User"),
+				}),
+				Effect.catchAll(logAndReturnError("updateUser")),
+				Effect.catchAllDefect(logAndReturnDefect("updateUser")),
+			),
 		),
 	);
 
@@ -94,19 +97,20 @@ export const updateUserRoleRpc = createServerFn({ method: "POST" })
 	.middleware([requireRoleMiddleware("admin")])
 	.inputValidator((raw) => Schema.decodeUnknownSync(UpdateRoleInput)(raw))
 	.handler(({ data, context }) =>
-		updateUserRole(context.user.id, data).pipe(
-			Effect.map(Rpc.ok),
-			Effect.withSpan("updateUserRole"),
-			Effect.tapError(logRpcError("updateUserRole")),
-			Effect.catchTags({
-				UserNotFoundError: () => Rpc.notFound("User"),
-				CannotModifySelfError: (e) => Rpc.err(e.message),
-				LastAdminError: (e) => Rpc.err(e.message),
-			}),
-			Effect.catchAll(logAndReturnError("updateUserRole")),
-			Effect.catchAllDefect(logAndReturnDefect("updateUserRole")),
-			Effect.provide(AppLayer),
-			Effect.runPromise,
+		Runtime.runPromise(
+			AppRuntime,
+			updateUserRole(context.user.id, data).pipe(
+				Effect.map(Rpc.ok),
+				Effect.withSpan("updateUserRole"),
+				Effect.tapError(logRpcError("updateUserRole")),
+				Effect.catchTags({
+					UserNotFoundError: () => Rpc.notFound("User"),
+					CannotModifySelfError: (e) => Rpc.err(e.message),
+					LastAdminError: (e) => Rpc.err(e.message),
+				}),
+				Effect.catchAll(logAndReturnError("updateUserRole")),
+				Effect.catchAllDefect(logAndReturnDefect("updateUserRole")),
+			),
 		),
 	);
 
@@ -116,19 +120,20 @@ export const banUserRpc = createServerFn({ method: "POST" })
 	.middleware([requireRoleMiddleware("admin")])
 	.inputValidator((raw) => Schema.decodeUnknownSync(BanUserInput)(raw))
 	.handler(({ data, context }) =>
-		banUser(context.user.id, data).pipe(
-			Effect.map(Rpc.ok),
-			Effect.withSpan("banUser"),
-			Effect.tapError(logRpcError("banUser")),
-			Effect.catchTags({
-				UserNotFoundError: () => Rpc.notFound("User"),
-				CannotModifySelfError: (e) => Rpc.err(e.message),
-				LastAdminError: (e) => Rpc.err(e.message),
-			}),
-			Effect.catchAll(logAndReturnError("banUser")),
-			Effect.catchAllDefect(logAndReturnDefect("banUser")),
-			Effect.provide(AppLayer),
-			Effect.runPromise,
+		Runtime.runPromise(
+			AppRuntime,
+			banUser(context.user.id, data).pipe(
+				Effect.map(Rpc.ok),
+				Effect.withSpan("banUser"),
+				Effect.tapError(logRpcError("banUser")),
+				Effect.catchTags({
+					UserNotFoundError: () => Rpc.notFound("User"),
+					CannotModifySelfError: (e) => Rpc.err(e.message),
+					LastAdminError: (e) => Rpc.err(e.message),
+				}),
+				Effect.catchAll(logAndReturnError("banUser")),
+				Effect.catchAllDefect(logAndReturnDefect("banUser")),
+			),
 		),
 	);
 
@@ -140,18 +145,19 @@ export const unbanUserRpc = createServerFn({ method: "POST" })
 		Schema.decodeUnknownSync(Schema.Struct({ userId: Schema.String }))(raw),
 	)
 	.handler(({ data, context }) =>
-		unbanUser(context.user.id, data.userId).pipe(
-			Effect.map(Rpc.ok),
-			Effect.withSpan("unbanUser"),
-			Effect.tapError(logRpcError("unbanUser")),
-			Effect.catchTags({
-				UserNotFoundError: () => Rpc.notFound("User"),
-				CannotModifySelfError: (e) => Rpc.err(e.message),
-			}),
-			Effect.catchAll(logAndReturnError("unbanUser")),
-			Effect.catchAllDefect(logAndReturnDefect("unbanUser")),
-			Effect.provide(AppLayer),
-			Effect.runPromise,
+		Runtime.runPromise(
+			AppRuntime,
+			unbanUser(context.user.id, data.userId).pipe(
+				Effect.map(Rpc.ok),
+				Effect.withSpan("unbanUser"),
+				Effect.tapError(logRpcError("unbanUser")),
+				Effect.catchTags({
+					UserNotFoundError: () => Rpc.notFound("User"),
+					CannotModifySelfError: (e) => Rpc.err(e.message),
+				}),
+				Effect.catchAll(logAndReturnError("unbanUser")),
+				Effect.catchAllDefect(logAndReturnDefect("unbanUser")),
+			),
 		),
 	);
 
@@ -161,14 +167,15 @@ export const bulkAssignCohortRpc = createServerFn({ method: "POST" })
 	.middleware([requireRoleMiddleware("teacher", "admin")])
 	.inputValidator((raw) => Schema.decodeUnknownSync(BulkCohortAssignInput)(raw))
 	.handler(({ data }) =>
-		bulkAssignCohort(data).pipe(
-			Effect.map(Rpc.ok),
-			Effect.withSpan("bulkAssignCohort"),
-			Effect.tapError(logRpcError("bulkAssignCohort")),
-			Effect.catchAll(logAndReturnError("bulkAssignCohort")),
-			Effect.catchAllDefect(logAndReturnDefect("bulkAssignCohort")),
-			Effect.provide(AppLayer),
-			Effect.runPromise,
+		Runtime.runPromise(
+			AppRuntime,
+			bulkAssignCohort(data).pipe(
+				Effect.map(Rpc.ok),
+				Effect.withSpan("bulkAssignCohort"),
+				Effect.tapError(logRpcError("bulkAssignCohort")),
+				Effect.catchAll(logAndReturnError("bulkAssignCohort")),
+				Effect.catchAllDefect(logAndReturnDefect("bulkAssignCohort")),
+			),
 		),
 	);
 
@@ -180,17 +187,18 @@ export const triggerPasswordResetRpc = createServerFn({ method: "POST" })
 		Schema.decodeUnknownSync(Schema.Struct({ userId: Schema.String }))(raw),
 	)
 	.handler(({ data }) =>
-		triggerPasswordReset(data.userId).pipe(
-			Effect.map(Rpc.ok),
-			Effect.withSpan("triggerPasswordReset"),
-			Effect.tapError(logRpcError("triggerPasswordReset")),
-			Effect.catchTags({
-				UserNotFoundError: () => Rpc.notFound("User"),
-			}),
-			Effect.catchAll(logAndReturnError("triggerPasswordReset")),
-			Effect.catchAllDefect(logAndReturnDefect("triggerPasswordReset")),
-			Effect.provide(AppLayer),
-			Effect.runPromise,
+		Runtime.runPromise(
+			AppRuntime,
+			triggerPasswordReset(data.userId).pipe(
+				Effect.map(Rpc.ok),
+				Effect.withSpan("triggerPasswordReset"),
+				Effect.tapError(logRpcError("triggerPasswordReset")),
+				Effect.catchTags({
+					UserNotFoundError: () => Rpc.notFound("User"),
+				}),
+				Effect.catchAll(logAndReturnError("triggerPasswordReset")),
+				Effect.catchAllDefect(logAndReturnDefect("triggerPasswordReset")),
+			),
 		),
 	);
 
