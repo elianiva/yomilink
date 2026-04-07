@@ -211,7 +211,9 @@ export function CreateAssignmentForm({ onSuccess, onCancel }: CreateAssignmentFo
 	const pretestForms = formsWithDesc.filter((f) => f.type === "pre_test");
 	const posttestForms = formsWithDesc.filter((f) => f.type === "post_test");
 	const delayedtestForms = formsWithDesc.filter((f) => f.type === "delayed_test");
-	const tamForms = formsWithDesc.filter((f) => f.type === "tam");
+	const questionnaireForms = formsWithDesc.filter(
+		(f) => f.type === "tam" || f.type === "questionnaire",
+	);
 
 	return (
 		<form onSubmit={handleSubmit} className="space-y-4">
@@ -376,13 +378,13 @@ export function CreateAssignmentForm({ onSuccess, onCancel }: CreateAssignmentFo
 					</div>
 					<FormSelect
 						id="tamSurvey"
-						label="Questionnaires (TAM/Surveys)"
+						label="Questionnaires"
 						value={state.procedure.tamFormId}
 						onChange={(v) =>
 							dispatch({ type: "SET_PROCEDURE", field: "tamFormId", value: v })
 						}
-						forms={tamForms}
-						placeholder="Select a questionnaire form (e.g., TAM)"
+						forms={questionnaireForms}
+						placeholder="Select a questionnaire form"
 					/>
 				</div>
 			)}

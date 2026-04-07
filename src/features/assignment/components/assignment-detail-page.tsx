@@ -195,7 +195,7 @@ export function AssignmentDetailPage({ assignment }: AssignmentDetailPageProps) 
 								{assignment.tamForm && (
 									<FormCard
 										form={assignment.tamForm}
-										label="TAM Survey"
+										label="Questionnaire"
 										variant="secondary"
 									/>
 								)}
@@ -248,7 +248,7 @@ export function AssignmentDetailPage({ assignment }: AssignmentDetailPageProps) 
 									</p>
 								</div>
 								<div className="space-y-2">
-									<p className="text-sm font-medium">TAM Survey</p>
+									<p className="text-sm font-medium">Questionnaire</p>
 									<p className="text-sm text-muted-foreground">
 										{assignment.tamForm ? "Enabled" : "Not configured"}
 									</p>

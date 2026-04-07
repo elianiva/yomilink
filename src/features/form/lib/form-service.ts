@@ -16,7 +16,7 @@ export const FORM_TYPES = [
 	"delayed_test",
 	"registration",
 	"tam",
-	"control",
+	"questionnaire",
 ] as const;
 
 export type FormType = (typeof FORM_TYPES)[number];
@@ -24,14 +24,36 @@ export type FormType = (typeof FORM_TYPES)[number];
 /** Schema for form type validation */
 export const FormTypeSchema = Schema.Union(...FORM_TYPES.map((t) => Schema.Literal(t)));
 
+export const FORM_AUDIENCES = ["all", "experiment", "control"] as const;
+
+export type FormAudience = (typeof FORM_AUDIENCES)[number];
+
+export const FormAudienceSchema = Schema.Union(
+	...FORM_AUDIENCES.map((audience) => Schema.Literal(audience)),
+);
+
 export const CreateFormInput = Schema.Struct({
 	title: NonEmpty("Title"),
 	description: Schema.optionalWith(NonEmpty("Description"), {
 		nullable: true,
 	}),
 	type: Schema.optionalWith(FormTypeSchema, { nullable: true }),
+	audience: Schema.optionalWith(FormAudienceSchema, { default: () => "all" }),
 	unlockConditions: Schema.optionalWith(FormUnlockConditionsNullable, { nullable: true }),
 });
+
+function normalizeFormAudience(type: FormType, audience: FormAudience): FormAudience {
+	if (type === "tam") return "experiment";
+	if (
+		type === "pre_test" ||
+		type === "post_test" ||
+		type === "delayed_test" ||
+		type === "registration"
+	) {
+		return "all";
+	}
+	return audience;
+}
 
 export type CreateFormInput = typeof CreateFormInput.Type;
 
@@ -75,17 +97,8 @@ export const UpdateFormInput = Schema.Struct({
 	formId: NonEmpty("Form ID"),
 	title: Schema.optionalWith(NonEmpty("Title"), { nullable: true }),
 	description: Schema.optionalWith(Schema.String, { nullable: true }),
-	type: Schema.optionalWith(
-		Schema.Union(
-			Schema.Literal("pre_test"),
-			Schema.Literal("post_test"),
-			Schema.Literal("delayed_test"),
-			Schema.Literal("registration"),
-			Schema.Literal("tam"),
-			Schema.Literal("control"),
-		),
-		{ nullable: true },
-	),
+	type: Schema.optionalWith(FormTypeSchema, { nullable: true }),
+	audience: Schema.optionalWith(FormAudienceSchema, { nullable: true }),
 	status: Schema.optionalWith(
 		Schema.Union(Schema.Literal("draft"), Schema.Literal("published")),
 		{ nullable: true },
@@ -109,11 +122,15 @@ export const createForm = Effect.fn("createForm")(function* (
 
 	const formId = randomString();
 
+	const type = data.type ?? "registration";
+	const audience = normalizeFormAudience(type, data.audience ?? "all");
+
 	yield* db.insert(forms).values({
 		id: formId,
 		title: data.title,
 		description: data.description ?? null,
-		type: data.type ?? "registration",
+		type,
+		audience,
 		status: "draft",
 		unlockConditions: data.unlockConditions ?? null,
 		createdBy: userId,
@@ -148,6 +165,7 @@ export const getFormById = Effect.fn("getFormById")(function* (formId: string) {
 		description: formRow.description,
 		type: formRow.type,
 		status: formRow.status,
+		audience: formRow.audience,
 		unlockConditions,
 		createdBy: formRow.createdBy,
 		createdAt: formRow.createdAt,
@@ -245,6 +263,7 @@ export const getStudentFormById = Effect.fn("getStudentFormById")(function* (
 		description: formRow.description,
 		type: formRow.type,
 		status: formRow.status,
+		audience: formRow.audience,
 		unlockConditions,
 		createdBy: formRow.createdBy,
 		createdAt: formRow.createdAt,
@@ -379,6 +398,7 @@ export const listForms = Effect.fn("listForms")(function* (userId: string) {
 					description: formRow.description,
 					type: formRow.type,
 					status: formRow.status,
+					audience: formRow.audience,
 					unlockConditions,
 					createdBy: formRow.createdBy,
 					createdAt: formRow.createdAt,
@@ -399,6 +419,7 @@ export const updateForm = Effect.fn("updateForm")(function* (
 		title: string;
 		description: string | null;
 		type: FormType;
+		audience: FormAudience;
 		status: "draft" | "published";
 		unlockConditions: FormUnlockConditionsType | null;
 	}>,
@@ -424,6 +445,9 @@ export const updateForm = Effect.fn("updateForm")(function* (
 		});
 	}
 
+	const nextType = data.type ?? form.type;
+	const nextAudience = normalizeFormAudience(nextType, data.audience ?? form.audience);
+
 	yield* db
 		.update(forms)
 		.set({
@@ -432,6 +456,9 @@ export const updateForm = Effect.fn("updateForm")(function* (
 				description: data.description,
 			}),
 			...(data.type !== undefined && { type: data.type }),
+			...((data.type !== undefined || data.audience !== undefined) && {
+				audience: nextAudience,
+			}),
 			...(data.status !== undefined && { status: data.status }),
 			...(data.unlockConditions !== undefined && {
 				unlockConditions: data.unlockConditions,
@@ -444,6 +471,7 @@ export const updateForm = Effect.fn("updateForm")(function* (
 		title: data.title,
 		description: data.description,
 		type: data.type,
+		audience: nextAudience,
 		status: data.status,
 		unlockConditions: data.unlockConditions,
 	};
@@ -517,6 +545,7 @@ export const cloneForm = Effect.fn("cloneForm")(function* (formId: string, userI
 		title: `${originalForm.title} (Copy)`,
 		description: originalForm.description,
 		type: originalForm.type,
+		audience: originalForm.audience,
 		status: "draft",
 		unlockConditions: originalForm.unlockConditions,
 		createdBy: userId,
@@ -973,8 +1002,9 @@ export const FormOutputSchema = Schema.Struct({
 		Schema.Literal("delayed_test"),
 		Schema.Literal("registration"),
 		Schema.Literal("tam"),
-		Schema.Literal("control"),
+		Schema.Literal("questionnaire"),
 	),
+	audience: FormAudienceSchema,
 	status: Schema.Union(Schema.Literal("draft"), Schema.Literal("published")),
 	unlockConditions: FormUnlockConditionsNullable,
 	createdBy: Schema.String,
@@ -1113,13 +1143,13 @@ export const getRegistrationFormStatus = Effect.fn("getRegistrationFormStatus")(
 
 // Form type priority order for display and required flow
 // registration → pre_test → post_test → delayed_test
-// TAM/control are optional questionnaires, shown once published for the matching group
+// TAM/questionnaire are optional, shown once published for the matching audience
 const FORM_TYPE_PRIORITY: Record<FormType, number> = {
 	registration: -1, // Completed during sign-up, not shown in dashboard
 	pre_test: 0,
 	post_test: 1,
 	tam: 2,
-	control: 2,
+	questionnaire: 2,
 	delayed_test: 3,
 };
 
@@ -1139,7 +1169,7 @@ function areAllFormsOfTypeCompleted(
 	return formsOfType.every((f) => progressMap.get(f.id)?.status === "completed");
 }
 
-const OPTIONAL_FORM_TYPES = new Set<FormType>(["tam", "control"]);
+const OPTIONAL_FORM_TYPES = new Set<FormType>(["tam", "questionnaire"]);
 const REQUIRED_FORM_TYPES: FormType[] = ["pre_test", "post_test", "delayed_test"];
 
 function getNextRequiredType(completed: Set<FormType>, available: Set<FormType>): FormType | null {
@@ -1152,15 +1182,14 @@ function getNextRequiredType(completed: Set<FormType>, available: Set<FormType>)
 }
 
 function shouldExcludeForm(
-	formType: FormType,
+	form: { type: FormType; audience: FormAudience },
 	studyGroup: "experiment" | "control" | null,
 ): boolean {
-	// Registration forms are handled during sign-up
-	if (formType === "registration") return true;
-	// TAM only for experiment group
-	if (formType === "tam" && studyGroup !== "experiment") return true;
-	// Feedback questionnaires are experiment-group only
-	if (formType === "control" && studyGroup !== "experiment") return true;
+	if (form.type === "registration") return true;
+	if (form.type === "tam") return form.audience !== "experiment";
+	if (form.type === "questionnaire") {
+		return form.audience !== "all" && form.audience !== studyGroup;
+	}
 	return false;
 }
 
@@ -1178,7 +1207,7 @@ export const getStudentForms = Effect.fn("getStudentForms")(function* (userId: s
 
 	const publishedForms = yield* db.select().from(forms).where(eq(forms.status, "published"));
 
-	const applicableForms = publishedForms.filter((f) => !shouldExcludeForm(f.type, studyGroup));
+	const applicableForms = publishedForms.filter((form) => !shouldExcludeForm(form, studyGroup));
 
 	const userProgressRows = yield* db
 		.select()
@@ -1187,17 +1216,14 @@ export const getStudentForms = Effect.fn("getStudentForms")(function* (userId: s
 
 	const progressMap = new Map(userProgressRows.map((p) => [p.formId, p]));
 
-	// Group applicable forms by type
 	const formsByType = new Map<FormType, typeof applicableForms>();
-	for (const f of applicableForms) {
-		const list = formsByType.get(f.type) ?? [];
-		list.push(f);
-		formsByType.set(f.type, list);
+	for (const form of applicableForms) {
+		const list = formsByType.get(form.type) ?? [];
+		list.push(form);
+		formsByType.set(form.type, list);
 	}
 
 	const availableTypes = new Set<FormType>(formsByType.keys());
-
-	// Determine completed types
 	const completedTypes = new Set<FormType>();
 	for (const [type, list] of formsByType) {
 		if (areAllFormsOfTypeCompleted(list, progressMap)) {
@@ -1205,14 +1231,11 @@ export const getStudentForms = Effect.fn("getStudentForms")(function* (userId: s
 		}
 	}
 
-	// Find next required type to complete
 	const nextRequired = getNextRequiredType(completedTypes, availableTypes);
 	const nextPriority = nextRequired ? FORM_TYPE_PRIORITY[nextRequired] : Infinity;
-
-	// Sort applicable forms by priority order for sequential display
 	const sortedForms = applicableForms.sort(sortFormsByPriority);
 
-	const formsWithStatus = sortedForms.map((form) => {
+	return sortedForms.map((form) => {
 		const progress = progressMap.get(form.id);
 		const isOptionalForm = OPTIONAL_FORM_TYPES.has(form.type);
 		let unlockStatus: "locked" | "available" | "completed" = progress?.status ?? "locked";
@@ -1222,7 +1245,6 @@ export const getStudentForms = Effect.fn("getStudentForms")(function* (userId: s
 			unlockStatus = progress?.status === "completed" ? "completed" : "available";
 			isUnlocked = true;
 		} else {
-			// Lock future types until current required priority is fully completed
 			const formPriority = FORM_TYPE_PRIORITY[form.type];
 			if (formPriority > nextPriority && unlockStatus !== "completed") {
 				unlockStatus = "locked";
@@ -1235,6 +1257,7 @@ export const getStudentForms = Effect.fn("getStudentForms")(function* (userId: s
 			title: form.title,
 			description: form.description,
 			type: form.type,
+			audience: form.audience,
 			unlockStatus,
 			isUnlocked,
 			progress: progress
@@ -1246,6 +1269,4 @@ export const getStudentForms = Effect.fn("getStudentForms")(function* (userId: s
 				: null,
 		};
 	});
-
-	return formsWithStatus;
 });

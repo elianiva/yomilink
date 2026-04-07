@@ -16,7 +16,7 @@ export function seedForms(teacherId: string) {
 	return Effect.gen(function* () {
 		const db = yield* Database;
 
-		yield* Effect.log("--- Seeding TAM and Feedback Forms ---");
+		yield* Effect.log("--- Seeding TAM and Questionnaire Forms ---");
 
 		const tamFormTitle = "TAM Questionnaire - Kit-Build Evaluation";
 		const existingTamForm = yield* db
@@ -37,6 +37,7 @@ export function seedForms(teacherId: string) {
 				description:
 					"Technology Acceptance Model questionnaire to evaluate Kit-Build's Perceived Usefulness (PU) and Perceived Ease of Use (PEoU). Scale: 1=Strongly Disagree to 5=Strongly Agree",
 				type: "tam",
+				audience: "experiment",
 				status: "published",
 				createdBy: teacherId,
 			});
@@ -109,7 +110,8 @@ export function seedForms(teacherId: string) {
 				title: feedbackFormTitle,
 				description:
 					"Open-ended feedback questions about the Kit-Build learning experience",
-				type: "control",
+				type: "questionnaire",
+				audience: "all",
 				status: "published",
 				createdBy: teacherId,
 			});
@@ -165,6 +167,7 @@ export function seedForms(teacherId: string) {
 				description:
 					"Pre-test to measure baseline reading comprehension. Passage: Tanaka's Daily Life (JLPT N5-N4 level). 20 MCQ questions based on Bloom's Taxonomy.",
 				type: "pre_test",
+				audience: "all",
 				status: "published",
 				createdBy: teacherId,
 			});
@@ -214,6 +217,7 @@ export function seedForms(teacherId: string) {
 			description:
 				"Post-test to measure immediate learning outcomes. Same questions as pre-test. Passage: Tanaka's Daily Life (JLPT N5-N4 level).",
 			type: "post_test",
+			audience: "all",
 			teacherId,
 		}).pipe(Effect.map((result) => result.formId));
 
@@ -223,6 +227,7 @@ export function seedForms(teacherId: string) {
 			description:
 				"Delayed test (1 week) to measure retention. Same questions as pre/post-test. Passage: Tanaka's Daily Life (JLPT N5-N4 level).",
 			type: "delayed_test",
+			audience: "all",
 			teacherId,
 		}).pipe(Effect.map((result) => result.formId));
 

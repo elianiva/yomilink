@@ -71,6 +71,7 @@ export function seedWri2026Forms(teacherId: string) {
 				description:
 					"Technology Acceptance Model questionnaire to evaluate Kit-Build's Perceived Usefulness (PU) and Perceived Ease of Use (PEoU). Scale: 1=Strongly Disagree to 5=Strongly Agree",
 				type: "tam",
+				audience: "experiment",
 				status: "published",
 				createdBy: teacherId,
 			});
@@ -119,7 +120,8 @@ export function seedWri2026Forms(teacherId: string) {
 				title: feedbackTitle,
 				description:
 					"Open-ended feedback questions about the Kit-Build learning experience",
-				type: "control",
+				type: "questionnaire",
+				audience: "all",
 				status: "published",
 				createdBy: teacherId,
 			});
@@ -169,6 +171,7 @@ export function seedWri2026Forms(teacherId: string) {
 				description:
 					"Frontend web development pre-test. Covers HTML structure, CSS styling, and basic JavaScript. 22 MCQ questions based on Bloom's Taxonomy.",
 				type: "pre_test",
+				audience: "all",
 				status: "published",
 				createdBy: teacherId,
 			});
@@ -208,6 +211,7 @@ export function seedWri2026Forms(teacherId: string) {
 			description:
 				"Frontend web development post-test. Same questions as the pre-test. Covers HTML structure, CSS styling, and basic JavaScript. 22 MCQ questions based on Bloom's Taxonomy.",
 			type: "post_test",
+			audience: "all",
 			teacherId,
 		}).pipe(Effect.map((result) => result.formId));
 
@@ -217,6 +221,7 @@ export function seedWri2026Forms(teacherId: string) {
 			description:
 				"Frontend web development delayed test. Same questions as the pre/post-test. Covers HTML structure, CSS styling, and basic JavaScript. 22 MCQ questions based on Bloom's Taxonomy.",
 			type: "delayed_test",
+			audience: "all",
 			teacherId,
 		}).pipe(Effect.map((result) => result.formId));
 

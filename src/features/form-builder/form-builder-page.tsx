@@ -86,6 +86,7 @@ export function FormBuilderPage() {
 				title: existingForm.form.title ?? "",
 				description: existingForm.form.description,
 				type: existingForm.form.type,
+				audience: existingForm.form.audience,
 				status: existingForm.form.status,
 			});
 			setQuestions([...((existingForm.questions ?? []) as unknown as QuestionWithOptions[])]);
@@ -237,6 +238,7 @@ export function FormBuilderPage() {
 				title: metadata.title,
 				description: metadata.description ?? undefined,
 				type: metadata.type,
+				audience: metadata.audience,
 				status: metadata.status,
 			});
 		} else {
@@ -244,6 +246,7 @@ export function FormBuilderPage() {
 				title: metadata.title,
 				description: metadata.description ?? undefined,
 				type: metadata.type,
+				audience: metadata.audience,
 			});
 		}
 	};

@@ -1,7 +1,7 @@
 import { eq } from "drizzle-orm";
 import { Effect } from "effect";
 
-import type { FormType } from "@/features/form/lib/form-service";
+import type { FormAudience, FormType } from "@/features/form/lib/form-service";
 import { randomString } from "@/lib/utils";
 import { Database } from "@/server/db/client";
 import { forms, questions } from "@/server/db/schema/app-schema";
@@ -11,6 +11,7 @@ type CopyFormOptions = {
 	title: string;
 	description: string;
 	type: Exclude<FormType, "registration">;
+	audience: FormAudience;
 	teacherId: string;
 };
 
@@ -19,6 +20,7 @@ export function copyFormWithQuestions({
 	title,
 	description,
 	type,
+	audience,
 	teacherId,
 }: CopyFormOptions) {
 	return Effect.gen(function* () {
@@ -34,6 +36,7 @@ export function copyFormWithQuestions({
 				.set({
 					description,
 					type,
+					audience,
 					status: "published",
 					createdBy: teacherId,
 				})
@@ -45,6 +48,7 @@ export function copyFormWithQuestions({
 				title,
 				description,
 				type,
+				audience,
 				status: "published",
 				createdBy: teacherId,
 			});

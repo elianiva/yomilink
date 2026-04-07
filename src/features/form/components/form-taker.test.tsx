@@ -9,6 +9,7 @@ const mockForm = {
 	title: "Test Form",
 	description: "Test description",
 	type: "pre_test" as const,
+	audience: "all" as const,
 	status: "published" as const,
 };
 

@@ -13,7 +13,7 @@ import {
 // Minimal seed for WRI 2026 cohort
 // - Single admin + teacher account
 // - WRI 2026 cohort (empty, no students)
-// - Questionnaires (TAM, Feedback, Pre/Post/Delayed tests)
+// - Questionnaires (TAM, general questionnaire, Pre/Post/Delayed tests)
 
 const program = Effect.gen(function* () {
 	yield* Effect.log("=== Seeding WRI 2026 Environment ===");
@@ -40,7 +40,7 @@ const program = Effect.gen(function* () {
 			`  - Cohort: WRI 2026 (${cohortId.slice(0, 8)}...)\n` +
 			`  - Topic: Frontend Web Development (${topicId.slice(0, 8)}...)\n` +
 			`  - Goal Map: Frontend Web Development Basics (${goalMapId.slice(0, 8)}...)\n` +
-			`  - Forms: TAM, Feedback, Pre/Post/Delayed tests\n` +
+			`  - Forms: TAM, Questionnaire, Pre/Post/Delayed tests\n` +
 			"\n" +
 			"Note: No student accounts created. Add students manually or via cohort invite.\n",
 	);

@@ -14,7 +14,8 @@ type StudentForm = {
 	id: string;
 	title: string;
 	description: string | null;
-	type: "pre_test" | "post_test" | "delayed_test" | "registration" | "tam" | "control";
+	type: "pre_test" | "post_test" | "delayed_test" | "registration" | "tam" | "questionnaire";
+	audience: "all" | "experiment" | "control";
 	unlockStatus: "locked" | "available" | "completed";
 	isUnlocked: boolean;
 	progress: {
@@ -52,8 +53,8 @@ function StudentFormsPage() {
 			case "registration":
 				return "Registration";
 			case "tam":
-				return "TAM Survey";
-			case "control":
+				return "TAM Questionnaire";
+			case "questionnaire":
 				return "Questionnaire";
 			default:
 				return type;
@@ -72,7 +73,7 @@ function StudentFormsPage() {
 				return "bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200";
 			case "tam":
 				return "bg-teal-100 text-teal-800 dark:bg-teal-900 dark:text-teal-200";
-			case "control":
+			case "questionnaire":
 				return "bg-orange-100 text-orange-800 dark:bg-orange-900 dark:text-orange-200";
 			default:
 				return "bg-gray-100 text-gray-800";

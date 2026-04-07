@@ -8,6 +8,7 @@ describe("FormMetadataEditor", () => {
 		title: "",
 		description: null,
 		type: "registration",
+		audience: "all",
 		status: "draft",
 	};
 
@@ -26,6 +27,7 @@ describe("FormMetadataEditor", () => {
 			title: "Test Form",
 			description: "Test Description",
 			type: "pre_test",
+			audience: "all",
 			status: "published",
 		};
 

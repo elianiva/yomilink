@@ -376,10 +376,13 @@ export const forms = sqliteTable(
 		title: text("title").notNull(),
 		description: text("description"),
 		type: text("type", {
-			enum: ["pre_test", "post_test", "delayed_test", "registration", "tam", "control"],
+			enum: ["pre_test", "post_test", "delayed_test", "registration", "tam", "questionnaire"],
 		})
 			.notNull()
 			.default("registration"),
+		audience: text("audience", { enum: ["all", "experiment", "control"] })
+			.notNull()
+			.default("all"),
 		status: text("status", { enum: ["draft", "published"] })
 			.notNull()
 			.default("draft"),

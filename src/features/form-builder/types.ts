@@ -26,6 +26,7 @@ export const defaultMetadata: FormMetadata = {
 	title: "",
 	description: null,
 	type: "registration",
+	audience: "all",
 	status: "draft",
 };
 

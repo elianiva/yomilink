@@ -165,6 +165,7 @@ function FormTakerPage() {
 		title: data.form.title,
 		description: data.form.description ?? undefined,
 		type: data.form.type,
+		audience: data.form.audience,
 		status: data.form.status,
 	};
 

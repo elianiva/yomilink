@@ -68,6 +68,7 @@ export function FormBuilderTabs({
 							title: metadata.title,
 							description: metadata.description ?? undefined,
 							type: metadata.type,
+							audience: metadata.audience,
 							status: metadata.status,
 						}}
 						questions={questions.map((q) => ({

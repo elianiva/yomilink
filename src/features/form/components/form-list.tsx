@@ -30,7 +30,7 @@ export type FormType =
 	| "delayed_test"
 	| "registration"
 	| "tam"
-	| "control";
+	| "questionnaire";
 export type FormStatus = "draft" | "published";
 export type FormListStatus = "locked" | "available" | "completed";
 
@@ -69,7 +69,7 @@ const formTypeIcons: Record<FormType, React.ReactNode> = {
 	delayed_test: <Clock className="size-4" />,
 	registration: <FileText className="size-4" />,
 	tam: <BarChart3 className="size-4" />,
-	control: <FileText className="size-4" />,
+	questionnaire: <FileText className="size-4" />,
 };
 
 const formTypeLabels: Record<FormType, string> = {
@@ -77,8 +77,8 @@ const formTypeLabels: Record<FormType, string> = {
 	post_test: "Post-test",
 	delayed_test: "Delayed",
 	registration: "Registration",
-	tam: "TAM",
-	control: "Control",
+	tam: "TAM Questionnaire",
+	questionnaire: "Questionnaire",
 };
 
 const formStatusConfig: Record<FormStatus, { label: string; dot: string }> = {

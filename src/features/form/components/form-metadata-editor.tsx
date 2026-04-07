@@ -17,13 +17,15 @@ export type FormType =
 	| "delayed_test"
 	| "registration"
 	| "tam"
-	| "control";
+	| "questionnaire";
+export type FormAudience = "all" | "experiment" | "control";
 export type FormStatus = "draft" | "published";
 
 export interface FormMetadata {
 	title: string;
 	description: string | null;
 	type: FormType;
+	audience: FormAudience;
 	status: FormStatus;
 }
 
@@ -39,7 +41,7 @@ const formTypeLabels: Record<FormType, string> = {
 	delayed_test: "Delayed-Test",
 	registration: "Registration",
 	tam: "TAM Questionnaire",
-	control: "Control Group",
+	questionnaire: "Questionnaire",
 };
 
 const formTypeDescriptions: Record<FormType, string> = {
@@ -48,7 +50,19 @@ const formTypeDescriptions: Record<FormType, string> = {
 	delayed_test: "Assessment of memory retention (typically 1 week later)",
 	registration: "Initial user registration form",
 	tam: "Technology Acceptance Model questionnaire",
-	control: "Control group alternative activity",
+	questionnaire: "General questionnaire visible to all students",
+};
+
+const audienceLabels: Record<FormAudience, string> = {
+	all: "All students",
+	experiment: "Experiment group",
+	control: "Control group",
+};
+
+const audienceDescriptions: Record<FormAudience, string> = {
+	all: "Visible to everyone",
+	experiment: "Only visible to experiment group",
+	control: "Only visible to control group",
 };
 
 export function FormMetadataEditor({
@@ -65,7 +79,21 @@ export function FormMetadataEditor({
 	};
 
 	const handleTypeChange = (value: string) => {
-		onChange({ ...metadata, type: value as FormType });
+		const nextType = value as FormType;
+		onChange({
+			...metadata,
+			type: nextType,
+			audience:
+				nextType === "questionnaire"
+					? metadata.audience
+					: nextType === "tam"
+						? "experiment"
+						: "all",
+		});
+	};
+
+	const handleAudienceChange = (value: string) => {
+		onChange({ ...metadata, audience: value as FormAudience });
 	};
 
 	const handleStatusChange = (value: string) => {
@@ -121,6 +149,40 @@ export function FormMetadataEditor({
 						))}
 					</SelectContent>
 				</Select>
+			</div>
+
+			<div className="space-y-2">
+				<Label htmlFor="form-audience">Visibility</Label>
+				<Select
+					value={metadata.audience}
+					onValueChange={handleAudienceChange}
+					disabled={disabled || metadata.type !== "questionnaire"}
+				>
+					<SelectTrigger
+						id="form-audience"
+						data-testid="form-audience-select"
+						className="w-full"
+					>
+						<SelectValue placeholder="Select visibility" />
+					</SelectTrigger>
+					<SelectContent>
+						{(Object.keys(audienceLabels) as FormAudience[]).map((audience) => (
+							<SelectItem key={audience} value={audience}>
+								<div className="flex flex-col text-left">
+									<span>{audienceLabels[audience]}</span>
+									<span className="text-xs text-muted-foreground">
+										{audienceDescriptions[audience]}
+									</span>
+								</div>
+							</SelectItem>
+						))}
+					</SelectContent>
+				</Select>
+				{metadata.type !== "questionnaire" && (
+					<p className="text-xs text-muted-foreground">
+						Tests are visible to all students. TAM is fixed to experiment group.
+					</p>
+				)}
 			</div>
 
 			<div className="space-y-2">
