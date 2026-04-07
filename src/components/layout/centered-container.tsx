@@ -10,5 +10,9 @@ export interface CenteredContainerProps {
  * Provides consistent padding and flex centering across the app.
  */
 export function CenteredContainer({ children, className }: CenteredContainerProps) {
-	return <div className={cn("flex items-center justify-center p-8", className)}>{children}</div>;
+	return (
+		<div className={cn("flex items-center justify-center p-8 h-full", className)}>
+			{children}
+		</div>
+	);
 }

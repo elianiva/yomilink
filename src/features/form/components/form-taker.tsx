@@ -183,15 +183,14 @@ export function FormTaker({
 	}
 
 	return (
-		<Card className={cn("overflow-hidden", className)} data-testid="form-taker">
-			<CardHeader className="space-y-4 bg-muted/30">
+		<Card className={cn("overflow-hidden py-0 gap-0", className)} data-testid="form-taker">
+			<CardHeader className="space-y-4 bg-muted/30 pt-4 pb-6 border-b">
 				<div className="space-y-2">
 					<CardTitle className="text-2xl font-bold">{form.title}</CardTitle>
 					{form.description && (
 						<p className="text-muted-foreground">{form.description}</p>
 					)}
 				</div>
-
 				<div className="space-y-2">
 					<div className="flex items-center justify-between text-sm">
 						<span className="text-muted-foreground">
@@ -215,9 +214,6 @@ export function FormTaker({
 					</div>
 				</div>
 			</CardHeader>
-
-			<Separator />
-
 			<CardContent className="p-6">
 				{currentQuestion && (
 					<div className="space-y-6" data-testid={`question-${currentIndex}`}>
@@ -232,7 +228,6 @@ export function FormTaker({
 										<span className="text-destructive"> *</span>
 									)}
 								</p>
-
 								<QuestionRenderer
 									question={currentQuestion}
 									value={answers[currentQuestion.id]}
@@ -264,7 +259,7 @@ export function FormTaker({
 							disabled={!canSubmit() || submitting}
 							data-testid="submit-button"
 						>
-							<Send className="mr-2 h-4 w-4" />
+							<Send className="h-4 w-4" />
 							{submitting ? "Submitting..." : "Submit"}
 						</Button>
 					) : (
@@ -274,7 +269,7 @@ export function FormTaker({
 							data-testid="next-button"
 						>
 							Next
-							<ChevronRight className="ml-2 h-4 w-4" />
+							<ChevronRight className="h-4 w-4" />
 						</Button>
 					)}
 				</div>

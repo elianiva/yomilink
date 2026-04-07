@@ -53,6 +53,21 @@ export class FormNotFoundError extends Data.TaggedError("FormNotFoundError")<{
 	readonly formId: string;
 }> {}
 
+type FormProgressRow = {
+	status: "locked" | "available" | "completed";
+	unlockedAt: Date | null;
+	completedAt: Date | null;
+};
+
+function pickProgress(rows: ReadonlyArray<FormProgressRow>) {
+	return (
+		rows.find((row) => row.status === "completed") ??
+		rows.find((row) => row.status === "available") ??
+		rows[0] ??
+		null
+	);
+}
+
 export const checkTimeBasedCondition = Effect.fn("checkTimeBasedCondition")(function* (
 	condition: UnlockConditionType,
 ) {
@@ -109,14 +124,17 @@ export const checkPrerequisiteCondition = Effect.fn("checkPrerequisiteCondition"
 	}
 
 	const progressRows = yield* db
-		.select()
+		.select({
+			status: formProgress.status,
+			unlockedAt: formProgress.unlockedAt,
+			completedAt: formProgress.completedAt,
+		})
 		.from(formProgress)
 		.where(
 			and(eq(formProgress.formId, condition.requiredFormId), eq(formProgress.userId, userId)),
-		)
-		.limit(1);
+		);
 
-	const progress = progressRows[0];
+	const progress = pickProgress(progressRows);
 
 	if (!progress) {
 		return {
@@ -154,12 +172,15 @@ export const checkManualCondition = Effect.fn("checkManualCondition")(function* 
 	const db = yield* Database;
 
 	const progressRows = yield* db
-		.select()
+		.select({
+			status: formProgress.status,
+			unlockedAt: formProgress.unlockedAt,
+			completedAt: formProgress.completedAt,
+		})
 		.from(formProgress)
-		.where(and(eq(formProgress.formId, formId), eq(formProgress.userId, userId)))
-		.limit(1);
+		.where(and(eq(formProgress.formId, formId), eq(formProgress.userId, userId)));
 
-	const progress = progressRows[0];
+	const progress = pickProgress(progressRows);
 
 	const isUnlocked = progress
 		? progress.status === "available" || progress.status === "completed"
@@ -329,9 +350,25 @@ export const checkFormUnlock = Effect.fn("checkFormUnlock")(function* (
 			}
 		}
 
+		// For pre_test and other forms without explicit conditions,
+		// check if the form has actually been completed (for prerequisite checks)
+		const progressRows = yield* db
+			.select({
+				status: formProgress.status,
+				unlockedAt: formProgress.unlockedAt,
+				completedAt: formProgress.completedAt,
+			})
+			.from(formProgress)
+			.where(
+				and(eq(formProgress.formId, input.formId), eq(formProgress.userId, input.userId)),
+			);
+
+		const progress = pickProgress(progressRows);
+		const isCompleted = progress?.status === "completed";
+
 		return {
-			isUnlocked: true,
-			reason: null,
+			isUnlocked: isCompleted,
+			reason: isCompleted ? null : `Complete "${form.title}" first`,
 			earliestUnlockAt: null,
 		};
 	}

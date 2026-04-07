@@ -44,7 +44,7 @@ export function McqRenderer({ question, value, onChange, disabled = false }: Mcq
 	};
 
 	return (
-		<div className="space-y-4" data-testid="mcq-renderer">
+		<div className="space-y-3" data-testid="mcq-renderer">
 			{displayOptions.map((option, index) => {
 				const isSelected = value === option.id;
 				return (
@@ -55,7 +55,7 @@ export function McqRenderer({ question, value, onChange, disabled = false }: Mcq
 						disabled={disabled}
 						data-testid={`mcq-option-${index}`}
 						className={cn(
-							"w-full rounded-xl border-2 p-4 text-left transition-all duration-200",
+							"w-full rounded-xl border p-4 text-left transition-all duration-200 cursor-pointer",
 							"hover:border-primary/50 hover:bg-primary/5",
 							"focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2",
 							isSelected
@@ -74,7 +74,7 @@ export function McqRenderer({ question, value, onChange, disabled = false }: Mcq
 										: "border-muted-foreground",
 								)}
 							>
-								{isSelected && <Check className="h-4 w-4" />}
+								{isSelected && <Check className="h-4 w-4 text-primary" />}
 							</div>
 							<span className="flex-1 font-medium">{option.text}</span>
 						</div>

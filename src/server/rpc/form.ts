@@ -30,12 +30,7 @@ import {
 	updateForm,
 	updateQuestion,
 } from "@/features/form/lib/form-service";
-import {
-	CheckFormUnlockInput,
-	checkFormUnlock,
-	UnlockFormInput,
-	unlockForm,
-} from "@/features/form/lib/unlock-service";
+import { checkFormUnlock, UnlockFormInput, unlockForm } from "@/features/form/lib/unlock-service";
 import { requireRoleMiddleware } from "@/middlewares/auth";
 
 import { AppRuntime } from "../app-runtime";
@@ -359,9 +354,13 @@ export const deleteQuestionRpc = createServerFn({ method: "POST" })
 		),
 	);
 
+const CheckFormUnlockRpcInput = Schema.Struct({
+	formId: Schema.String,
+});
+
 export const checkFormUnlockRpc = createServerFn()
 	.middleware([requireRoleMiddleware("student", "teacher", "admin")])
-	.inputValidator((raw) => Schema.decodeUnknownSync(CheckFormUnlockInput)(raw))
+	.inputValidator((raw) => Schema.decodeUnknownSync(CheckFormUnlockRpcInput)(raw))
 	.handler(({ data, context }) =>
 		AppRuntime.runPromise(
 			checkFormUnlock({ formId: data.formId, userId: context.user.id }).pipe(
