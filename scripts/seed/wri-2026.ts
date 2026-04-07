@@ -40,7 +40,7 @@ const program = Effect.gen(function* () {
 			`  - Cohort: WRI 2026 (${cohortId.slice(0, 8)}...)\n` +
 			`  - Topic: Frontend Web Development (${topicId.slice(0, 8)}...)\n` +
 			`  - Goal Map: Frontend Web Development Basics (${goalMapId.slice(0, 8)}...)\n` +
-			`  - Forms: TAM, Feedback, Pre/Post tests\n` +
+			`  - Forms: TAM, Feedback, Pre/Post/Delayed tests\n` +
 			"\n" +
 			"Note: No student accounts created. Add students manually or via cohort invite.\n",
 	);

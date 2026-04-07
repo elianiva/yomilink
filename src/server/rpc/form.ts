@@ -210,7 +210,7 @@ export const cloneFormRpc = createServerFn({ method: "POST" })
 	.handler(({ data, context }) =>
 		AppRuntime.runPromise(
 			cloneForm(data.formId, context.user.id).pipe(
-				Effect.map(() => Rpc.ok(true)),
+				Effect.map((result) => Rpc.ok(result)),
 				Effect.withSpan("cloneForm"),
 				Effect.tapError(logRpcError("cloneForm")),
 				Effect.catchTags({

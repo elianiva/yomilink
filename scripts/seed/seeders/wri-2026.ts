@@ -6,6 +6,8 @@ import { Database } from "@/server/db/client";
 import { forms, goalMaps, questions, texts, topics } from "@/server/db/schema/app-schema";
 import { cohorts } from "@/server/db/schema/auth-schema";
 
+import { copyFormWithQuestions } from "./form-copy.js";
+
 import { FRONTEND_QUESTIONS } from "../data/frontend-questions.js";
 import { FEEDBACK_QUESTIONS, TAM_QUESTIONS } from "../data/questions.js";
 
@@ -148,46 +150,39 @@ export function seedWri2026Forms(teacherId: string) {
 			yield* Effect.log(`  Created ${FEEDBACK_QUESTIONS.length} feedback questions`);
 		}
 
-		// Frontend Basics Tests (Pre/Post)
-		function* createTestForm(formType: "pre_test" | "post_test", title: string) {
-			const existing = yield* db.select().from(forms).where(eq(forms.title, title)).limit(1);
+		// Frontend Basics Tests (Pre/Post/Delayed)
+		const preTestFormTitle = "Frontend Basics Pre-Test";
+		const existingPreTest = yield* db.select().from(forms).where(eq(forms.title, preTestFormTitle)).limit(1);
 
-			let formId: string;
-			if (existing[0]) {
-				formId = existing[0].id;
-				yield* Effect.log(`  ${formType} form already exists`);
-			} else {
-				formId = randomString();
-				yield* db.insert(forms).values({
-					id: formId,
-					title,
-					description: `Frontend web development ${formType.replace("_", "-")}. Covers HTML structure, CSS styling, and basic JavaScript. 22 MCQ questions based on Bloom's Taxonomy.`,
-					type: formType,
-					status: "published",
-					createdBy: teacherId,
-				});
-				yield* Effect.log(`  Created ${formType} form`);
-			}
-			return formId;
+		let preTestFormId: string;
+		if (existingPreTest[0]) {
+			preTestFormId = existingPreTest[0].id;
+			yield* Effect.log(`  pre_test form already exists`);
+		} else {
+			preTestFormId = randomString();
+			yield* db.insert(forms).values({
+				id: preTestFormId,
+				title: preTestFormTitle,
+				description:
+					"Frontend web development pre-test. Covers HTML structure, CSS styling, and basic JavaScript. 22 MCQ questions based on Bloom's Taxonomy.",
+				type: "pre_test",
+				status: "published",
+				createdBy: teacherId,
+			});
+			yield* Effect.log(`  Created pre_test form`);
 		}
 
-		const preTestFormId = yield* createTestForm("pre_test", "Frontend Basics Pre-Test");
-		const postTestFormId = yield* createTestForm("post_test", "Frontend Basics Post-Test");
+		const existingPreTestQs = yield* db
+			.select()
+			.from(questions)
+			.where(eq(questions.formId, preTestFormId));
 
-		// Seed questions for pre/post test forms
-		for (const formId of [preTestFormId, postTestFormId]) {
-			const existingQs = yield* db
-				.select()
-				.from(questions)
-				.where(eq(questions.formId, formId));
-
-			if (existingQs.length > 0) continue;
-
+		if (existingPreTestQs.length === 0) {
 			yield* Effect.all(
 				FRONTEND_QUESTIONS.map((q, idx) =>
 					db.insert(questions).values({
 						id: randomString(),
-						formId,
+						formId: preTestFormId,
 						type: "mcq",
 						questionText: `[${q.bloomLevel}] ${q.questionText}`,
 						options: JSON.stringify({
@@ -203,6 +198,25 @@ export function seedWri2026Forms(teacherId: string) {
 				{ concurrency: 10 },
 			);
 		}
+
+		const postTestFormId = yield* copyFormWithQuestions({
+			sourceFormId: preTestFormId,
+			title: "Frontend Basics Post-Test",
+			description:
+				"Frontend web development post-test. Same questions as the pre-test. Covers HTML structure, CSS styling, and basic JavaScript. 22 MCQ questions based on Bloom's Taxonomy.",
+			type: "post_test",
+			teacherId,
+		}).pipe(Effect.map((result) => result.formId));
+
+		const delayedTestFormId = yield* copyFormWithQuestions({
+			sourceFormId: preTestFormId,
+			title: "Frontend Basics Delayed Test",
+			description:
+				"Frontend web development delayed test. Same questions as the pre/post-test. Covers HTML structure, CSS styling, and basic JavaScript. 22 MCQ questions based on Bloom's Taxonomy.",
+			type: "delayed_test",
+			teacherId,
+		}).pipe(Effect.map((result) => result.formId));
+
 		yield* Effect.log(`  Created ${FRONTEND_QUESTIONS.length} questions per test form`);
 
 		return {
@@ -210,6 +224,7 @@ export function seedWri2026Forms(teacherId: string) {
 			feedbackFormId,
 			preTestFormId,
 			postTestFormId,
+			delayedTestFormId,
 		};
 	});
 }

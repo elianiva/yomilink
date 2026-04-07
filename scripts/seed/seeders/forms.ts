@@ -5,6 +5,8 @@ import { randomString } from "@/lib/utils";
 import { Database } from "@/server/db/client";
 import { forms, questions } from "@/server/db/schema/app-schema";
 
+import { copyFormWithQuestions } from "./form-copy.js";
+
 import {
 	FEEDBACK_QUESTIONS,
 	READING_COMPREHENSION_QUESTIONS,
@@ -145,104 +147,81 @@ export function seedForms(teacherId: string) {
 
 		yield* Effect.log("--- Seeding Reading Comprehension Test Forms ---");
 
-		function* createTestForm(
-			formType: "pre_test" | "post_test" | "delayed_test",
-			title: string,
-			description: string,
-		) {
-			const existingForm = yield* db
-				.select()
-				.from(forms)
-				.where(eq(forms.title, title))
-				.limit(1);
+		const preTestFormTitle = "Reading Comprehension Pre-Test";
+		const existingPreTestForm = yield* db
+			.select()
+			.from(forms)
+			.where(eq(forms.title, preTestFormTitle))
+			.limit(1);
 
-			let formId: string;
-			if (existingForm[0]) {
-				formId = existingForm[0].id;
-				yield* Effect.log(`  ${formType} form already exists: ${title}`);
-			} else {
-				formId = randomString();
-				yield* db.insert(forms).values({
-					id: formId,
-					title,
-					description,
-					type: formType,
-					status: "published",
-					createdBy: teacherId,
-				});
-				yield* Effect.log(`  Created ${formType} form: ${title}`);
-			}
-			return formId;
+		let preTestFormId: string;
+		if (existingPreTestForm[0]) {
+			preTestFormId = existingPreTestForm[0].id;
+			yield* Effect.log(`  pre_test form already exists: ${preTestFormTitle}`);
+		} else {
+			preTestFormId = randomString();
+			yield* db.insert(forms).values({
+				id: preTestFormId,
+				title: preTestFormTitle,
+				description:
+					"Pre-test to measure baseline reading comprehension. Passage: Tanaka's Daily Life (JLPT N5-N4 level). 20 MCQ questions based on Bloom's Taxonomy.",
+				type: "pre_test",
+				status: "published",
+				createdBy: teacherId,
+			});
+			yield* Effect.log(`  Created pre_test form: ${preTestFormTitle}`);
 		}
 
-		const preTestFormId = yield* createTestForm(
-			"pre_test",
-			"Reading Comprehension Pre-Test",
-			"Pre-test to measure baseline reading comprehension. Passage: Tanaka's Daily Life (JLPT N5-N4 level). 20 MCQ questions based on Bloom's Taxonomy.",
-		);
+		const preTestQuestions = yield* db
+			.select()
+			.from(questions)
+			.where(eq(questions.formId, preTestFormId))
+			.orderBy(questions.orderIndex);
 
-		const postTestFormId = yield* createTestForm(
-			"post_test",
-			"Reading Comprehension Post-Test",
-			"Post-test to measure immediate learning outcomes. Same questions as pre-test. Passage: Tanaka's Daily Life (JLPT N5-N4 level).",
-		);
-
-		const delayedTestFormId = yield* createTestForm(
-			"delayed_test",
-			"Reading Comprehension Delayed Test",
-			"Delayed test (1 week) to measure retention. Same questions as pre/post-test. Passage: Tanaka's Daily Life (JLPT N5-N4 level).",
-		);
-
-		yield* Effect.log("  Seeding reading comprehension questions...");
-
-		for (const formId of [preTestFormId, postTestFormId, delayedTestFormId]) {
-			const formName =
-				formId === preTestFormId
-					? "Pre-Test"
-					: formId === postTestFormId
-						? "Post-Test"
-						: "Delayed Test";
-
-			const existingQuestions = yield* db
-				.select()
-				.from(questions)
-				.where(eq(questions.formId, formId));
-
-			if (existingQuestions.length > 0) {
-				yield* Effect.log(`  ${formName} questions already exist`);
-				continue;
-			}
-
-			yield* Effect.log(
-				`  Creating ${READING_COMPREHENSION_QUESTIONS.length} questions for ${formName}...`,
-			);
+		if (preTestQuestions.length === 0) {
+			yield* Effect.log(`  Creating ${READING_COMPREHENSION_QUESTIONS.length} questions for Pre-Test...`);
 			yield* Effect.all(
-				READING_COMPREHENSION_QUESTIONS.map((q, index) =>
-					Effect.gen(function* () {
-						// Format MCQ options with proper structure including correctOptionIds
-						const mcqOptions = {
-							type: "mcq" as const,
-							options: q.options,
-							correctOptionIds: [q.correctOptionId],
-							shuffle: false,
-						};
-						yield* db.insert(questions).values({
-							id: randomString(),
-							formId: formId,
-							type: "mcq",
-							questionText: `[${q.bloomLevel}] ${q.questionText}`,
-							options: JSON.stringify(mcqOptions),
-							orderIndex: index,
-							required: true,
-						});
-					}),
-				),
-				{ concurrency: 10 },
+			READING_COMPREHENSION_QUESTIONS.map((q, index) =>
+				Effect.gen(function* () {
+					const mcqOptions = {
+						type: "mcq" as const,
+						options: q.options,
+						correctOptionIds: [q.correctOptionId],
+						shuffle: false,
+					};
+					yield* db.insert(questions).values({
+						id: randomString(),
+						formId: preTestFormId,
+						type: "mcq",
+						questionText: `[${q.bloomLevel}] ${q.questionText}`,
+						options: JSON.stringify(mcqOptions),
+						orderIndex: index,
+						required: true,
+					});
+				}),
+			),
+			{ concurrency: 10 },
 			);
-			yield* Effect.log(
-				`  Created ${READING_COMPREHENSION_QUESTIONS.length} questions for ${formName}`,
-			);
+			yield* Effect.log(`  Created ${READING_COMPREHENSION_QUESTIONS.length} questions for Pre-Test`);
 		}
+
+		const postTestFormId = yield* copyFormWithQuestions({
+			sourceFormId: preTestFormId,
+			title: "Reading Comprehension Post-Test",
+			description:
+				"Post-test to measure immediate learning outcomes. Same questions as pre-test. Passage: Tanaka's Daily Life (JLPT N5-N4 level).",
+			type: "post_test",
+			teacherId,
+		}).pipe(Effect.map((result) => result.formId));
+
+		const delayedTestFormId = yield* copyFormWithQuestions({
+			sourceFormId: preTestFormId,
+			title: "Reading Comprehension Delayed Test",
+			description:
+				"Delayed test (1 week) to measure retention. Same questions as pre/post-test. Passage: Tanaka's Daily Life (JLPT N5-N4 level).",
+			type: "delayed_test",
+			teacherId,
+		}).pipe(Effect.map((result) => result.formId));
 
 		return {
 			tamFormId,

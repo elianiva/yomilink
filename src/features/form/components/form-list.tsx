@@ -9,6 +9,7 @@ import {
 	CheckCircle2,
 	Lock,
 	Unlock,
+	Copy,
 } from "lucide-react";
 import type * as React from "react";
 
@@ -55,6 +56,7 @@ export interface FormListItem {
 interface FormListProps {
 	forms: FormListItem[];
 	onEdit?: (form: FormListItem) => void;
+	onDuplicate?: (form: FormListItem) => void;
 	onDelete?: (formId: string) => void;
 	onViewResults?: (form: FormListItem) => void;
 	onClick?: (form: FormListItem) => void;
@@ -108,6 +110,7 @@ const formListStatusConfig: Record<FormListStatus, { label: string; color: strin
 export function FormList({
 	forms,
 	onEdit,
+	onDuplicate,
 	onDelete,
 	onViewResults,
 	onClick,
@@ -247,7 +250,7 @@ export function FormList({
 								</div>
 
 								<div className="flex items-center gap-1">
-									{(onEdit || onDelete) && (
+									{(onEdit || onDuplicate || onDelete || onViewResults) && (
 										<DropdownMenu>
 											<DropdownMenuTrigger
 												asChild
@@ -262,44 +265,55 @@ export function FormList({
 												</Button>
 											</DropdownMenuTrigger>
 											<DropdownMenuContent
-												align="end"
-												className="border-stone-200"
-											>
-												{onViewResults && (
-													<DropdownMenuItem
-														onClick={(e) => {
-															e.stopPropagation();
-															onViewResults(form);
-														}}
-													>
-														<BarChart3 className="mr-2 size-4" />
-														View Results
-													</DropdownMenuItem>
-												)}
-												{onEdit && (
-													<DropdownMenuItem
-														onClick={(e) => {
-															e.stopPropagation();
-															onEdit(form);
-														}}
-													>
-														<Pencil className="mr-2 size-4" />
-														Edit
-													</DropdownMenuItem>
-												)}
-												{onDelete && (
-													<DropdownMenuItem
-														onClick={(e) => {
-															e.stopPropagation();
-															onDelete(form.id);
-														}}
-														className="text-stone-700"
-													>
-														<Trash2 className="mr-2 size-4" />
-														Delete
-													</DropdownMenuItem>
-												)}
-											</DropdownMenuContent>
+								align="end"
+								className="border-stone-200"
+							>
+								{onViewResults && (
+									<DropdownMenuItem
+										onClick={(e) => {
+											e.stopPropagation();
+											onViewResults(form);
+										}}
+									>
+										<BarChart3 className="mr-2 size-4" />
+										View Results
+									</DropdownMenuItem>
+								)}
+								{onEdit && (
+									<DropdownMenuItem
+										onClick={(e) => {
+											e.stopPropagation();
+											onEdit(form);
+										}}
+									>
+										<Pencil className="mr-2 size-4" />
+										Edit
+									</DropdownMenuItem>
+								)}
+								{onDuplicate && (
+									<DropdownMenuItem
+										onClick={(e) => {
+											e.stopPropagation();
+											onDuplicate(form);
+										}}
+									>
+										<Copy className="mr-2 size-4" />
+										Duplicate
+									</DropdownMenuItem>
+								)}
+								{onDelete && (
+									<DropdownMenuItem
+										onClick={(e) => {
+											e.stopPropagation();
+											onDelete(form.id);
+										}}
+										className="text-stone-700"
+									>
+										<Trash2 className="mr-2 size-4" />
+										Delete
+									</DropdownMenuItem>
+								)}
+						</DropdownMenuContent>
 										</DropdownMenu>
 									)}
 								</div>

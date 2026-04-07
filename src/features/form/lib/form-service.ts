@@ -489,7 +489,9 @@ export const cloneForm = Effect.fn("cloneForm")(function* (formId: string, userI
 		});
 	}
 
-	return true;
+	return {
+		id: newFormId,
+	};
 });
 
 export const SubmitFormResponseInput = Schema.Struct({

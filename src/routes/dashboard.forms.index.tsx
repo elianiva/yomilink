@@ -46,6 +46,16 @@ function AdminFormsPage() {
 		},
 	});
 
+	const duplicateMutation = useRpcMutation(FormRpc.cloneForm(), {
+		operation: "duplicate form",
+		showSuccess: true,
+		successMessage: "Form duplicated successfully",
+		onSuccess: async (result) => {
+			await queryClient.invalidateQueries({ queryKey: FormRpc.listForms().queryKey });
+			void navigate({ to: "/dashboard/forms/builder", search: { formId: result.id } });
+		},
+	});
+
 	const handleEdit = (form: FormListItem) => {
 		void navigate({ to: "/dashboard/forms/builder", search: { formId: form.id } });
 	};
@@ -55,6 +65,10 @@ function AdminFormsPage() {
 			to: "/dashboard/forms/$formId/results",
 			params: { formId: form.id },
 		});
+	};
+
+	const handleDuplicate = (form: FormListItem) => {
+		duplicateMutation.mutate({ formId: form.id });
 	};
 
 	const handleDelete = (formId: string) => {
@@ -110,6 +124,7 @@ function AdminFormsPage() {
 					forms={mappedForms}
 					onEdit={handleEdit}
 					onDelete={handleDelete}
+					onDuplicate={handleDuplicate}
 					onViewResults={handleViewResults}
 					onClick={handleViewResults}
 				/>
