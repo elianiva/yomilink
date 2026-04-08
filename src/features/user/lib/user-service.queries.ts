@@ -140,7 +140,7 @@ export const getUserById = Effect.fn("getUserById")((userId: string) =>
 		const user_ = userRows[0];
 
 		if (!user_) {
-			return yield* UserNotFoundError.make({ userId });
+			return yield* new UserNotFoundError({ userId });
 		}
 
 		const cohorts_ = yield* db

@@ -1,7 +1,4 @@
-import { Effect, Schema } from "effect";
-
-import { Database } from "@/server/db/client";
-import { assignments, formProgress, forms, learnerMaps } from "@/server/db/schema/app-schema";
+import { Data, Schema } from "effect";
 
 export const TimeBasedCondition = Schema.Struct({
 	type: Schema.Literal("time"),
@@ -45,7 +42,7 @@ export type FormUnlockConditionsType = Schema.Schema.Type<typeof FormUnlockCondi
 
 export const FormUnlockConditionsNullable = Schema.NullOr(FormUnlockConditionsSchema);
 
-export class FormNotFoundError extends Schema.TaggedError("FormNotFoundError")<{
+export class FormNotFoundError extends Data.TaggedError("FormNotFoundError")<{
 	readonly formId: string;
 }> {}
 

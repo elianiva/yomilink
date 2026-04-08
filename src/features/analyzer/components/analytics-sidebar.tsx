@@ -101,7 +101,7 @@ export function AnalyticsSidebar({
 		const isSummaryLearner = (learner: LearnerAnalytics) =>
 			learner.condition === "summarizing" || learner.score === null;
 		return {
-			conceptMap: filteredLearners.filter((l) => !isSummaryLearner(l)),
+			conceptMap: filteredLearners.filter((l: LearnerAnalytics) => !isSummaryLearner(l)),
 			summary: filteredLearners.filter(isSummaryLearner),
 		};
 	}, [filteredLearners]);
@@ -120,7 +120,10 @@ export function AnalyticsSidebar({
 	);
 
 	const selectedInActiveTabCount = useMemo(
-		() => activeTabLearners.filter((l) => selectedLearnerMapIds.has(l.learnerMapId)).length,
+		() =>
+			activeTabLearners.filter((l: LearnerAnalytics) =>
+				selectedLearnerMapIds.has(l.learnerMapId),
+			).length,
 		[activeTabLearners, selectedLearnerMapIds],
 	);
 

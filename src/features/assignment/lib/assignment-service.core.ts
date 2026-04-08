@@ -1,5 +1,5 @@
 import { and, desc, eq, inArray, isNotNull, sql } from "drizzle-orm";
-import { Effect, Schema } from "effect";
+import { Data, Effect, Schema } from "effect";
 
 import { isCorrectMcqAnswer } from "@/features/form/lib/form-scoring";
 import { randomString, safeParseJson } from "@/lib/utils";
@@ -57,11 +57,11 @@ export const DeleteAssignmentInput = Schema.Struct({
 
 export type DeleteAssignmentInput = typeof DeleteAssignmentInput.Type;
 
-class KitNotFoundError extends Schema.TaggedError("KitNotFoundError")<{
+class KitNotFoundError extends Data.TaggedError("KitNotFoundError")<{
 	readonly goalMapId: string;
 }> {}
 
-class AssignmentNotFoundError extends Schema.TaggedError("AssignmentNotFoundError")<{
+class AssignmentNotFoundError extends Data.TaggedError("AssignmentNotFoundError")<{
 	readonly assignmentId: string;
 }> {}
 
@@ -79,7 +79,7 @@ export const createAssignment = Effect.fn("createAssignment")(function* (
 
 	const kit = kitRows[0];
 	if (!kit) {
-		return yield* KitNotFoundError.make({ goalMapId: data.goalMapId });
+		return yield* new KitNotFoundError({ goalMapId: data.goalMapId });
 	}
 
 	const assignmentId = randomString();
@@ -396,7 +396,7 @@ export const deleteAssignment = Effect.fn("deleteAssignment")(function* (
 
 	const assignment = assignmentRows[0];
 	if (!assignment || assignment.createdBy !== userId) {
-		return yield* AssignmentNotFoundError.make({ assignmentId: input.id });
+		return yield* new AssignmentNotFoundError({ assignmentId: input.id });
 	}
 
 	yield* db.delete(assignments).where(eq(assignments.id, input.id));
@@ -546,7 +546,7 @@ export const getAssignmentById = Effect.fn("getAssignmentById")(function* (assig
 		.limit(1);
 
 	if (rows.length === 0) {
-		return yield* AssignmentNotFoundError.make({ assignmentId });
+		return yield* new AssignmentNotFoundError({ assignmentId });
 	}
 
 	const assignment = rows[0];
@@ -669,7 +669,7 @@ export const getAssignmentExperimentStatus = Effect.fn("getAssignmentExperimentS
 
 	const assignment = assignmentRows[0];
 	if (!assignment) {
-		return yield* AssignmentNotFoundError.make({ assignmentId: input.assignmentId });
+		return yield* new AssignmentNotFoundError({ assignmentId: input.assignmentId });
 	}
 
 	// Get all assigned users

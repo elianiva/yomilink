@@ -8,20 +8,17 @@ import {
 	updateMaterial,
 } from "@/features/goal-map/lib/goal-map-service.mutations";
 import {
+	getGoalMap,
+	listGoalMaps,
+	listGoalMapsByTopic,
+} from "@/features/goal-map/lib/goal-map-service.queries";
+import {
 	DeleteGoalMapInput,
 	GetGoalMapInput,
 	ListGoalMapsByTopicInput,
 	SaveGoalMapInput,
 	UpdateMaterialInput,
-	GoalMapAccessDeniedError,
-	GoalMapNotFoundError,
-	GoalMapValidationError,
 } from "@/features/goal-map/lib/goal-map-service.shared";
-import {
-	getGoalMap,
-	listGoalMaps,
-	listGoalMapsByTopic,
-} from "@/features/goal-map/lib/goal-map-service.queries";
 import { authMiddleware } from "@/middlewares/auth";
 
 import { AppRuntime } from "../app-runtime";

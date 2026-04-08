@@ -23,7 +23,7 @@ export const updateUser = Effect.fn("updateUser")(
 			const existingRows = yield* db.select().from(user).where(eq(user.id, userId)).limit(1);
 
 			if (existingRows.length === 0) {
-				return yield* UserNotFoundError.make({ userId });
+				return yield* new UserNotFoundError({ userId });
 			}
 
 			const updateData: Record<string, unknown> = {};
@@ -62,7 +62,7 @@ export const updateUserRole = Effect.fn("updateUserRole")(
 			const db = yield* Database;
 
 			if (actorId === input.userId) {
-				return yield* CannotModifySelfError.make({
+				return yield* new CannotModifySelfError({
 					message: "Cannot change your own role",
 				});
 			}
@@ -76,7 +76,7 @@ export const updateUserRole = Effect.fn("updateUserRole")(
 			const existing = existingRows[0];
 
 			if (!existing) {
-				return yield* UserNotFoundError.make({ userId: input.userId });
+				return yield* new UserNotFoundError({ userId: input.userId });
 			}
 
 			if (existing.role === "admin" && input.role !== "admin") {
@@ -88,7 +88,7 @@ export const updateUserRole = Effect.fn("updateUserRole")(
 				const adminCount = countRows[0]?.count ?? 0;
 
 				if (adminCount <= 1) {
-					return yield* LastAdminError.make({
+					return yield* new LastAdminError({
 						message: "Cannot demote the last admin",
 					});
 				}
@@ -105,7 +105,7 @@ export const banUser = Effect.fn("banUser")((actorId: string, input: BanUserInpu
 		const db = yield* Database;
 
 		if (actorId === input.userId) {
-			return yield* CannotModifySelfError.make({
+			return yield* new CannotModifySelfError({
 				message: "Cannot ban yourself",
 			});
 		}
@@ -119,7 +119,7 @@ export const banUser = Effect.fn("banUser")((actorId: string, input: BanUserInpu
 		const existing = existingRows[0];
 
 		if (!existing) {
-			return yield* UserNotFoundError.make({ userId: input.userId });
+			return yield* new UserNotFoundError({ userId: input.userId });
 		}
 
 		if (existing.role === "admin") {
@@ -131,7 +131,7 @@ export const banUser = Effect.fn("banUser")((actorId: string, input: BanUserInpu
 			const adminCount = countRows[0]?.count ?? 0;
 
 			if (adminCount <= 1) {
-				return yield* LastAdminError.make({
+				return yield* new LastAdminError({
 					message: "Cannot ban the last admin",
 				});
 			}
@@ -155,7 +155,7 @@ export const unbanUser = Effect.fn("unbanUser")((actorId: string, userId: string
 		const db = yield* Database;
 
 		if (actorId === userId) {
-			return yield* CannotModifySelfError.make({
+			return yield* new CannotModifySelfError({
 				message: "Cannot unban yourself",
 			});
 		}
@@ -163,7 +163,7 @@ export const unbanUser = Effect.fn("unbanUser")((actorId: string, userId: string
 		const existingRows = yield* db.select().from(user).where(eq(user.id, userId)).limit(1);
 
 		if (existingRows.length === 0) {
-			return yield* UserNotFoundError.make({ userId });
+			return yield* new UserNotFoundError({ userId });
 		}
 
 		yield* db
@@ -234,7 +234,7 @@ export const triggerPasswordReset = Effect.fn("triggerPasswordReset")((userId: s
 		const existingRows = yield* db.select().from(user).where(eq(user.id, userId)).limit(1);
 
 		if (existingRows.length === 0) {
-			return yield* UserNotFoundError.make({ userId });
+			return yield* new UserNotFoundError({ userId });
 		}
 
 		const existing = existingRows[0];

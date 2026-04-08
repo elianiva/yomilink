@@ -1,5 +1,5 @@
 import { desc, eq } from "drizzle-orm";
-import { Effect, Schema } from "effect";
+import { Data, Effect, Schema } from "effect";
 
 import { safeParseJson } from "@/lib/utils";
 import { NonEmpty } from "@/lib/validation-schemas";
@@ -39,7 +39,7 @@ export const GenerateKitInput = Schema.Struct({
 
 export type GenerateKitInput = typeof GenerateKitInput.Type;
 
-class GoalMapNotFoundError extends Schema.TaggedError("GoalMapNotFoundError")<{
+class GoalMapNotFoundError extends Data.TaggedError("GoalMapNotFoundError")<{
 	readonly goalMapId: string;
 }> {}
 
@@ -149,7 +149,7 @@ export const generateKit = Effect.fn("generateKit")(function* (
 
 	const gm = gmRows[0];
 	if (!gm) {
-		return yield* GoalMapNotFoundError.make({ goalMapId: input.goalMapId });
+		return yield* new GoalMapNotFoundError({ goalMapId: input.goalMapId });
 	}
 
 	const nodes = Array.isArray(gm.nodes)

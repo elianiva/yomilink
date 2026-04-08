@@ -214,7 +214,7 @@ export const checkFormUnlock = Effect.fn("checkFormUnlock")(function* (
 	const formRows = yield* db.select().from(forms).where(eq(forms.id, input.formId)).limit(1);
 
 	if (formRows.length === 0) {
-		return yield* FormNotFoundError.make({ formId: input.formId });
+		return yield* new FormNotFoundError({ formId: input.formId });
 	}
 
 	const form = formRows[0];

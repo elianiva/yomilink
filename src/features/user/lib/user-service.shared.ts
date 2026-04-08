@@ -1,4 +1,4 @@
-import { Schema } from "effect";
+import { Data, Schema } from "effect";
 
 import { NonEmpty } from "@/lib/validation-schemas";
 
@@ -90,14 +90,14 @@ export type UserListResult = {
 	totalPages: number;
 };
 
-export class UserNotFoundError extends Schema.TaggedError("UserNotFoundError")<{
+export class UserNotFoundError extends Data.TaggedError("UserNotFoundError")<{
 	readonly userId: string;
 }> {}
 
-export class CannotModifySelfError extends Schema.TaggedError("CannotModifySelfError")<{
+export class CannotModifySelfError extends Data.TaggedError("CannotModifySelfError")<{
 	readonly message: string;
 }> {}
 
-export class LastAdminError extends Schema.TaggedError("LastAdminError")<{
+export class LastAdminError extends Data.TaggedError("LastAdminError")<{
 	readonly message: string;
 }> {}

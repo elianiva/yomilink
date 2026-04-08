@@ -30,7 +30,7 @@ export const saveGoalMap = Effect.fn("saveGoalMap")(function* (
 				.get(),
 		);
 		if (goalMap && goalMap.teacherId && goalMap.teacherId !== userId) {
-			return yield* GoalMapAccessDeniedError.make({
+			return yield* new GoalMapAccessDeniedError({
 				goalMapId: data.goalMapId,
 				userId,
 			});
@@ -40,7 +40,7 @@ export const saveGoalMap = Effect.fn("saveGoalMap")(function* (
 	const validationResult = validateNodes(data.nodes, data.edges);
 
 	if (!validationResult.isValid) {
-		return yield* GoalMapValidationError.make({
+		return yield* new GoalMapValidationError({
 			errors: validationResult.errors,
 			warnings: validationResult.warnings,
 		});
@@ -171,11 +171,11 @@ export const deleteGoalMap = Effect.fn("deleteGoalMap")(function* (
 	);
 
 	if (!goalMap) {
-		return yield* GoalMapNotFoundError.make({ goalMapId: input.goalMapId });
+		return yield* new GoalMapNotFoundError({ goalMapId: input.goalMapId });
 	}
 
 	if (goalMap.teacherId !== userId) {
-		return yield* GoalMapAccessDeniedError.make({
+		return yield* new GoalMapAccessDeniedError({
 			goalMapId: input.goalMapId,
 			userId,
 		});
@@ -205,11 +205,11 @@ export const updateMaterial = Effect.fn("updateMaterial")(function* (
 
 	const existing = goalMap[0];
 	if (!existing) {
-		return yield* GoalMapNotFoundError.make({ goalMapId: input.goalMapId });
+		return yield* new GoalMapNotFoundError({ goalMapId: input.goalMapId });
 	}
 
 	if (existing.teacherId !== userId) {
-		return yield* GoalMapAccessDeniedError.make({
+		return yield* new GoalMapAccessDeniedError({
 			goalMapId: input.goalMapId,
 			userId,
 		});

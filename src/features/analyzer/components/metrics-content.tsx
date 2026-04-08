@@ -69,33 +69,38 @@ export function MetricsContent({ assignmentId }: MetricsContentProps) {
 		}
 
 		const { learners } = analyticsData;
-		const isSummaryLearner = (learner: LearnerAnalytics) =>
+		const isSummaryLearner = (learner: LearnerAnalytics): boolean =>
 			learner.condition === "summarizing" || learner.score === null;
 		const summaryLearners = learners.filter(isSummaryLearner);
 		const conceptMapLearners = learners.filter((l) => !isSummaryLearner(l));
 
 		const scoreDistribution = conceptMapLearners
 			.filter((l) => l.score !== null)
-			.reduce<Record<string, number>>((acc, learner) => {
-				const score = learner.score ?? 0;
-				if (score < 50) acc["0-49%"] = (acc["0-49%"] || 0) + 1;
-				else if (score < 60) acc["50-59%"] = (acc["50-59%"] || 0) + 1;
-				else if (score < 70) acc["60-69%"] = (acc["60-69%"] || 0) + 1;
-				else if (score < 80) acc["70-79%"] = (acc["70-79%"] || 0) + 1;
-				else if (score < 90) acc["80-89%"] = (acc["80-89%"] || 0) + 1;
-				else acc["90-100%"] = (acc["90-100%"] || 0) + 1;
-				return acc;
-			}, {});
+			.reduce<Record<string, number>>(
+				(acc: Record<string, number>, learner: LearnerAnalytics) => {
+					const score = learner.score ?? 0;
+					if (score < 50) acc["0-49%"] = (acc["0-49%"] || 0) + 1;
+					else if (score < 60) acc["50-59%"] = (acc["50-59%"] || 0) + 1;
+					else if (score < 70) acc["60-69%"] = (acc["60-69%"] || 0) + 1;
+					else if (score < 80) acc["70-79%"] = (acc["70-79%"] || 0) + 1;
+					else if (score < 90) acc["80-89%"] = (acc["80-89%"] || 0) + 1;
+					else acc["90-100%"] = (acc["90-100%"] || 0) + 1;
+					return acc;
+				},
+				{},
+			);
 
 		const statusBreakdown = [
 			{
 				status: "submitted",
-				count: conceptMapLearners.filter((l) => l.status === "submitted").length,
+				count: conceptMapLearners.filter((l: LearnerAnalytics) => l.status === "submitted")
+					.length,
 				fill: "var(--color-chart-1)",
 			},
 			{
 				status: "draft",
-				count: conceptMapLearners.filter((l) => l.status === "draft").length,
+				count: conceptMapLearners.filter((l: LearnerAnalytics) => l.status === "draft")
+					.length,
 				fill: "var(--color-chart-2)",
 			},
 		];
@@ -166,8 +171,11 @@ export function MetricsContent({ assignmentId }: MetricsContentProps) {
 			bottomLearners,
 			conceptMapStats: {
 				total: conceptMapLearners.length,
-				submitted: conceptMapLearners.filter((l) => l.status === "submitted").length,
-				draft: conceptMapLearners.filter((l) => l.status === "draft").length,
+				submitted: conceptMapLearners.filter(
+					(l: LearnerAnalytics) => l.status === "submitted",
+				).length,
+				draft: conceptMapLearners.filter((l: LearnerAnalytics) => l.status === "draft")
+					.length,
 				avgScore:
 					conceptMapScores.length > 0
 						? conceptMapScores.reduce((a, b) => a + b, 0) / conceptMapScores.length
@@ -176,8 +184,9 @@ export function MetricsContent({ assignmentId }: MetricsContentProps) {
 			},
 			summaryStats: {
 				total: summaryLearners.length,
-				submitted: summaryLearners.filter((l) => l.status === "submitted").length,
-				draft: summaryLearners.filter((l) => l.status === "draft").length,
+				submitted: summaryLearners.filter((l: LearnerAnalytics) => l.status === "submitted")
+					.length,
+				draft: summaryLearners.filter((l: LearnerAnalytics) => l.status === "draft").length,
 				avgScore:
 					summaryScores.length > 0
 						? summaryScores.reduce((a, b) => a + b, 0) / summaryScores.length

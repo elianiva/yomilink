@@ -1,5 +1,5 @@
 import { and, desc, eq, inArray, or } from "drizzle-orm";
-import { Effect, Schema } from "effect";
+import { Data, Effect, Schema } from "effect";
 
 import { PerLinkDiagnosisSchema } from "@/features/analyzer/lib/analytics-service.core";
 import { unlockPostTestAfterAssignment } from "@/features/form/lib/unlock-service.progress";
@@ -19,34 +19,34 @@ import { cohortMembers } from "@/server/db/schema/auth-schema";
 
 import { compareMaps, EdgeSchema, NodeSchema } from "./comparator";
 
-export class AssignmentNotFoundError extends Schema.TaggedError("AssignmentNotFoundError")<{
+export class AssignmentNotFoundError extends Data.TaggedError("AssignmentNotFoundError")<{
 	readonly assignmentId: string;
 }> {}
 
-export class LearnerMapNotFoundError extends Schema.TaggedError("LearnerMapNotFoundError")<{
+export class LearnerMapNotFoundError extends Data.TaggedError("LearnerMapNotFoundError")<{
 	readonly assignmentId: string;
 	readonly userId: string;
 }> {}
 
-export class LearnerMapAlreadySubmittedError extends Schema.TaggedError(
+export class LearnerMapAlreadySubmittedError extends Data.TaggedError(
 	"LearnerMapAlreadySubmittedError",
 )<{
 	readonly learnerMapId: string;
 }> {}
 
-export class GoalMapNotFoundError extends Schema.TaggedError("GoalMapNotFoundError")<{
+export class GoalMapNotFoundError extends Data.TaggedError("GoalMapNotFoundError")<{
 	readonly goalMapId: string;
 }> {}
 
-export class AccessDeniedError extends Schema.TaggedError("AccessDeniedError")<{
+export class AccessDeniedError extends Data.TaggedError("AccessDeniedError")<{
 	readonly assignmentId: string;
 }> {}
 
-export class NoPreviousAttemptError extends Schema.TaggedError("NoPreviousAttemptError")<{
+export class NoPreviousAttemptError extends Data.TaggedError("NoPreviousAttemptError")<{
 	readonly assignmentId: string;
 }> {}
 
-export class PreviousAttemptNotSubmittedError extends Schema.TaggedError(
+export class PreviousAttemptNotSubmittedError extends Data.TaggedError(
 	"PreviousAttemptNotSubmittedError",
 )<{
 	readonly learnerMapId: string;
@@ -294,7 +294,7 @@ export const saveLearnerMap = Effect.fn("saveLearnerMap")(function* (
 
 	const assignment = assignmentRows[0];
 	if (!assignment) {
-		return yield* AssignmentNotFoundError.make({ assignmentId: data.assignmentId });
+		return yield* new AssignmentNotFoundError({ assignmentId: data.assignmentId });
 	}
 
 	// Verify user has access via cohort or direct targeting
@@ -323,7 +323,7 @@ export const saveLearnerMap = Effect.fn("saveLearnerMap")(function* (
 		.limit(1);
 
 	if (hasAccess.length === 0) {
-		return yield* AccessDeniedError.make({ assignmentId: data.assignmentId });
+		return yield* new AccessDeniedError({ assignmentId: data.assignmentId });
 	}
 
 	const existingRows = yield* db
@@ -335,7 +335,7 @@ export const saveLearnerMap = Effect.fn("saveLearnerMap")(function* (
 	const existing = existingRows[0];
 	if (existing) {
 		if (existing.status === "submitted") {
-			return yield* LearnerMapAlreadySubmittedError.make({ learnerMapId: existing.id });
+			return yield* new LearnerMapAlreadySubmittedError({ learnerMapId: existing.id });
 		}
 
 		yield* db
@@ -385,11 +385,11 @@ export const submitLearnerMap = Effect.fn("submitLearnerMap")(function* (
 
 	const learnerMap = learnerMapRows[0];
 	if (!learnerMap) {
-		return yield* LearnerMapNotFoundError.make({ assignmentId: input.assignmentId, userId });
+		return yield* new LearnerMapNotFoundError({ assignmentId: input.assignmentId, userId });
 	}
 
 	if (learnerMap.status === "submitted") {
-		return yield* LearnerMapAlreadySubmittedError.make({ learnerMapId: learnerMap.id });
+		return yield* new LearnerMapAlreadySubmittedError({ learnerMapId: learnerMap.id });
 	}
 
 	// Fetch assignment to get the correct goalMapId and form unlock configuration
@@ -406,7 +406,7 @@ export const submitLearnerMap = Effect.fn("submitLearnerMap")(function* (
 
 	const assignment = assignmentRows[0];
 	if (!assignment) {
-		return yield* AssignmentNotFoundError.make({ assignmentId: input.assignmentId });
+		return yield* new AssignmentNotFoundError({ assignmentId: input.assignmentId });
 	}
 
 	// Use assignment's goalMapId for comparison (not learnerMap.goalMapId which may be null for kits)
@@ -418,7 +418,7 @@ export const submitLearnerMap = Effect.fn("submitLearnerMap")(function* (
 
 	const goalMap = goalMapRows[0];
 	if (!goalMap) {
-		return yield* GoalMapNotFoundError.make({ goalMapId: assignment.goalMapId });
+		return yield* new GoalMapNotFoundError({ goalMapId: assignment.goalMapId });
 	}
 
 	const goalMapEdges = Array.isArray(goalMap.edges) ? goalMap.edges : [];
@@ -533,7 +533,7 @@ export const getDiagnosis = Effect.fn("getDiagnosis")(function* (
 
 	const goalMap = goalMapRows[0];
 	if (!goalMap) {
-		return yield* GoalMapNotFoundError.make({ goalMapId: result.assignment.goalMapId });
+		return yield* new GoalMapNotFoundError({ goalMapId: result.assignment.goalMapId });
 	}
 
 	const diagnosisData = result.diagnosis?.perLink
@@ -601,11 +601,11 @@ export const startNewAttempt = Effect.fn("startNewAttempt")(function* (
 
 	const existing = existingRows[0];
 	if (!existing) {
-		return yield* NoPreviousAttemptError.make({ assignmentId: input.assignmentId });
+		return yield* new NoPreviousAttemptError({ assignmentId: input.assignmentId });
 	}
 
 	if (existing.status !== "submitted") {
-		return yield* PreviousAttemptNotSubmittedError.make({ learnerMapId: existing.id });
+		return yield* new PreviousAttemptNotSubmittedError({ learnerMapId: existing.id });
 	}
 
 	yield* db
@@ -702,7 +702,7 @@ export const submitControlText = Effect.fn("submitControlText")(function* (
 
 	const assignment = assignmentRows[0];
 	if (!assignment) {
-		return yield* AssignmentNotFoundError.make({ assignmentId: input.assignmentId });
+		return yield* new AssignmentNotFoundError({ assignmentId: input.assignmentId });
 	}
 
 	const existingRows = yield* db
@@ -715,7 +715,7 @@ export const submitControlText = Effect.fn("submitControlText")(function* (
 
 	const existing = existingRows[0];
 	if (existing?.status === "submitted") {
-		return yield* LearnerMapAlreadySubmittedError.make({ learnerMapId: existing.id });
+		return yield* new LearnerMapAlreadySubmittedError({ learnerMapId: existing.id });
 	}
 
 	if (existing) {

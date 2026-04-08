@@ -17,9 +17,6 @@ import {
 	UpdateRoleInput,
 	UpdateUserInput,
 	UserFilterInput,
-	UserNotFoundError,
-	CannotModifySelfError,
-	LastAdminError,
 } from "@/features/user/lib/user-service.shared";
 import { requireRoleMiddleware } from "@/middlewares/auth";
 

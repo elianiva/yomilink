@@ -1,4 +1,4 @@
-import { Effect, Schema } from "effect";
+import { Data, Schema } from "effect";
 
 import { NonEmpty } from "@/lib/validation-schemas";
 
@@ -50,16 +50,16 @@ export const EdgeSchema = Schema.Struct({
 	data: Schema.optionalWith(EdgeDataSchema, { nullable: true }),
 });
 
-export class GoalMapValidationError extends Schema.TaggedError("GoalMapValidationError")<{
+export class GoalMapValidationError extends Data.TaggedError("GoalMapValidationError")<{
 	errors: string[];
 	warnings: string[];
 }> {}
 
-export class GoalMapNotFoundError extends Schema.TaggedError("GoalMapNotFoundError")<{
+export class GoalMapNotFoundError extends Data.TaggedError("GoalMapNotFoundError")<{
 	readonly goalMapId: string;
 }> {}
 
-export class GoalMapAccessDeniedError extends Schema.TaggedError("GoalMapAccessDeniedError")<{
+export class GoalMapAccessDeniedError extends Data.TaggedError("GoalMapAccessDeniedError")<{
 	readonly goalMapId: string;
 	readonly userId: string;
 }> {}
