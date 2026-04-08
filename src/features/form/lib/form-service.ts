@@ -7,6 +7,7 @@ import { Database } from "@/server/db/client";
 import { formProgress, formResponses, forms, questions } from "@/server/db/schema/app-schema";
 import { user } from "@/server/db/schema/auth-schema";
 
+import { isCorrectMcqAnswer } from "./form-scoring";
 import { FormUnlockConditionsType, FormUnlockConditionsNullable } from "./unlock-service";
 
 /** Shared form type literals */
@@ -283,24 +284,22 @@ export const getStudentFormById = Effect.fn("getStudentFormById")(function* (
 					Schema.NullOr(QuestionOptions),
 				);
 
-				if (
-					responseRow &&
-					parsedOptions?.type === "mcq" &&
-					parsedOptions.correctOptionIds.length > 0
-				) {
-					scoredQuestionCount += 1;
-					const answer = responseAnswers?.[q.id];
-					const selectedAnswerIds = Array.isArray(answer)
-						? answer.map((value) => String(value))
-						: typeof answer === "string" || typeof answer === "number"
-							? [String(answer)]
-							: [];
+				const answer = responseAnswers?.[q.id];
+				const isCorrect = responseRow
+					? isCorrectMcqAnswer(
+						parsedOptions?.type === "mcq"
+							? {
+									type: "mcq",
+									correctOptionIds: parsedOptions.correctOptionIds,
+								}
+							: null,
+						answer,
+					)
+					: null;
 
-					if (
-						selectedAnswerIds.some((selected) =>
-							parsedOptions.correctOptionIds.includes(selected),
-						)
-					) {
+				if (isCorrect !== null) {
+					scoredQuestionCount += 1;
+					if (isCorrect) {
 						correctCount += 1;
 					}
 				}

@@ -8,10 +8,17 @@ import {
 	EdgeSchema,
 	NodeSchema,
 } from "@/features/learner-map/lib/comparator";
-import { parseJson } from "@/lib/utils";
+import { parseJson, safeParseJson } from "@/lib/utils";
 import { NonEmpty } from "@/lib/validation-schemas";
 import { Database } from "@/server/db/client";
-import { assignments, diagnoses, goalMaps, kits, learnerMaps } from "@/server/db/schema/app-schema";
+import {
+	assignments,
+	assignmentExperimentGroups,
+	diagnoses,
+	goalMaps,
+	kits,
+	learnerMaps,
+} from "@/server/db/schema/app-schema";
 import { user } from "@/server/db/schema/auth-schema";
 
 export const GetAnalyticsForAssignmentInput = Schema.Struct({
@@ -289,8 +296,8 @@ export const getAnalyticsForAssignment = Effect.fn("getAnalyticsForAssignment")(
 
 	const [parsedGoalMapNodes, parsedGoalMapEdges] = yield* Effect.all(
 		[
-			parseJson(goalMap.nodes, Schema.Array(NodeSchema)),
-			parseJson(goalMap.edges, Schema.Array(EdgeSchema)),
+			safeParseJson(goalMap.nodes, [], Schema.Array(NodeSchema)),
+			safeParseJson(goalMap.edges, [], Schema.Array(EdgeSchema)),
 		],
 		{ concurrency: "unbounded" },
 	);
@@ -305,11 +312,18 @@ export const getAnalyticsForAssignment = Effect.fn("getAnalyticsForAssignment")(
 			score: diagnoses.score,
 			perLink: diagnoses.perLink,
 			userName: user.name,
-			condition: user.studyGroup,
+			condition: assignmentExperimentGroups.condition,
 		})
 		.from(learnerMaps)
 		.innerJoin(user, eq(learnerMaps.userId, user.id))
 		.leftJoin(diagnoses, eq(diagnoses.learnerMapId, learnerMaps.id))
+		.leftJoin(
+			assignmentExperimentGroups,
+			and(
+				eq(assignmentExperimentGroups.assignmentId, input.assignmentId),
+				eq(assignmentExperimentGroups.userId, learnerMaps.userId),
+			),
+		)
 		.where(eq(learnerMaps.assignmentId, input.assignmentId))
 		.orderBy(desc(learnerMaps.attempt), desc(learnerMaps.updatedAt));
 
@@ -333,12 +347,7 @@ export const getAnalyticsForAssignment = Effect.fn("getAnalyticsForAssignment")(
 					userId: lm.userId,
 					userName: lm.userName,
 					learnerMapId: lm.id,
-					condition:
-						lm.condition === "experiment"
-							? "concept_map"
-							: lm.condition === "control"
-								? "summarizing"
-								: undefined,
+					condition: lm.condition ?? undefined,
 					status: lm.status,
 					score: lm.score,
 					attempt: lm.attempt,
@@ -440,10 +449,10 @@ export const getLearnerMapForAnalytics = Effect.fn("getLearnerMapForAnalytics")(
 	const [parsedGoalMapNodes, parsedGoalMapEdges, parsedLearnerMapNodes, parsedLearnerMapEdges] =
 		yield* Effect.all(
 			[
-				parseJson(goalMap.nodes, Schema.Array(NodeSchema)),
-				parseJson(goalMap.edges, Schema.Array(EdgeSchema)),
-				parseJson(learnerMap.nodes, Schema.Array(NodeSchema)),
-				parseJson(learnerMap.edges, Schema.Array(EdgeSchema)),
+				safeParseJson(goalMap.nodes, [], Schema.Array(NodeSchema)),
+				safeParseJson(goalMap.edges, [], Schema.Array(EdgeSchema)),
+				safeParseJson(learnerMap.nodes, [], Schema.Array(NodeSchema)),
+				safeParseJson(learnerMap.edges, [], Schema.Array(EdgeSchema)),
 			],
 			{ concurrency: "unbounded" },
 		);

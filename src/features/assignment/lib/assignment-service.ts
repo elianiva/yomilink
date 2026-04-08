@@ -1,19 +1,23 @@
 import { and, desc, eq, inArray, isNotNull, sql } from "drizzle-orm";
 import { Data, Effect, Schema } from "effect";
 
-import { randomString } from "@/lib/utils";
+import { randomString, safeParseJson } from "@/lib/utils";
 import { NonEmpty } from "@/lib/validation-schemas";
 import { Database } from "@/server/db/client";
 import {
 	assignments,
+	assignmentExperimentGroups,
 	assignmentTargets,
 	formResponses,
 	forms,
 	goalMaps,
 	kits,
 	learnerMaps,
+	questions,
 } from "@/server/db/schema/app-schema";
 import { cohortMembers, cohorts, user } from "@/server/db/schema/auth-schema";
+
+import { isCorrectMcqAnswer } from "@/features/form/lib/form-scoring";
 
 export const CreateAssignmentInput = Schema.Struct({
 	title: NonEmpty("Title"),
@@ -463,11 +467,19 @@ export const saveExperimentGroups = Effect.fn("saveExperimentGroups")(function* 
 ) {
 	const db = yield* Database;
 
-	for (const g of input.groups) {
-		yield* db
-			.update(user)
-			.set({ studyGroup: g.condition === "concept_map" ? "experiment" : "control" })
-			.where(eq(user.id, g.userId));
+	yield* db
+		.delete(assignmentExperimentGroups)
+		.where(eq(assignmentExperimentGroups.assignmentId, input.assignmentId));
+
+	if (input.groups.length > 0) {
+		yield* db.insert(assignmentExperimentGroups).values(
+			input.groups.map((g) => ({
+				id: randomString(),
+				assignmentId: input.assignmentId,
+				userId: g.userId,
+				condition: g.condition,
+			})),
+		);
 	}
 
 	return true;
@@ -477,19 +489,16 @@ export const getExperimentGroupsByAssignmentId = Effect.fn("getExperimentGroupsB
 	function* (assignmentId: string) {
 		const db = yield* Database;
 
-		// This previously fetched from experimentGroups table.
-		// Now we fetch from user table via assignmentTargets.
 		const rows = yield* db
 			.select({
-				id: user.id,
-				assignmentId: sql<string>`${assignmentId}`,
-				userId: user.id,
+				id: assignmentExperimentGroups.id,
+				assignmentId: assignmentExperimentGroups.assignmentId,
+				userId: assignmentExperimentGroups.userId,
 				groupName: sql<string>`null`,
-				condition: sql<string>`case when ${user.studyGroup} = 'control' then 'summarizing' else 'concept_map' end`,
+				condition: assignmentExperimentGroups.condition,
 			})
-			.from(user)
-			.innerJoin(assignmentTargets, eq(assignmentTargets.userId, user.id))
-			.where(eq(assignmentTargets.assignmentId, assignmentId));
+			.from(assignmentExperimentGroups)
+			.where(eq(assignmentExperimentGroups.assignmentId, assignmentId));
 
 		return rows;
 	},
@@ -591,13 +600,18 @@ export const getExperimentCondition = Effect.fn("getExperimentCondition")(functi
 
 	const rows = yield* db
 		.select({
-			id: user.id,
-			assignmentId: sql<string>`${assignmentId}`,
-			userId: user.id,
-			condition: sql<string>`case when ${user.studyGroup} = 'control' then 'summarizing' else 'concept_map' end`,
+			id: assignmentExperimentGroups.id,
+			assignmentId: assignmentExperimentGroups.assignmentId,
+			userId: assignmentExperimentGroups.userId,
+			condition: assignmentExperimentGroups.condition,
 		})
-		.from(user)
-		.where(eq(user.id, userId))
+		.from(assignmentExperimentGroups)
+		.where(
+			and(
+				eq(assignmentExperimentGroups.assignmentId, assignmentId),
+				eq(assignmentExperimentGroups.userId, userId),
+			),
+		)
 		.limit(1);
 
 	return rows[0] ?? null;
@@ -713,12 +727,104 @@ export const getAssignmentExperimentStatus = Effect.fn("getAssignmentExperimentS
 			id: user.id,
 			name: user.name,
 			email: user.email,
-			studyGroup: user.studyGroup,
 		})
 		.from(user)
 		.where(inArray(user.id, allUserIds));
 
 	const userMap = new Map(users.map((u) => [u.id, u]));
+
+	const experimentGroupRows = yield* db
+		.select({
+			userId: assignmentExperimentGroups.userId,
+			condition: assignmentExperimentGroups.condition,
+		})
+		.from(assignmentExperimentGroups)
+		.where(
+			and(
+				eq(assignmentExperimentGroups.assignmentId, input.assignmentId),
+				inArray(assignmentExperimentGroups.userId, allUserIds),
+			),
+		);
+
+	const experimentGroupMap = new Map(experimentGroupRows.map((row) => [row.userId, row.condition]));
+
+	const scoreFormResponses = function* (
+		formId: string | null,
+		rows: Array<{
+			userId: string;
+			submittedAt: Date | null;
+			answers?: unknown;
+		}>,
+	) {
+		if (!formId) {
+			return new Map<string, { completedAt: number | null; score: number | null }>();
+		}
+
+		const questionRows = yield* db
+			.select({
+				id: questions.id,
+				options: questions.options,
+			})
+			.from(questions)
+			.where(eq(questions.formId, formId))
+			.orderBy(questions.orderIndex);
+
+		const scoreableQuestions = yield* Effect.all(
+			questionRows.map((question) =>
+				Effect.gen(function* () {
+					const parsedOptions = yield* safeParseJson(question.options, null, Schema.Any);
+					if (
+						parsedOptions &&
+						typeof parsedOptions === "object" &&
+						"type" in parsedOptions &&
+						parsedOptions.type === "mcq" &&
+						"correctOptionIds" in parsedOptions &&
+						Array.isArray(parsedOptions.correctOptionIds)
+					) {
+						return {
+							id: question.id,
+							options: {
+								type: "mcq" as const,
+								correctOptionIds: parsedOptions.correctOptionIds.map((id: unknown) => String(id)),
+							},
+						};
+					}
+
+					return {
+						id: question.id,
+						options: null,
+					};
+				}),
+			),
+			{ concurrency: "unbounded" },
+		);
+
+		return new Map(
+			rows.map((row) => {
+				let correctCount = 0;
+				let scoredQuestionCount = 0;
+				const answers = row.answers as Record<string, unknown> | undefined;
+
+				for (const question of scoreableQuestions) {
+					const result = isCorrectMcqAnswer(question.options, answers?.[question.id]);
+					if (result !== null) {
+						scoredQuestionCount += 1;
+						if (result) {
+							correctCount += 1;
+						}
+					}
+				}
+
+				return [
+					row.userId,
+					{
+						completedAt: row.submittedAt?.getTime() ?? null,
+						score: scoredQuestionCount > 0 ? correctCount / scoredQuestionCount : null,
+					},
+				] as const;
+			}),
+		);
+	};
 
 	const preTestResponses = assignment.preTestFormId
 		? yield* db
@@ -736,15 +842,7 @@ export const getAssignmentExperimentStatus = Effect.fn("getAssignmentExperimentS
 				)
 		: [];
 
-	const preTestMap = new Map(
-		preTestResponses.map((r) => [
-			r.userId,
-			{
-				completedAt: r.submittedAt?.getTime() ?? null,
-				answers: r.answers as Array<{ questionId: string; answer: string }>,
-			},
-		]),
-	);
+	const preTestMap = yield* scoreFormResponses(assignment.preTestFormId, preTestResponses);
 
 	const postTestResponses = assignment.postTestFormId
 		? yield* db
@@ -833,14 +931,6 @@ export const getAssignmentExperimentStatus = Effect.fn("getAssignmentExperimentS
 		]),
 	);
 
-	const calculateScore = (answers: Array<{ questionId: string; answer: string }> | null) => {
-		if (!answers || !Array.isArray(answers)) return null;
-		// Simple scoring: count non-empty answers for now
-		// TODO: Compare against correct answers when available
-		const answered = answers.filter((a) => a.answer && a.answer.trim().length > 0).length;
-		return answered;
-	};
-
 	const students: StudentExperimentStatus[] = allUserIds.map((userId) => {
 		const userInfo = userMap.get(userId);
 		const preTest = preTestMap.get(userId);
@@ -849,11 +939,7 @@ export const getAssignmentExperimentStatus = Effect.fn("getAssignmentExperimentS
 		const delayedTest = delayedTestMap.get(userId);
 		const learnerMap = learnerMapMap.get(userId);
 
-		const groupCondition = userInfo?.studyGroup
-			? userInfo.studyGroup === "experiment"
-				? "concept_map"
-				: "summarizing"
-			: null;
+		const groupCondition = experimentGroupMap.get(userId) ?? null;
 
 		let delayedTestUnlocksAt: number | null = null;
 		if (assignment.delayedPostTestDelayDays && learnerMap?.submittedAt) {
@@ -868,7 +954,7 @@ export const getAssignmentExperimentStatus = Effect.fn("getAssignmentExperimentS
 			userEmail: userInfo?.email ?? "",
 			preTest: {
 				completed: !!preTest,
-				score: preTest ? calculateScore(preTest.answers) : null,
+				score: preTest?.score ?? null,
 				completedAt: preTest?.completedAt ?? null,
 			},
 			groupAssigned: !!groupCondition,

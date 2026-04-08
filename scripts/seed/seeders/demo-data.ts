@@ -3,7 +3,12 @@ import { Effect } from "effect";
 
 import { randomString } from "@/lib/utils";
 import { Database } from "@/server/db/client";
-import { assignments, assignmentTargets, kits } from "@/server/db/schema/app-schema";
+import {
+	assignments,
+	assignmentExperimentGroups,
+	assignmentTargets,
+	kits,
+} from "@/server/db/schema/app-schema";
 import { cohortMembers, cohorts, user } from "@/server/db/schema/auth-schema";
 
 import { GOAL_MAP_TO_MATERIAL } from "../data/materials.js";
@@ -211,16 +216,26 @@ export function seedDemoData(
 		yield* Effect.log("Seeding experiment groups...");
 		const existingStudents = yield* db.select().from(user).where(eq(user.role, "student"));
 
+		yield* db
+			.delete(assignmentExperimentGroups)
+			.where(eq(assignmentExperimentGroups.assignmentId, demoAssignmentId));
+
 		for (const s of existingStudents) {
 			const condition = studentConditionMap[s.email];
-			if (condition) {
-				yield* db
-					.update(user)
-					.set({ studyGroup: condition === "concept_map" ? "experiment" : "control" })
-					.where(eq(user.id, s.id));
-			}
+			if (!condition) continue;
+
+			yield* db.insert(assignmentExperimentGroups).values({
+				id: randomString(),
+				assignmentId: demoAssignmentId,
+				userId: s.id,
+				condition,
+			});
+			yield* db
+				.update(user)
+				.set({ studyGroup: condition === "concept_map" ? "experiment" : "control" })
+				.where(eq(user.id, s.id));
 		}
-		yield* Effect.log("  Seeded experiment groups (studyGroup on user)");
+		yield* Effect.log("  Seeded experiment groups (assignment-scoped)");
 
 		return {
 			demoCohortId,
