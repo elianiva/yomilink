@@ -4,7 +4,7 @@ import { lazy, Suspense, useMemo } from "react";
 import type {
 	AssignmentAnalytics,
 	LearnerMapResult,
-} from "@/features/analyzer/lib/analytics-service";
+} from "@/features/analyzer/lib/analytics-service.core";
 
 // Lazy load AnalyticsCanvas (heavy React Flow component)
 const AnalyticsCanvas = lazy(() =>

@@ -19,7 +19,7 @@ import {
 	getAssignmentExperimentStatus,
 	GetExperimentStatusInput,
 	getAssignmentById,
-} from "@/features/assignment/lib/assignment-service";
+} from "@/features/assignment/lib/assignment-service.core";
 import { requireRoleMiddleware } from "@/middlewares/auth";
 
 import { AppRuntime } from "../app-runtime";

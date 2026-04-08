@@ -15,7 +15,7 @@ import {
 import type {
 	FormResponseOutput as FormResponse,
 	QuestionOutput as ResponseQuestion,
-} from "@/features/form/lib/form-service";
+} from "@/features/form/lib/form-service.core";
 import { useRpcMutation, useRpcQuery } from "@/hooks/use-rpc-query";
 import { AssignmentRpc } from "@/server/rpc/assignment";
 

@@ -1,5 +1,5 @@
 import { and, avg, count, desc, eq } from "drizzle-orm";
-import { Data, Effect, Schema } from "effect";
+import { Effect, Schema } from "effect";
 import Papa from "papaparse";
 
 import {
@@ -78,15 +78,15 @@ export type LearnerMapResult = Awaited<
 	Effect.Effect.Success<ReturnType<typeof getLearnerMapForAnalytics>>
 >;
 
-class AssignmentNotFoundError extends Data.TaggedError("AssignmentNotFoundError")<{
+class AssignmentNotFoundError extends Schema.TaggedError("AssignmentNotFoundError")<{
 	readonly assignmentId: string;
 }> {}
 
-class GoalMapNotFoundError extends Data.TaggedError("GoalMapNotFoundError")<{
+class GoalMapNotFoundError extends Schema.TaggedError("GoalMapNotFoundError")<{
 	readonly goalMapId: string;
 }> {}
 
-class LearnerMapNotFoundError extends Data.TaggedError("LearnerMapNotFoundError")<{
+class LearnerMapNotFoundError extends Schema.TaggedError("LearnerMapNotFoundError")<{
 	readonly learnerMapId: string;
 }> {}
 
@@ -270,7 +270,7 @@ export const getAnalyticsForAssignment = Effect.fn("getAnalyticsForAssignment")(
 
 	const assignment = assignmentRows[0];
 	if (!assignment) {
-		return yield* new AssignmentNotFoundError({
+		return yield* AssignmentNotFoundError.make({
 			assignmentId: input.assignmentId,
 		});
 	}
@@ -289,7 +289,7 @@ export const getAnalyticsForAssignment = Effect.fn("getAnalyticsForAssignment")(
 
 	const goalMap = goalMapRows[0];
 	if (!goalMap) {
-		return yield* new GoalMapNotFoundError({
+		return yield* GoalMapNotFoundError.make({
 			goalMapId: assignment.goalMapId,
 		});
 	}
@@ -422,7 +422,7 @@ export const getLearnerMapForAnalytics = Effect.fn("getLearnerMapForAnalytics")(
 
 	const learnerMap = learnerMapRows[0];
 	if (!learnerMap) {
-		return yield* new LearnerMapNotFoundError({
+		return yield* LearnerMapNotFoundError.make({
 			learnerMapId: input.learnerMapId,
 		});
 	}
@@ -441,7 +441,7 @@ export const getLearnerMapForAnalytics = Effect.fn("getLearnerMapForAnalytics")(
 
 	const goalMap = goalMapRows[0];
 	if (!goalMap) {
-		return yield* new GoalMapNotFoundError({
+		return yield* GoalMapNotFoundError.make({
 			goalMapId: learnerMap.goalMapId,
 		});
 	}
@@ -528,7 +528,7 @@ export const getLearnerSummaryText = Effect.fn("getLearnerSummaryText")(function
 
 	const learnerMap = learnerMapRows[0];
 	if (!learnerMap) {
-		return yield* new LearnerMapNotFoundError({
+		return yield* LearnerMapNotFoundError.make({
 			learnerMapId: input.learnerMapId,
 		});
 	}

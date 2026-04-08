@@ -10,7 +10,7 @@ import {
 	SelectTrigger,
 	SelectValue,
 } from "@/components/ui/select";
-import type { UserFilterInput } from "@/features/user/lib/user-service";
+import type { UserFilterInput } from "@/features/user/lib/user-service.shared";
 
 type Cohort = { id: string; name: string };
 

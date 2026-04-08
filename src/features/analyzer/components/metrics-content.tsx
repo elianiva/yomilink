@@ -22,7 +22,7 @@ import {
 	ChartTooltip,
 	ChartTooltipContent,
 } from "@/components/ui/chart";
-import type { LearnerAnalytics } from "@/features/analyzer/lib/analytics-service";
+import type { LearnerAnalytics } from "@/features/analyzer/lib/analytics-service.core";
 import { useRpcQuery } from "@/hooks/use-rpc-query";
 import { cn } from "@/lib/utils";
 import { AnalyticsRpc } from "@/server/rpc/analytics";

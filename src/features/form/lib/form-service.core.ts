@@ -1,5 +1,5 @@
 import { and, count, desc, eq, inArray, or } from "drizzle-orm";
-import { Data, Effect, Schema } from "effect";
+import { Effect, Schema } from "effect";
 
 import { parseJson, randomString, safeParseJson } from "@/lib/utils";
 import { NonEmpty } from "@/lib/validation-schemas";
@@ -16,7 +16,7 @@ import {
 import { cohortMembers } from "@/server/db/schema/auth-schema";
 
 import { isCorrectMcqAnswer } from "./form-scoring";
-import { FormUnlockConditionsType, FormUnlockConditionsNullable } from "./unlock-service";
+import { FormUnlockConditionsType, FormUnlockConditionsNullable } from "./unlock-service.shared";
 
 /** Shared form type literals */
 export const FORM_TYPES = [
@@ -77,7 +77,10 @@ type AssignmentConditionRow = {
 	condition: "summarizing" | "concept_map";
 };
 
-const CONDITION_TO_AUDIENCE: Record<AssignmentConditionRow["condition"], Exclude<FormAudience, "all">> = {
+const CONDITION_TO_AUDIENCE: Record<
+	AssignmentConditionRow["condition"],
+	Exclude<FormAudience, "all">
+> = {
 	summarizing: "control",
 	concept_map: "experiment",
 };
@@ -128,25 +131,25 @@ function shouldExcludeForm(
 
 export type CreateFormInput = typeof CreateFormInput.Type;
 
-class FormNotFoundError extends Data.TaggedError("FormNotFoundError")<{
+class FormNotFoundError extends Schema.TaggedError("FormNotFoundError")<{
 	readonly formId: string;
 }> {}
 
-class FormHasResponsesError extends Data.TaggedError("FormHasResponsesError")<{
+class FormHasResponsesError extends Schema.TaggedError("FormHasResponsesError")<{
 	readonly formId: string;
 	readonly responseCount: number;
 }> {}
 
-class InvalidQuestionOrderError extends Data.TaggedError("InvalidQuestionOrderError")<{
+class InvalidQuestionOrderError extends Schema.TaggedError("InvalidQuestionOrderError")<{
 	readonly formId: string;
 	readonly reason: string;
 }> {}
 
-class FormNotPublishedError extends Data.TaggedError("FormNotPublishedError")<{
+class FormNotPublishedError extends Schema.TaggedError("FormNotPublishedError")<{
 	readonly formId: string;
 }> {}
 
-class FormAlreadySubmittedError extends Data.TaggedError("FormAlreadySubmittedError")<{
+class FormAlreadySubmittedError extends Schema.TaggedError("FormAlreadySubmittedError")<{
 	readonly formId: string;
 	readonly userId: string;
 }> {}
@@ -217,7 +220,7 @@ export const getFormById = Effect.fn("getFormById")(function* (formId: string) {
 
 	const formRow = formRows[0];
 	if (!formRow) {
-		return yield* new FormNotFoundError({ formId });
+		return yield* FormNotFoundError.make({ formId });
 	}
 
 	const questionRows = yield* db
@@ -281,7 +284,7 @@ export const getFormById = Effect.fn("getFormById")(function* (formId: string) {
 	});
 });
 
-class FormNotAccessibleError extends Data.TaggedError("FormNotAccessibleError")<{
+class FormNotAccessibleError extends Schema.TaggedError("FormNotAccessibleError")<{
 	readonly formId: string;
 }> {}
 
@@ -298,13 +301,13 @@ export const getStudentFormById = Effect.fn("getStudentFormById")(function* (
 
 	const formRow = formRows[0];
 	if (!formRow) {
-		return yield* new FormNotFoundError({ formId });
+		return yield* FormNotFoundError.make({ formId });
 	}
 
 	// Allow access to published forms for students
 	// (progress check only matters for submission, not viewing)
 	if (formRow.status !== "published") {
-		return yield* new FormNotAccessibleError({ formId });
+		return yield* FormNotAccessibleError.make({ formId });
 	}
 
 	let audiencesByFormId = new Map<string, Set<Exclude<FormAudience, "all">>>();
@@ -355,7 +358,7 @@ export const getStudentFormById = Effect.fn("getStudentFormById")(function* (
 			audiencesByFormId,
 		)
 	) {
-		return yield* new FormNotAccessibleError({ formId });
+		return yield* FormNotAccessibleError.make({ formId });
 	}
 
 	const questionRows = yield* db
@@ -408,14 +411,14 @@ export const getStudentFormById = Effect.fn("getStudentFormById")(function* (
 				const answer = responseAnswers?.[q.id];
 				const isCorrect = responseRow
 					? isCorrectMcqAnswer(
-						parsedOptions?.type === "mcq"
-							? {
-									type: "mcq",
-									correctOptionIds: parsedOptions.correctOptionIds,
-								}
-							: null,
-						answer,
-					)
+							parsedOptions?.type === "mcq"
+								? {
+										type: "mcq",
+										correctOptionIds: parsedOptions.correctOptionIds,
+									}
+								: null,
+							answer,
+						)
 					: null;
 
 				if (isCorrect !== null) {
@@ -550,7 +553,7 @@ export const updateForm = Effect.fn("updateForm")(function* (
 
 	const form = formRows[0];
 	if (!form) {
-		return yield* new FormNotFoundError({ formId });
+		return yield* FormNotFoundError.make({ formId });
 	}
 
 	const responseRows = yield* db
@@ -559,7 +562,7 @@ export const updateForm = Effect.fn("updateForm")(function* (
 		.where(eq(formResponses.formId, formId));
 
 	if (responseRows.length > 0) {
-		return yield* new FormHasResponsesError({
+		return yield* FormHasResponsesError.make({
 			formId,
 			responseCount: responseRows.length,
 		});
@@ -604,7 +607,7 @@ export const deleteForm = Effect.fn("deleteForm")(function* (formId: string) {
 
 	const form = formRows[0];
 	if (!form) {
-		return yield* new FormNotFoundError({ formId });
+		return yield* FormNotFoundError.make({ formId });
 	}
 
 	yield* db.delete(forms).where(eq(forms.id, formId));
@@ -619,7 +622,7 @@ export const publishForm = Effect.fn("publishForm")(function* (formId: string) {
 
 	const form = formRows[0];
 	if (!form) {
-		return yield* new FormNotFoundError({ formId });
+		return yield* FormNotFoundError.make({ formId });
 	}
 
 	yield* db.update(forms).set({ status: "published" }).where(eq(forms.id, formId));
@@ -634,7 +637,7 @@ export const unpublishForm = Effect.fn("unpublishForm")(function* (formId: strin
 
 	const form = formRows[0];
 	if (!form) {
-		return yield* new FormNotFoundError({ formId });
+		return yield* FormNotFoundError.make({ formId });
 	}
 
 	yield* db.update(forms).set({ status: "draft" }).where(eq(forms.id, formId));
@@ -649,7 +652,7 @@ export const cloneForm = Effect.fn("cloneForm")(function* (formId: string, userI
 
 	const originalForm = formRows[0];
 	if (!originalForm) {
-		return yield* new FormNotFoundError({ formId });
+		return yield* FormNotFoundError.make({ formId });
 	}
 
 	const originalQuestions = yield* db
@@ -718,7 +721,7 @@ export const getFormResponses = Effect.fn("getFormResponses")(function* (
 
 	const form = formRows[0];
 	if (!form) {
-		return yield* new FormNotFoundError({ formId: input.formId });
+		return yield* FormNotFoundError.make({ formId: input.formId });
 	}
 
 	const page = Math.max(1, input.page ?? 1);
@@ -803,7 +806,7 @@ export const reorderQuestions = Effect.fn("reorderQuestions")(function* (
 
 	const form = formRows[0];
 	if (!form) {
-		return yield* new FormNotFoundError({ formId: input.formId });
+		return yield* FormNotFoundError.make({ formId: input.formId });
 	}
 
 	const responseRows = yield* db
@@ -812,7 +815,7 @@ export const reorderQuestions = Effect.fn("reorderQuestions")(function* (
 		.where(eq(formResponses.formId, input.formId));
 
 	if (responseRows.length > 0) {
-		return yield* new FormHasResponsesError({
+		return yield* FormHasResponsesError.make({
 			formId: input.formId,
 			responseCount: responseRows.length,
 		});
@@ -827,7 +830,7 @@ export const reorderQuestions = Effect.fn("reorderQuestions")(function* (
 	const providedQuestionIds = new Set(input.questionIds);
 
 	if (existingQuestionIds.size !== providedQuestionIds.size) {
-		return yield* new InvalidQuestionOrderError({
+		return yield* InvalidQuestionOrderError.make({
 			formId: input.formId,
 			reason: "Question count mismatch",
 		});
@@ -835,7 +838,7 @@ export const reorderQuestions = Effect.fn("reorderQuestions")(function* (
 
 	for (const id of input.questionIds) {
 		if (!existingQuestionIds.has(id)) {
-			return yield* new InvalidQuestionOrderError({
+			return yield* InvalidQuestionOrderError.make({
 				formId: input.formId,
 				reason: `Invalid question ID: ${id}`,
 			});
@@ -861,11 +864,11 @@ export const submitFormResponse = Effect.fn("submitFormResponse")(function* (
 
 	const form = formRows[0];
 	if (!form) {
-		return yield* new FormNotFoundError({ formId: data.formId });
+		return yield* FormNotFoundError.make({ formId: data.formId });
 	}
 
 	if (form.status !== "published") {
-		return yield* new FormNotPublishedError({ formId: data.formId });
+		return yield* FormNotPublishedError.make({ formId: data.formId });
 	}
 
 	const existingResponse = yield* db
@@ -875,7 +878,7 @@ export const submitFormResponse = Effect.fn("submitFormResponse")(function* (
 		.limit(1);
 
 	if (existingResponse.length > 0) {
-		return yield* new FormAlreadySubmittedError({
+		return yield* FormAlreadySubmittedError.make({
 			formId: data.formId,
 			userId: data.userId,
 		});
@@ -981,7 +984,7 @@ export const CreateQuestionInput = Schema.Struct({
 
 export type CreateQuestionInput = typeof CreateQuestionInput.Type;
 
-class QuestionNotFoundError extends Data.TaggedError("QuestionNotFoundError")<{
+class QuestionNotFoundError extends Schema.TaggedError("QuestionNotFoundError")<{
 	readonly questionId: string;
 }> {}
 
@@ -992,7 +995,7 @@ export const createQuestion = Effect.fn("createQuestion")(function* (data: Creat
 
 	const form = formRows[0];
 	if (!form) {
-		return yield* new FormNotFoundError({ formId: data.formId });
+		return yield* FormNotFoundError.make({ formId: data.formId });
 	}
 
 	const responseRows = yield* db
@@ -1001,7 +1004,7 @@ export const createQuestion = Effect.fn("createQuestion")(function* (data: Creat
 		.where(eq(formResponses.formId, data.formId));
 
 	if (responseRows.length > 0) {
-		return yield* new FormHasResponsesError({
+		return yield* FormHasResponsesError.make({
 			formId: data.formId,
 			responseCount: responseRows.length,
 		});
@@ -1049,7 +1052,7 @@ export const updateQuestion = Effect.fn("updateQuestion")(function* (data: Updat
 
 	const question = questionRows[0];
 	if (!question) {
-		return yield* new QuestionNotFoundError({
+		return yield* QuestionNotFoundError.make({
 			questionId: data.questionId,
 		});
 	}
@@ -1060,7 +1063,7 @@ export const updateQuestion = Effect.fn("updateQuestion")(function* (data: Updat
 		.where(eq(formResponses.formId, question.formId));
 
 	if (responseRows.length > 0) {
-		return yield* new FormHasResponsesError({
+		return yield* FormHasResponsesError.make({
 			formId: question.formId,
 			responseCount: responseRows.length,
 		});
@@ -1091,7 +1094,7 @@ export const deleteQuestion = Effect.fn("deleteQuestion")(function* (questionId:
 
 	const question = questionRows[0];
 	if (!question) {
-		return yield* new QuestionNotFoundError({ questionId });
+		return yield* QuestionNotFoundError.make({ questionId });
 	}
 
 	const responseRows = yield* db
@@ -1100,7 +1103,7 @@ export const deleteQuestion = Effect.fn("deleteQuestion")(function* (questionId:
 		.where(eq(formResponses.formId, question.formId));
 
 	if (responseRows.length > 0) {
-		return yield* new FormHasResponsesError({
+		return yield* FormHasResponsesError.make({
 			formId: question.formId,
 			responseCount: responseRows.length,
 		});
@@ -1333,7 +1336,7 @@ export const getStudentForms = Effect.fn("getStudentForms")(function* (userId: s
 					})
 					.from(assignments)
 					.where(inArray(assignments.id, assignmentIds))
-				: [];
+			: [];
 
 	const experimentGroupRows: AssignmentConditionRow[] =
 		assignmentIds.length > 0
@@ -1349,13 +1352,15 @@ export const getStudentForms = Effect.fn("getStudentForms")(function* (userId: s
 							inArray(assignmentExperimentGroups.assignmentId, assignmentIds),
 						),
 					)
-				: [];
+			: [];
 
 	const audiencesByFormId = buildAccessibleFormAudiences(assignmentRows, experimentGroupRows);
 
 	const publishedForms = yield* db.select().from(forms).where(eq(forms.status, "published"));
 
-	const applicableForms = publishedForms.filter((form) => !shouldExcludeForm(form, audiencesByFormId));
+	const applicableForms = publishedForms.filter(
+		(form) => !shouldExcludeForm(form, audiencesByFormId),
+	);
 
 	const userProgressRows = yield* db
 		.select()

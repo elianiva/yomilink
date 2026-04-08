@@ -14,7 +14,7 @@ import {
 	getLearnerSummaryText,
 	getMultipleLearnerMaps,
 	getTeacherAssignments,
-} from "@/features/analyzer/lib/analytics-service";
+} from "@/features/analyzer/lib/analytics-service.core";
 import { authMiddleware } from "@/middlewares/auth";
 
 import { AppRuntime } from "../app-runtime";

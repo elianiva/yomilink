@@ -91,9 +91,7 @@ export function LearnerMapEditor() {
 		AssignmentRpc.getExperimentCondition(assignmentId),
 	);
 	const condition =
-		experimentGroup && "condition" in experimentGroup
-			? experimentGroup.condition
-			: null;
+		experimentGroup && "condition" in experimentGroup ? experimentGroup.condition : null;
 
 	const saveMutation = useRpcMutation(LearnerMapRpc.saveLearnerMap(), {
 		operation: "save learner map",

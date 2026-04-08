@@ -10,7 +10,7 @@ import { BulkCohortDialog } from "@/components/users/bulk-cohort-dialog";
 import { UserDetailSheet } from "@/components/users/user-detail-sheet";
 import { UserFilterBar } from "@/components/users/user-filter-bar";
 import { UserTable } from "@/components/users/user-table";
-import type { UserFilterInput, UserWithCohorts } from "@/features/user/lib/user-service";
+import type { UserFilterInput, UserWithCohorts } from "@/features/user/lib/user-service.shared";
 import { useRpcMutation, useRpcQuery } from "@/hooks/use-rpc-query";
 import { AssignmentRpc } from "@/server/rpc/assignment";
 import { ProfileRpc } from "@/server/rpc/profile";

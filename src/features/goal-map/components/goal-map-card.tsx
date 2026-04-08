@@ -13,7 +13,7 @@ import {
 	AlertDialogTrigger,
 } from "@/components/ui/alert-dialog";
 import { Button } from "@/components/ui/button";
-import type { GoalMap } from "@/features/goal-map/lib/goal-map-service";
+import type { GoalMap } from "@/features/goal-map/lib/goal-map-service.shared";
 import { formatRelativeTime } from "@/lib/date-utils";
 import { safeParseJson } from "@/lib/utils";
 

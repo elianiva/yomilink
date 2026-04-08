@@ -29,8 +29,9 @@ import {
 	unpublishForm,
 	updateForm,
 	updateQuestion,
-} from "@/features/form/lib/form-service";
-import { checkFormUnlock, UnlockFormInput, unlockForm } from "@/features/form/lib/unlock-service";
+} from "@/features/form/lib/form-service.core";
+import { checkFormUnlock } from "@/features/form/lib/unlock-service.conditions";
+import { UnlockFormInput, unlockForm } from "@/features/form/lib/unlock-service.progress";
 import { requireRoleMiddleware } from "@/middlewares/auth";
 
 import { AppRuntime } from "../app-runtime";

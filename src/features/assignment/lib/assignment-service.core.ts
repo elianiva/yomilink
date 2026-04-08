@@ -1,6 +1,7 @@
 import { and, desc, eq, inArray, isNotNull, sql } from "drizzle-orm";
-import { Data, Effect, Schema } from "effect";
+import { Effect, Schema } from "effect";
 
+import { isCorrectMcqAnswer } from "@/features/form/lib/form-scoring";
 import { randomString, safeParseJson } from "@/lib/utils";
 import { NonEmpty } from "@/lib/validation-schemas";
 import { Database } from "@/server/db/client";
@@ -16,8 +17,6 @@ import {
 	questions,
 } from "@/server/db/schema/app-schema";
 import { cohortMembers, cohorts, user } from "@/server/db/schema/auth-schema";
-
-import { isCorrectMcqAnswer } from "@/features/form/lib/form-scoring";
 
 export const CreateAssignmentInput = Schema.Struct({
 	title: NonEmpty("Title"),
@@ -58,11 +57,11 @@ export const DeleteAssignmentInput = Schema.Struct({
 
 export type DeleteAssignmentInput = typeof DeleteAssignmentInput.Type;
 
-class KitNotFoundError extends Data.TaggedError("KitNotFoundError")<{
+class KitNotFoundError extends Schema.TaggedError("KitNotFoundError")<{
 	readonly goalMapId: string;
 }> {}
 
-class AssignmentNotFoundError extends Data.TaggedError("AssignmentNotFoundError")<{
+class AssignmentNotFoundError extends Schema.TaggedError("AssignmentNotFoundError")<{
 	readonly assignmentId: string;
 }> {}
 
@@ -80,7 +79,7 @@ export const createAssignment = Effect.fn("createAssignment")(function* (
 
 	const kit = kitRows[0];
 	if (!kit) {
-		return yield* new KitNotFoundError({ goalMapId: data.goalMapId });
+		return yield* KitNotFoundError.make({ goalMapId: data.goalMapId });
 	}
 
 	const assignmentId = randomString();
@@ -397,7 +396,7 @@ export const deleteAssignment = Effect.fn("deleteAssignment")(function* (
 
 	const assignment = assignmentRows[0];
 	if (!assignment || assignment.createdBy !== userId) {
-		return yield* new AssignmentNotFoundError({ assignmentId: input.id });
+		return yield* AssignmentNotFoundError.make({ assignmentId: input.id });
 	}
 
 	yield* db.delete(assignments).where(eq(assignments.id, input.id));
@@ -547,7 +546,7 @@ export const getAssignmentById = Effect.fn("getAssignmentById")(function* (assig
 		.limit(1);
 
 	if (rows.length === 0) {
-		return yield* new AssignmentNotFoundError({ assignmentId });
+		return yield* AssignmentNotFoundError.make({ assignmentId });
 	}
 
 	const assignment = rows[0];
@@ -670,7 +669,7 @@ export const getAssignmentExperimentStatus = Effect.fn("getAssignmentExperimentS
 
 	const assignment = assignmentRows[0];
 	if (!assignment) {
-		return yield* new AssignmentNotFoundError({ assignmentId: input.assignmentId });
+		return yield* AssignmentNotFoundError.make({ assignmentId: input.assignmentId });
 	}
 
 	// Get all assigned users
@@ -745,7 +744,9 @@ export const getAssignmentExperimentStatus = Effect.fn("getAssignmentExperimentS
 			),
 		);
 
-	const experimentGroupMap = new Map(experimentGroupRows.map((row) => [row.userId, row.condition]));
+	const experimentGroupMap = new Map(
+		experimentGroupRows.map((row) => [row.userId, row.condition]),
+	);
 
 	const scoreFormResponses = function* (
 		formId: string | null,
@@ -784,7 +785,9 @@ export const getAssignmentExperimentStatus = Effect.fn("getAssignmentExperimentS
 							id: question.id,
 							options: {
 								type: "mcq" as const,
-								correctOptionIds: parsedOptions.correctOptionIds.map((id: unknown) => String(id)),
+								correctOptionIds: parsedOptions.correctOptionIds.map(
+									(id: unknown) => String(id),
+								),
 							},
 						};
 					}

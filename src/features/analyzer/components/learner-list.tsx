@@ -1,5 +1,5 @@
 import { Checkbox } from "@/components/ui/checkbox";
-import type { LearnerAnalytics } from "@/features/analyzer/lib/analytics-service";
+import type { LearnerAnalytics } from "@/features/analyzer/lib/analytics-service.core";
 import { cn } from "@/lib/utils";
 
 interface LearnerListProps {

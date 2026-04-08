@@ -1,7 +1,7 @@
 import { eq } from "drizzle-orm";
 import { Effect } from "effect";
 
-import type { FormAudience, FormType } from "@/features/form/lib/form-service";
+import type { FormAudience, FormType } from "@/features/form/lib/form-service.core";
 import { randomString } from "@/lib/utils";
 import { Database } from "@/server/db/client";
 import { forms, questions } from "@/server/db/schema/app-schema";

@@ -7,7 +7,7 @@ import { Label } from "@/components/ui/label";
 import { Switch } from "@/components/ui/switch";
 import { Textarea } from "@/components/ui/textarea";
 import { AnswerOptionCard } from "@/features/form/components/answer-option-card";
-import type { McqOptions } from "@/features/form/lib/form-service";
+import type { McqOptions } from "@/features/form/lib/form-service.core";
 
 export interface McqQuestionData {
 	questionText: string;

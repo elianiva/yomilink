@@ -3,20 +3,24 @@ import { createServerFn } from "@tanstack/react-start";
 import { Effect, Schema } from "effect";
 
 import {
-	BanUserInput,
-	BulkCohortAssignInput,
-	listUsers,
-	getUserById,
 	updateUser,
 	updateUserRole,
 	banUser,
 	unbanUser,
 	bulkAssignCohort,
 	triggerPasswordReset,
-	UpdateUserInput,
+} from "@/features/user/lib/user-service.mutations";
+import { listUsers, getUserById } from "@/features/user/lib/user-service.queries";
+import {
+	BanUserInput,
+	BulkCohortAssignInput,
 	UpdateRoleInput,
+	UpdateUserInput,
 	UserFilterInput,
-} from "@/features/user/lib/user-service";
+	UserNotFoundError,
+	CannotModifySelfError,
+	LastAdminError,
+} from "@/features/user/lib/user-service.shared";
 import { requireRoleMiddleware } from "@/middlewares/auth";
 
 import { AppRuntime } from "../app-runtime";

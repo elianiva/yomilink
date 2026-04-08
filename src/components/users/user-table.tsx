@@ -8,7 +8,7 @@ import {
 	TableHeader,
 	TableRow,
 } from "@/components/ui/table";
-import type { UserWithCohorts } from "@/features/user/lib/user-service";
+import type { UserWithCohorts } from "@/features/user/lib/user-service.shared";
 import { formatDate } from "@/lib/date-utils";
 
 type UserTableProps = {

@@ -18,7 +18,7 @@ import {
 	StartNewAttemptInput,
 	GetPeerStatsInput,
 	SubmitControlTextInput,
-} from "@/features/learner-map/lib/learner-map-service";
+} from "@/features/learner-map/lib/learner-map-service.core";
 import { authMiddleware } from "@/middlewares/auth";
 
 import { AppRuntime } from "../app-runtime";

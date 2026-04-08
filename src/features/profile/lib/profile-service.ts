@@ -1,5 +1,5 @@
 import { eq } from "drizzle-orm";
-import { Data, Effect, Schema } from "effect";
+import { Effect, Schema } from "effect";
 
 import { NonEmpty } from "@/lib/validation-schemas";
 import { Database } from "@/server/db/client";
@@ -23,7 +23,7 @@ export const UpdateProfileInput = Schema.partial(ProfileSchema);
 
 export type UpdateProfileInput = typeof UpdateProfileInput.Type;
 
-export class UserNotFoundError extends Data.TaggedError("UserNotFoundError")<{
+export class UserNotFoundError extends Schema.TaggedError("UserNotFoundError")<{
 	readonly userId: string;
 }> {}
 
@@ -36,7 +36,7 @@ export const updateProfile = Effect.fn("updateProfile")(function* (
 	const existingRows = yield* db.select().from(user).where(eq(user.id, userId)).limit(1);
 
 	if (existingRows.length === 0) {
-		return yield* new UserNotFoundError({ userId });
+		return yield* UserNotFoundError.make({ userId });
 	}
 
 	yield* db

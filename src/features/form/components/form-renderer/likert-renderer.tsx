@@ -1,4 +1,4 @@
-import type { LikertOptions } from "@/features/form/lib/form-service";
+import type { LikertOptions } from "@/features/form/lib/form-service.core";
 import { cn } from "@/lib/utils";
 
 export interface LikertQuestionData {

@@ -3,18 +3,25 @@ import { createServerFn } from "@tanstack/react-start";
 import { Effect, Schema } from "effect";
 
 import {
-	DeleteGoalMapInput,
 	deleteGoalMap,
+	saveGoalMap,
+	updateMaterial,
+} from "@/features/goal-map/lib/goal-map-service.mutations";
+import {
+	DeleteGoalMapInput,
 	GetGoalMapInput,
-	getGoalMap,
 	ListGoalMapsByTopicInput,
+	SaveGoalMapInput,
+	UpdateMaterialInput,
+	GoalMapAccessDeniedError,
+	GoalMapNotFoundError,
+	GoalMapValidationError,
+} from "@/features/goal-map/lib/goal-map-service.shared";
+import {
+	getGoalMap,
 	listGoalMaps,
 	listGoalMapsByTopic,
-	SaveGoalMapInput,
-	saveGoalMap,
-	UpdateMaterialInput,
-	updateMaterial,
-} from "@/features/goal-map/lib/goal-map-service";
+} from "@/features/goal-map/lib/goal-map-service.queries";
 import { authMiddleware } from "@/middlewares/auth";
 
 import { AppRuntime } from "../app-runtime";

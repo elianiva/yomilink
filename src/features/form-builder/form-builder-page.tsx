@@ -5,7 +5,10 @@ import { useState, useCallback, useEffect, useMemo } from "react";
 import { toast } from "sonner";
 
 import type { FormMetadata } from "@/features/form/components/form-metadata-editor";
-import type { CreateQuestionInput, UpdateQuestionInput } from "@/features/form/lib/form-service";
+import type {
+	CreateQuestionInput,
+	UpdateQuestionInput,
+} from "@/features/form/lib/form-service.core";
 import { useRpcMutation, useRpcQuery } from "@/hooks/use-rpc-query";
 import { FormRpc } from "@/server/rpc/form";
 

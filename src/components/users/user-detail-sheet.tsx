@@ -19,7 +19,7 @@ import {
 	SheetTitle,
 } from "@/components/ui/sheet";
 import { Textarea } from "@/components/ui/textarea";
-import type { UserWithCohorts, UpdateUserInput } from "@/features/user/lib/user-service";
+import type { UserWithCohorts, UpdateUserInput } from "@/features/user/lib/user-service.shared";
 
 type UserDetailSheetProps = {
 	user: UserWithCohorts | null;

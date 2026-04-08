@@ -1,5 +1,5 @@
 import { Textarea } from "@/components/ui/textarea";
-import type { TextOptions } from "@/features/form/lib/form-service";
+import type { TextOptions } from "@/features/form/lib/form-service.core";
 import { cn } from "@/lib/utils";
 
 export interface TextQuestionData {

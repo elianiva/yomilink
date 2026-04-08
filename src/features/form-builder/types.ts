@@ -1,6 +1,6 @@
 import type { FormMetadata } from "@/features/form/components/form-metadata-editor";
 import type { Question } from "@/features/form/components/question-list";
-import type { LikertOptions, McqOptions, TextOptions } from "@/features/form/lib/form-service";
+import type { LikertOptions, McqOptions, TextOptions } from "@/features/form/lib/form-service.core";
 
 export type QuestionType = "mcq" | "likert" | "text";
 export type EditorMode = "edit" | "preview";

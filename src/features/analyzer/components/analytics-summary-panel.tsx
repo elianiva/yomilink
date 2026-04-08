@@ -5,7 +5,7 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { useRpcQuery } from "@/hooks/use-rpc-query";
 import { AnalyticsRpc } from "@/server/rpc/analytics";
 
-import type { LearnerAnalytics } from "../lib/analytics-service";
+import type { LearnerAnalytics } from "../lib/analytics-service.core";
 
 interface AnalyticsSummaryPanelProps {
 	selectedAssignmentId: string | null;
