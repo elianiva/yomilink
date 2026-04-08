@@ -20,6 +20,7 @@
 		"db:seed:wri": "tsx --env-file=.env scripts/seed/wri-2026.ts",
 		"db:reset": "tsx --env-file=.env scripts/seed/reset.ts",
 		"db:reset:full": "tsx --env-file=.env scripts/seed/reset.ts full",
+		"db:wipe": "tsx --env-file=.env scripts/db/wipe.ts",
 		"coverage": "vp test run --coverage",
 		"coverage:ui": "vp test run --coverage --coverage.ui",
 		"format": "vp fmt --write ./src/**/*",

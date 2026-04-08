@@ -132,8 +132,7 @@ export function LearnerMapResult() {
 		);
 	}
 
-	const { assignment, learnerMap, goalMap } = data;
-	const diagnosis = data.diagnosis;
+	const { assignment, learnerMap, goalMap, diagnosis } = data;
 
 	if (!diagnosis) {
 		return (

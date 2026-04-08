@@ -163,7 +163,15 @@ Edit `wrangler.json`:
 # Create storage bucket
 wrangler r2 bucket create yomilink-materials
 
-# Push database schema
+# Wipe local SQLite db file, then rerun migrations
+vp run db:wipe
+vp run db:migrate
+
+# Wipe remote Turso DB, then rerun migrations
+vp run db:wipe --force
+vp run db:migrate
+
+# Push database schema (remote Turso)
 export DATABASE_MODE=remote
 export TURSO_DATABASE_URL=libsql://your-db.turso.io
 export TURSO_AUTH_TOKEN=your-turso-token
