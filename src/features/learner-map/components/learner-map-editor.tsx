@@ -87,13 +87,13 @@ export function LearnerMapEditor() {
 		LearnerMapRpc.getAssignmentForStudent({ assignmentId }),
 	);
 
-	const { data: experimentGroup } = useRpcQuery(
+	const { data: experimentGroup, isLoading: isLoadingExperimentGroup } = useRpcQuery(
 		AssignmentRpc.getExperimentCondition(assignmentId),
 	);
 	const condition =
 		experimentGroup && "condition" in experimentGroup
 			? experimentGroup.condition
-			: "concept_map";
+			: null;
 
 	const saveMutation = useRpcMutation(LearnerMapRpc.saveLearnerMap(), {
 		operation: "save learner map",
@@ -317,6 +317,22 @@ export function LearnerMapEditor() {
 		return (
 			<div className="h-full flex items-center justify-center">
 				<div className="text-muted-foreground">Assignment not found</div>
+			</div>
+		);
+	}
+
+	if (isLoadingExperimentGroup) {
+		return (
+			<div className="h-full flex items-center justify-center">
+				<div className="text-muted-foreground">Loading assignment group...</div>
+			</div>
+		);
+	}
+
+	if (!condition) {
+		return (
+			<div className="h-full flex items-center justify-center">
+				<div className="text-muted-foreground">Assignment group not assigned</div>
 			</div>
 		);
 	}

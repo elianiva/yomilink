@@ -43,7 +43,6 @@ export const SaveExperimentGroupsInput = Schema.Struct({
 	groups: Schema.Array(
 		Schema.Struct({
 			userId: NonEmpty("User ID"),
-			groupName: Schema.optionalWith(Schema.String, { nullable: true }),
 			condition: Schema.Union(Schema.Literal("summarizing"), Schema.Literal("concept_map")),
 		}),
 	),
@@ -471,15 +470,16 @@ export const saveExperimentGroups = Effect.fn("saveExperimentGroups")(function* 
 		.delete(assignmentExperimentGroups)
 		.where(eq(assignmentExperimentGroups.assignmentId, input.assignmentId));
 
-	if (input.groups.length > 0) {
-		yield* db.insert(assignmentExperimentGroups).values(
-			input.groups.map((g) => ({
-				id: randomString(),
-				assignmentId: input.assignmentId,
-				userId: g.userId,
-				condition: g.condition,
-			})),
-		);
+	const uniqueGroups = new Map(input.groups.map((group) => [group.userId, group]));
+	const values = Array.from(uniqueGroups.values()).map((group) => ({
+		id: randomString(),
+		assignmentId: input.assignmentId,
+		userId: group.userId,
+		condition: group.condition,
+	}));
+
+	if (values.length > 0) {
+		yield* db.insert(assignmentExperimentGroups).values(values);
 	}
 
 	return true;
@@ -494,7 +494,6 @@ export const getExperimentGroupsByAssignmentId = Effect.fn("getExperimentGroupsB
 				id: assignmentExperimentGroups.id,
 				assignmentId: assignmentExperimentGroups.assignmentId,
 				userId: assignmentExperimentGroups.userId,
-				groupName: sql<string>`null`,
 				condition: assignmentExperimentGroups.condition,
 			})
 			.from(assignmentExperimentGroups)

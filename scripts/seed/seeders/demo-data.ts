@@ -230,10 +230,6 @@ export function seedDemoData(
 				userId: s.id,
 				condition,
 			});
-			yield* db
-				.update(user)
-				.set({ studyGroup: condition === "concept_map" ? "experiment" : "control" })
-				.where(eq(user.id, s.id));
 		}
 		yield* Effect.log("  Seeded experiment groups (assignment-scoped)");
 

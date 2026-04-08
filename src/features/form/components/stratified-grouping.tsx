@@ -139,7 +139,6 @@ export function StratifiedGrouping({ responses, questions, formId }: StratifiedG
 		const payloadGroups = groups.flatMap((g) =>
 			g.members.map((m) => ({
 				userId: m.userId,
-				groupName: `Group ${g.id}`,
 				condition: g.condition,
 			})),
 		);
@@ -147,7 +146,6 @@ export function StratifiedGrouping({ responses, questions, formId }: StratifiedG
 		if (randomStudent) {
 			payloadGroups.push({
 				userId: randomStudent.student.userId,
-				groupName: "Random",
 				condition: randomStudent.condition,
 			});
 		}

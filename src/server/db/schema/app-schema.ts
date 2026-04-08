@@ -1,5 +1,5 @@
 import { relations, sql } from "drizzle-orm";
-import { index, integer, real, sqliteTable, text } from "drizzle-orm/sqlite-core";
+import { index, integer, real, sqliteTable, text, uniqueIndex } from "drizzle-orm/sqlite-core";
 
 import { cohorts, user } from "./auth-schema";
 
@@ -172,6 +172,10 @@ export const assignmentExperimentGroups = sqliteTable(
 	(table) => [
 		index("assignment_experiment_groups_assignmentId_idx").on(table.assignmentId),
 		index("assignment_experiment_groups_userId_idx").on(table.userId),
+		uniqueIndex("assignment_experiment_groups_assignment_user_unique").on(
+			table.assignmentId,
+			table.userId,
+		),
 	],
 );
 

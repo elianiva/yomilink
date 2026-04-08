@@ -1,11 +1,19 @@
-import { and, count, desc, eq } from "drizzle-orm";
+import { and, count, desc, eq, inArray, or } from "drizzle-orm";
 import { Data, Effect, Schema } from "effect";
 
 import { parseJson, randomString, safeParseJson } from "@/lib/utils";
 import { NonEmpty } from "@/lib/validation-schemas";
 import { Database } from "@/server/db/client";
-import { formProgress, formResponses, forms, questions } from "@/server/db/schema/app-schema";
-import { user } from "@/server/db/schema/auth-schema";
+import {
+	assignmentExperimentGroups,
+	assignmentTargets,
+	assignments,
+	formProgress,
+	formResponses,
+	forms,
+	questions,
+} from "@/server/db/schema/app-schema";
+import { cohortMembers } from "@/server/db/schema/auth-schema";
 
 import { isCorrectMcqAnswer } from "./form-scoring";
 import { FormUnlockConditionsType, FormUnlockConditionsNullable } from "./unlock-service";
@@ -54,6 +62,68 @@ function normalizeFormAudience(type: FormType, audience: FormAudience): FormAudi
 		return "all";
 	}
 	return audience;
+}
+
+type AssignmentFormRow = {
+	id: string;
+	preTestFormId: string | null;
+	postTestFormId: string | null;
+	delayedPostTestFormId: string | null;
+	tamFormId: string | null;
+};
+
+type AssignmentConditionRow = {
+	assignmentId: string;
+	condition: "summarizing" | "concept_map";
+};
+
+const CONDITION_TO_AUDIENCE: Record<AssignmentConditionRow["condition"], Exclude<FormAudience, "all">> = {
+	summarizing: "control",
+	concept_map: "experiment",
+};
+
+function buildAccessibleFormAudiences(
+	assignmentRows: ReadonlyArray<AssignmentFormRow>,
+	experimentGroupRows: ReadonlyArray<AssignmentConditionRow>,
+) {
+	const assignmentConditionById = new Map(
+		experimentGroupRows.map((row) => [row.assignmentId, row.condition]),
+	);
+	const audiencesByFormId = new Map<string, Set<Exclude<FormAudience, "all">>>();
+
+	for (const assignment of assignmentRows) {
+		const condition = assignmentConditionById.get(assignment.id);
+		if (!condition) continue;
+
+		const audience = CONDITION_TO_AUDIENCE[condition];
+		for (const formId of [
+			assignment.preTestFormId,
+			assignment.postTestFormId,
+			assignment.delayedPostTestFormId,
+			assignment.tamFormId,
+		]) {
+			if (!formId) continue;
+
+			const existing = audiencesByFormId.get(formId);
+			if (existing) {
+				existing.add(audience);
+				continue;
+			}
+
+			audiencesByFormId.set(formId, new Set([audience]));
+		}
+	}
+
+	return audiencesByFormId;
+}
+
+function shouldExcludeForm(
+	form: { id: string; type: FormType; audience: FormAudience },
+	audiencesByFormId: Map<string, Set<Exclude<FormAudience, "all">>>,
+): boolean {
+	if (form.type === "registration") return true;
+	if (form.audience === "all") return false;
+	return !(audiencesByFormId.get(form.id)?.has(form.audience) ?? false);
 }
 
 export type CreateFormInput = typeof CreateFormInput.Type;
@@ -234,6 +304,57 @@ export const getStudentFormById = Effect.fn("getStudentFormById")(function* (
 	// Allow access to published forms for students
 	// (progress check only matters for submission, not viewing)
 	if (formRow.status !== "published") {
+		return yield* new FormNotAccessibleError({ formId });
+	}
+
+	let audiencesByFormId = new Map<string, Set<Exclude<FormAudience, "all">>>();
+	if (formRow.audience !== "all") {
+		const linkedAssignmentRows: AssignmentFormRow[] = yield* db
+			.select({
+				id: assignments.id,
+				preTestFormId: assignments.preTestFormId,
+				postTestFormId: assignments.postTestFormId,
+				delayedPostTestFormId: assignments.delayedPostTestFormId,
+				tamFormId: assignments.tamFormId,
+			})
+			.from(assignments)
+			.where(
+				or(
+					eq(assignments.preTestFormId, formId),
+					eq(assignments.postTestFormId, formId),
+					eq(assignments.delayedPostTestFormId, formId),
+					eq(assignments.tamFormId, formId),
+				),
+			);
+
+		if (linkedAssignmentRows.length > 0) {
+			const linkedAssignmentIds = linkedAssignmentRows.map((row) => row.id);
+			const linkedExperimentGroupRows: AssignmentConditionRow[] = yield* db
+				.select({
+					assignmentId: assignmentExperimentGroups.assignmentId,
+					condition: assignmentExperimentGroups.condition,
+				})
+				.from(assignmentExperimentGroups)
+				.where(
+					and(
+						eq(assignmentExperimentGroups.userId, userId),
+						inArray(assignmentExperimentGroups.assignmentId, linkedAssignmentIds),
+					),
+				);
+
+			audiencesByFormId = buildAccessibleFormAudiences(
+				linkedAssignmentRows,
+				linkedExperimentGroupRows,
+			);
+		}
+	}
+
+	if (
+		shouldExcludeForm(
+			{ id: formRow.id, type: formRow.type, audience: formRow.audience },
+			audiencesByFormId,
+		)
+	) {
 		return yield* new FormNotAccessibleError({ formId });
 	}
 
@@ -1180,33 +1301,61 @@ function getNextRequiredType(completed: Set<FormType>, available: Set<FormType>)
 	return null;
 }
 
-function shouldExcludeForm(
-	form: { type: FormType; audience: FormAudience },
-	studyGroup: "experiment" | "control" | null,
-): boolean {
-	if (form.type === "registration") return true;
-	if (form.type === "tam") return form.audience !== "experiment";
-	if (form.type === "questionnaire") {
-		return form.audience !== "all" && form.audience !== studyGroup;
-	}
-	return false;
-}
-
 // Get all published forms for students with sequential unlock status
 // Enforces order: registration → pre_test → post_test → delayed_test
 export const getStudentForms = Effect.fn("getStudentForms")(function* (userId: string) {
 	const db = yield* Database;
 
-	const userRows = yield* db
-		.select({ studyGroup: user.studyGroup })
-		.from(user)
-		.where(eq(user.id, userId))
-		.limit(1);
-	const studyGroup = userRows[0]?.studyGroup ?? null;
+	const directAssignmentRows = yield* db
+		.select({ assignmentId: assignmentTargets.assignmentId })
+		.from(assignmentTargets)
+		.where(eq(assignmentTargets.userId, userId));
+
+	const cohortAssignmentRows = yield* db
+		.select({ assignmentId: assignmentTargets.assignmentId })
+		.from(assignmentTargets)
+		.innerJoin(cohortMembers, eq(cohortMembers.cohortId, assignmentTargets.cohortId))
+		.where(eq(cohortMembers.userId, userId));
+
+	const assignmentIds = Array.from(
+		new Set([...directAssignmentRows, ...cohortAssignmentRows].map((row) => row.assignmentId)),
+	);
+
+	const assignmentRows: AssignmentFormRow[] =
+		assignmentIds.length > 0
+			? yield* db
+					.select({
+						id: assignments.id,
+						preTestFormId: assignments.preTestFormId,
+						postTestFormId: assignments.postTestFormId,
+						delayedPostTestFormId: assignments.delayedPostTestFormId,
+						tamFormId: assignments.tamFormId,
+					})
+					.from(assignments)
+					.where(inArray(assignments.id, assignmentIds))
+				: [];
+
+	const experimentGroupRows: AssignmentConditionRow[] =
+		assignmentIds.length > 0
+			? yield* db
+					.select({
+						assignmentId: assignmentExperimentGroups.assignmentId,
+						condition: assignmentExperimentGroups.condition,
+					})
+					.from(assignmentExperimentGroups)
+					.where(
+						and(
+							eq(assignmentExperimentGroups.userId, userId),
+							inArray(assignmentExperimentGroups.assignmentId, assignmentIds),
+						),
+					)
+				: [];
+
+	const audiencesByFormId = buildAccessibleFormAudiences(assignmentRows, experimentGroupRows);
 
 	const publishedForms = yield* db.select().from(forms).where(eq(forms.status, "published"));
 
-	const applicableForms = publishedForms.filter((form) => !shouldExcludeForm(form, studyGroup));
+	const applicableForms = publishedForms.filter((form) => !shouldExcludeForm(form, audiencesByFormId));
 
 	const userProgressRows = yield* db
 		.select()
