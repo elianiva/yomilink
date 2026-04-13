@@ -264,6 +264,8 @@ export const submitFormResponseRpc = createServerFn({ method: "POST" })
 				Effect.catchTags({
 					FormNotFoundError: () => Rpc.notFound("Form"),
 					FormNotPublishedError: () => Rpc.err("Form is not published"),
+					FormNotAccessibleError: () =>
+						Rpc.forbidden("Form is locked or you are not eligible"),
 					FormAlreadySubmittedError: () =>
 						Rpc.err("You have already submitted this form"),
 				}),

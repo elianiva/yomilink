@@ -47,6 +47,9 @@ export const getAssignmentForStudentRpc = createServerFn()
 				Effect.map(Rpc.ok),
 				Effect.withSpan("getAssignmentForStudent"),
 				Effect.tapError(logRpcError("getAssignmentForStudent")),
+				Effect.catchTags({
+					AccessDeniedError: () => Rpc.forbidden("Access denied"),
+				}),
 				Effect.catchAll(logAndReturnError("getAssignmentForStudent")),
 				Effect.catchAllDefect(logAndReturnDefect("getAssignmentForStudent")),
 			),
@@ -67,6 +70,8 @@ export const saveLearnerMapRpc = createServerFn({ method: "POST" })
 					AccessDeniedError: () => Rpc.forbidden("Access denied"),
 					LearnerMapAlreadySubmittedError: () => Rpc.err("Cannot edit submitted map"),
 				}),
+				Effect.catchAll(logAndReturnError("saveLearnerMap")),
+				Effect.catchAllDefect(logAndReturnDefect("saveLearnerMap")),
 			),
 		),
 	);
@@ -84,7 +89,11 @@ export const submitLearnerMapRpc = createServerFn({ method: "POST" })
 					LearnerMapNotFoundError: () => Rpc.notFound("Learner map"),
 					LearnerMapAlreadySubmittedError: () => Rpc.err("Already submitted"),
 					GoalMapNotFoundError: () => Rpc.notFound("Goal map"),
+					AssignmentNotFoundError: () => Rpc.notFound("Assignment"),
+					AccessDeniedError: () => Rpc.forbidden("Access denied"),
 				}),
+				Effect.catchAll(logAndReturnError("submitLearnerMap")),
+				Effect.catchAllDefect(logAndReturnDefect("submitLearnerMap")),
 			),
 		),
 	);
@@ -149,7 +158,10 @@ export const submitControlTextRpc = createServerFn({ method: "POST" })
 				Effect.catchTags({
 					AssignmentNotFoundError: () => Rpc.notFound("Assignment"),
 					LearnerMapAlreadySubmittedError: () => Rpc.err("Already submitted"),
+					AccessDeniedError: () => Rpc.forbidden("Access denied"),
 				}),
+				Effect.catchAll(logAndReturnError("submitControlText")),
+				Effect.catchAllDefect(logAndReturnDefect("submitControlText")),
 			),
 		),
 	);

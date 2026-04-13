@@ -295,11 +295,26 @@ export const checkFormUnlock = Effect.fn("checkFormUnlock")(function* (
 			);
 
 		const progress = pickProgress(progressRows);
-		const isCompleted = progress?.status === "completed";
+
+		if (progress?.status === "locked") {
+			return {
+				isUnlocked: false,
+				reason: `"${form.title}" is locked`,
+				earliestUnlockAt: null,
+			};
+		}
+
+		if (progress?.status === "available" || progress?.status === "completed") {
+			return {
+				isUnlocked: true,
+				reason: null,
+				earliestUnlockAt: null,
+			};
+		}
 
 		return {
-			isUnlocked: isCompleted,
-			reason: isCompleted ? null : `Complete "${form.title}" first`,
+			isUnlocked: true,
+			reason: null,
 			earliestUnlockAt: null,
 		};
 	}

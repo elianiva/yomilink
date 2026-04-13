@@ -16,6 +16,7 @@ import {
 import { cohortMembers, user as users } from "@/server/db/schema/auth-schema";
 
 import { isCorrectMcqAnswer } from "./form-scoring";
+import { checkFormUnlock } from "./unlock-service.conditions";
 import { FormUnlockConditionsType, FormUnlockConditionsNullable } from "./unlock-service.shared";
 
 /** Shared form type literals */
@@ -128,6 +129,116 @@ function shouldExcludeForm(
 	if (form.audience === "all") return false;
 	return !(audiencesByFormId.get(form.id)?.has(form.audience) ?? false);
 }
+
+type FormAccessScope = {
+	linkedAssignmentRows: ReadonlyArray<AssignmentFormRow>;
+	accessibleAssignmentRows: ReadonlyArray<AssignmentFormRow>;
+	audiencesByFormId: Map<string, Set<Exclude<FormAudience, "all">>>;
+};
+
+const getAccessibleAssignmentIdsForUser = Effect.fn("getAccessibleAssignmentIdsForUser")(function* (
+	userId: string,
+	assignmentIds: ReadonlyArray<string>,
+) {
+	if (assignmentIds.length === 0) return [] as string[];
+
+	const db = yield* Database;
+
+	const directAssignmentRows = yield* db
+		.select({ assignmentId: assignmentTargets.assignmentId })
+		.from(assignmentTargets)
+		.where(
+			and(
+				eq(assignmentTargets.userId, userId),
+				inArray(assignmentTargets.assignmentId, assignmentIds),
+			),
+		);
+
+	const cohortAssignmentRows = yield* db
+		.select({ assignmentId: assignmentTargets.assignmentId })
+		.from(assignmentTargets)
+		.innerJoin(cohortMembers, eq(cohortMembers.cohortId, assignmentTargets.cohortId))
+		.where(
+			and(
+				eq(cohortMembers.userId, userId),
+				inArray(assignmentTargets.assignmentId, assignmentIds),
+			),
+		);
+
+	return Array.from(
+		new Set([...directAssignmentRows, ...cohortAssignmentRows].map((row) => row.assignmentId)),
+	);
+});
+
+const resolveFormAccessScope = Effect.fn("resolveFormAccessScope")(function* (
+	formId: string,
+	userId: string,
+) {
+	const db = yield* Database;
+
+	const linkedAssignmentRows: AssignmentFormRow[] = yield* db
+		.select({
+			id: assignments.id,
+			preTestFormId: assignments.preTestFormId,
+			postTestFormId: assignments.postTestFormId,
+			delayedPostTestFormId: assignments.delayedPostTestFormId,
+			tamFormId: assignments.tamFormId,
+		})
+		.from(assignments)
+		.where(
+			or(
+				eq(assignments.preTestFormId, formId),
+				eq(assignments.postTestFormId, formId),
+				eq(assignments.delayedPostTestFormId, formId),
+				eq(assignments.tamFormId, formId),
+			),
+		);
+
+	if (linkedAssignmentRows.length === 0) {
+		return {
+			linkedAssignmentRows: [],
+			accessibleAssignmentRows: [],
+			audiencesByFormId: new Map(),
+		};
+	}
+
+	const linkedAssignmentIds = linkedAssignmentRows.map((row) => row.id);
+	const accessibleAssignmentIds = yield* getAccessibleAssignmentIdsForUser(
+		userId,
+		linkedAssignmentIds,
+	);
+	const accessibleAssignmentRows = linkedAssignmentRows.filter((row) =>
+		accessibleAssignmentIds.includes(row.id),
+	);
+
+	const experimentGroupRows: AssignmentConditionRow[] =
+		accessibleAssignmentIds.length > 0
+			? yield* db
+					.select({
+						assignmentId: assignmentExperimentGroups.assignmentId,
+						condition: assignmentExperimentGroups.condition,
+					})
+					.from(assignmentExperimentGroups)
+					.where(
+						and(
+							eq(assignmentExperimentGroups.userId, userId),
+							inArray(
+								assignmentExperimentGroups.assignmentId,
+								accessibleAssignmentIds,
+							),
+						),
+					)
+			: [];
+
+	return {
+		linkedAssignmentRows,
+		accessibleAssignmentRows,
+		audiencesByFormId: buildAccessibleFormAudiences(
+			accessibleAssignmentRows,
+			experimentGroupRows,
+		),
+	};
+});
 
 export type CreateFormInput = typeof CreateFormInput.Type;
 
@@ -310,52 +421,19 @@ export const getStudentFormById = Effect.fn("getStudentFormById")(function* (
 		return yield* new FormNotAccessibleError({ formId });
 	}
 
-	let audiencesByFormId = new Map<string, Set<Exclude<FormAudience, "all">>>();
-	if (formRow.audience !== "all") {
-		const linkedAssignmentRows: AssignmentFormRow[] = yield* db
-			.select({
-				id: assignments.id,
-				preTestFormId: assignments.preTestFormId,
-				postTestFormId: assignments.postTestFormId,
-				delayedPostTestFormId: assignments.delayedPostTestFormId,
-				tamFormId: assignments.tamFormId,
-			})
-			.from(assignments)
-			.where(
-				or(
-					eq(assignments.preTestFormId, formId),
-					eq(assignments.postTestFormId, formId),
-					eq(assignments.delayedPostTestFormId, formId),
-					eq(assignments.tamFormId, formId),
-				),
-			);
+	const formAccessScope: FormAccessScope = yield* resolveFormAccessScope(formId, userId);
 
-		if (linkedAssignmentRows.length > 0) {
-			const linkedAssignmentIds = linkedAssignmentRows.map((row) => row.id);
-			const linkedExperimentGroupRows: AssignmentConditionRow[] = yield* db
-				.select({
-					assignmentId: assignmentExperimentGroups.assignmentId,
-					condition: assignmentExperimentGroups.condition,
-				})
-				.from(assignmentExperimentGroups)
-				.where(
-					and(
-						eq(assignmentExperimentGroups.userId, userId),
-						inArray(assignmentExperimentGroups.assignmentId, linkedAssignmentIds),
-					),
-				);
-
-			audiencesByFormId = buildAccessibleFormAudiences(
-				linkedAssignmentRows,
-				linkedExperimentGroupRows,
-			);
-		}
+	if (
+		formAccessScope.linkedAssignmentRows.length > 0 &&
+		formAccessScope.accessibleAssignmentRows.length === 0
+	) {
+		return yield* new FormNotAccessibleError({ formId });
 	}
 
 	if (
 		shouldExcludeForm(
 			{ id: formRow.id, type: formRow.type, audience: formRow.audience },
-			audiencesByFormId,
+			formAccessScope.audiencesByFormId,
 		)
 	) {
 		return yield* new FormNotAccessibleError({ formId });
@@ -375,6 +453,13 @@ export const getStudentFormById = Effect.fn("getStudentFormById")(function* (
 
 	const responseRow = responseRows[0] ?? null;
 	const responseAnswers = responseRow?.answers as Record<string, unknown> | undefined;
+
+	if (!responseRow) {
+		const unlockStatus = yield* checkFormUnlock({ formId, userId });
+		if (!unlockStatus.isUnlocked) {
+			return yield* new FormNotAccessibleError({ formId });
+		}
+	}
 
 	const unlockConditions = yield* safeParseJson(
 		formRow.unlockConditions,
@@ -871,6 +956,32 @@ export const submitFormResponse = Effect.fn("submitFormResponse")(function* (
 		return yield* new FormNotPublishedError({ formId: data.formId });
 	}
 
+	const formAccessScope: FormAccessScope = yield* resolveFormAccessScope(
+		data.formId,
+		data.userId,
+	);
+
+	if (
+		formAccessScope.linkedAssignmentRows.length > 0 &&
+		formAccessScope.accessibleAssignmentRows.length === 0
+	) {
+		return yield* new FormNotAccessibleError({ formId: data.formId });
+	}
+
+	if (
+		shouldExcludeForm(
+			{ id: form.id, type: form.type, audience: form.audience },
+			formAccessScope.audiencesByFormId,
+		)
+	) {
+		return yield* new FormNotAccessibleError({ formId: data.formId });
+	}
+
+	const unlockStatus = yield* checkFormUnlock({ formId: data.formId, userId: data.userId });
+	if (!unlockStatus.isUnlocked) {
+		return yield* new FormNotAccessibleError({ formId: data.formId });
+	}
+
 	const existingResponse = yield* db
 		.select()
 		.from(formResponses)
@@ -1284,26 +1395,6 @@ function sortFormsByPriority(
 	return diff !== 0 ? diff : a.createdAt.getTime() - b.createdAt.getTime();
 }
 
-function areAllFormsOfTypeCompleted(
-	formsOfType: Array<{ id: string }>,
-	progressMap: Map<string, { status: string }>,
-): boolean {
-	if (formsOfType.length === 0) return false;
-	return formsOfType.every((f) => progressMap.get(f.id)?.status === "completed");
-}
-
-const OPTIONAL_FORM_TYPES = new Set<FormType>(["tam", "questionnaire"]);
-const REQUIRED_FORM_TYPES: FormType[] = ["pre_test", "post_test", "delayed_test"];
-
-function getNextRequiredType(completed: Set<FormType>, available: Set<FormType>): FormType | null {
-	for (const type of REQUIRED_FORM_TYPES) {
-		if (available.has(type) && !completed.has(type)) {
-			return type;
-		}
-	}
-	return null;
-}
-
 // Get all published forms for students with sequential unlock status
 // Enforces order: registration → pre_test → post_test → delayed_test
 export const getStudentForms = Effect.fn("getStudentForms")(function* (userId: string) {
@@ -1355,12 +1446,32 @@ export const getStudentForms = Effect.fn("getStudentForms")(function* (userId: s
 			: [];
 
 	const audiencesByFormId = buildAccessibleFormAudiences(assignmentRows, experimentGroupRows);
+	const assignmentLinkedFormIds = new Set(
+		assignmentRows
+			.flatMap((assignment) => [
+				assignment.preTestFormId,
+				assignment.postTestFormId,
+				assignment.delayedPostTestFormId,
+				assignment.tamFormId,
+			])
+			.filter((formId): formId is string => formId !== null),
+	);
 
 	const publishedForms = yield* db.select().from(forms).where(eq(forms.status, "published"));
 
-	const applicableForms = publishedForms.filter(
-		(form) => !shouldExcludeForm(form, audiencesByFormId),
-	);
+	const applicableForms = publishedForms.filter((form) => {
+		const isAssignmentScopedForm =
+			form.type === "pre_test" ||
+			form.type === "post_test" ||
+			form.type === "delayed_test" ||
+			form.type === "tam";
+
+		if (isAssignmentScopedForm && !assignmentLinkedFormIds.has(form.id)) {
+			return false;
+		}
+
+		return !shouldExcludeForm(form, audiencesByFormId);
+	});
 
 	const userProgressRows = yield* db
 		.select()
@@ -1368,58 +1479,52 @@ export const getStudentForms = Effect.fn("getStudentForms")(function* (userId: s
 		.where(eq(formProgress.userId, userId));
 
 	const progressMap = new Map(userProgressRows.map((p) => [p.formId, p]));
+	const sortedForms = [...applicableForms].sort(sortFormsByPriority);
 
-	const formsByType = new Map<FormType, typeof applicableForms>();
-	for (const form of applicableForms) {
-		const list = formsByType.get(form.type) ?? [];
-		list.push(form);
-		formsByType.set(form.type, list);
-	}
+	return yield* Effect.all(
+		sortedForms.map((form) =>
+			Effect.gen(function* () {
+				const progress = progressMap.get(form.id);
 
-	const availableTypes = new Set<FormType>(formsByType.keys());
-	const completedTypes = new Set<FormType>();
-	for (const [type, list] of formsByType) {
-		if (areAllFormsOfTypeCompleted(list, progressMap)) {
-			completedTypes.add(type);
-		}
-	}
+				if (progress?.status === "completed") {
+					return {
+						id: form.id,
+						title: form.title,
+						description: form.description,
+						type: form.type,
+						audience: form.audience,
+						unlockStatus: "completed" as const,
+						isUnlocked: true,
+						progress: {
+							status: progress.status,
+							unlockedAt: progress.unlockedAt,
+							completedAt: progress.completedAt,
+						},
+					};
+				}
 
-	const nextRequired = getNextRequiredType(completedTypes, availableTypes);
-	const nextPriority = nextRequired ? FORM_TYPE_PRIORITY[nextRequired] : Infinity;
-	const sortedForms = applicableForms.sort(sortFormsByPriority);
+				const unlockStatusResult = yield* checkFormUnlock({ formId: form.id, userId });
+				const unlockStatus: "locked" | "available" | "completed" =
+					unlockStatusResult.isUnlocked ? "available" : "locked";
 
-	return sortedForms.map((form) => {
-		const progress = progressMap.get(form.id);
-		const isOptionalForm = OPTIONAL_FORM_TYPES.has(form.type);
-		let unlockStatus: "locked" | "available" | "completed" = progress?.status ?? "locked";
-		let isUnlocked = progress?.status === "available" || progress?.status === "completed";
-
-		if (isOptionalForm) {
-			unlockStatus = progress?.status === "completed" ? "completed" : "available";
-			isUnlocked = true;
-		} else {
-			const formPriority = FORM_TYPE_PRIORITY[form.type];
-			if (formPriority > nextPriority && unlockStatus !== "completed") {
-				unlockStatus = "locked";
-				isUnlocked = false;
-			}
-		}
-
-		return {
-			id: form.id,
-			title: form.title,
-			description: form.description,
-			type: form.type,
-			audience: form.audience,
-			unlockStatus,
-			isUnlocked,
-			progress: progress
-				? {
-						status: progress.status,
-						unlockedAt: progress.unlockedAt,
-						completedAt: progress.completedAt,
-					}
-				: null,
-		};
-	});
+				return {
+					id: form.id,
+					title: form.title,
+					description: form.description,
+					type: form.type,
+					audience: form.audience,
+					unlockStatus,
+					isUnlocked: unlockStatusResult.isUnlocked,
+					progress: progress
+						? {
+								status: progress.status,
+								unlockedAt: progress.unlockedAt,
+								completedAt: progress.completedAt,
+							}
+						: null,
+				};
+			}),
+		),
+		{ concurrency: "unbounded" },
+	);
 });

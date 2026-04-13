@@ -8,6 +8,7 @@ import { NonEmpty } from "@/lib/validation-schemas";
 import { Database } from "@/server/db/client";
 import {
 	assignments,
+	assignmentExperimentGroups,
 	assignmentTargets,
 	diagnoses,
 	goalMaps,
@@ -98,6 +99,80 @@ export const SubmitControlTextInput = Schema.Struct({
 
 export type SubmitControlTextInput = typeof SubmitControlTextInput.Type;
 
+type ExperimentCondition = "summarizing" | "concept_map";
+
+const getAssignmentMembership = Effect.fn("getAssignmentMembership")(function* (
+	userId: string,
+	assignmentId: string,
+) {
+	const db = yield* Database;
+
+	const userCohorts = yield* db
+		.select({ cohortId: cohortMembers.cohortId })
+		.from(cohortMembers)
+		.where(eq(cohortMembers.userId, userId));
+
+	const cohortIds = userCohorts.map((c) => c.cohortId);
+
+	const membershipRows = yield* db
+		.select({ id: assignments.id })
+		.from(assignments)
+		.leftJoin(assignmentTargets, eq(assignmentTargets.assignmentId, assignments.id))
+		.where(
+			and(
+				eq(assignments.id, assignmentId),
+				or(
+					eq(assignmentTargets.userId, userId),
+					cohortIds.length > 0
+						? inArray(assignmentTargets.cohortId, cohortIds)
+						: eq(assignmentTargets.userId, ""),
+				),
+			),
+		)
+		.limit(1);
+
+	const groupRows = yield* db
+		.select({ condition: assignmentExperimentGroups.condition })
+		.from(assignmentExperimentGroups)
+		.where(
+			and(
+				eq(assignmentExperimentGroups.assignmentId, assignmentId),
+				eq(assignmentExperimentGroups.userId, userId),
+			),
+		)
+		.limit(1);
+
+	return {
+		hasAccess: membershipRows.length > 0,
+		condition: groupRows[0]?.condition ?? null,
+	};
+});
+
+const requireAssignmentMembership = Effect.fn("requireAssignmentMembership")(function* (
+	userId: string,
+	assignmentId: string,
+) {
+	const membership = yield* getAssignmentMembership(userId, assignmentId);
+	if (!membership.hasAccess) {
+		return yield* new AccessDeniedError({ assignmentId });
+	}
+
+	return membership;
+});
+
+const requireAssignmentCondition = Effect.fn("requireAssignmentCondition")(function* (
+	userId: string,
+	assignmentId: string,
+	expectedCondition: ExperimentCondition,
+) {
+	const membership = yield* requireAssignmentMembership(userId, assignmentId);
+	if (membership.condition !== expectedCondition) {
+		return yield* new AccessDeniedError({ assignmentId });
+	}
+
+	return membership;
+});
+
 export const listStudentAssignments = Effect.fn("listStudentAssignments")(function* (
 	userId: string,
 ) {
@@ -171,6 +246,8 @@ export const getAssignmentForStudent = Effect.fn("getAssignmentForStudent")(func
 	input: GetAssignmentForStudentInput,
 ) {
 	const db = yield* Database;
+
+	yield* requireAssignmentMembership(userId, input.assignmentId);
 
 	// Fetch assignment with kit and goal map
 	const results = yield* db
@@ -297,34 +374,7 @@ export const saveLearnerMap = Effect.fn("saveLearnerMap")(function* (
 		return yield* new AssignmentNotFoundError({ assignmentId: data.assignmentId });
 	}
 
-	// Verify user has access via cohort or direct targeting
-	const userCohorts = yield* db
-		.select({ cohortId: cohortMembers.cohortId })
-		.from(cohortMembers)
-		.where(eq(cohortMembers.userId, userId));
-
-	const cohortIds = userCohorts.map((c) => c.cohortId);
-
-	const hasAccess = yield* db
-		.select({ id: assignments.id })
-		.from(assignments)
-		.leftJoin(assignmentTargets, eq(assignmentTargets.assignmentId, assignments.id))
-		.where(
-			and(
-				eq(assignments.id, data.assignmentId),
-				or(
-					eq(assignmentTargets.userId, userId),
-					cohortIds.length > 0
-						? inArray(assignmentTargets.cohortId, cohortIds)
-						: eq(assignmentTargets.userId, ""),
-				),
-			),
-		)
-		.limit(1);
-
-	if (hasAccess.length === 0) {
-		return yield* new AccessDeniedError({ assignmentId: data.assignmentId });
-	}
+	yield* requireAssignmentMembership(userId, data.assignmentId);
 
 	const existingRows = yield* db
 		.select({ id: learnerMaps.id, status: learnerMaps.status })
@@ -374,6 +424,8 @@ export const submitLearnerMap = Effect.fn("submitLearnerMap")(function* (
 	input: SubmitLearnerMapInput,
 ) {
 	const db = yield* Database;
+
+	yield* requireAssignmentCondition(userId, input.assignmentId, "concept_map");
 
 	const learnerMapRows = yield* db
 		.select()
@@ -704,6 +756,8 @@ export const submitControlText = Effect.fn("submitControlText")(function* (
 	if (!assignment) {
 		return yield* new AssignmentNotFoundError({ assignmentId: input.assignmentId });
 	}
+
+	yield* requireAssignmentCondition(userId, input.assignmentId, "summarizing");
 
 	const existingRows = yield* db
 		.select({ id: learnerMaps.id, status: learnerMaps.status })
