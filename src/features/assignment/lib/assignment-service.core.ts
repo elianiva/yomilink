@@ -39,6 +39,7 @@ export const CreateAssignmentInput = Schema.Struct({
 
 export const SaveExperimentGroupsInput = Schema.Struct({
 	assignmentId: NonEmpty("Assignment ID"),
+	overrideLock: Schema.optional(Schema.Boolean),
 	groups: Schema.Array(
 		Schema.Struct({
 			userId: NonEmpty("User ID"),
@@ -63,6 +64,13 @@ class KitNotFoundError extends Data.TaggedError("KitNotFoundError")<{
 
 class AssignmentNotFoundError extends Data.TaggedError("AssignmentNotFoundError")<{
 	readonly assignmentId: string;
+}> {}
+
+class ExperimentGroupAssignmentLockedError extends Data.TaggedError(
+	"ExperimentGroupAssignmentLockedError",
+)<{
+	readonly assignmentId: string;
+	readonly actorUserId: string;
 }> {}
 
 export const createAssignment = Effect.fn("createAssignment")(function* (
@@ -462,8 +470,32 @@ export const getTeacherGoalMaps = Effect.fn("getTeacherGoalMaps")(function* () {
 
 export const saveExperimentGroups = Effect.fn("saveExperimentGroups")(function* (
 	input: SaveExperimentGroupsInput,
+	actorUserId: string,
 ) {
 	const db = yield* Database;
+
+	const startedRows = yield* db
+		.select({ id: learnerMaps.id })
+		.from(learnerMaps)
+		.where(eq(learnerMaps.assignmentId, input.assignmentId))
+		.limit(1);
+
+	const isLocked = startedRows.length > 0;
+	if (isLocked && !input.overrideLock) {
+		return yield* new ExperimentGroupAssignmentLockedError({
+			assignmentId: input.assignmentId,
+			actorUserId,
+		});
+	}
+
+	if (isLocked && input.overrideLock) {
+		yield* Effect.logWarning("Experiment group override applied").pipe(
+			Effect.annotateLogs({
+				assignmentId: input.assignmentId,
+				actorUserId,
+			}),
+		);
+	}
 
 	yield* db
 		.delete(assignmentExperimentGroups)

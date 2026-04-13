@@ -120,12 +120,16 @@ export const getTeacherGoalMapsRpc = createServerFn()
 export const saveExperimentGroupsRpc = createServerFn({ method: "POST" })
 	.middleware([requireRoleMiddleware("teacher", "admin")])
 	.inputValidator((raw) => Schema.decodeUnknownSync(SaveExperimentGroupsInput)(raw))
-	.handler(({ data }) =>
+	.handler(({ data, context }) =>
 		AppRuntime.runPromise(
-			saveExperimentGroups(data).pipe(
+			saveExperimentGroups(data, context.user.id).pipe(
 				Effect.map(() => Rpc.ok(true)),
 				Effect.withSpan("saveExperimentGroups"),
 				Effect.tapError(logRpcError("saveExperimentGroups")),
+				Effect.catchTags({
+					ExperimentGroupAssignmentLockedError: () =>
+						Rpc.forbidden("Experiment groups are locked for this assignment"),
+				}),
 				Effect.catchAll(logAndReturnError("saveExperimentGroups")),
 				Effect.catchAllDefect(logAndReturnDefect("saveExperimentGroups")),
 			),
