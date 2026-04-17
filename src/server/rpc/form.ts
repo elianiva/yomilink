@@ -46,6 +46,10 @@ export const createFormRpc = createServerFn({ method: "POST" })
 				Effect.map((result) => Rpc.ok(result)),
 				Effect.withSpan("createForm"),
 				Effect.tapError(logRpcError("createForm")),
+				Effect.catchTags({
+					InvalidReadingMaterialSectionsError: () =>
+						Rpc.err("Invalid reading material range configuration"),
+				}),
 				Effect.catchAll(logAndReturnError("createForm")),
 				Effect.catchAllDefect(logAndReturnDefect("createForm")),
 			),
@@ -191,6 +195,7 @@ export const updateFormRpc = createServerFn({ method: "POST" })
 				type: data.type,
 				status: data.status,
 				unlockConditions: data.unlockConditions,
+				readingMaterialSections: data.readingMaterialSections,
 			}).pipe(
 				Effect.map(Rpc.ok),
 				Effect.withSpan("updateForm"),
@@ -198,6 +203,8 @@ export const updateFormRpc = createServerFn({ method: "POST" })
 				Effect.catchTags({
 					FormNotFoundError: () => Rpc.notFound("Form"),
 					FormHasResponsesError: () => Rpc.err("Cannot update form: form has responses"),
+					InvalidReadingMaterialSectionsError: () =>
+						Rpc.err("Invalid reading material range configuration"),
 				}),
 				Effect.catchAll(logAndReturnError("updateForm")),
 				Effect.catchAllDefect(logAndReturnDefect("updateForm")),

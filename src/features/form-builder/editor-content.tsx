@@ -3,6 +3,7 @@ import { Plus } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { FormMetadataEditor } from "@/features/form/components/form-metadata-editor";
 import { QuestionList, type Question } from "@/features/form/components/question-list";
+import { ReadingMaterialRangesEditor } from "@/features/form/components/reading-material-ranges-editor";
 
 import type { EditorContentProps, QuestionWithOptions } from "./types";
 
@@ -16,6 +17,8 @@ export function EditorContent({
 	onAddQuestion,
 	isPending,
 	hasForm,
+	readingMaterialSections,
+	onReadingMaterialSectionsChange,
 }: EditorContentProps) {
 	return (
 		<div className="grid gap-6 lg:grid-cols-3">
@@ -72,6 +75,18 @@ export function EditorContent({
 							</p>
 						</div>
 					)}
+				</div>
+
+				<div className="rounded-lg border bg-card p-6">
+					<h2 className="text-lg font-medium mb-1">Reading Materials</h2>
+					<p className="text-sm text-muted-foreground mb-4">
+						Optional reference materials students can toggle while answering.
+					</p>
+					<ReadingMaterialRangesEditor
+						sections={readingMaterialSections}
+						onChange={onReadingMaterialSectionsChange}
+						disabled={isPending}
+					/>
 				</div>
 			</div>
 

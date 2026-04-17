@@ -42,6 +42,18 @@ export const FormAudienceSchema = Schema.Union(
 	...FORM_AUDIENCES.map((audience) => Schema.Literal(audience)),
 );
 
+export const ReadingMaterialSectionSchema = Schema.Struct({
+	id: NonEmpty("Reading material section ID"),
+	title: Schema.optionalWith(Schema.String, { nullable: true }),
+	startQuestion: Schema.Int,
+	endQuestion: Schema.Int,
+	content: NonEmpty("Reading material content"),
+});
+
+export type ReadingMaterialSection = typeof ReadingMaterialSectionSchema.Type;
+
+export const ReadingMaterialSections = Schema.Array(ReadingMaterialSectionSchema);
+
 export const CreateFormInput = Schema.Struct({
 	title: NonEmpty("Title"),
 	description: Schema.optionalWith(NonEmpty("Description"), {
@@ -50,6 +62,7 @@ export const CreateFormInput = Schema.Struct({
 	type: Schema.optionalWith(FormTypeSchema, { nullable: true }),
 	audience: Schema.optionalWith(FormAudienceSchema, { default: () => "all" }),
 	unlockConditions: Schema.optionalWith(FormUnlockConditionsNullable, { nullable: true }),
+	readingMaterialSections: Schema.optionalWith(ReadingMaterialSections, { nullable: true }),
 });
 
 function normalizeFormAudience(type: FormType, audience: FormAudience): FormAudience {
@@ -265,6 +278,55 @@ class FormAlreadySubmittedError extends Data.TaggedError("FormAlreadySubmittedEr
 	readonly userId: string;
 }> {}
 
+class InvalidReadingMaterialSectionsError extends Data.TaggedError(
+	"InvalidReadingMaterialSectionsError",
+)<{
+	readonly reason: string;
+}> {}
+
+const normalizeAndValidateReadingMaterialSections = Effect.fn(
+	"normalizeAndValidateReadingMaterialSections",
+)(function* (sections: ReadonlyArray<ReadingMaterialSection> | null | undefined) {
+	if (!sections || sections.length === 0) return null;
+
+	const normalized = sections
+		.map((section) => ({
+			...section,
+			title: section.title?.trim() ? section.title.trim() : undefined,
+			content: section.content.trim(),
+		}))
+		.sort((a, b) => a.startQuestion - b.startQuestion || a.endQuestion - b.endQuestion);
+
+	for (let i = 0; i < normalized.length; i++) {
+		const section = normalized[i];
+		if (section.startQuestion < 1) {
+			return yield* new InvalidReadingMaterialSectionsError({
+				reason:
+					"Reading material range " +
+					String(i + 1) +
+					" must start at question 1 or above",
+			});
+		}
+
+		if (section.endQuestion < section.startQuestion) {
+			return yield* new InvalidReadingMaterialSectionsError({
+				reason: "Reading material range " + String(i + 1) + " has invalid bounds",
+			});
+		}
+
+		if (i > 0) {
+			const previous = normalized[i - 1];
+			if (previous.endQuestion >= section.startQuestion) {
+				return yield* new InvalidReadingMaterialSectionsError({
+					reason: "Reading material ranges cannot overlap",
+				});
+			}
+		}
+	}
+
+	return normalized;
+});
+
 export const CloneFormInput = Schema.Struct({
 	formId: NonEmpty("Form ID"),
 });
@@ -289,6 +351,7 @@ export const UpdateFormInput = Schema.Struct({
 		{ nullable: true },
 	),
 	unlockConditions: Schema.optionalWith(FormUnlockConditionsNullable, { nullable: true }),
+	readingMaterialSections: Schema.optionalWith(ReadingMaterialSections, { nullable: true }),
 });
 
 export type UpdateFormInput = typeof UpdateFormInput.Type;
@@ -309,6 +372,9 @@ export const createForm = Effect.fn("createForm")(function* (
 
 	const type = data.type ?? "registration";
 	const audience = normalizeFormAudience(type, data.audience ?? "all");
+	const readingMaterialSections = yield* normalizeAndValidateReadingMaterialSections(
+		data.readingMaterialSections,
+	);
 
 	yield* db.insert(forms).values({
 		id: formId,
@@ -318,6 +384,7 @@ export const createForm = Effect.fn("createForm")(function* (
 		audience,
 		status: "draft",
 		unlockConditions: data.unlockConditions ?? null,
+		readingMaterialSections,
 		createdBy: userId,
 	});
 
@@ -344,6 +411,11 @@ export const getFormById = Effect.fn("getFormById")(function* (formId: string) {
 		null,
 		FormUnlockConditionsNullable,
 	);
+	const readingMaterialSections = yield* safeParseJson(
+		formRow.readingMaterialSections,
+		null,
+		Schema.NullOr(ReadingMaterialSections),
+	);
 	const form = {
 		id: formRow.id,
 		title: formRow.title,
@@ -352,6 +424,7 @@ export const getFormById = Effect.fn("getFormById")(function* (formId: string) {
 		status: formRow.status,
 		audience: formRow.audience,
 		unlockConditions,
+		readingMaterialSections,
 		createdBy: formRow.createdBy,
 		createdAt: formRow.createdAt,
 		updatedAt: formRow.updatedAt,
@@ -466,6 +539,11 @@ export const getStudentFormById = Effect.fn("getStudentFormById")(function* (
 		null,
 		FormUnlockConditionsNullable,
 	);
+	const readingMaterialSections = yield* safeParseJson(
+		formRow.readingMaterialSections,
+		null,
+		Schema.NullOr(ReadingMaterialSections),
+	);
 
 	const form = {
 		id: formRow.id,
@@ -475,6 +553,7 @@ export const getStudentFormById = Effect.fn("getStudentFormById")(function* (
 		status: formRow.status,
 		audience: formRow.audience,
 		unlockConditions,
+		readingMaterialSections,
 		createdBy: formRow.createdBy,
 		createdAt: formRow.createdAt,
 		updatedAt: formRow.updatedAt,
@@ -630,6 +709,7 @@ export const updateForm = Effect.fn("updateForm")(function* (
 		audience: FormAudience;
 		status: "draft" | "published";
 		unlockConditions: FormUnlockConditionsType | null;
+		readingMaterialSections: ReadonlyArray<ReadingMaterialSection> | null;
 	}>,
 ) {
 	const db = yield* Database;
@@ -655,6 +735,10 @@ export const updateForm = Effect.fn("updateForm")(function* (
 
 	const nextType = data.type ?? form.type;
 	const nextAudience = normalizeFormAudience(nextType, data.audience ?? form.audience);
+	const normalizedReadingMaterialSections =
+		data.readingMaterialSections === undefined
+			? undefined
+			: yield* normalizeAndValidateReadingMaterialSections(data.readingMaterialSections);
 
 	yield* db
 		.update(forms)
@@ -671,6 +755,9 @@ export const updateForm = Effect.fn("updateForm")(function* (
 			...(data.unlockConditions !== undefined && {
 				unlockConditions: data.unlockConditions,
 			}),
+			...(normalizedReadingMaterialSections !== undefined && {
+				readingMaterialSections: normalizedReadingMaterialSections,
+			}),
 		})
 		.where(eq(forms.id, formId));
 
@@ -682,6 +769,7 @@ export const updateForm = Effect.fn("updateForm")(function* (
 		audience: nextAudience,
 		status: data.status,
 		unlockConditions: data.unlockConditions,
+		readingMaterialSections: normalizedReadingMaterialSections,
 	};
 });
 
@@ -756,6 +844,7 @@ export const cloneForm = Effect.fn("cloneForm")(function* (formId: string, userI
 		audience: originalForm.audience,
 		status: "draft",
 		unlockConditions: originalForm.unlockConditions,
+		readingMaterialSections: originalForm.readingMaterialSections,
 		createdBy: userId,
 	});
 
@@ -1241,6 +1330,7 @@ export const FormOutputSchema = Schema.Struct({
 	audience: FormAudienceSchema,
 	status: Schema.Union(Schema.Literal("draft"), Schema.Literal("published")),
 	unlockConditions: FormUnlockConditionsNullable,
+	readingMaterialSections: Schema.NullOr(ReadingMaterialSections),
 	createdBy: Schema.String,
 	createdAt: Schema.Number,
 	updatedAt: Schema.Number,

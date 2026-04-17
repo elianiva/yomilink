@@ -2,6 +2,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import type { FormMetadata } from "@/features/form/components/form-metadata-editor";
 import type { QuestionWithOptions as FormPreviewQuestion } from "@/features/form/components/form-renderer/form-preview";
 import { FormPreview } from "@/features/form/components/form-renderer/form-preview";
+import type { ReadingMaterialSection } from "@/features/form/lib/form-service.core";
 
 import { EditorContent } from "./editor-content";
 import type { EditorMode, QuestionType, QuestionWithOptions } from "./types";
@@ -12,6 +13,7 @@ interface FormBuilderTabsProps {
 	editorMode: EditorMode;
 	metadata: FormMetadata;
 	questions: QuestionWithOptions[];
+	readingMaterialSections: ReadingMaterialSection[];
 	isPending: boolean;
 	onEditorModeChange: (mode: EditorMode) => void;
 	onMetadataChange: (metadata: FormMetadata) => void;
@@ -19,6 +21,7 @@ interface FormBuilderTabsProps {
 	onDeleteQuestion: (questionId: string) => void;
 	onReorderQuestions: (questions: QuestionWithOptions[]) => void;
 	onAddQuestion: (type: QuestionType) => void;
+	onReadingMaterialSectionsChange: (sections: ReadingMaterialSection[]) => void;
 }
 
 export function FormBuilderTabs({
@@ -27,6 +30,7 @@ export function FormBuilderTabs({
 	editorMode,
 	metadata,
 	questions,
+	readingMaterialSections,
 	isPending,
 	onEditorModeChange,
 	onMetadataChange,
@@ -34,6 +38,7 @@ export function FormBuilderTabs({
 	onDeleteQuestion,
 	onReorderQuestions,
 	onAddQuestion,
+	onReadingMaterialSectionsChange,
 }: FormBuilderTabsProps) {
 	if (isEditing) {
 		return (
@@ -56,6 +61,8 @@ export function FormBuilderTabs({
 						onDeleteQuestion={onDeleteQuestion}
 						onReorderQuestions={onReorderQuestions}
 						onAddQuestion={onAddQuestion}
+						readingMaterialSections={readingMaterialSections}
+						onReadingMaterialSectionsChange={onReadingMaterialSectionsChange}
 						isPending={isPending}
 						hasForm={true}
 					/>
@@ -70,6 +77,7 @@ export function FormBuilderTabs({
 							type: metadata.type,
 							audience: metadata.audience,
 							status: metadata.status,
+							readingMaterialSections,
 						}}
 						questions={questions.map((q) => ({
 							id: q.id,
@@ -97,6 +105,8 @@ export function FormBuilderTabs({
 			onDeleteQuestion={onDeleteQuestion}
 			onReorderQuestions={onReorderQuestions}
 			onAddQuestion={onAddQuestion}
+			readingMaterialSections={readingMaterialSections}
+			onReadingMaterialSectionsChange={onReadingMaterialSectionsChange}
 			isPending={isPending}
 			hasForm={true}
 		/>

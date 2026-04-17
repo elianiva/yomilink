@@ -1,6 +1,11 @@
 import type { FormMetadata } from "@/features/form/components/form-metadata-editor";
 import type { Question } from "@/features/form/components/question-list";
-import type { LikertOptions, McqOptions, TextOptions } from "@/features/form/lib/form-service.core";
+import type {
+	LikertOptions,
+	McqOptions,
+	ReadingMaterialSection,
+	TextOptions,
+} from "@/features/form/lib/form-service.core";
 
 export type QuestionType = "mcq" | "likert" | "text";
 export type EditorMode = "edit" | "preview";
@@ -40,6 +45,8 @@ export interface EditorContentProps {
 	onAddQuestion: (type: QuestionType) => void;
 	isPending: boolean;
 	hasForm: boolean;
+	readingMaterialSections: ReadingMaterialSection[];
+	onReadingMaterialSectionsChange: (sections: ReadingMaterialSection[]) => void;
 }
 
 export type QuestionOptions = McqOptions | LikertOptions | TextOptions;

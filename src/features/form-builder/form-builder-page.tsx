@@ -7,6 +7,7 @@ import { toast } from "sonner";
 import type { FormMetadata } from "@/features/form/components/form-metadata-editor";
 import type {
 	CreateQuestionInput,
+	ReadingMaterialSection,
 	UpdateQuestionInput,
 } from "@/features/form/lib/form-service.core";
 import { useRpcMutation, useRpcQuery } from "@/hooks/use-rpc-query";
@@ -29,6 +30,7 @@ const STORAGE_KEY = "form-builder-draft";
 interface DraftData {
 	metadata: FormMetadata;
 	questions: QuestionWithOptions[];
+	readingMaterialSections: ReadingMaterialSection[];
 	lastSaved: string;
 }
 
@@ -48,6 +50,9 @@ export function FormBuilderPage() {
 
 	const [metadata, setMetadata] = useState<FormMetadata>(defaultMetadata);
 	const [questions, setQuestions] = useState<QuestionWithOptions[]>([]);
+	const [readingMaterialSections, setReadingMaterialSections] = useState<
+		ReadingMaterialSection[]
+	>([]);
 	const [editorMode, setEditorMode] = useState<EditorMode>("edit");
 	const [hasUnsavedChanges, setHasUnsavedChanges] = useState(false);
 	const [isDraftLoaded, setIsDraftLoaded] = useState(false);
@@ -93,6 +98,12 @@ export function FormBuilderPage() {
 				status: existingForm.form.status,
 			});
 			setQuestions([...((existingForm.questions ?? []) as unknown as QuestionWithOptions[])]);
+			setReadingMaterialSections(
+				[...(existingForm.form.readingMaterialSections ?? [])].map((section) => ({
+					...section,
+					title: section.title ?? undefined,
+				})),
+			);
 			setHasUnsavedChanges(false);
 		}
 	}, [isEditing, existingForm]);
@@ -104,10 +115,11 @@ export function FormBuilderPage() {
 		const draft: DraftData = {
 			metadata,
 			questions,
+			readingMaterialSections,
 			lastSaved: new Date().toISOString(),
 		};
 		localStorage.setItem(STORAGE_KEY, JSON.stringify(draft));
-	}, [metadata, questions, isEditing, isDraftLoaded]);
+	}, [metadata, questions, readingMaterialSections, isEditing, isDraftLoaded]);
 
 	const createFormMutation = useRpcMutation(FormRpc.createForm(), {
 		operation: "create form",
@@ -229,10 +241,53 @@ export function FormBuilderPage() {
 		setHasUnsavedChanges(true);
 	}, []);
 
+	const handleReadingMaterialSectionsChange = useCallback(
+		(newSections: ReadingMaterialSection[]) => {
+			setReadingMaterialSections(newSections);
+			setHasUnsavedChanges(true);
+		},
+		[],
+	);
+
 	const handleSaveForm = async () => {
 		if (!metadata.title.trim()) {
 			toast.error("Form title is required");
 			return;
+		}
+
+		const normalizedReadingMaterialSections = [...readingMaterialSections]
+			.sort((a, b) => a.startQuestion - b.startQuestion || a.endQuestion - b.endQuestion)
+			.map((section) => ({
+				...section,
+				title: section.title?.trim() ? section.title.trim() : undefined,
+				content: section.content.trim(),
+			}));
+
+		const emptyContentSection = normalizedReadingMaterialSections.find(
+			(section) => section.content.length === 0,
+		);
+		if (emptyContentSection) {
+			toast.error("Reading material content cannot be empty");
+			return;
+		}
+
+		for (let i = 0; i < normalizedReadingMaterialSections.length; i++) {
+			const section = normalizedReadingMaterialSections[i];
+			if (section.startQuestion < 1) {
+				toast.error("Reading material range must start at question 1 or above");
+				return;
+			}
+			if (section.endQuestion < section.startQuestion) {
+				toast.error("Reading material range end must be greater than or equal to start");
+				return;
+			}
+			if (
+				i > 0 &&
+				normalizedReadingMaterialSections[i - 1].endQuestion >= section.startQuestion
+			) {
+				toast.error("Reading material ranges cannot overlap");
+				return;
+			}
 		}
 
 		if (isEditing && formId) {
@@ -243,6 +298,7 @@ export function FormBuilderPage() {
 				type: metadata.type,
 				audience: metadata.audience,
 				status: metadata.status,
+				readingMaterialSections: normalizedReadingMaterialSections,
 			});
 		} else {
 			await createFormMutation.mutateAsync({
@@ -250,6 +306,7 @@ export function FormBuilderPage() {
 				description: metadata.description ?? undefined,
 				type: metadata.type,
 				audience: metadata.audience,
+				readingMaterialSections: normalizedReadingMaterialSections,
 			});
 		}
 	};
@@ -376,6 +433,7 @@ export function FormBuilderPage() {
 				const parsed = JSON.parse(saved) as DraftData;
 				setMetadata(parsed.metadata);
 				setQuestions(parsed.questions);
+				setReadingMaterialSections(parsed.readingMaterialSections ?? []);
 				setHasUnsavedChanges(true);
 			} catch {
 				localStorage.removeItem(STORAGE_KEY);
@@ -393,6 +451,7 @@ export function FormBuilderPage() {
 		localStorage.removeItem(STORAGE_KEY);
 		setMetadata(defaultMetadata);
 		setQuestions([]);
+		setReadingMaterialSections([]);
 		setHasUnsavedChanges(false);
 		toast.success("Draft cleared");
 	};
@@ -452,6 +511,8 @@ export function FormBuilderPage() {
 				editorMode={editorMode}
 				metadata={metadata}
 				questions={questions}
+				readingMaterialSections={readingMaterialSections}
+				onReadingMaterialSectionsChange={handleReadingMaterialSectionsChange}
 				isPending={isPending}
 				onEditorModeChange={setEditorMode}
 				onMetadataChange={handleMetadataChange}

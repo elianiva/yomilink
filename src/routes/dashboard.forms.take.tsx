@@ -167,6 +167,9 @@ function FormTakerPage() {
 		type: data.form.type,
 		audience: data.form.audience,
 		status: data.form.status,
+		readingMaterialSections: data.form.readingMaterialSections
+			? data.form.readingMaterialSections.map((section) => ({ ...section }))
+			: null,
 	};
 
 	const questionData: QuestionWithOptions[] = data.questions.map((q) => {

@@ -1,10 +1,18 @@
 import { format } from "date-fns";
-import { CheckCircle2, ChevronLeft, ChevronRight, Save, Send } from "lucide-react";
-import { useEffect, useState } from "react";
+import { BookOpen, CheckCircle2, ChevronLeft, ChevronRight, Save, Send } from "lucide-react";
+import { useEffect, useMemo, useState } from "react";
 
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { ScrollArea } from "@/components/ui/scroll-area";
 import { Separator } from "@/components/ui/separator";
+import {
+	Sheet,
+	SheetContent,
+	SheetDescription,
+	SheetHeader,
+	SheetTitle,
+} from "@/components/ui/sheet";
 import { cn } from "@/lib/utils";
 
 import { QuestionRenderer } from "./form-renderer/question-renderer";
@@ -17,6 +25,15 @@ export interface FormData {
 	type: "pre_test" | "post_test" | "delayed_test" | "registration" | "tam" | "questionnaire";
 	audience: "all" | "experiment" | "control";
 	status: "draft" | "published";
+	readingMaterialSections?:
+		| {
+				id: string;
+				title?: string | null;
+				startQuestion: number;
+				endQuestion: number;
+				content: string;
+		  }[]
+		| null;
 }
 
 export interface QuestionWithOptions {
@@ -101,15 +118,36 @@ export function FormTaker({
 		return loadDraft(form.id) ?? {};
 	});
 	const [lastSaved, setLastSaved] = useState<Date | null>(null);
+	const [isReadingMaterialOpen, setIsReadingMaterialOpen] = useState(false);
 
 	const sortedQuestions = [...questions].sort((a, b) => a.orderIndex - b.orderIndex);
+	const sortedReadingMaterialSections = useMemo(
+		() =>
+			[...(form.readingMaterialSections ?? [])].sort(
+				(a, b) => a.startQuestion - b.startQuestion || a.endQuestion - b.endQuestion,
+			),
+		[form.readingMaterialSections],
+	);
 
 	const currentQuestion = sortedQuestions[currentIndex];
+	const currentQuestionNumber = currentIndex + 1;
 	const totalQuestions = sortedQuestions.length;
 	const progress = totalQuestions > 0 ? ((currentIndex + 1) / totalQuestions) * 100 : 0;
 
 	const isFirstQuestion = currentIndex === 0;
 	const isLastQuestion = currentIndex === totalQuestions - 1;
+	const hasAnyReadingMaterial = sortedReadingMaterialSections.length > 0;
+	const currentReadingMaterial = sortedReadingMaterialSections.find(
+		(section) =>
+			currentQuestionNumber >= section.startQuestion &&
+			currentQuestionNumber <= section.endQuestion,
+	);
+
+	useEffect(() => {
+		if (!currentReadingMaterial) {
+			setIsReadingMaterialOpen(false);
+		}
+	}, [currentReadingMaterial]);
 
 	useEffect(() => {
 		const interval = setInterval(() => {
@@ -184,97 +222,152 @@ export function FormTaker({
 	}
 
 	return (
-		<Card className={cn("overflow-hidden py-0 gap-0", className)} data-testid="form-taker">
-			<CardHeader className="space-y-4 bg-muted/30 pt-4 pb-6 border-b">
-				<div className="space-y-2">
-					<CardTitle className="text-2xl font-bold">{form.title}</CardTitle>
-					{form.description && (
-						<p className="text-muted-foreground">{form.description}</p>
+		<>
+			<Card className={cn("overflow-hidden py-0 gap-0", className)} data-testid="form-taker">
+				<CardHeader className="space-y-4 bg-muted/30 pt-4 pb-6 border-b">
+					<div className="flex items-start justify-between gap-3">
+						<div className="space-y-2">
+							<CardTitle className="text-2xl font-bold">{form.title}</CardTitle>
+							{form.description && (
+								<p className="text-muted-foreground">{form.description}</p>
+							)}
+						</div>
+						{hasAnyReadingMaterial && (
+							<Button
+								type="button"
+								variant="outline"
+								size="sm"
+								onClick={() => setIsReadingMaterialOpen(true)}
+								disabled={!currentReadingMaterial}
+							>
+								<BookOpen className="mr-2 h-4 w-4" />
+								Reading Material
+							</Button>
+						)}
+					</div>
+					{hasAnyReadingMaterial && (
+						<p className="text-xs text-muted-foreground">
+							{currentReadingMaterial
+								? "Reference available for questions " +
+									String(currentReadingMaterial.startQuestion) +
+									"-" +
+									String(currentReadingMaterial.endQuestion)
+								: "No reference configured for this question"}
+						</p>
 					)}
-				</div>
-				<div className="space-y-2">
-					<div className="flex items-center justify-between text-sm">
-						<span className="text-muted-foreground">
-							Question {currentIndex + 1} of {totalQuestions}
-						</span>
-						<span className="flex items-center gap-2 text-muted-foreground">
-							{Math.round(progress)}% complete
-							<span className="flex items-center gap-1">
-								<Save className="h-3 w-3" />
-								{lastSaved
-									? `Saved ${format(lastSaved, "h:mm a")}`
-									: "Auto-save enabled"}
+					<div className="space-y-2">
+						<div className="flex items-center justify-between text-sm">
+							<span className="text-muted-foreground">
+								Question {currentIndex + 1} of {totalQuestions}
 							</span>
-						</span>
-					</div>
-					<div className="h-2 w-full overflow-hidden rounded-full bg-muted">
-						<div
-							className="h-full bg-primary transition-all duration-300"
-							style={{ width: `${progress}%` }}
-						/>
-					</div>
-				</div>
-			</CardHeader>
-			<CardContent className="p-6">
-				{currentQuestion && (
-					<div className="space-y-6" data-testid={`question-${currentIndex}`}>
-						<div className="flex items-start gap-3">
-							<span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-primary text-sm font-medium text-primary-foreground">
-								{currentIndex + 1}
+							<span className="flex items-center gap-2 text-muted-foreground">
+								{Math.round(progress)}% complete
+								<span className="flex items-center gap-1">
+									<Save className="h-3 w-3" />
+									{lastSaved
+										? `Saved ${format(lastSaved, "h:mm a")}`
+										: "Auto-save enabled"}
+								</span>
 							</span>
-							<div className="flex-1 space-y-3">
-								<p className="text-lg font-medium">
-									{currentQuestion.questionText}
-									{currentQuestion.required && (
-										<span className="text-destructive"> *</span>
-									)}
-								</p>
-								<QuestionRenderer
-									question={currentQuestion}
-									value={answers[currentQuestion.id]}
-									onChange={handleAnswerChange}
-								/>
-							</div>
+						</div>
+						<div className="h-2 w-full overflow-hidden rounded-full bg-muted">
+							<div
+								className="h-full bg-primary transition-all duration-300"
+								style={{ width: `${progress}%` }}
+							/>
 						</div>
 					</div>
-				)}
-			</CardContent>
-
-			<Separator />
-
-			<div className="flex items-center justify-between p-4">
-				<Button
-					variant="outline"
-					onClick={handlePrevious}
-					disabled={isFirstQuestion}
-					data-testid="previous-button"
-				>
-					<ChevronLeft className="mr-2 h-4 w-4" />
-					Previous
-				</Button>
-
-				<div className="flex gap-2">
-					{isLastQuestion ? (
-						<Button
-							onClick={handleSubmit}
-							disabled={!canSubmit() || submitting}
-							data-testid="submit-button"
-						>
-							<Send className="h-4 w-4" />
-							{submitting ? "Submitting..." : "Submit"}
-						</Button>
-					) : (
-						<Button
-							onClick={handleNext}
-							disabled={isLastQuestion}
-							data-testid="next-button"
-						>
-							Next
-							<ChevronRight className="h-4 w-4" />
-						</Button>
+				</CardHeader>
+				<CardContent className="p-6">
+					{currentQuestion && (
+						<div className="space-y-6" data-testid={`question-${currentIndex}`}>
+							<div className="flex items-start gap-3">
+								<span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-primary text-sm font-medium text-primary-foreground">
+									{currentIndex + 1}
+								</span>
+								<div className="flex-1 space-y-3">
+									<p className="text-lg font-medium">
+										{currentQuestion.questionText}
+										{currentQuestion.required && (
+											<span className="text-destructive"> *</span>
+										)}
+									</p>
+									<QuestionRenderer
+										question={currentQuestion}
+										value={answers[currentQuestion.id]}
+										onChange={handleAnswerChange}
+									/>
+								</div>
+							</div>
+						</div>
 					)}
+				</CardContent>
+
+				<Separator />
+
+				<div className="flex items-center justify-between p-4">
+					<Button
+						variant="outline"
+						onClick={handlePrevious}
+						disabled={isFirstQuestion}
+						data-testid="previous-button"
+					>
+						<ChevronLeft className="mr-2 h-4 w-4" />
+						Previous
+					</Button>
+
+					<div className="flex gap-2">
+						{isLastQuestion ? (
+							<Button
+								onClick={handleSubmit}
+								disabled={!canSubmit() || submitting}
+								data-testid="submit-button"
+							>
+								<Send className="h-4 w-4" />
+								{submitting ? "Submitting..." : "Submit"}
+							</Button>
+						) : (
+							<Button
+								onClick={handleNext}
+								disabled={isLastQuestion}
+								data-testid="next-button"
+							>
+								Next
+								<ChevronRight className="h-4 w-4" />
+							</Button>
+						)}
+					</div>
 				</div>
-			</div>
-		</Card>
+			</Card>
+
+			<Sheet open={isReadingMaterialOpen} onOpenChange={setIsReadingMaterialOpen}>
+				<SheetContent className="w-full sm:max-w-xl">
+					<SheetHeader>
+						<SheetTitle>
+							{currentReadingMaterial?.title ?? "Reading Material"}
+						</SheetTitle>
+						<SheetDescription>
+							{currentReadingMaterial
+								? "Questions " +
+									String(currentReadingMaterial.startQuestion) +
+									" - " +
+									String(currentReadingMaterial.endQuestion)
+								: "No reading material available for this question."}
+						</SheetDescription>
+					</SheetHeader>
+					<ScrollArea className="min-h-0 flex-1 px-4 pb-6">
+						{currentReadingMaterial ? (
+							<div className="whitespace-pre-wrap text-sm leading-6 text-foreground">
+								{currentReadingMaterial.content}
+							</div>
+						) : (
+							<p className="text-sm text-muted-foreground">
+								No material configured for this question.
+							</p>
+						)}
+					</ScrollArea>
+				</SheetContent>
+			</Sheet>
+		</>
 	);
 }

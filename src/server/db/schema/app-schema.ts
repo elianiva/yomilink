@@ -410,6 +410,7 @@ export const forms = sqliteTable(
 			.notNull()
 			.default("draft"),
 		unlockConditions: text("unlock_conditions", { mode: "json" }),
+		readingMaterialSections: text("reading_material_sections", { mode: "json" }),
 		createdBy: text("created_by").notNull(),
 		...timestamps,
 	},
