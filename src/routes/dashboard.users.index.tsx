@@ -6,10 +6,12 @@ import { toast } from "sonner";
 import { Guard } from "@/components/auth/Guard";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { BulkCohortDialog } from "@/components/users/bulk-cohort-dialog";
 import { UserDetailSheet } from "@/components/users/user-detail-sheet";
 import { UserFilterBar } from "@/components/users/user-filter-bar";
 import { UserTable } from "@/components/users/user-table";
+import { WhitelistPanel } from "@/components/users/whitelist-panel";
 import type { UserFilterInput, UserWithCohorts } from "@/features/user/lib/user-service.shared";
 import { useRpcMutation, useRpcQuery } from "@/hooks/use-rpc-query";
 import { AssignmentRpc } from "@/server/rpc/assignment";
@@ -165,7 +167,13 @@ function UsersPage() {
 	};
 
 	return (
-		<div className="space-y-6">
+		<Tabs defaultValue="users" className="space-y-6">
+			<TabsList className="grid w-full max-w-sm grid-cols-2">
+				<TabsTrigger value="users">Users</TabsTrigger>
+				<TabsTrigger value="whitelist">Whitelist</TabsTrigger>
+			</TabsList>
+			<TabsContent value="users" className="space-y-6">
+				<div className="space-y-6">
 			<div>
 				<h1 className="text-2xl font-semibold">Users</h1>
 				<p className="text-muted-foreground">Manage user accounts and permissions</p>
@@ -244,6 +252,11 @@ function UsersPage() {
 				onConfirm={handleBulkCohortConfirm}
 				isLoading={bulkCohortMutation.isPending}
 			/>
-		</div>
+				</div>
+			</TabsContent>
+			<TabsContent value="whitelist">
+				<WhitelistPanel />
+			</TabsContent>
+		</Tabs>
 	);
 }

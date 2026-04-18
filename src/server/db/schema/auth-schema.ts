@@ -116,6 +116,26 @@ export const cohorts = sqliteTable("cohorts", {
 		.notNull(),
 });
 
+export const whitelistEntries = sqliteTable(
+	"whitelist_entries",
+	{
+		id: text("id").primaryKey(),
+		studentId: text("student_id").notNull().unique(),
+		name: text("name").notNull(),
+		cohortId: text("cohort_id").references(() => cohorts.id, { onDelete: "set null" }),
+		claimedUserId: text("claimed_user_id").references(() => user.id, { onDelete: "set null" }).unique(),
+		claimedAt: integer("claimed_at", { mode: "timestamp_ms" }),
+		createdAt: integer("created_at", { mode: "timestamp_ms" })
+			.default(sql`(cast(unixepoch('subsecond') * 1000 as integer))`)
+			.notNull(),
+		updatedAt: integer("updated_at", { mode: "timestamp_ms" })
+			.default(sql`(cast(unixepoch('subsecond') * 1000 as integer))`)
+			.$onUpdate(() => /* @__PURE__ */ new Date())
+			.notNull(),
+	},
+	(table) => [index("whitelist_entries_claimedUserId_idx").on(table.claimedUserId)],
+);
+
 export const cohortMembers = sqliteTable(
 	"cohort_members",
 	{
@@ -161,6 +181,17 @@ export const accountRelations = relations(account, ({ one }) => ({
 
 export const cohortsRelations = relations(cohorts, ({ many }) => ({
 	members: many(cohortMembers),
+}));
+
+export const whitelistEntryRelations = relations(whitelistEntries, ({ one }) => ({
+	cohort: one(cohorts, {
+		fields: [whitelistEntries.cohortId],
+		references: [cohorts.id],
+	}),
+	claimedUser: one(user, {
+		fields: [whitelistEntries.claimedUserId],
+		references: [user.id],
+	}),
 }));
 
 export const cohortMembersRelations = relations(cohortMembers, ({ one }) => ({

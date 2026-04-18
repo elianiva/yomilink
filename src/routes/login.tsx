@@ -7,24 +7,20 @@ import { Button } from "@/components/ui/button";
 import { FieldInfo } from "@/components/ui/field-info";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Email, Password } from "@/lib/validation-schemas";
+import { NonEmpty, Password } from "@/lib/validation-schemas";
+import { studentIdToAuthEmail } from "@/lib/student-id-auth";
 import { getMe } from "@/server/rpc/profile";
 
 import { authClient } from "../lib/auth-client";
 
 function getFriendlyAuthErrorMessage(err: unknown) {
-	const raw =
-		err instanceof Error ? err.message : typeof err === "string" ? err : "Unknown error";
+	const raw = err instanceof Error ? err.message : typeof err === "string" ? err : "Unknown error";
 	const msg = raw.toLowerCase();
 	if (msg.includes("invalidsecret") || msg.includes("invalid secret")) {
-		return "Incorrect email or password.";
+		return "Incorrect student ID or password.";
 	}
-	if (
-		msg.includes("accountnotfound") ||
-		msg.includes("no account") ||
-		msg.includes("unknown identifier")
-	) {
-		return "Account not found. Check your email.";
+	if (msg.includes("accountnotfound") || msg.includes("no account") || msg.includes("unknown identifier")) {
+		return "Account not found. Check your student ID.";
 	}
 	if (msg.includes("rate") && msg.includes("limit")) {
 		return "Too many attempts. Please wait a moment and try again.";
@@ -33,7 +29,7 @@ function getFriendlyAuthErrorMessage(err: unknown) {
 		return "Network error. Check your connection and try again.";
 	}
 
-	return "Unable to sign in. Please verify your email and password.";
+	return "Unable to sign in. Please verify your student ID and password.";
 }
 
 export const Route = createFileRoute("/login")({
@@ -50,7 +46,7 @@ export const Route = createFileRoute("/login")({
 });
 
 const LoginSchema = Schema.Struct({
-	email: Email,
+	studentId: NonEmpty("Student ID"),
 	password: Password(8),
 });
 
@@ -60,7 +56,7 @@ function LoginPage() {
 
 	const form = useForm({
 		defaultValues: {
-			email: "",
+			studentId: "",
 			password: "",
 		},
 		validators: {
@@ -71,7 +67,7 @@ function LoginPage() {
 			setError(null);
 			try {
 				const { error } = await authClient.signIn.email({
-					email: value.email,
+					email: studentIdToAuthEmail(value.studentId),
 					password: value.password,
 				});
 				if (error) {
@@ -79,8 +75,7 @@ function LoginPage() {
 				}
 				const me = await getMe();
 				if (me?.success) {
-					const target =
-						me.data.role === "student" ? "/dashboard/assignments" : "/dashboard";
+					const target = me.data.role === "student" ? "/dashboard/assignments" : "/dashboard";
 					void navigate({ to: target });
 				} else {
 					void navigate({ to: "/dashboard" });
@@ -100,7 +95,7 @@ function LoginPage() {
 					</div>
 					<div>
 						<h1 className="text-2xl font-semibold">KitBuild</h1>
-						<p className="text-sm text-muted-foreground">Sign in to your account</p>
+						<p className="text-sm text-muted-foreground">Sign in with your student ID</p>
 					</div>
 				</div>
 
@@ -118,18 +113,17 @@ function LoginPage() {
 					}}
 					className="space-y-5"
 				>
-					<form.Field name="email">
+					<form.Field name="studentId">
 						{(field) => (
 							<div className="space-y-1.5">
-								<Label htmlFor="email">Email</Label>
+								<Label htmlFor="studentId">Student ID</Label>
 								<Input
-									id="email"
-									placeholder="you@example.com"
+									id="studentId"
+									placeholder="e.g. 12345678"
 									value={field.state.value}
 									onChange={(e) => field.handleChange(e.target.value)}
 									onBlur={field.handleBlur}
-									inputMode="email"
-									autoComplete="email"
+									autoComplete="username"
 								/>
 								<FieldInfo field={field} />
 							</div>
@@ -169,10 +163,7 @@ function LoginPage() {
 			</div>
 			<div className="text-center pt-4">
 				<p className="text-sm text-muted-foreground">
-					Don&apos;t have an account?{" "}
-					<Link to="/signup" className="text-primary hover:underline font-medium">
-						Sign up
-					</Link>
+					Need access? Ask an admin to add your student ID to the whitelist.
 				</p>
 			</div>
 		</div>

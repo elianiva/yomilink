@@ -1,7 +1,7 @@
 import { Schema } from "effect";
-import { UserIcon, BookOpenIcon, SchoolIcon, CheckCircleIcon } from "lucide-react";
+import { BookOpenIcon, CheckCircleIcon, SchoolIcon, UserIcon } from "lucide-react";
 
-import { Email, NonEmpty } from "@/lib/validation-schemas";
+import { NonEmpty } from "@/lib/validation-schemas";
 import { JlptLevelSchema, StudyGroupSchema } from "@/server/rpc/auth";
 
 export const jlptOptions = [
@@ -13,31 +13,21 @@ export const jlptOptions = [
 	{ id: "N1", label: "N1 (Advanced)" },
 ];
 
+export const studyGroupOptions = [
+	{ id: "unassigned", label: "Unassigned" },
+	{ id: "experiment", label: "Experiment" },
+	{ id: "control", label: "Control" },
+];
+
 export const SignUpSchema = Schema.Struct({
-	name: NonEmpty("Name"),
-	email: Email,
-	// Password validation disabled for students - easy to re-enable
-	// password: Schema.String.pipe(
-	// 	Schema.minLength(8),
-	// 	Schema.pattern(/[A-Z]/, {
-	// 		message: () => "Password must include at least one uppercase letter",
-	// 	}),
-	// 	Schema.pattern(/[a-z]/, {
-	// 		message: () => "Password must include at least one lowercase letter",
-	// 	}),
-	// 	Schema.pattern(/[0-9]|[^A-Za-z0-9]/, {
-	// 		message: () => "Password must include at least one number or special character",
-	// 	}),
-	// ),
+	studentId: NonEmpty("Student ID"),
 	password: Schema.String,
 	confirmPassword: Schema.String,
 	age: Schema.NullOr(Schema.Number),
-	studentId: Schema.NullOr(Schema.String),
 	jlptLevel: JlptLevelSchema,
-	cohortId: NonEmpty("Cohort"),
+	studyGroup: StudyGroupSchema,
 	japaneseLearningDuration: Schema.NullOr(Schema.Number),
 	previousJapaneseScore: Schema.NullOr(Schema.Number),
-	studyGroup: StudyGroupSchema,
 	mediaConsumption: Schema.NullOr(Schema.Number),
 	motivation: Schema.NullOr(Schema.String),
 	consentGiven: Schema.Boolean,
@@ -50,6 +40,8 @@ export const SignUpSchema = Schema.Struct({
 	}),
 );
 
+export type SignUpForm = typeof SignUpSchema.Type;
+
 export type Step = {
 	id: "account" | "personal" | "academic" | "consent";
 	title: string;
@@ -60,20 +52,20 @@ export type Step = {
 export const steps: Step[] = [
 	{
 		id: "account",
-		title: "Account",
-		description: "Create your login credentials",
+		title: "Whitelist",
+		description: "Pick your reserved account and set a password",
 		icon: UserIcon,
 	},
 	{
 		id: "personal",
-		title: "Personal Information",
-		description: "Tell us about your Japanese learning journey",
+		title: "Personal",
+		description: "Tell us about yourself",
 		icon: BookOpenIcon,
 	},
 	{
 		id: "academic",
-		title: "Academic Information",
-		description: "Your academic details and cohort assignment",
+		title: "Academic",
+		description: "Academic and study details",
 		icon: SchoolIcon,
 	},
 	{

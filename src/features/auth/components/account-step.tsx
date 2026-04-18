@@ -1,49 +1,46 @@
 import type { AnyFieldApi } from "@tanstack/react-form";
 
 import { FieldInfo } from "@/components/ui/field-info";
-import { Input, PasswordInput } from "@/components/ui/input";
+import { PasswordInput } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-// import { PasswordStrength } from "@/components/ui/password-strength";
+import { SearchableSelect, type SearchableSelectOption } from "@/components/ui/searchable-select";
 
 interface AccountStepProps {
 	// biome-ignore lint/suspicious/noExplicitAny: <explanation>
 	form: any;
+	whitelistOptions: SearchableSelectOption[];
+	isLoading?: boolean;
 	onLastFieldSubmit?: () => void;
 }
 
-export function AccountStep({ form, onLastFieldSubmit }: AccountStepProps) {
+export function AccountStep({ form, whitelistOptions, isLoading, onLastFieldSubmit }: AccountStepProps) {
 	return (
 		<fieldset className="space-y-5">
-			<form.Field name="name">
+			<form.Field name="studentId">
 				{(field: AnyFieldApi) => (
 					<div className="space-y-1.5">
-						<Label htmlFor="name">Full Name</Label>
-						<Input
-							id="name"
-							placeholder="Enter your full name"
-							value={field.state.value}
-							onChange={(e) => field.handleChange(e.target.value)}
-							onBlur={field.handleBlur}
-							autoComplete="name"
-						/>
-						<FieldInfo field={field} />
-					</div>
-				)}
-			</form.Field>
-
-			<form.Field name="email">
-				{(field: AnyFieldApi) => (
-					<div className="space-y-1.5">
-						<Label htmlFor="email">Email</Label>
-						<Input
-							id="email"
-							placeholder="you@example.com"
-							value={field.state.value}
-							onChange={(e) => field.handleChange(e.target.value)}
-							onBlur={field.handleBlur}
-							inputMode="email"
-							autoComplete="email"
-						/>
+						<Label htmlFor="studentId">Reserved Account</Label>
+						{isLoading ? (
+							<div className="rounded-lg border bg-muted/30 px-3 py-2 text-sm text-muted-foreground">
+								Loading whitelist...
+							</div>
+						) : whitelistOptions.length === 0 ? (
+							<div className="rounded-lg border bg-muted/30 px-3 py-2 text-sm text-muted-foreground">
+								No whitelist entries available.
+							</div>
+						) : (
+							<SearchableSelect
+								id="studentId"
+								value={field.state.value}
+								onChange={(value) => field.handleChange(value)}
+								options={whitelistOptions}
+								placeholder="Search your name or student ID"
+								searchPlaceholder="Search Name (ID)..."
+							/>
+						)}
+						<p className="text-xs text-muted-foreground">
+							Choose your reserved entry from the whitelist.
+						</p>
 						<FieldInfo field={field} />
 					</div>
 				)}
@@ -62,7 +59,6 @@ export function AccountStep({ form, onLastFieldSubmit }: AccountStepProps) {
 							autoComplete="new-password"
 						/>
 						<FieldInfo field={field} />
-						{/* <PasswordStrength password={field.state.value} /> */}
 					</div>
 				)}
 			</form.Field>
