@@ -69,24 +69,8 @@ for (const material of MATERIALS) {
 
 export const TOPICS = [
 	{
-		title: "Basic Greetings & Introductions",
-		description:
-			"Essential Japanese greetings, self-introductions, and basic polite expressions",
-		goalMapTitles: ["Basic Greetings", "Self Introduction"],
-	},
-	{
 		title: "Daily Life & Culture",
-		description: "Learn about daily routines and seasonal traditions in Japan",
-		goalMapTitles: ["Japanese Daily Life", "Japanese Seasons", "Tanaka's Daily Life"],
-	},
-	{
-		title: "Basic Grammar Patterns",
-		description: "Fundamental Japanese grammar structures and sentence patterns",
-		goalMapTitles: ["Desu/Masu Forms", "Particles Wa and Ga"],
-	},
-	{
-		title: "Frontend Web Development",
-		description: "Introduction to HTML, CSS, and basic JavaScript for web development",
-		goalMapTitles: ["Frontend Web Development Basics"],
+		description: "Single N5 demo reading about a student's daily routine",
+		goalMapTitles: ["Tanaka's Daily Life"],
 	},
 ];

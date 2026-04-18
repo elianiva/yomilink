@@ -1,206 +1,100 @@
 ---
 title: "Tanaka's Daily Life"
-description: "A student's daily routine in Japan"
+description: "Very easy N5 reading about a student's daily routine"
 nodes:
     - id: "tanaka"
       type: "text"
-      position: { x: 400, y: 50 }
+      position: { x: 80, y: 60 }
       data: { label: "田中さん", color: "green" }
-    - id: "weekday"
+    - id: "student"
       type: "text"
-      position: { x: 250, y: 250 }
-      data: { label: "平日", color: "blue" }
-    - id: "weekend"
+      position: { x: 240, y: 60 }
+      data: { label: "がくせい", color: "blue" }
+    - id: "everyday"
       type: "text"
-      position: { x: 550, y: 250 }
-      data: { label: "週末", color: "blue" }
-    - id: "wake-up"
+      position: { x: 400, y: 60 }
+      data: { label: "まいにち", color: "blue" }
+    - id: "morning"
       type: "text"
-      position: { x: 100, y: 500 }
-      data: { label: "起きる", color: "amber" }
+      position: { x: 560, y: 60 }
+      data: { label: "あさ6じ", color: "blue" }
     - id: "school"
       type: "text"
-      position: { x: 250, y: 500 }
-      data: { label: "学校", color: "amber" }
+      position: { x: 720, y: 60 }
+      data: { label: "がっこう", color: "blue" }
     - id: "study"
       type: "text"
-      position: { x: 400, y: 500 }
-      data: { label: "勉強", color: "amber" }
-    - id: "lunch"
-      type: "text"
-      position: { x: 100, y: 750 }
-      data: { label: "昼ご飯", color: "amber" }
-    - id: "afternoon"
-      type: "text"
-      position: { x: 250, y: 750 }
-      data: { label: "午後", color: "amber" }
-    - id: "dinner"
-      type: "text"
-      position: { x: 400, y: 750 }
-      data: { label: "晩ご飯", color: "amber" }
+      position: { x: 880, y: 60 }
+      data: { label: "4じかんべんきょう", color: "amber" }
     - id: "sleep"
       type: "text"
-      position: { x: 550, y: 500 }
-      data: { label: "寝る", color: "amber" }
-    - id: "saturday"
-      type: "text"
-      position: { x: 550, y: 500 }
-      data: { label: "土曜日", color: "purple" }
-    - id: "sunday"
-      type: "text"
-      position: { x: 700, y: 500 }
-      data: { label: "日曜日", color: "purple" }
-    - id: "work"
-      type: "text"
-      position: { x: 550, y: 750 }
-      data: { label: "アルバイト", color: "amber" }
-    - id: "fun"
-      type: "text"
-      position: { x: 700, y: 750 }
-      data: { label: "たのしい", color: "amber" }
-    - id: "conn-weekday"
+      position: { x: 1040, y: 60 }
+      data: { label: "ねる", color: "amber" }
+    - id: "conn-is"
       type: "connector"
-      position: { x: 250, y: 150 }
-      data: { label: "の生活" }
-    - id: "conn-weekend"
+      position: { x: 160, y: 180 }
+      data: { label: "です" }
+    - id: "conn-everyday"
       type: "connector"
-      position: { x: 550, y: 150 }
+      position: { x: 320, y: 180 }
       data: { label: "は" }
-    - id: "conn-wake-up"
+    - id: "conn-morning"
       type: "connector"
-      position: { x: 175, y: 375 }
+      position: { x: 480, y: 180 }
       data: { label: "に" }
-    - id: "conn-school"
+    - id: "conn-go"
       type: "connector"
-      position: { x: 250, y: 375 }
-      data: { label: "へ行く" }
+      position: { x: 640, y: 180 }
+      data: { label: "へいく" }
     - id: "conn-study"
       type: "connector"
-      position: { x: 325, y: 375 }
-      data: { label: "をする" }
-    - id: "conn-lunch"
+      position: { x: 800, y: 180 }
+      data: { label: "で" }
+    - id: "conn-after"
       type: "connector"
-      position: { x: 175, y: 625 }
-      data: { label: "を食べる" }
-    - id: "conn-afternoon"
-      type: "connector"
-      position: { x: 250, y: 625 }
-      data: { label: "の活動" }
-    - id: "conn-dinner"
-      type: "connector"
-      position: { x: 325, y: 625 }
-      data: { label: "を食べる" }
-    - id: "conn-sleep"
-      type: "connector"
-      position: { x: 400, y: 375 }
-      data: { label: "に寝る" }
-    - id: "conn-saturday"
-      type: "connector"
-      position: { x: 550, y: 375 }
-      data: { label: "の" }
-    - id: "conn-sunday"
-      type: "connector"
-      position: { x: 625, y: 375 }
-      data: { label: "の" }
-    - id: "conn-work"
-      type: "connector"
-      position: { x: 550, y: 625 }
-      data: { label: "をする" }
-    - id: "conn-fun"
-      type: "connector"
-      position: { x: 625, y: 625 }
-      data: { label: "時間" }
+      position: { x: 960, y: 180 }
+      data: { label: "のあと" }
 edges:
     - id: "e1"
       source: "tanaka"
-      target: "conn-weekday"
+      target: "conn-is"
     - id: "e2"
-      source: "conn-weekday"
-      target: "weekday"
+      source: "conn-is"
+      target: "student"
     - id: "e3"
-      source: "tanaka"
-      target: "conn-weekend"
+      source: "student"
+      target: "conn-everyday"
     - id: "e4"
-      source: "conn-weekend"
-      target: "weekend"
+      source: "conn-everyday"
+      target: "everyday"
     - id: "e5"
-      source: "weekday"
-      target: "conn-wake-up"
+      source: "everyday"
+      target: "conn-morning"
     - id: "e6"
-      source: "conn-wake-up"
-      target: "wake-up"
+      source: "conn-morning"
+      target: "morning"
     - id: "e7"
-      source: "weekday"
-      target: "conn-school"
+      source: "morning"
+      target: "conn-go"
     - id: "e8"
-      source: "conn-school"
+      source: "conn-go"
       target: "school"
     - id: "e9"
-      source: "weekday"
+      source: "school"
       target: "conn-study"
     - id: "e10"
       source: "conn-study"
       target: "study"
     - id: "e11"
-      source: "weekday"
-      target: "conn-lunch"
+      source: "study"
+      target: "conn-after"
     - id: "e12"
-      source: "conn-lunch"
-      target: "lunch"
-    - id: "e13"
-      source: "weekday"
-      target: "conn-afternoon"
-    - id: "e14"
-      source: "conn-afternoon"
-      target: "afternoon"
-    - id: "e15"
-      source: "weekday"
-      target: "conn-dinner"
-    - id: "e16"
-      source: "conn-dinner"
-      target: "dinner"
-    - id: "e17"
-      source: "weekday"
-      target: "conn-sleep"
-    - id: "e18"
-      source: "conn-sleep"
+      source: "conn-after"
       target: "sleep"
-    - id: "e19"
-      source: "weekend"
-      target: "conn-saturday"
-    - id: "e20"
-      source: "conn-saturday"
-      target: "saturday"
-    - id: "e21"
-      source: "weekend"
-      target: "conn-sunday"
-    - id: "e22"
-      source: "conn-sunday"
-      target: "sunday"
-    - id: "e23"
-      source: "saturday"
-      target: "conn-work"
-    - id: "e24"
-      source: "conn-work"
-      target: "work"
-    - id: "e25"
-      source: "sunday"
-      target: "conn-fun"
-    - id: "e26"
-      source: "conn-fun"
-      target: "fun"
 ---
 
-田中さんは日本の学生です。毎日とても忙しいです。
+田中さんはがくせいです。まいにち、あさ6じにおきます。
 
-毎朝６時に起きます。朝ご飯を食べます。朝ご飯を食べたあと、電車で学校に行きます。電車のりょうは２０分ぐらいです。
+あさごはんをたべて、でんしゃでがっこうへいきます。がっこうで4じかんべんきょうします。ひるごはんはがっこうのしょくどうでたべます。よる11じごろねます。
 
-学校では４時間勉強します。授業は９時から始まります。授業は１２時に終わります。昼休みは１時間です。学校の喫茶店で昼ご飯を食べます。喫茶店のご飯は安くておいしいです。
-
-午後は友達と話したり、図書館で本を読んだりします。午後４時に学校が終わります。
-
-家に帰ったら、宿題をします。晩ご飯はいつも家で家族と一緒に食べます。夜１１時ごろ寝ます。ふだんはとても忙しいです。
-
-週末はちょっと違います。土曜日の朝は９時ごろまで寝ます。昼ごろ起きて、朝ご飯を食べます。そのあとアルバイトをします。夜は勉強します。
-
-日曜日は暇です。友達と遊んだり、映画を見たりします。週末はとても楽しいです。
+むずかしいことばはすくないです。ゆっくりよめば、すぐにわかります。

@@ -6,9 +6,7 @@ import { Database } from "@/server/db/client";
 import { cohorts } from "@/server/db/schema/auth-schema";
 
 export const COHORTS = [
-	{ name: "Demo Class 2025", description: "Main demo class for evaluation" },
-	{ name: "Japanese 101 - Fall", description: "Introductory Japanese course" },
-	{ name: "Kanji Workshop", description: "Specialized kanji learning group" },
+	{ name: "Demo Class 2025", description: "Single demo class for the simplified seed" },
 ];
 
 export function seedCohorts() {
@@ -33,7 +31,11 @@ export function seedCohorts() {
 				});
 				yield* Effect.log(`  Created cohort: ${cohortData.name} (${id})`);
 			} else {
-				yield* Effect.log(`  Cohort already exists: ${cohortData.name}`);
+				yield* db
+					.update(cohorts)
+					.set({ description: cohortData.description })
+					.where(eq(cohorts.id, existing[0].id));
+				yield* Effect.log(`  Updated cohort: ${cohortData.name}`);
 			}
 		}
 	});
