@@ -1,8 +1,8 @@
 import { Schema } from "effect";
 import { BookOpenIcon, CheckCircleIcon, SchoolIcon, UserIcon } from "lucide-react";
 
-import { NonEmpty } from "@/lib/validation-schemas";
-import { JlptLevelSchema, StudyGroupSchema } from "@/server/rpc/auth";
+import { NonEmpty, Password } from "@/lib/validation-schemas";
+import { JlptLevelSchema } from "@/server/rpc/auth";
 
 export const jlptOptions = [
 	{ id: "None", label: "None (No JLPT)" },
@@ -13,19 +13,13 @@ export const jlptOptions = [
 	{ id: "N1", label: "N1 (Advanced)" },
 ];
 
-export const studyGroupOptions = [
-	{ id: "unassigned", label: "Unassigned" },
-	{ id: "experiment", label: "Experiment" },
-	{ id: "control", label: "Control" },
-];
-
 export const SignUpSchema = Schema.Struct({
 	studentId: NonEmpty("Student ID"),
-	password: Schema.String,
+	password: Password(8),
 	confirmPassword: Schema.String,
 	age: Schema.NullOr(Schema.Number),
 	jlptLevel: JlptLevelSchema,
-	studyGroup: StudyGroupSchema,
+	cohortId: NonEmpty("Cohort"),
 	japaneseLearningDuration: Schema.NullOr(Schema.Number),
 	previousJapaneseScore: Schema.NullOr(Schema.Number),
 	mediaConsumption: Schema.NullOr(Schema.Number),
@@ -65,7 +59,7 @@ export const steps: Step[] = [
 	{
 		id: "academic",
 		title: "Academic",
-		description: "Academic and study details",
+		description: "Choose your cohort and review your student ID",
 		icon: SchoolIcon,
 	},
 	{

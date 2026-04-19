@@ -10,37 +10,35 @@ import { authMiddlewareOptional } from "@/middlewares/auth";
 import { Database } from "@/server/db/client";
 import { cohortMembers, cohorts } from "@/server/db/schema/auth-schema";
 
-import { AppRuntime } from "../app-runtime";
-import { Rpc, logRpcError, logAndReturnError, logAndReturnDefect } from "../rpc-helper";
-
 import { claimWhitelistEntry } from "@/features/whitelist/lib/whitelist-service.mutations";
 import { getWhitelistEntryByStudentId } from "@/features/whitelist/lib/whitelist-service.queries";
 import { WhitelistAlreadyClaimedError, WhitelistNotFoundError } from "@/features/whitelist/lib/whitelist-service.shared";
 
-export const JlptLevelSchema = Schema.Union(Schema.Literal("N5", "N4", "N3", "N2", "N1", "None"));
+import { AppRuntime } from "../app-runtime";
+import { Rpc, logRpcError, logAndReturnError, logAndReturnDefect } from "../rpc-helper";
 
-export const StudyGroupSchema = Schema.NullOr(
-	Schema.Union(Schema.Literal("experiment", "control")),
-);
+export const JlptLevelSchema = Schema.Union(Schema.Literal("N5", "N4", "N3", "N2", "N1", "None"));
 
 export const SignUpInput = Schema.Struct({
 	studentId: NonEmpty("Student ID"),
 	password: Password(8),
 	age: Schema.NullOr(Schema.Number),
 	jlptLevel: JlptLevelSchema,
-	studyGroup: StudyGroupSchema,
+	cohortId: NonEmpty("Cohort"),
 	japaneseLearningDuration: Schema.NullOr(Schema.Number),
 	previousJapaneseScore: Schema.NullOr(Schema.Number),
 	mediaConsumption: Schema.NullOr(Schema.Number),
 	motivation: Schema.NullOr(Schema.String),
 	consentGiven: Schema.Boolean,
-});
+}).pipe(
+	Schema.filter((data) => data.consentGiven === true, {
+		message: () => "You must give consent to participate in this research",
+	}),
+);
 
 export type SignUpInput = typeof SignUpInput.Type;
 
-export class SignUpFailedError extends Data.TaggedError("SignUpFailedError")<{
-	readonly message: string;
-}> {}
+export class SignUpFailedError extends Data.TaggedError("SignUpFailedError")<{ readonly message: string }> {}
 
 function getFriendlySignUpError(err: unknown): string {
 	const raw = err instanceof Error ? err.message : typeof err === "string" ? err : "Unknown error";
@@ -93,7 +91,6 @@ export const signUpRpc = createServerFn({ method: "POST" })
 								previousJapaneseScore: data.previousJapaneseScore ?? undefined,
 								mediaConsumption: data.mediaConsumption ?? undefined,
 								motivation: data.motivation ?? undefined,
-								studyGroup: data.studyGroup,
 								consentGiven: data.consentGiven,
 							},
 						}),
@@ -104,14 +101,12 @@ export const signUpRpc = createServerFn({ method: "POST" })
 					return yield* new SignUpFailedError({ message: "Signup returned no result" });
 				}
 
-				if (whitelist.cohortId) {
-					yield* db.insert(cohortMembers).values({
-						id: randomString(),
-						userId: result.user.id,
-						cohortId: whitelist.cohortId,
-						role: "member",
-					});
-				}
+				yield* db.insert(cohortMembers).values({
+					id: randomString(),
+					userId: result.user.id,
+					cohortId: data.cohortId,
+					role: "member",
+				});
 
 				yield* claimWhitelistEntry(whitelist.studentId, result.user.id);
 
