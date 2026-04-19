@@ -8,7 +8,7 @@ import { FieldInfo } from "@/components/ui/field-info";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { studentIdToAuthEmail } from "@/lib/student-id-auth";
-import { NonEmpty, Password } from "@/lib/validation-schemas";
+import { Password } from "@/lib/validation-schemas";
 import { getMe } from "@/server/rpc/profile";
 
 import { authClient } from "../lib/auth-client";
@@ -18,14 +18,14 @@ function getFriendlyAuthErrorMessage(err: unknown) {
         err instanceof Error ? err.message : typeof err === "string" ? err : "Unknown error";
     const msg = raw.toLowerCase();
     if (msg.includes("invalidsecret") || msg.includes("invalid secret")) {
-        return "Incorrect student ID or password.";
+        return "Incorrect student ID / email or password.";
     }
     if (
         msg.includes("accountnotfound") ||
         msg.includes("no account") ||
         msg.includes("unknown identifier")
     ) {
-        return "Account not found. Check your student ID.";
+        return "Account not found. Check your student ID / email.";
     }
     if (msg.includes("rate") && msg.includes("limit")) {
         return "Too many attempts. Please wait a moment and try again.";
@@ -34,7 +34,7 @@ function getFriendlyAuthErrorMessage(err: unknown) {
         return "Network error. Check your connection and try again.";
     }
 
-    return "Unable to sign in. Please verify your student ID and password.";
+    return "Unable to sign in. Please verify your student ID / email and password.";
 }
 
 export const Route = createFileRoute("/login")({
@@ -51,7 +51,7 @@ export const Route = createFileRoute("/login")({
 });
 
 const LoginSchema = Schema.Struct({
-    studentId: NonEmpty("Student ID"),
+    studentId: Schema.optionalWith(Schema.String, { default: () => "" }),
     password: Password(8),
 });
 
@@ -71,8 +71,17 @@ function LoginPage() {
         onSubmit: async ({ value }) => {
             setError(null);
             try {
+                const identifier = value.studentId.trim();
+                if (!identifier) {
+                    setError("Student ID / email is required.");
+                    return;
+                }
+
+                const email = identifier.includes("@")
+                    ? identifier
+                    : studentIdToAuthEmail(identifier);
                 const { error } = await authClient.signIn.email({
-                    email: studentIdToAuthEmail(value.studentId),
+                    email,
                     password: value.password,
                 });
                 if (error) {
@@ -102,7 +111,7 @@ function LoginPage() {
                     <div>
                         <h1 className="text-2xl font-semibold">KitBuild</h1>
                         <p className="text-sm text-muted-foreground">
-                            Sign in with your student ID
+                            Sign in with your student ID / email
                         </p>
                     </div>
                 </div>
@@ -124,11 +133,11 @@ function LoginPage() {
                     <form.Field name="studentId">
                         {(field) => (
                             <div className="space-y-1.5">
-                                <Label htmlFor="studentId">Student ID</Label>
+                                <Label htmlFor="studentId">Student ID / Email</Label>
                                 <Input
                                     id="studentId"
-                                    placeholder="e.g. 12345678"
                                     value={field.state.value}
+                                    placeholder=""
                                     onChange={(e) => field.handleChange(e.target.value)}
                                     onBlur={field.handleBlur}
                                     autoComplete="username"
@@ -145,7 +154,6 @@ function LoginPage() {
                                 <Input
                                     id="password"
                                     type="password"
-                                    placeholder="********"
                                     value={field.state.value}
                                     onChange={(e) => field.handleChange(e.target.value)}
                                     onBlur={field.handleBlur}
@@ -180,4 +188,3 @@ function LoginPage() {
         </div>
     );
 }
-

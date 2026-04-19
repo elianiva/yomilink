@@ -37,6 +37,16 @@ test.describe("Login - Basic Flows", () => {
 		await expect(page.locator("body")).toContainText("Assignments");
 	});
 
+	test("should login as teacher with email and redirect to dashboard", async ({ page }) => {
+		await page.goto("/login");
+		await page.locator("#studentId").fill("teacher@demo.local");
+		await page.locator("#password").fill("teacher123");
+		await page.locator('button[type="submit"]').click();
+
+		await expect(page).toHaveURL("/dashboard");
+		await expect(page.locator("body")).toContainText("Topics");
+	});
+
 	test("should show loading state during submit", async ({ page }) => {
 		const account = await createAccount(page, 6);
 		await page.goto("/login");
@@ -59,12 +69,12 @@ test.describe("Login - Basic Flows", () => {
 });
 
 test.describe("Login - Validation Errors", () => {
-	test("should show error for empty student id", async ({ page }) => {
+	test("should show error for empty identifier", async ({ page }) => {
 		await page.goto("/login");
 		await page.waitForSelector("#password");
 		await page.locator("#password").fill("demo12345");
 		await page.locator('button[type="submit"]').click();
-		await expect(page.locator("text=Student ID is required")).toBeVisible();
+		await expect(page.locator("text=Student ID / email is required")).toBeVisible();
 	});
 
 	test("should show error for empty password", async ({ page }) => {
