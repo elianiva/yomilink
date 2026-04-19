@@ -34,7 +34,6 @@ export const getWhitelistEntryRpc = createServerFn()
 	);
 
 export const listUnregisteredWhitelistRpc = createServerFn()
-	.middleware([requireRoleMiddleware("teacher", "admin")])
 	.handler(() =>
 		AppRuntime.runPromise(
 			listUnregisteredWhitelist().pipe(

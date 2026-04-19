@@ -1,21 +1,40 @@
 import { execSync } from "node:child_process";
 
-import { test as setup } from "@playwright/test";
+import { expect, test as setup, type Page } from "@playwright/test";
 
 const authDir = "./playwright/.auth";
 
-/**
- * Global setup for auth tests.
- * Seeds test database with demo data when E2E_RUN_SEED=1 is set.
- * Skipped by default - run seed manually or set E2E_RUN_SEED=1 to re-seed.
- */
+async function signInAndSaveState(page: Page, email: string, password: string, targetUrl: string, storagePath: string) {
+	const response = await page.evaluate(
+		async ({ email, password }) => {
+			const res = await fetch("/api/auth/sign-in/email", {
+				method: "POST",
+				headers: {
+					"Content-Type": "application/json",
+				},
+				credentials: "include",
+				body: JSON.stringify({ email, password, rememberMe: true }),
+			});
+			return { ok: res.ok, status: res.status, text: await res.text() };
+		},
+		{ email, password },
+	);
+
+	if (!response.ok) {
+		throw new Error(`Auth setup failed (${response.status}): ${response.text}`);
+	}
+
+	await page.goto(targetUrl);
+	await expect(page).toHaveURL(targetUrl);
+	await page.context().storageState({ path: storagePath });
+}
+
 setup("seed database", async () => {
 	if (!process.env.E2E_RUN_SEED) {
 		console.log("Skipping seed (set E2E_RUN_SEED=1 to run seed)");
 		return;
 	}
 
-	// Only seed when explicitly requested via E2E_RUN_SEED=1
 	try {
 		execSync("vp run db:seed", { stdio: "inherit" });
 	} catch {
@@ -23,60 +42,12 @@ setup("seed database", async () => {
 	}
 });
 
-/**
- * Create authenticated storage states for test users.
- * This allows tests to skip login and start with an active session.
- */
 setup("authenticate student", async ({ page }) => {
-	await page.goto("/login");
-
-	// Wait for page to fully load and hydrate
-	await page.waitForSelector("#email", { state: "visible" });
-
-	// Fill credentials
-	await page.fill("#email", "tanaka@demo.local");
-	await page.fill("#password", "demo12345");
-
-	// Wait for form validation to pass and button to enable
-	await page.waitForFunction(() => {
-		const button = document.querySelector('button[type="submit"]') as HTMLButtonElement;
-		return button && !button.disabled;
-	});
-
-	// Click submit and wait for navigation
-	await Promise.all([
-		page.waitForURL("/dashboard/assignments", { timeout: 30000 }),
-		page.click('button[type="submit"]'),
-	]);
-
-	// Save storage state (cookies with session token)
-	await page.context().storageState({ path: `${authDir}/student.json` });
+	await signInAndSaveState(page, "tanaka@demo.local", "demo12345", "/dashboard/assignments", authDir + "/student.json");
 	console.log("Student auth state saved");
 });
 
 setup("authenticate teacher", async ({ page }) => {
-	await page.goto("/login");
-
-	// Wait for page to fully load and hydrate
-	await page.waitForSelector("#email", { state: "visible" });
-
-	// Fill credentials
-	await page.fill("#email", "teacher@demo.local");
-	await page.fill("#password", "teacher123");
-
-	// Wait for form validation to pass
-	await page.waitForFunction(() => {
-		const button = document.querySelector('button[type="submit"]') as HTMLButtonElement;
-		return button && !button.disabled;
-	});
-
-	// Click submit and wait for navigation
-	await Promise.all([
-		page.waitForURL("/dashboard", { timeout: 30000 }),
-		page.click('button[type="submit"]'),
-	]);
-
-	// Save storage state
-	await page.context().storageState({ path: `${authDir}/teacher.json` });
+	await signInAndSaveState(page, "teacher@demo.local", "teacher123", "/dashboard", authDir + "/teacher.json");
 	console.log("Teacher auth state saved");
 });
