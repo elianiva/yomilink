@@ -18,7 +18,6 @@ export const Route = createFileRoute("/signup/")({
     ssr: true,
     beforeLoad: async () => {
         const me = await getMe();
-        console.log({ me });
         if (me?.success) {
             console.log("somehow me is here");
             const target = me.data.role === "student" ? "/dashboard/assignments" : "/dashboard";

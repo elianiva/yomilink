@@ -5,4 +5,4 @@ export * from "./demo-data.js";
 export * from "./forms.js";
 export * from "./responses.js";
 export * from "./learner-maps.js";
-export { seedWri2026Cohort, seedWri2026Forms, seedWri2026TopicsAndGoalMaps } from "./wri-2026.js";
+export * from "./whitelist.js";
