@@ -163,7 +163,7 @@ export function seedForms(teacherId: string) {
 
 		const preTestFormTitle = "Reading Comprehension Pre-Test";
 		const preTestDescription =
-			"Pre-test to measure baseline reading comprehension for Tanaka's Daily Life. 20 MCQ items based on Bloom's Taxonomy. The same questions are reused for the post-test and delayed-test.";
+			"Pre-test to measure baseline reading comprehension for Japan's three main islands and their major cities. 20 MCQ items based on Bloom's Taxonomy. The same questions are reused for the post-test and delayed-test.";
 		const existingPreTestForm = yield* db.select().from(forms).where(eq(forms.title, preTestFormTitle)).limit(1);
 
 		let preTestFormId: string;

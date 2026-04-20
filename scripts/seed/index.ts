@@ -36,7 +36,7 @@ const program = Effect.gen(function* () {
 	);
 
 	if (!demoData) {
-		yield* Effect.log("Failed to create demo data - Tanaka's Daily Life goal map not found");
+		yield* Effect.log("Failed to create demo data - Japan map goal map not found");
 		return;
 	}
 
@@ -57,8 +57,8 @@ const program = Effect.gen(function* () {
 			"  Whitelist: 20 reserved student IDs\n" +
 			"Created:\n" +
 			"  - Cohort: Demo Class 2025 (" + demoData.demoCohortId.slice(0, 8) + "...)\n" +
-			"  - Kit: Tanaka's Daily Life Kit (" + demoData.demoKitId.slice(0, 8) + "...)\n" +
-			"  - Assignment: Tanaka's Daily Life Demo (" + demoData.demoAssignmentId.slice(0, 8) + "...)\n" +
+			"  - Kit: Japan Islands Tree Kit (" + demoData.demoKitId.slice(0, 8) + "...)\n" +
+			"  - Assignment: Japan Islands Tree Demo (" + demoData.demoAssignmentId.slice(0, 8) + "...)\n" +
 			"  - Forms: pre-test, post-test, delayed-test\n" +
 			"  - Submissions: 5 whitelist accounts\n",
 	);

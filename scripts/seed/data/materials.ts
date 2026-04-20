@@ -70,7 +70,7 @@ for (const material of MATERIALS) {
 export const TOPICS = [
 	{
 		title: "Daily Life & Culture",
-		description: "Single N5 demo reading about a student's daily routine",
-		goalMapTitles: ["Tanaka's Daily Life"],
+		description: "Single N5 demo reading about Japan's three main islands and their major cities",
+		goalMapTitles: ["Japan: Main Islands and Cities"],
 	},
 ];

@@ -91,12 +91,12 @@ export function seedDemoData(
 			{ concurrency: 10 },
 		);
 
-		yield* Effect.log("Creating kit for Tanaka's Daily Life...");
-		const dailyLifeGoalMapId = goalMapIdsByTitle["Tanaka's Daily Life"];
-		const dailyLifeData = goalMapDataByTitle["Tanaka's Daily Life"];
+		yield* Effect.log("Creating kit for Japan: Main Islands and Cities...");
+		const dailyLifeGoalMapId = goalMapIdsByTitle["Japan: Main Islands and Cities"];
+		const dailyLifeData = goalMapDataByTitle["Japan: Main Islands and Cities"];
 
 		if (!dailyLifeGoalMapId || !dailyLifeData) {
-			yield* Effect.log("Tanaka's Daily Life goal map not found!");
+			yield* Effect.log("Japan map goal map not found!");
 			return null;
 		}
 
@@ -108,7 +108,7 @@ export function seedDemoData(
 
 		const dailyLifeTextId = dailyLifeGoalMap[0]?.textId || null;
 
-		const kitName = "Tanaka's Daily Life Kit";
+		const kitName = "Japan Islands Tree Kit";
 		const existingKit = yield* db.select().from(kits).where(eq(kits.name, kitName)).limit(1);
 
 		let demoKitId: string;
@@ -147,8 +147,8 @@ export function seedDemoData(
 		}
 
 		yield* Effect.log("Creating assignment...");
-		const assignmentTitle = "Tanaka's Daily Life Demo";
-		const readingMaterialContent = GOAL_MAP_TO_MATERIAL["Tanaka's Daily Life"]?.content || "";
+		const assignmentTitle = "Japan Islands Tree Demo";
+		const readingMaterialContent = GOAL_MAP_TO_MATERIAL["Japan: Main Islands and Cities"]?.content || "";
 		const existingAssignment = yield* db
 			.select()
 			.from(assignments)
@@ -170,7 +170,7 @@ export function seedDemoData(
 					goalMapId: dailyLifeGoalMapId,
 					kitId: demoKitId,
 					title: assignmentTitle,
-					description: "Simple demo assignment for Tanaka's daily routine.",
+					description: "Simple demo assignment for Japan's three main islands and their major cities.",
 					readingMaterial: readingMaterialContent,
 					timeLimitMinutes: 20,
 					startDate,
@@ -190,7 +190,7 @@ export function seedDemoData(
 				goalMapId: dailyLifeGoalMapId,
 				kitId: demoKitId,
 				title: assignmentTitle,
-				description: "Simple demo assignment for Tanaka's daily routine.",
+				description: "Simple demo assignment for Japan's three main islands and their major cities.",
 				readingMaterial: readingMaterialContent,
 				timeLimitMinutes: 20,
 				startDate,
