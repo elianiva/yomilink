@@ -86,7 +86,12 @@ export function LearnerMapEditor() {
 		LearnerMapRpc.getAssignmentForStudent({ assignmentId }),
 	);
 
-	const condition = assignmentData?.studyGroup === "experiment" ? "concept_map" : "summarizing";
+	const condition =
+		assignmentData?.studyGroup === "experiment"
+			? "concept_map"
+			: assignmentData?.studyGroup === "control"
+				? "summarizing"
+				: null;
 
 	const saveMutation = useRpcMutation(LearnerMapRpc.saveLearnerMap(), {
 		operation: "save learner map",
@@ -314,13 +319,6 @@ export function LearnerMapEditor() {
 		);
 	}
 
-	if (isLoadingExperimentGroup) {
-		return (
-			<div className="h-full flex items-center justify-center">
-				<div className="text-muted-foreground">Loading assignment group...</div>
-			</div>
-		);
-	}
 
 	if (!condition) {
 		return (
