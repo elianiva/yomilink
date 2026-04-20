@@ -7,7 +7,6 @@ import { Button } from "@/components/ui/button";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { AggregatedResponses } from "@/features/form/components/aggregated-responses";
 import { IndividualResponsesTable } from "@/features/form/components/individual-responses-table";
-import { StratifiedGrouping } from "@/features/form/components/stratified-grouping";
 import type { FormResponseOutput, QuestionOutput } from "@/features/form/lib/form-service.core";
 import { useRpcQuery } from "@/hooks/use-rpc-query";
 import { FormRpc } from "@/server/rpc/form";
@@ -22,9 +21,7 @@ export const Route = createFileRoute("/dashboard/forms/$formId/results")({
 
 function FormResultsPage() {
 	const { formId } = Route.useParams();
-	const [activeTab, setActiveTab] = useState<"individual" | "aggregated" | "grouping">(
-		"individual",
-	);
+	const [activeTab, setActiveTab] = useState<"individual" | "aggregated">("individual");
 
 	const {
 		data: formData,
@@ -118,12 +115,6 @@ function FormResultsPage() {
 						<Users className="h-4 w-4" />
 						Aggregated
 					</TabsTrigger>
-					{form.type === "pre_test" && (
-						<TabsTrigger value="grouping" className="gap-2">
-							<Users className="h-4 w-4" />
-							Grouping
-						</TabsTrigger>
-					)}
 				</TabsList>
 
 				<TabsContent value="individual" className="mt-6">
@@ -139,15 +130,6 @@ function FormResultsPage() {
 					<AggregatedResponses responses={responses} questions={questions} />
 				</TabsContent>
 
-				{form.type === "pre_test" && (
-					<TabsContent value="grouping" className="mt-6">
-						<StratifiedGrouping
-							responses={responses}
-							questions={questions}
-							formId={formId}
-						/>
-					</TabsContent>
-				)}
 			</Tabs>
 		</div>
 	);

@@ -10,14 +10,8 @@ import {
 	getAvailableUsers,
 	getTeacherGoalMaps,
 	CreateAssignmentInput,
-	SaveExperimentGroupsInput,
-	saveExperimentGroups,
-	getExperimentGroupsByAssignmentId,
 	getAssignmentByPreTestFormId,
-	getExperimentCondition,
 	DeleteAssignmentInput,
-	getAssignmentExperimentStatus,
-	GetExperimentStatusInput,
 	getAssignmentById,
 } from "@/features/assignment/lib/assignment-service.core";
 import { requireRoleMiddleware } from "@/middlewares/auth";
@@ -117,42 +111,6 @@ export const getTeacherGoalMapsRpc = createServerFn()
 		),
 	);
 
-export const saveExperimentGroupsRpc = createServerFn({ method: "POST" })
-	.middleware([requireRoleMiddleware("teacher", "admin")])
-	.inputValidator((raw) => Schema.decodeUnknownSync(SaveExperimentGroupsInput)(raw))
-	.handler(({ data, context }) =>
-		AppRuntime.runPromise(
-			saveExperimentGroups(data, context.user.id).pipe(
-				Effect.map(() => Rpc.ok(true)),
-				Effect.withSpan("saveExperimentGroups"),
-				Effect.tapError(logRpcError("saveExperimentGroups")),
-				Effect.catchTags({
-					ExperimentGroupAssignmentLockedError: () =>
-						Rpc.forbidden("Experiment groups are locked for this assignment"),
-				}),
-				Effect.catchAll(logAndReturnError("saveExperimentGroups")),
-				Effect.catchAllDefect(logAndReturnDefect("saveExperimentGroups")),
-			),
-		),
-	);
-
-export const getExperimentGroupsByAssignmentIdRpc = createServerFn()
-	.middleware([requireRoleMiddleware("teacher", "admin")])
-	.inputValidator((raw) =>
-		Schema.decodeUnknownSync(Schema.Struct({ assignmentId: Schema.String }))(raw),
-	)
-	.handler(({ data }) =>
-		AppRuntime.runPromise(
-			getExperimentGroupsByAssignmentId(data.assignmentId).pipe(
-				Effect.map(Rpc.ok),
-				Effect.withSpan("getExperimentGroupsByAssignmentId"),
-				Effect.tapError(logRpcError("getExperimentGroupsByAssignmentId")),
-				Effect.catchAll(logAndReturnError("getExperimentGroupsByAssignmentId")),
-				Effect.catchAllDefect(logAndReturnDefect("getExperimentGroupsByAssignmentId")),
-			),
-		),
-	);
-
 export const getAssignmentByPreTestFormIdRpc = createServerFn()
 	.middleware([requireRoleMiddleware("teacher", "admin")])
 	.inputValidator((raw) =>
@@ -190,41 +148,6 @@ export const getAssignmentByIdRpc = createServerFn()
 		),
 	);
 
-export const getExperimentConditionRpc = createServerFn()
-	.middleware([requireRoleMiddleware("student", "teacher", "admin")])
-	.inputValidator((raw) =>
-		Schema.decodeUnknownSync(Schema.Struct({ assignmentId: Schema.String }))(raw),
-	)
-	.handler(({ data, context }) =>
-		AppRuntime.runPromise(
-			getExperimentCondition(data.assignmentId, context.user.id).pipe(
-				Effect.map(Rpc.ok),
-				Effect.withSpan("getExperimentCondition"),
-				Effect.tapError(logRpcError("getExperimentCondition")),
-				Effect.catchAll(logAndReturnError("getExperimentCondition")),
-				Effect.catchAllDefect(logAndReturnDefect("getExperimentCondition")),
-			),
-		),
-	);
-
-export const getAssignmentExperimentStatusRpc = createServerFn()
-	.middleware([requireRoleMiddleware("teacher", "admin")])
-	.inputValidator((raw) => Schema.decodeUnknownSync(GetExperimentStatusInput)(raw))
-	.handler(({ data }) =>
-		AppRuntime.runPromise(
-			getAssignmentExperimentStatus(data).pipe(
-				Effect.map(Rpc.ok),
-				Effect.withSpan("getAssignmentExperimentStatus"),
-				Effect.tapError(logRpcError("getAssignmentExperimentStatus")),
-				Effect.catchTags({
-					AssignmentNotFoundError: () => Rpc.notFound("Assignment"),
-				}),
-				Effect.catchAll(logAndReturnError("getAssignmentExperimentStatus")),
-				Effect.catchAllDefect(logAndReturnDefect("getAssignmentExperimentStatus")),
-			),
-		),
-	);
-
 export const AssignmentRpc = {
 	assignments: () => ["assignments"],
 	createAssignment: () =>
@@ -257,16 +180,6 @@ export const AssignmentRpc = {
 			queryKey: [...AssignmentRpc.assignments(), "goalmaps"],
 			queryFn: () => getTeacherGoalMapsRpc(),
 		}),
-	saveExperimentGroups: () =>
-		mutationOptions({
-			mutationKey: [...AssignmentRpc.assignments(), "saveGroups"],
-			mutationFn: (data: SaveExperimentGroupsInput) => saveExperimentGroupsRpc({ data }),
-		}),
-	getExperimentGroupsByAssignmentId: (assignmentId: string) =>
-		queryOptions({
-			queryKey: [...AssignmentRpc.assignments(), "groups", assignmentId],
-			queryFn: () => getExperimentGroupsByAssignmentIdRpc({ data: { assignmentId } }),
-		}),
 	getAssignmentByPreTestFormId: (formId: string) =>
 		queryOptions({
 			queryKey: [...AssignmentRpc.assignments(), "byPreTestForm", formId],
@@ -276,16 +189,5 @@ export const AssignmentRpc = {
 		queryOptions({
 			queryKey: [...AssignmentRpc.assignments(), "byId", assignmentId],
 			queryFn: () => getAssignmentByIdRpc({ data: { assignmentId } }),
-		}),
-
-	getExperimentCondition: (assignmentId: string) =>
-		queryOptions({
-			queryKey: [...AssignmentRpc.assignments(), "condition", assignmentId],
-			queryFn: () => getExperimentConditionRpc({ data: { assignmentId } }),
-		}),
-	getAssignmentExperimentStatus: (assignmentId: string) =>
-		queryOptions({
-			queryKey: [...AssignmentRpc.assignments(), "experimentStatus", assignmentId],
-			queryFn: () => getAssignmentExperimentStatusRpc({ data: { assignmentId } }),
 		}),
 };

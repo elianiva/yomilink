@@ -158,14 +158,14 @@ export const WHITELIST_FLOW_LEARNER_MAP_CONFIGS = [
 		studentEmail: EMAIL.haru,
 		attempt: 1,
 		correctEdgeIds: ["e1", "e2", "e3", "e4", "e5", "e6", "e7", "e8", "e9", "e10", "e11"],
-		excessiveEdges: [{ source: "tanaka", target: "lunch" }],
-		expectedScore: 0.67,
+		excessiveEdges: [{ source: "tanaka", target: "sleep" }],
+		expectedScore: 0.73,
 	},
 	{
 		studentEmail: EMAIL.mei,
 		attempt: 1,
 		correctEdgeIds: ["e1", "e2", "e3", "e4", "e5", "e6", "e7", "e8"],
-		excessiveEdges: [{ source: "weekday", target: "sleep" }],
+		excessiveEdges: [{ source: "morning", target: "sleep" }],
 		expectedScore: 0.53,
 	},
 ] as const;

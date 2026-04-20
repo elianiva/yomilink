@@ -45,7 +45,6 @@ import { formatDuration } from "@/lib/date-utils";
 import { toast } from "@/lib/error-toast";
 import { areNodesConnected, isValidConnection } from "@/lib/react-flow-types";
 import { cn } from "@/lib/utils";
-import { AssignmentRpc } from "@/server/rpc/assignment";
 import { LearnerMapRpc } from "@/server/rpc/learner-map";
 
 const routeApi = getRouteApi("/dashboard/learner-map/$assignmentId/");
@@ -87,11 +86,7 @@ export function LearnerMapEditor() {
 		LearnerMapRpc.getAssignmentForStudent({ assignmentId }),
 	);
 
-	const { data: experimentGroup, isLoading: isLoadingExperimentGroup } = useRpcQuery(
-		AssignmentRpc.getExperimentCondition(assignmentId),
-	);
-	const condition =
-		experimentGroup && "condition" in experimentGroup ? experimentGroup.condition : null;
+	const condition = assignmentData?.studyGroup === "experiment" ? "concept_map" : "summarizing";
 
 	const saveMutation = useRpcMutation(LearnerMapRpc.saveLearnerMap(), {
 		operation: "save learner map",

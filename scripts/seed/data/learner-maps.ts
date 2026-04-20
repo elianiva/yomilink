@@ -63,14 +63,14 @@ export const LEARNER_MAP_CONFIGS: LearnerMapConfig[] = [
 		studentEmail: "watanabe@demo.local",
 		attempt: 1,
 		correctEdgeIds: ["e1", "e2", "e3", "e4", "e5", "e6", "e7", "e8", "e9", "e10", "e11"],
-		excessiveEdges: [{ source: "tanaka", target: "lunch" }],
+		excessiveEdges: [{ source: "tanaka", target: "sleep" }],
 		expectedScore: 0.73,
 	},
 	{
 		studentEmail: "takahashi@demo.local",
 		attempt: 1,
 		correctEdgeIds: ["e1", "e2", "e3", "e4", "e5", "e6", "e7", "e8", "e9"],
-		excessiveEdges: [{ source: "weekday", target: "sleep" }],
+		excessiveEdges: [{ source: "morning", target: "sleep" }],
 		expectedScore: 0.6,
 	},
 	{
@@ -105,7 +105,7 @@ export const LEARNER_MAP_CONFIGS: LearnerMapConfig[] = [
 		studentEmail: "nakamura@demo.local",
 		attempt: 1,
 		correctEdgeIds: ["e1", "e2", "e3", "e4", "e5", "e6", "e7", "e8"],
-		excessiveEdges: [{ source: "work", target: "study" }],
+		excessiveEdges: [{ source: "student", target: "sleep" }],
 		expectedScore: 0.53,
 	},
 	{
@@ -114,7 +114,7 @@ export const LEARNER_MAP_CONFIGS: LearnerMapConfig[] = [
 		correctEdgeIds: ["e1", "e2", "e3", "e4", "e5", "e6"],
 		excessiveEdges: [
 			{ source: "tanaka", target: "sleep" },
-			{ source: "weekday", target: "sunday" },
+			{ source: "student", target: "morning" },
 		],
 		expectedScore: 0.4,
 	},

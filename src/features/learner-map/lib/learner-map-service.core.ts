@@ -241,9 +241,11 @@ export const getAssignmentForStudent = Effect.fn("getAssignmentForStudent")(func
 ) {
 	const db = yield* Database;
 
+	const userRows = yield* db.select({ studyGroup: user.studyGroup }).from(user).where(eq(user.id, userId)).limit(1);
+	const studyGroup = userRows[0]?.studyGroup ?? null;
+
 	yield* requireAssignmentMembership(userId, input.assignmentId);
 
-	// Fetch assignment with kit and goal map
 	const results = yield* db
 		.select({
 			assignment: {
@@ -292,7 +294,6 @@ export const getAssignmentForStudent = Effect.fn("getAssignmentForStudent")(func
 	const result = results[0];
 	if (!result || !result.kit) return null;
 
-	// Fetch reading material from kit or goal map
 	const textId = result.kit.textId || result.goalMap?.textId;
 	const [kitNodes, kitEdges, learnerMapNodes, learnerMapEdges, materialText] = yield* Effect.all(
 		[
@@ -306,19 +307,20 @@ export const getAssignmentForStudent = Effect.fn("getAssignmentForStudent")(func
 				: Effect.succeed([]),
 			textId
 				? Effect.promise(() =>
-						db
-							.select({ content: texts.content })
-							.from(texts)
-							.where(eq(texts.id, textId))
-							.limit(1)
-							.then((rows) => rows[0]?.content ?? null),
-					)
+					db
+						.select({ content: texts.content })
+						.from(texts)
+						.where(eq(texts.id, textId))
+						.limit(1)
+						.then((rows) => rows[0]?.content ?? null),
+				)
 				: Effect.succeed(null),
 		],
 		{ concurrency: "unbounded" },
 	);
 
 	return {
+		studyGroup,
 		assignment: {
 			...result.assignment,
 			dueAt: result.assignment.dueAt?.getTime(),
@@ -331,17 +333,16 @@ export const getAssignmentForStudent = Effect.fn("getAssignmentForStudent")(func
 		materialText: result.assignment.readingMaterial || materialText || null,
 		learnerMap: result.learnerMap
 			? {
-					id: result.learnerMap.id,
-					nodes: learnerMapNodes,
-					edges: learnerMapEdges,
-					status: result.learnerMap.status,
-					attempt: result.learnerMap.attempt,
-					controlText: result.learnerMap.controlText,
-				}
+				id: result.learnerMap.id,
+				nodes: learnerMapNodes,
+				edges: learnerMapEdges,
+				status: result.learnerMap.status,
+				attempt: result.learnerMap.attempt,
+				controlText: result.learnerMap.controlText,
+			}
 			: null,
 	};
 });
-
 export const saveLearnerMap = Effect.fn("saveLearnerMap")(function* (
 	userId: string,
 	data: {
