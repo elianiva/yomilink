@@ -16,7 +16,7 @@ type StudentForm = {
 	description: string | null;
 	type: "pre_test" | "post_test" | "delayed_test" | "registration" | "tam" | "questionnaire";
 	audience: "all" | "experiment" | "control";
-	unlockStatus: "locked" | "available" | "completed";
+	unlockStatus: "available" | "completed";
 	isUnlocked: boolean;
 	progress: {
 		status: "locked" | "available" | "completed";
@@ -34,7 +34,6 @@ function StudentFormsPage() {
 
 	const availableForms = forms.filter((f) => f.unlockStatus === "available");
 	const completedForms = forms.filter((f) => f.unlockStatus === "completed");
-	// Locked forms are hidden - they should be discovered through assignment flow, not browsing
 
 	const handleFormClick = (form: StudentForm) => {
 		if (form.isUnlocked) {

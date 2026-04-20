@@ -2,7 +2,6 @@ import { and, desc, eq, inArray, or } from "drizzle-orm";
 import { Data, Effect, Schema } from "effect";
 
 import { PerLinkDiagnosisSchema } from "@/features/analyzer/lib/analytics-service.core";
-import { unlockPostTestAfterAssignment } from "@/features/form/lib/unlock-service.progress";
 import { parseJson, randomString, roundToDecimals, safeParseJson } from "@/lib/utils";
 import { NonEmpty } from "@/lib/validation-schemas";
 import { Database } from "@/server/db/client";
@@ -492,25 +491,6 @@ export const submitLearnerMap = Effect.fn("submitLearnerMap")(function* (
 		rubricVersion: "1.0",
 	});
 
-	// Unlock post-test immediately if configured
-	if (assignment.postTestFormId) {
-		yield* unlockPostTestAfterAssignment({
-			assignmentId: input.assignmentId,
-			userId,
-			postTestFormId: assignment.postTestFormId,
-			delayDays: 0, // Unlock immediately
-		});
-	}
-
-	// Schedule delayed post-test unlock if configured
-	if (assignment.delayedPostTestFormId && assignment.delayedPostTestDelayDays) {
-		yield* unlockPostTestAfterAssignment({
-			assignmentId: input.assignmentId,
-			userId,
-			postTestFormId: assignment.delayedPostTestFormId,
-			delayDays: assignment.delayedPostTestDelayDays,
-		});
-	}
 
 	return {
 		diagnosisId,
@@ -793,25 +773,6 @@ export const submitControlText = Effect.fn("submitControlText")(function* (
 		});
 	}
 
-	// Unlock post-test immediately if configured
-	if (assignment.postTestFormId) {
-		yield* unlockPostTestAfterAssignment({
-			assignmentId: input.assignmentId,
-			userId,
-			postTestFormId: assignment.postTestFormId,
-			delayDays: 0, // Unlock immediately
-		});
-	}
-
-	// Schedule delayed post-test unlock if configured
-	if (assignment.delayedPostTestFormId && assignment.delayedPostTestDelayDays) {
-		yield* unlockPostTestAfterAssignment({
-			assignmentId: input.assignmentId,
-			userId,
-			postTestFormId: assignment.delayedPostTestFormId,
-			delayDays: assignment.delayedPostTestDelayDays,
-		});
-	}
 
 	return true;
 });

@@ -17,7 +17,6 @@ import {
 	GetFormResponsesInput,
 	getFormById,
 	getFormResponses,
-	getRegistrationFormStatus,
 	getStudentForms,
 	getStudentFormById,
 	listForms,
@@ -30,8 +29,6 @@ import {
 	updateForm,
 	updateQuestion,
 } from "@/features/form/lib/form-service.core";
-import { checkFormUnlock } from "@/features/form/lib/unlock-service.conditions";
-import { UnlockFormInput, unlockForm } from "@/features/form/lib/unlock-service.progress";
 import { requireRoleMiddleware } from "@/middlewares/auth";
 
 import { AppRuntime } from "../app-runtime";
@@ -194,7 +191,6 @@ export const updateFormRpc = createServerFn({ method: "POST" })
 				description: data.description,
 				type: data.type,
 				status: data.status,
-				unlockConditions: data.unlockConditions,
 				readingMaterialSections: data.readingMaterialSections,
 			}).pipe(
 				Effect.map(Rpc.ok),
@@ -364,57 +360,6 @@ export const deleteQuestionRpc = createServerFn({ method: "POST" })
 		),
 	);
 
-const CheckFormUnlockRpcInput = Schema.Struct({
-	formId: Schema.String,
-});
-
-export const checkFormUnlockRpc = createServerFn()
-	.middleware([requireRoleMiddleware("student", "teacher", "admin")])
-	.inputValidator((raw) => Schema.decodeUnknownSync(CheckFormUnlockRpcInput)(raw))
-	.handler(({ data, context }) =>
-		AppRuntime.runPromise(
-			checkFormUnlock({ formId: data.formId, userId: context.user.id }).pipe(
-				Effect.map(Rpc.ok),
-				Effect.withSpan("checkFormUnlock"),
-				Effect.tapError(logRpcError("checkFormUnlock")),
-				Effect.catchTags({
-					FormNotFoundError: () => Rpc.notFound("Form"),
-				}),
-				Effect.catchAll(logAndReturnError("checkFormUnlock")),
-				Effect.catchAllDefect(logAndReturnDefect("checkFormUnlock")),
-			),
-		),
-	);
-
-export const unlockFormRpc = createServerFn({ method: "POST" })
-	.middleware([requireRoleMiddleware("teacher", "admin")])
-	.inputValidator((raw) => Schema.decodeUnknownSync(UnlockFormInput)(raw))
-	.handler(({ data }) =>
-		AppRuntime.runPromise(
-			unlockForm({ formId: data.formId, userId: data.userId }).pipe(
-				Effect.map(() => Rpc.ok(true)),
-				Effect.withSpan("unlockForm"),
-				Effect.tapError(logRpcError("unlockForm")),
-				Effect.catchAll(logAndReturnError("getRegistrationFormStatus")),
-				Effect.catchAllDefect(logAndReturnDefect("getRegistrationFormStatus")),
-			),
-		),
-	);
-
-export const getRegistrationFormStatusRpc = createServerFn()
-	.middleware([requireRoleMiddleware("student", "teacher", "admin")])
-	.handler(({ context }) =>
-		AppRuntime.runPromise(
-			getRegistrationFormStatus(context.user.id).pipe(
-				Effect.map(Rpc.ok),
-				Effect.withSpan("getRegistrationFormStatus"),
-				Effect.tapError(logRpcError("getRegistrationFormStatus")),
-				Effect.catchAll(logAndReturnError("getRegistrationFormStatus")),
-				Effect.catchAllDefect(logAndReturnDefect("getRegistrationFormStatus")),
-			),
-		),
-	);
-
 export const FormRpc = {
 	forms: () => ["forms"],
 	createForm: () =>
@@ -441,11 +386,6 @@ export const FormRpc = {
 		queryOptions({
 			queryKey: [...FormRpc.forms(), "studentById", formId],
 			queryFn: () => getStudentFormByIdRpc({ data: { formId } }),
-		}),
-	getRegistrationFormStatus: () =>
-		queryOptions({
-			queryKey: [...FormRpc.forms(), "registration-status"],
-			queryFn: () => getRegistrationFormStatusRpc(),
 		}),
 	deleteForm: () =>
 		mutationOptions({
@@ -502,15 +442,5 @@ export const FormRpc = {
 		mutationOptions({
 			mutationKey: [...FormRpc.forms(), "deleteQuestion"],
 			mutationFn: (data: GetQuestionByIdInput) => deleteQuestionRpc({ data }),
-		}),
-	checkFormUnlock: (input: { formId: string }) =>
-		queryOptions({
-			queryKey: [...FormRpc.forms(), "checkUnlock", input.formId],
-			queryFn: () => checkFormUnlockRpc({ data: input }),
-		}),
-	unlockForm: () =>
-		mutationOptions({
-			mutationKey: [...FormRpc.forms(), "unlock"],
-			mutationFn: (data: UnlockFormInput) => unlockFormRpc({ data }),
 		}),
 };

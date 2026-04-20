@@ -40,13 +40,6 @@ function FormTakerPage() {
 		onSuccess: async () => {
 			// Invalidate related queries to refresh status
 			await queryClient.invalidateQueries({ queryKey: FormRpc.forms() });
-			if (formId) {
-				await queryClient.invalidateQueries({
-					queryKey: [...FormRpc.forms(), "checkUnlock", formId],
-					exact: true,
-				});
-			}
-
 			if (data?.form.type === "post_test") {
 				void navigate({ to: "/dashboard/assignments" });
 				return;

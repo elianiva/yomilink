@@ -15,8 +15,6 @@ import {
 import { cohortMembers, user as users } from "@/server/db/schema/auth-schema";
 
 import { isCorrectMcqAnswer } from "./form-scoring";
-import { checkFormUnlock } from "./unlock-service.conditions";
-import { FormUnlockConditionsType, FormUnlockConditionsNullable } from "./unlock-service.shared";
 
 /** Shared form type literals */
 export const FORM_TYPES = [
@@ -60,7 +58,6 @@ export const CreateFormInput = Schema.Struct({
 	}),
 	type: Schema.optionalWith(FormTypeSchema, { nullable: true }),
 	audience: Schema.optionalWith(FormAudienceSchema, { default: () => "all" }),
-	unlockConditions: Schema.optionalWith(FormUnlockConditionsNullable, { nullable: true }),
 	readingMaterialSections: Schema.optionalWith(ReadingMaterialSections, { nullable: true }),
 });
 
@@ -283,7 +280,6 @@ export const UpdateFormInput = Schema.Struct({
 		Schema.Union(Schema.Literal("draft"), Schema.Literal("published")),
 		{ nullable: true },
 	),
-	unlockConditions: Schema.optionalWith(FormUnlockConditionsNullable, { nullable: true }),
 	readingMaterialSections: Schema.optionalWith(ReadingMaterialSections, { nullable: true }),
 });
 
@@ -316,7 +312,6 @@ export const createForm = Effect.fn("createForm")(function* (
 		type,
 		audience,
 		status: "draft",
-		unlockConditions: data.unlockConditions ?? null,
 		readingMaterialSections,
 		createdBy: userId,
 	});
@@ -339,11 +334,6 @@ export const getFormById = Effect.fn("getFormById")(function* (formId: string) {
 		.from(questions)
 		.where(eq(questions.formId, formId))
 		.orderBy(questions.orderIndex);
-	const unlockConditions = yield* safeParseJson(
-		formRow.unlockConditions,
-		null,
-		FormUnlockConditionsNullable,
-	);
 	const readingMaterialSections = yield* safeParseJson(
 		formRow.readingMaterialSections,
 		null,
@@ -356,7 +346,6 @@ export const getFormById = Effect.fn("getFormById")(function* (formId: string) {
 		type: formRow.type,
 		status: formRow.status,
 		audience: formRow.audience,
-		unlockConditions,
 		readingMaterialSections,
 		createdBy: formRow.createdBy,
 		createdAt: formRow.createdAt,
@@ -439,7 +428,7 @@ export const getStudentFormById = Effect.fn("getStudentFormById")(function* (
 	if (
 		shouldExcludeForm(
 			{ id: formRow.id, type: formRow.type, audience: formRow.audience },
-			studyGroup,
+			formAccessScope.studyGroup,
 		)
 	) {
 		return yield* new FormNotAccessibleError({ formId });
@@ -460,18 +449,6 @@ export const getStudentFormById = Effect.fn("getStudentFormById")(function* (
 	const responseRow = responseRows[0] ?? null;
 	const responseAnswers = responseRow?.answers as Record<string, unknown> | undefined;
 
-	if (!responseRow) {
-		const unlockStatus = yield* checkFormUnlock({ formId, userId });
-		if (!unlockStatus.isUnlocked) {
-			return yield* new FormNotAccessibleError({ formId });
-		}
-	}
-
-	const unlockConditions = yield* safeParseJson(
-		formRow.unlockConditions,
-		null,
-		FormUnlockConditionsNullable,
-	);
 	const readingMaterialSections = yield* safeParseJson(
 		formRow.readingMaterialSections,
 		null,
@@ -485,7 +462,6 @@ export const getStudentFormById = Effect.fn("getStudentFormById")(function* (
 		type: formRow.type,
 		status: formRow.status,
 		audience: formRow.audience,
-		unlockConditions,
 		readingMaterialSections,
 		createdBy: formRow.createdBy,
 		createdAt: formRow.createdAt,
@@ -585,12 +561,6 @@ export const listForms = Effect.fn("listForms")(function* (userId: string) {
 	const formsWithStats = yield* Effect.all(
 		formRows.map((formRow) =>
 			Effect.gen(function* () {
-				const unlockConditions = yield* safeParseJson(
-					formRow.unlockConditions,
-					null,
-					FormUnlockConditionsNullable,
-				);
-
 				const progressRows = yield* db
 					.select({
 						status: formProgress.status,
@@ -619,7 +589,6 @@ export const listForms = Effect.fn("listForms")(function* (userId: string) {
 					type: formRow.type,
 					status: formRow.status,
 					audience: formRow.audience,
-					unlockConditions,
 					createdBy: formRow.createdBy,
 					createdAt: formRow.createdAt,
 					updatedAt: formRow.updatedAt,
@@ -641,7 +610,6 @@ export const updateForm = Effect.fn("updateForm")(function* (
 		type: FormType;
 		audience: FormAudience;
 		status: "draft" | "published";
-		unlockConditions: FormUnlockConditionsType | null;
 		readingMaterialSections: ReadonlyArray<ReadingMaterialSection> | null;
 	}>,
 ) {
@@ -685,9 +653,6 @@ export const updateForm = Effect.fn("updateForm")(function* (
 				audience: nextAudience,
 			}),
 			...(data.status !== undefined && { status: data.status }),
-			...(data.unlockConditions !== undefined && {
-				unlockConditions: data.unlockConditions,
-			}),
 			...(normalizedReadingMaterialSections !== undefined && {
 				readingMaterialSections: normalizedReadingMaterialSections,
 			}),
@@ -701,7 +666,6 @@ export const updateForm = Effect.fn("updateForm")(function* (
 		type: data.type,
 		audience: nextAudience,
 		status: data.status,
-		unlockConditions: data.unlockConditions,
 		readingMaterialSections: normalizedReadingMaterialSections,
 	};
 });
@@ -776,7 +740,6 @@ export const cloneForm = Effect.fn("cloneForm")(function* (formId: string, userI
 		type: originalForm.type,
 		audience: originalForm.audience,
 		status: "draft",
-		unlockConditions: originalForm.unlockConditions,
 		readingMaterialSections: originalForm.readingMaterialSections,
 		createdBy: userId,
 	});
@@ -996,11 +959,6 @@ export const submitFormResponse = Effect.fn("submitFormResponse")(function* (
 			formAccessScope.studyGroup,
 		)
 	) {
-		return yield* new FormNotAccessibleError({ formId: data.formId });
-	}
-
-	const unlockStatus = yield* checkFormUnlock({ formId: data.formId, userId: data.userId });
-	if (!unlockStatus.isUnlocked) {
 		return yield* new FormNotAccessibleError({ formId: data.formId });
 	}
 
@@ -1262,7 +1220,6 @@ export const FormOutputSchema = Schema.Struct({
 	),
 	audience: FormAudienceSchema,
 	status: Schema.Union(Schema.Literal("draft"), Schema.Literal("published")),
-	unlockConditions: FormUnlockConditionsNullable,
 	readingMaterialSections: Schema.NullOr(ReadingMaterialSections),
 	createdBy: Schema.String,
 	createdAt: Schema.Number,
@@ -1352,55 +1309,8 @@ export type QuestionOutput = typeof QuestionOutputSchema.Type;
 export type StudentQuestionOutput = typeof StudentQuestionOutputSchema.Type;
 export type FormResponseOutput = typeof FormResponseOutputSchema.Type;
 
-// Returns the registration form ID if it exists and user's completion status
-export const getRegistrationFormStatus = Effect.fn("getRegistrationFormStatus")(function* (
-	userId: string,
-) {
-	const db = yield* Database;
-
-	const registrationForms = yield* db
-		.select()
-		.from(forms)
-		.where(and(eq(forms.type, "registration"), eq(forms.status, "published")))
-		.limit(1);
-
-	const registrationForm = registrationForms[0];
-
-	// No registration form configured - user can proceed
-	if (!registrationForm) {
-		return {
-			hasRegistrationForm: false as const,
-			isCompleted: true,
-			formId: null,
-		};
-	}
-
-	const userProgress = yield* db
-		.select()
-		.from(formProgress)
-		.where(
-			and(
-				eq(formProgress.formId, registrationForm.id),
-				eq(formProgress.userId, userId),
-				eq(formProgress.status, "completed"),
-			),
-		)
-		.limit(1);
-
-	const isCompleted = userProgress.length > 0;
-
-	return {
-		hasRegistrationForm: true as const,
-		isCompleted,
-		formId: registrationForm.id,
-	};
-});
-
-// Get all published forms for students with unlock status
-
-// Form type priority order for display and required flow
-// registration → pre_test → post_test → delayed_test
-// TAM/questionnaire are optional, shown once published for the matching audience
+// Form type priority order for display
+// registration is hidden in dashboard list
 const FORM_TYPE_PRIORITY: Record<FormType, number> = {
 	registration: -1, // Completed during sign-up, not shown in dashboard
 	pre_test: 0,
@@ -1418,8 +1328,7 @@ function sortFormsByPriority(
 	return diff !== 0 ? diff : a.createdAt.getTime() - b.createdAt.getTime();
 }
 
-// Get all published forms for students with sequential unlock status
-// Enforces order: registration → pre_test → post_test → delayed_test
+// Get all published forms for students
 export const getStudentForms = Effect.fn("getStudentForms")(function* (userId: string) {
 	const db = yield* Database;
 
@@ -1512,18 +1421,14 @@ export const getStudentForms = Effect.fn("getStudentForms")(function* (userId: s
 					};
 				}
 
-				const unlockStatusResult = yield* checkFormUnlock({ formId: form.id, userId });
-				const unlockStatus: "locked" | "available" | "completed" =
-					unlockStatusResult.isUnlocked ? "available" : "locked";
-
 				return {
 					id: form.id,
 					title: form.title,
 					description: form.description,
 					type: form.type,
 					audience: form.audience,
-					unlockStatus,
-					isUnlocked: unlockStatusResult.isUnlocked,
+					unlockStatus: "available" as const,
+					isUnlocked: true,
 					progress: progress
 						? {
 								status: progress.status,

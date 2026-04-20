@@ -3,30 +3,12 @@ import { createFileRoute, Outlet, redirect } from "@tanstack/react-router";
 import { AppSidebar } from "@/components/app-sidebar";
 import { Separator } from "@/components/ui/separator";
 import { SidebarInset, SidebarProvider, SidebarTrigger } from "@/components/ui/sidebar";
-import { getRegistrationFormStatusRpc } from "@/server/rpc/form";
 import { getMe, ProfileRpc } from "@/server/rpc/profile";
 
 export const Route = createFileRoute("/dashboard")({
 	beforeLoad: async () => {
 		const me = await getMe();
 		if (!me.success) throw redirect({ to: "/login" });
-
-		if (me.data.role === "student") {
-			const result = await getRegistrationFormStatusRpc();
-
-			if (!result.success) {
-				// Error checking registration status - allow through to avoid loop
-				// The form will be accessible, worst case they see an error
-				return { me: me.data };
-			}
-			// If there's a registration form and it's not completed, redirect to it
-			if (result.data.hasRegistrationForm && !result.data.isCompleted && result.data.formId) {
-				throw redirect({
-					to: "/dashboard/forms/take",
-					search: { formId: result.data.formId },
-				});
-			}
-		}
 
 		return { me };
 	},
