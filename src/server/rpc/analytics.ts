@@ -137,11 +137,14 @@ export const AnalyticsRpc = {
 			queryKey: [...AnalyticsRpc.analytics(), "learner-map", learnerMapId],
 			queryFn: () => getLearnerMapForAnalyticsRpc({ data: { learnerMapId } }),
 		}),
-	getMultipleLearnerMaps: (learnerMapIds: string[]) =>
-		queryOptions({
-			queryKey: [...AnalyticsRpc.analytics(), "learner-maps", ...learnerMapIds],
-			queryFn: () => getMultipleLearnerMapsRpc({ data: { learnerMapIds } }),
-		}),
+	getMultipleLearnerMaps: (learnerMapIds: string[]) => {
+		const normalizedLearnerMapIds = [...new Set(learnerMapIds)].sort();
+		return queryOptions({
+			queryKey: [...AnalyticsRpc.analytics(), "learner-maps", ...normalizedLearnerMapIds],
+			queryFn: () =>
+				getMultipleLearnerMapsRpc({ data: { learnerMapIds: normalizedLearnerMapIds } }),
+		});
+	},
 	getLearnerSummaryText: (learnerMapId: string) =>
 		queryOptions({
 			queryKey: [...AnalyticsRpc.analytics(), "learner-summary", learnerMapId],

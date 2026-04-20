@@ -43,7 +43,10 @@ export function AnalyticsCanvasWrapper({
 	analyticsData,
 	visibility,
 }: AnalyticsCanvasWrapperProps) {
-	const learnerMapIds = useMemo(() => Array.from(selectedLearnerMapIds), [selectedLearnerMapIds]);
+	const learnerMapIds = useMemo(
+		() => [...selectedLearnerMapIds].sort(),
+		[selectedLearnerMapIds],
+	);
 
 	const {
 		data: multipleLearnerMapDetails,
@@ -54,6 +57,7 @@ export function AnalyticsCanvasWrapper({
 	} = useRpcQuery({
 		...AnalyticsRpc.getMultipleLearnerMaps(learnerMapIds),
 		enabled: selectedLearnerMapIds.size > 0,
+		placeholderData: (previousData) => previousData,
 		refetchOnWindowFocus: false,
 	});
 
@@ -72,7 +76,7 @@ export function AnalyticsCanvasWrapper({
 
 	return (
 		<div className="flex-1 m-3 rounded-md overflow-hidden">
-			{multipleLearnerMapsLoading && selectedLearnerMapIds.size > 0 ? (
+			{multipleLearnerMapsLoading && selectedLearnerMapIds.size > 0 && !multipleLearnerMapDetails ? (
 				<CanvasSkeleton />
 			) : (
 				<CanvasContent
