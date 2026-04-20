@@ -1,10 +1,12 @@
 import { eq } from "drizzle-orm";
 import { Effect } from "effect";
 
+import type { ReadingMaterialSection } from "@/features/form/lib/form-service.core";
 import { randomString } from "@/lib/utils";
 import { Database } from "@/server/db/client";
 import { forms, questions } from "@/server/db/schema/app-schema";
 
+import { GOAL_MAP_TO_MATERIAL } from "../data/materials.js";
 import {
 	FEEDBACK_QUESTIONS,
 	READING_COMPREHENSION_QUESTIONS,
@@ -41,7 +43,30 @@ function getQuestionOptions(question: SeedQuestion): string {
 	return JSON.stringify(question.options);
 }
 
-function upsertQuestions(formId: string, sourceQuestions: ReadonlyArray<SeedQuestion>) {
+function buildReadingMaterialSections(totalQuestions: number): ReadonlyArray<ReadingMaterialSection> {
+	const readingMaterialContent =
+		GOAL_MAP_TO_MATERIAL["Japan: Main Islands and Cities"]?.content.trim() ?? "";
+	const content =
+		readingMaterialContent.length > 0
+			? readingMaterialContent
+			: "Read the reference passage before answering the questions.";
+
+	return [
+		{
+			id: "seed-reading-japan-main-islands",
+			title: "Japan: Main Islands and Cities",
+			startQuestion: 1,
+			endQuestion: Math.max(1, totalQuestions),
+			content,
+		},
+	];
+}
+
+function upsertQuestions(
+	formId: string,
+	sourceQuestions: ReadonlyArray<SeedQuestion>,
+	required = true,
+) {
 	return Effect.gen(function* () {
 		const db = yield* Database;
 		const existingQuestions = yield* db
@@ -59,7 +84,7 @@ function upsertQuestions(formId: string, sourceQuestions: ReadonlyArray<SeedQues
 					questionText: q.questionText,
 					options: getQuestionOptions(q),
 					orderIndex: index,
-					required: true,
+					required,
 				});
 			}
 			return;
@@ -74,6 +99,7 @@ function upsertQuestions(formId: string, sourceQuestions: ReadonlyArray<SeedQues
 						type: q.type ?? "mcq",
 						questionText: q.questionText,
 						options: getQuestionOptions(q),
+						required,
 					})
 					.where(eq(questions.id, existingQuestion.id));
 				continue;
@@ -86,7 +112,7 @@ function upsertQuestions(formId: string, sourceQuestions: ReadonlyArray<SeedQues
 				questionText: q.questionText,
 				options: getQuestionOptions(q),
 				orderIndex: index,
-				required: true,
+				required,
 			});
 		}
 
@@ -107,6 +133,8 @@ export function seedForms(teacherId: string) {
 		const tamFormTitle = "TAM Questionnaire - Kit-Build Evaluation";
 		const existingTamForm = yield* db.select().from(forms).where(eq(forms.title, tamFormTitle)).limit(1);
 
+		const tamReadingMaterialSections = buildReadingMaterialSections(TAM_QUESTIONS.length);
+
 		let tamFormId: string;
 		if (existingTamForm[0]) {
 			tamFormId = existingTamForm[0].id;
@@ -118,6 +146,7 @@ export function seedForms(teacherId: string) {
 					type: "tam",
 					audience: "experiment",
 					status: "published",
+					readingMaterialSections: tamReadingMaterialSections,
 					createdBy: teacherId,
 				})
 				.where(eq(forms.id, tamFormId));
@@ -132,6 +161,7 @@ export function seedForms(teacherId: string) {
 				type: "tam",
 				audience: "experiment",
 				status: "published",
+				readingMaterialSections: tamReadingMaterialSections,
 				createdBy: teacherId,
 			});
 			yield* Effect.log("  Created TAM form: " + tamFormTitle);
@@ -141,6 +171,8 @@ export function seedForms(teacherId: string) {
 
 		const feedbackFormTitle = "Feedback Questionnaire - Kit-Build Experience";
 		const existingFeedbackForm = yield* db.select().from(forms).where(eq(forms.title, feedbackFormTitle)).limit(1);
+
+		const feedbackReadingMaterialSections = buildReadingMaterialSections(FEEDBACK_QUESTIONS.length);
 
 		let feedbackFormId: string;
 		if (existingFeedbackForm[0]) {
@@ -152,6 +184,7 @@ export function seedForms(teacherId: string) {
 					type: "questionnaire",
 					audience: "all",
 					status: "published",
+					readingMaterialSections: feedbackReadingMaterialSections,
 					createdBy: teacherId,
 				})
 				.where(eq(forms.id, feedbackFormId));
@@ -165,29 +198,20 @@ export function seedForms(teacherId: string) {
 				type: "questionnaire",
 				audience: "all",
 				status: "published",
+				readingMaterialSections: feedbackReadingMaterialSections,
 				createdBy: teacherId,
 			});
 			yield* Effect.log("  Created feedback form: " + feedbackFormTitle);
 		}
 
-		const existingFeedbackQuestions = yield* db.select().from(questions).where(eq(questions.formId, feedbackFormId));
-		if (existingFeedbackQuestions.length === 0) {
-			for (const [index, q] of FEEDBACK_QUESTIONS.entries()) {
-				yield* db.insert(questions).values({
-					id: randomString(),
-					formId: feedbackFormId,
-					type: q.type ?? "mcq",
-					questionText: q.questionText,
-					options: getQuestionOptions(q),
-					orderIndex: index,
-					required: false,
-				});
-			}
-		}
+		yield* upsertQuestions(feedbackFormId, FEEDBACK_QUESTIONS, false);
 
 		yield* Effect.log("--- Seeding reading comprehension test forms ---");
 
 		const preTestFormTitle = "Reading Comprehension Pre-Test";
+		const readingComprehensionReadingMaterialSections = buildReadingMaterialSections(
+			READING_COMPREHENSION_QUESTIONS.length,
+		);
 		const preTestDescription =
 			"Pre-test to measure baseline reading comprehension for Japan's three main islands and their major cities. 20 MCQ items based on Bloom's Taxonomy. The same questions are reused for the post-test and delayed-test.";
 		const existingPreTestForm = yield* db.select().from(forms).where(eq(forms.title, preTestFormTitle)).limit(1);
@@ -202,6 +226,7 @@ export function seedForms(teacherId: string) {
 					type: "pre_test",
 					audience: "all",
 					status: "published",
+					readingMaterialSections: readingComprehensionReadingMaterialSections,
 					createdBy: teacherId,
 				})
 				.where(eq(forms.id, preTestFormId));
@@ -215,6 +240,7 @@ export function seedForms(teacherId: string) {
 				type: "pre_test",
 				audience: "all",
 				status: "published",
+				readingMaterialSections: readingComprehensionReadingMaterialSections,
 				createdBy: teacherId,
 			});
 			yield* Effect.log("  Created pre-test form: " + preTestFormTitle);
@@ -229,6 +255,7 @@ export function seedForms(teacherId: string) {
 				"Post-test to measure immediate learning outcomes after the reading session. Same reading passage and same questions as the pre-test.",
 			type: "post_test",
 			audience: "all",
+			readingMaterialSections: readingComprehensionReadingMaterialSections,
 			teacherId,
 		}).pipe(Effect.map((result) => result.formId));
 
@@ -239,6 +266,7 @@ export function seedForms(teacherId: string) {
 				"Delayed test to measure retention after one week. Same reading passage and same questions as the pre-test.",
 			type: "delayed_test",
 			audience: "all",
+			readingMaterialSections: readingComprehensionReadingMaterialSections,
 			teacherId,
 		}).pipe(Effect.map((result) => result.formId));
 

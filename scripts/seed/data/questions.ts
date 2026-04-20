@@ -68,17 +68,17 @@ export const TAM_QUESTIONS = [
 
 export const FEEDBACK_QUESTIONS = [
 	{
-		questionText: "キットビルドを使ってみて、最も良かった点は何ですか？",
+		questionText: "What was the most helpful part of using Kit-Build?",
 		type: "text" as const,
 		options: [],
 	},
 	{
-		questionText: "キットビルドを使っている時に、どのような困難（難しさ）を感じましたか？",
+		questionText: "What difficulties did you experience while using Kit-Build?",
 		type: "text" as const,
 		options: [],
 	},
 	{
-		questionText: "このアプリケーションを改善するための提案があれば教えてください。",
+		questionText: "Do you have any suggestions to improve this application?",
 		type: "text" as const,
 		options: [],
 	},

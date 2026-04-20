@@ -1,7 +1,7 @@
 import { eq } from "drizzle-orm";
 import { Effect } from "effect";
 
-import type { FormAudience, FormType } from "@/features/form/lib/form-service.core";
+import type { FormAudience, FormType, ReadingMaterialSection } from "@/features/form/lib/form-service.core";
 import { randomString } from "@/lib/utils";
 import { Database } from "@/server/db/client";
 import { forms, questions } from "@/server/db/schema/app-schema";
@@ -12,6 +12,7 @@ type CopyFormOptions = {
 	description: string;
 	type: Exclude<FormType, "registration">;
 	audience: FormAudience;
+	readingMaterialSections?: ReadonlyArray<ReadingMaterialSection> | null;
 	teacherId: string;
 };
 
@@ -21,12 +22,16 @@ export function copyFormWithQuestions({
 	description,
 	type,
 	audience,
+	readingMaterialSections,
 	teacherId,
 }: CopyFormOptions) {
 	return Effect.gen(function* () {
 		const db = yield* Database;
 
 		const existingForm = yield* db.select().from(forms).where(eq(forms.title, title)).limit(1);
+		const sourceForm = yield* db.select().from(forms).where(eq(forms.id, sourceFormId)).limit(1);
+		const normalizedReadingMaterialSections =
+			readingMaterialSections ?? sourceForm[0]?.readingMaterialSections ?? null;
 
 		let targetFormId: string;
 		if (existingForm[0]) {
@@ -38,6 +43,7 @@ export function copyFormWithQuestions({
 					type,
 					audience,
 					status: "published",
+					readingMaterialSections: normalizedReadingMaterialSections,
 					createdBy: teacherId,
 				})
 				.where(eq(forms.id, targetFormId));
@@ -50,6 +56,7 @@ export function copyFormWithQuestions({
 				type,
 				audience,
 				status: "published",
+				readingMaterialSections: normalizedReadingMaterialSections,
 				createdBy: teacherId,
 			});
 		}
