@@ -536,6 +536,7 @@ export const getStudentFormById = Effect.fn("getStudentFormById")(function* (
 				score: scoredQuestionCount > 0 ? correctCount / scoredQuestionCount : null,
 				correctCount,
 				totalQuestions: scoredQuestionCount,
+				answers: responseAnswers ?? {},
 			}
 		: null;
 
@@ -1257,6 +1258,7 @@ export const StudentFormSubmissionSchema = Schema.Struct({
 	score: Schema.NullOr(Schema.Number),
 	correctCount: Schema.Number,
 	totalQuestions: Schema.Number,
+	answers: Schema.Record({ key: Schema.String, value: Schema.Any }),
 });
 
 export const GetStudentFormByIdOutputSchema = Schema.Struct({

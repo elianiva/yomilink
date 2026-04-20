@@ -12,10 +12,36 @@ import {
 } from "../data/questions.js";
 import { copyFormWithQuestions } from "./form-copy.js";
 
-function upsertQuestions(
-	formId: string,
-	sourceQuestions: ReadonlyArray<{ type: string; questionText: string; options: unknown }>,
-) {
+type SeedQuestion = {
+	type?: string;
+	questionText: string;
+	options: unknown;
+	correctOptionId?: string;
+};
+
+function getQuestionOptions(question: SeedQuestion): string {
+	if (question.type === "likert" || question.type === "text") {
+		if (question.type === "text" && Array.isArray(question.options)) {
+			return JSON.stringify({ type: "text" });
+		}
+		return JSON.stringify(question.options);
+	}
+
+	if (Array.isArray(question.options)) {
+		const fallbackCorrectOptionId = question.options[0]?.id;
+		const correctOptionId = question.correctOptionId ?? fallbackCorrectOptionId;
+		return JSON.stringify({
+			type: "mcq",
+			options: question.options,
+			correctOptionIds: correctOptionId ? [correctOptionId] : [],
+			shuffle: false,
+		});
+	}
+
+	return JSON.stringify(question.options);
+}
+
+function upsertQuestions(formId: string, sourceQuestions: ReadonlyArray<SeedQuestion>) {
 	return Effect.gen(function* () {
 		const db = yield* Database;
 		const existingQuestions = yield* db
@@ -31,7 +57,7 @@ function upsertQuestions(
 					formId,
 					type: q.type ?? "mcq",
 					questionText: q.questionText,
-					options: JSON.stringify(q.options),
+					options: getQuestionOptions(q),
 					orderIndex: index,
 					required: true,
 				});
@@ -47,7 +73,7 @@ function upsertQuestions(
 					.set({
 						type: q.type ?? "mcq",
 						questionText: q.questionText,
-						options: JSON.stringify(q.options),
+						options: getQuestionOptions(q),
 					})
 					.where(eq(questions.id, existingQuestion.id));
 				continue;
@@ -58,7 +84,7 @@ function upsertQuestions(
 				formId,
 				type: q.type ?? "mcq",
 				questionText: q.questionText,
-				options: JSON.stringify(q.options),
+				options: getQuestionOptions(q),
 				orderIndex: index,
 				required: true,
 			});
@@ -152,7 +178,7 @@ export function seedForms(teacherId: string) {
 					formId: feedbackFormId,
 					type: q.type ?? "mcq",
 					questionText: q.questionText,
-					options: JSON.stringify(q.options),
+					options: getQuestionOptions(q),
 					orderIndex: index,
 					required: false,
 				});

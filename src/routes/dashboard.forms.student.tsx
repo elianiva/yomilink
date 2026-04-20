@@ -2,7 +2,7 @@ import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { BookOpenIcon, CheckCircle2Icon, FileTextIcon, Loader2 } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card, CardContent } from "@/components/ui/card";
 import { useRpcQuery } from "@/hooks/use-rpc-query";
 import { FormRpc } from "@/server/rpc/form";
 
@@ -28,15 +28,13 @@ type StudentForm = {
 function StudentFormsPage() {
 	const navigate = useNavigate({ from: "/dashboard/forms/student" });
 
-	const { data, isLoading } = useRpcQuery(FormRpc.getStudentForms());
-
-	const forms: StudentForm[] = Array.isArray(data) ? data : [];
+	const { data: forms = [], isLoading: isLoadingForms } = useRpcQuery(FormRpc.getStudentForms());
 
 	const availableForms = forms.filter((f) => f.unlockStatus === "available");
 	const completedForms = forms.filter((f) => f.unlockStatus === "completed");
 
 	const handleFormClick = (form: StudentForm) => {
-		if (form.isUnlocked) {
+		if (form.isUnlocked && form.unlockStatus === "available") {
 			void navigate({ to: "/dashboard/forms/take", search: { formId: form.id } });
 		}
 	};
@@ -60,129 +58,78 @@ function StudentFormsPage() {
 		}
 	};
 
-	const getTypeColor = (type: string) => {
-		switch (type) {
-			case "pre_test":
-				return "bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-200";
-			case "post_test":
-				return "bg-purple-100 text-purple-800 dark:bg-purple-900 dark:text-purple-200";
-			case "delayed_test":
-				return "bg-indigo-100 text-indigo-800 dark:bg-indigo-900 dark:text-indigo-200";
-			case "registration":
-				return "bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200";
-			case "tam":
-				return "bg-teal-100 text-teal-800 dark:bg-teal-900 dark:text-teal-200";
-			case "questionnaire":
-				return "bg-orange-100 text-orange-800 dark:bg-orange-900 dark:text-orange-200";
-			default:
-				return "bg-gray-100 text-gray-800";
-		}
+	const renderFormRow = (form: StudentForm) => {
+		const isCompleted = form.unlockStatus === "completed";
+
+		return (
+			<Card
+				key={form.id}
+				className={isCompleted ? "" : "cursor-pointer hover:shadow-sm transition-shadow"}
+				onClick={() => handleFormClick(form)}
+			>
+				<CardContent className="p-4 flex items-start justify-between gap-4">
+					<div className="min-w-0 space-y-1">
+						<p className="font-medium leading-tight">{form.title}</p>
+						{form.description && (
+							<p className="text-sm text-muted-foreground">{form.description}</p>
+						)}
+						<p className="text-xs text-muted-foreground">{getTypeLabel(form.type)}</p>
+					</div>
+
+					{isCompleted ? (
+						<div className="flex items-center gap-2 text-sm text-green-600 shrink-0">
+							<CheckCircle2Icon className="size-4" />
+							Completed
+						</div>
+					) : (
+						<Button className="shrink-0">
+							<BookOpenIcon className="h-4 w-4" />
+							Start Form
+						</Button>
+					)}
+				</CardContent>
+			</Card>
+		);
 	};
 
-	if (isLoading) {
-		return (
-			<div className="flex items-center justify-center py-12">
-				<Loader2 className="h-8 w-8 animate-spin text-muted-foreground" />
-			</div>
-		);
-	}
-
 	return (
-		<div className="space-y-8">
-			<div className="flex items-center gap-3">
-				<div className="p-3 bg-primary/20 rounded-xl">
-					<FileTextIcon className="size-4 text-primary" />
-				</div>
-				<div>
-					<h1 className="text-2xl font-semibold">My Forms</h1>
-					<p className="text-muted-foreground">
-						Complete your assigned forms to progress in the course
-					</p>
-				</div>
+		<div className="space-y-4">
+			<div>
+				<h1 className="text-2xl font-semibold">My Forms</h1>
+				<p className="text-muted-foreground">
+					Complete your assigned forms to progress in the course
+				</p>
 			</div>
 
 			{forms.length === 0 ? (
-				<Card>
-					<CardContent className="flex flex-col items-center justify-center py-12">
-						<FileTextIcon className="size-12 text-muted-foreground mb-4" />
-						<p className="text-muted-foreground">No forms available yet</p>
-					</CardContent>
-				</Card>
+				isLoadingForms ? (
+					<div className="h-full flex items-center justify-center">
+						<Loader2 className="h-8 w-8 animate-spin text-muted-foreground" />
+					</div>
+				) : (
+					<Card>
+						<CardContent className="flex flex-col items-center justify-center py-12">
+							<FileTextIcon className="size-12 text-muted-foreground mb-4" />
+							<p className="text-muted-foreground">No forms available yet</p>
+						</CardContent>
+					</Card>
+				)
 			) : (
 				<>
 					{availableForms.length > 0 && (
-						<div className="space-y-4">
-							<h2 className="text-lg font-medium flex items-center gap-2">
-								Available Forms
-							</h2>
-							<div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
-								{availableForms.map((form) => (
-									<Card
-										key={form.id}
-										className="cursor-pointer hover:shadow-md transition-shadow"
-										onClick={() => handleFormClick(form)}
-									>
-										<CardHeader className="pb-3">
-											<div className="flex items-start justify-between">
-												<CardTitle className="text-lg">
-													{form.title}
-												</CardTitle>
-											</div>
-											{form.description && (
-												<CardDescription>
-													{form.description}
-												</CardDescription>
-											)}
-										</CardHeader>
-										<CardContent>
-											<Button className="w-full">
-												<BookOpenIcon className="mr-2 h-4 w-4" />
-												Start Form
-											</Button>
-										</CardContent>
-									</Card>
-								))}
-							</div>
+						<div className="space-y-3">
+							<h2 className="text-lg font-medium">Available Forms</h2>
+							<div className="space-y-2">{availableForms.map(renderFormRow)}</div>
 						</div>
 					)}
 
 					{completedForms.length > 0 && (
-						<div className="space-y-4">
+						<div className="space-y-3">
 							<h2 className="text-lg font-semibold flex items-center gap-2">
 								<CheckCircle2Icon className="size-5 text-green-600" />
 								Completed Forms
 							</h2>
-							<div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
-								{completedForms.map((form) => (
-									<Card key={form.id}>
-										<CardHeader className="pb-3">
-											<div className="flex items-start justify-between">
-												<CardTitle className="text-lg">
-													{form.title}
-												</CardTitle>
-												<span
-													className={`text-xs px-2 py-1 rounded-full ${getTypeColor(
-														form.type,
-													)}`}
-												>
-													{getTypeLabel(form.type)}
-												</span>
-											</div>
-											{form.description && (
-												<CardDescription>
-													{form.description}
-												</CardDescription>
-											)}
-										</CardHeader>
-										<CardContent>
-											<div className="flex items-center gap-2 text-sm text-green-600">
-												<CheckCircle2Icon className="h-4 w-4" />
-												Completed
-											</div>
-										</CardContent>
-									</Card>
-								))}
-							</div>
+							<div className="space-y-2">{completedForms.map(renderFormRow)}</div>
 						</div>
 					)}
 				</>
