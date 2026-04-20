@@ -8,6 +8,9 @@ import { cohortMembers, cohorts } from "@/server/db/schema/auth-schema";
 
 import { GOAL_MAP_TO_MATERIAL } from "../data/materials.js";
 import { DEMO_STUDENTS } from "../data/users.js";
+import { WHITELIST_FLOW_ACCOUNTS } from "../data/whitelist-flow.js";
+
+const COHORT_STUDENTS = [...DEMO_STUDENTS, ...WHITELIST_FLOW_ACCOUNTS];
 
 export function seedDemoData(
 	userIdsByEmail: Record<string, string>,
@@ -17,6 +20,11 @@ export function seedDemoData(
 		string,
 		{ nodes: unknown[]; edges: Array<{ id: string; source: string; target: string }> }
 	>,
+	testFormIds?: {
+		preTestFormId: string;
+		postTestFormId: string;
+		delayedTestFormId: string;
+	},
 ) {
 	return Effect.gen(function* () {
 		const db = yield* Database;
@@ -58,7 +66,7 @@ export function seedDemoData(
 		const existingMemberIds = new Set(existingMembers.map((m) => m.userId));
 
 		yield* Effect.all(
-			DEMO_STUDENTS.map((student) =>
+			COHORT_STUDENTS.map((student) =>
 				Effect.gen(function* () {
 					const studentId = userIdsByEmail[student.email];
 					if (!studentId) {
@@ -149,6 +157,9 @@ export function seedDemoData(
 
 		const startDate = new Date(Date.now() - 60 * 60 * 1000);
 		const dueAt = new Date(Date.now() + 7 * 24 * 60 * 60 * 1000);
+		const preTestFormId = testFormIds?.preTestFormId ?? null;
+		const postTestFormId = testFormIds?.postTestFormId ?? null;
+		const delayedTestFormId = testFormIds?.delayedTestFormId ?? null;
 
 		let demoAssignmentId: string;
 		if (existingAssignment[0]) {
@@ -164,9 +175,9 @@ export function seedDemoData(
 					timeLimitMinutes: 20,
 					startDate,
 					dueAt,
-					preTestFormId: null,
-					postTestFormId: null,
-					delayedPostTestFormId: null,
+					preTestFormId,
+					postTestFormId,
+					delayedPostTestFormId: delayedTestFormId,
 					tamFormId: null,
 					createdBy: teacherId,
 				})
@@ -184,6 +195,10 @@ export function seedDemoData(
 				timeLimitMinutes: 20,
 				startDate,
 				dueAt,
+				preTestFormId,
+				postTestFormId,
+				delayedPostTestFormId: delayedTestFormId,
+				tamFormId: null,
 				createdBy: teacherId,
 			});
 			yield* Effect.log("  Created assignment: " + assignmentTitle);

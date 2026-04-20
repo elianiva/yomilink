@@ -3,7 +3,16 @@ import { Layer, Logger, Effect } from "effect";
 import { Auth } from "@/lib/auth";
 import { AppLayer } from "@/server/app-layer";
 
-import { seedUsers, seedCohorts, seedGoalMaps, seedDemoData, seedWhitelistEntries } from "./seeders/index.js";
+import {
+	seedCohorts,
+	seedDemoData,
+	seedForms,
+	seedGoalMaps,
+	seedSubmissions,
+	seedUsers,
+	seedWhitelistAccounts,
+	seedWhitelistEntries,
+} from "./seeders/index.js";
 
 const program = Effect.gen(function* () {
 	yield* Effect.log("Seeding database...");
@@ -12,14 +21,33 @@ const program = Effect.gen(function* () {
 	yield* seedCohorts();
 	yield* seedWhitelistEntries();
 
-	const { goalMapIdsByTitle, goalMapDataByTitle } = yield* seedGoalMaps(teacherId);
+	const whitelistAccounts = yield* seedWhitelistAccounts();
+	const allUserIdsByEmail = { ...userIdsByEmail, ...whitelistAccounts.userIdsByEmail };
 
-	const demoData = yield* seedDemoData(userIdsByEmail, teacherId, goalMapIdsByTitle, goalMapDataByTitle);
+	const { goalMapIdsByTitle, goalMapDataByTitle } = yield* seedGoalMaps(teacherId);
+	const { preTestFormId, postTestFormId, delayedTestFormId } = yield* seedForms(teacherId);
+
+	const demoData = yield* seedDemoData(
+		allUserIdsByEmail,
+		teacherId,
+		goalMapIdsByTitle,
+		goalMapDataByTitle,
+		{ preTestFormId, postTestFormId, delayedTestFormId },
+	);
 
 	if (!demoData) {
 		yield* Effect.log("Failed to create demo data - Tanaka's Daily Life goal map not found");
 		return;
 	}
+
+	yield* seedSubmissions(
+		allUserIdsByEmail,
+		demoData.demoAssignmentId,
+		demoData.dailyLifeGoalMapId,
+		demoData.demoKitId,
+		demoData.dailyLifeData,
+		{ preTestFormId, postTestFormId, delayedTestFormId },
+	);
 
 	yield* Effect.log(
 		"--- Seed completed ---\n" +
@@ -30,7 +58,9 @@ const program = Effect.gen(function* () {
 			"Created:\n" +
 			"  - Cohort: Demo Class 2025 (" + demoData.demoCohortId.slice(0, 8) + "...)\n" +
 			"  - Kit: Tanaka's Daily Life Kit (" + demoData.demoKitId.slice(0, 8) + "...)\n" +
-			"  - Assignment: Tanaka's Daily Life Demo (" + demoData.demoAssignmentId.slice(0, 8) + "...)\n",
+			"  - Assignment: Tanaka's Daily Life Demo (" + demoData.demoAssignmentId.slice(0, 8) + "...)\n" +
+			"  - Forms: pre-test, post-test, delayed-test\n" +
+			"  - Submissions: 5 whitelist accounts\n",
 	);
 }).pipe(Effect.provide(Layer.mergeAll(AppLayer, Auth.Default, Logger.pretty)));
 
