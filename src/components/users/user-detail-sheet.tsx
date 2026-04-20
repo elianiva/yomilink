@@ -64,7 +64,7 @@ export function UserDetailSheet({
 				previousJapaneseScore: user.previousJapaneseScore ?? undefined,
 				mediaConsumption: user.mediaConsumption ?? undefined,
 				motivation: user.motivation ?? undefined,
-				studyGroup: user.studyGroup ?? "unassigned",
+				studyGroup: user.studyGroup ?? "experiment",
 			});
 		}
 		setBanReason("");
@@ -80,11 +80,6 @@ export function UserDetailSheet({
 		const changes: UpdateUserInput = {};
 		for (const [key, value] of Object.entries(formData)) {
 			if (value === undefined || value === "") continue;
-			if (key === "studyGroup" && value === "unassigned") {
-				// @ts-expect-error dynamic key assignment
-				changes[key] = null;
-				continue;
-			}
 			// @ts-expect-error dynamic key assignment
 			changes[key] = value;
 		}
@@ -213,7 +208,7 @@ export function UserDetailSheet({
 							<div className="grid gap-2">
 								<Label htmlFor="studyGroup">Study Group</Label>
 								<Select
-									value={formData.studyGroup ?? "unassigned"}
+									value={formData.studyGroup ?? "experiment"}
 									onValueChange={(group) =>
 										setFormData({
 											...formData,
@@ -225,8 +220,7 @@ export function UserDetailSheet({
 										<SelectValue placeholder="Select group" />
 									</SelectTrigger>
 									<SelectContent>
-										<SelectItem value="unassigned">Unassigned</SelectItem>
-										<SelectItem value="experiment">Experiment</SelectItem>
+												<SelectItem value="experiment">Experiment</SelectItem>
 										<SelectItem value="control">Control</SelectItem>
 									</SelectContent>
 								</Select>

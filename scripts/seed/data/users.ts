@@ -14,6 +14,9 @@ export const SeedUserSchema = Schema.Struct({
 		),
 		{ nullable: true },
 	),
+	studyGroup: Schema.optionalWith(Schema.Union(Schema.Literal("experiment"), Schema.Literal("control")), {
+		nullable: true,
+	}),
 });
 
 export type SeedUser = Schema.Schema.Type<typeof SeedUserSchema>;
@@ -43,14 +46,15 @@ export interface DemoStudent {
 	previousJapaneseScore: number;
 	mediaConsumption: number;
 	motivation: string;
+	studyGroup: "experiment" | "control";
 }
 
 export const DEMO_STUDENTS: DemoStudent[] = [
-	{ email: "tanaka@demo.local", name: "Tanaka Yuki", studentId: "STD-001", age: 20, jlptLevel: "N5", japaneseLearningDuration: 12, previousJapaneseScore: 75, mediaConsumption: 15, motivation: "Anime and Japanese culture" },
-	{ email: "suzuki@demo.local", name: "Suzuki Hana", studentId: "STD-002", age: 19, jlptLevel: "N5", japaneseLearningDuration: 8, previousJapaneseScore: 68, mediaConsumption: 20, motivation: "Want to study in Japan" },
-	{ email: "yamamoto@demo.local", name: "Yamamoto Kenji", studentId: "STD-003", age: 21, jlptLevel: "N5", japaneseLearningDuration: 18, previousJapaneseScore: 82, mediaConsumption: 10, motivation: "Career opportunities" },
-	{ email: "watanabe@demo.local", name: "Watanabe Mei", studentId: "STD-004", age: 20, jlptLevel: "N5", japaneseLearningDuration: 10, previousJapaneseScore: 70, mediaConsumption: 25, motivation: "J-Pop and manga" },
-	{ email: "takahashi@demo.local", name: "Takahashi Ryo", studentId: "STD-005", age: 19, jlptLevel: "N5", japaneseLearningDuration: 6, previousJapaneseScore: 65, mediaConsumption: 8, motivation: "Travel to Japan" },
+	{ email: "tanaka@demo.local", name: "Tanaka Yuki", studentId: "STD-001", age: 20, jlptLevel: "N5", japaneseLearningDuration: 12, previousJapaneseScore: 75, mediaConsumption: 15, motivation: "Anime and Japanese culture", studyGroup: "experiment" },
+	{ email: "suzuki@demo.local", name: "Suzuki Hana", studentId: "STD-002", age: 19, jlptLevel: "N5", japaneseLearningDuration: 8, previousJapaneseScore: 68, mediaConsumption: 20, motivation: "Want to study in Japan", studyGroup: "experiment" },
+	{ email: "yamamoto@demo.local", name: "Yamamoto Kenji", studentId: "STD-003", age: 21, jlptLevel: "N5", japaneseLearningDuration: 18, previousJapaneseScore: 82, mediaConsumption: 10, motivation: "Career opportunities", studyGroup: "experiment" },
+	{ email: "watanabe@demo.local", name: "Watanabe Mei", studentId: "STD-004", age: 20, jlptLevel: "N5", japaneseLearningDuration: 10, previousJapaneseScore: 70, mediaConsumption: 25, motivation: "J-Pop and manga", studyGroup: "experiment" },
+	{ email: "takahashi@demo.local", name: "Takahashi Ryo", studentId: "STD-005", age: 19, jlptLevel: "N5", japaneseLearningDuration: 6, previousJapaneseScore: 65, mediaConsumption: 8, motivation: "Travel to Japan", studyGroup: "experiment" },
 ];
 
 export const DEMO_STUDENT_EMAILS = DEMO_STUDENTS.map((s) => s.email);

@@ -38,6 +38,7 @@ export function seedUsers() {
 									email: seedUser.email,
 									password: seedUser.password,
 									name: seedUser.name as string,
+									studyGroup: "experiment",
 								},
 							}),
 						catch: (error) => {
@@ -71,6 +72,7 @@ export function seedUsers() {
 							previousJapaneseScore: demoStudent.previousJapaneseScore,
 							mediaConsumption: demoStudent.mediaConsumption,
 							motivation: demoStudent.motivation,
+									studyGroup: "experiment",
 						})
 						.where(eq(user.id, userId));
 					yield* Effect.log(`Set demographic data for ${seedUser.email}`);

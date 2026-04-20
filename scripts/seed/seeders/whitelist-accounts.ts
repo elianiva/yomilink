@@ -30,6 +30,7 @@ export function seedWhitelistAccounts() {
 								email: account.email,
 								password: account.password,
 								name: account.name,
+								studyGroup: "experiment",
 							},
 						}),
 					catch: (error) => {
@@ -59,6 +60,7 @@ export function seedWhitelistAccounts() {
 					previousJapaneseScore: account.previousJapaneseScore,
 					mediaConsumption: account.mediaConsumption,
 					motivation: account.motivation,
+									studyGroup: "experiment",
 				})
 				.where(eq(user.id, userId));
 

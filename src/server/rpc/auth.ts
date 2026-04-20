@@ -91,6 +91,7 @@ export const signUpRpc = createServerFn({ method: "POST" })
 								previousJapaneseScore: data.previousJapaneseScore ?? undefined,
 								mediaConsumption: data.mediaConsumption ?? undefined,
 								motivation: data.motivation ?? undefined,
+								studyGroup: "experiment",
 								consentGiven: data.consentGiven,
 							},
 						}),

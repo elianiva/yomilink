@@ -42,9 +42,7 @@ export const updateUser = Effect.fn("updateUser")(
 			if (data.mediaConsumption !== undefined)
 				updateData.mediaConsumption = data.mediaConsumption;
 			if (data.motivation !== undefined) updateData.motivation = data.motivation;
-			if (data.studyGroup !== undefined) {
-				updateData.studyGroup = data.studyGroup === "unassigned" ? null : data.studyGroup;
-			}
+			if (data.studyGroup !== undefined) updateData.studyGroup = data.studyGroup;
 
 			if (Object.keys(updateData).length === 0) {
 				return yield* getUserById(userId);

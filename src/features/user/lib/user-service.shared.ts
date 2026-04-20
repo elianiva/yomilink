@@ -31,7 +31,7 @@ export const UpdateUserInput = Schema.Struct({
 	mediaConsumption: Schema.optionalWith(Schema.Number, { nullable: true }),
 	motivation: Schema.optionalWith(Schema.String, { nullable: true }),
 	studyGroup: Schema.optionalWith(
-		Schema.Union(Schema.Literal("experiment", "control", "unassigned")),
+		Schema.Union(Schema.Literal("experiment", "control")),
 		{ nullable: true },
 	),
 });
