@@ -8,7 +8,7 @@ nodes:
       data: { label: "田中さん", color: "green" }
     - id: "student"
       type: "text"
-      position: { x: 220, y: 200 }
+      position: { x: 240, y: 200 }
       data: { label: "がくせい", color: "blue" }
     - id: "everyday"
       type: "text"
@@ -21,19 +21,19 @@ nodes:
     - id: "morning"
       type: "text"
       position: { x: 360, y: 360 }
-      data: { label: "あさ6じ", color: "blue" }
+      data: { label: "あさ6じにおきる", color: "blue" }
     - id: "study"
       type: "text"
       position: { x: 640, y: 360 }
-      data: { label: "4じかんべんきょう", color: "amber" }
+      data: { label: "4じかんべんきょうする", color: "amber" }
     - id: "sleep"
       type: "text"
       position: { x: 920, y: 360 }
-      data: { label: "ねる", color: "amber" }
+      data: { label: "よる11じごろねる", color: "amber" }
     - id: "conn-is"
       type: "connector"
-      position: { x: 360, y: 110 }
-      data: { label: "です" }
+      position: { x: 350, y: 110 }
+      data: { label: "は" }
     - id: "conn-everyday"
       type: "connector"
       position: { x: 500, y: 110 }
@@ -41,15 +41,15 @@ nodes:
     - id: "conn-wake"
       type: "connector"
       position: { x: 430, y: 280 }
-      data: { label: "におきる" }
+      data: { label: "に" }
     - id: "conn-go-school"
       type: "connector"
-      position: { x: 640, y: 110 }
-      data: { label: "はへいく" }
+      position: { x: 620, y: 280 }
+      data: { label: "のあと" }
     - id: "conn-study-at"
       type: "connector"
       position: { x: 720, y: 280 }
-      data: { label: "でべんきょう" }
+      data: { label: "で" }
     - id: "conn-after-study"
       type: "connector"
       position: { x: 780, y: 360 }
@@ -57,7 +57,7 @@ nodes:
     - id: "conn-does-study"
       type: "connector"
       position: { x: 560, y: 280 }
-      data: { label: "は" }
+      data: { label: "を" }
 edges:
     - id: "e1"
       source: "tanaka"
@@ -72,38 +72,38 @@ edges:
       source: "conn-everyday"
       target: "everyday"
     - id: "e5"
+      source: "conn-is"
+      target: "morning"
+    - id: "e6"
+      source: "conn-is"
+      target: "sleep"
+    - id: "e7"
       source: "everyday"
       target: "conn-wake"
-    - id: "e6"
+    - id: "e8"
       source: "conn-wake"
       target: "morning"
-    - id: "e7"
-      source: "tanaka"
+    - id: "e9"
+      source: "morning"
       target: "conn-go-school"
-    - id: "e8"
+    - id: "e10"
       source: "conn-go-school"
       target: "school"
-    - id: "e9"
+    - id: "e11"
       source: "school"
       target: "conn-study-at"
-    - id: "e10"
+    - id: "e12"
       source: "conn-study-at"
       target: "study"
-    - id: "e11"
+    - id: "e13"
       source: "study"
       target: "conn-after-study"
-    - id: "e12"
+    - id: "e14"
       source: "conn-after-study"
       target: "sleep"
-    - id: "e13"
-      source: "tanaka"
-      target: "conn-does-study"
-    - id: "e14"
-      source: "conn-does-study"
-      target: "study"
     - id: "e15"
-      source: "everyday"
-      target: "sleep"
+      source: "conn-is"
+      target: "study"
 ---
 
 田中さんはがくせいです。まいにち、あさ6じにおきます。

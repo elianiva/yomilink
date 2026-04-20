@@ -14,9 +14,9 @@
 	"main": "./src/server.ts",
 	"vars": {
 		"VITE_SENTRY_DSN": "https://5823410ade9efac97ee0a2281bb49bae@o4505224747352064.ingest.us.sentry.io/4510510883012608",
-		"VITE_APP_URL": "https://kb.elianiva.my.id",
-		"BETTER_AUTH_URL": "https://kb.elianiva.my.id",
-		"SITE_URL": "https://kb.elianiva.my.id",
+		"VITE_APP_URL": "https://kb.elianiva.com",
+		"BETTER_AUTH_URL": "https://kb.elianiva.com",
+		"SITE_URL": "https://kb.elianiva.my.com",
 		"TURSO_DATABASE_URL": "libsql://yomilink-prod-elianiva.aws-ap-northeast-1.turso.io"
 	},
 	"r2_buckets": [
