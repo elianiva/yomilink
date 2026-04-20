@@ -36,6 +36,10 @@ export const CreateAssignmentInput = Schema.Struct({
 	tamFormId: Schema.optionalWith(Schema.String, { nullable: true }),
 });
 
+export const DeleteAssignmentInput = Schema.Struct({
+	id: NonEmpty("Assignment ID"),
+});
+
 export const createAssignment = Effect.fn("createAssignment")(function* (
 	_userId: string,
 	data: CreateAssignmentInput,
