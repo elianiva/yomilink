@@ -91,6 +91,15 @@ edges:
     - id: "e12"
       source: "conn-after"
       target: "sleep"
+    - id: "e13"
+      source: "tanaka"
+      target: "student"
+    - id: "e14"
+      source: "student"
+      target: "school"
+    - id: "e15"
+      source: "study"
+      target: "sleep"
 ---
 
 田中さんはがくせいです。まいにち、あさ6じにおきます。

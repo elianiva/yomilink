@@ -8,7 +8,6 @@ import { NonEmpty } from "@/lib/validation-schemas";
 import { Database } from "@/server/db/client";
 import {
 	assignments,
-	assignmentExperimentGroups,
 	assignmentTargets,
 	diagnoses,
 	goalMaps,
@@ -16,7 +15,7 @@ import {
 	learnerMaps,
 	texts,
 } from "@/server/db/schema/app-schema";
-import { cohortMembers } from "@/server/db/schema/auth-schema";
+import { cohortMembers, user } from "@/server/db/schema/auth-schema";
 
 import { compareMaps, EdgeSchema, NodeSchema } from "./comparator";
 
@@ -101,6 +100,10 @@ export type SubmitControlTextInput = typeof SubmitControlTextInput.Type;
 
 type ExperimentCondition = "summarizing" | "concept_map";
 
+function mapStudyGroupToCondition(studyGroup: "experiment" | "control" | null): ExperimentCondition {
+	return studyGroup === "experiment" ? "concept_map" : "summarizing";
+}
+
 const getAssignmentMembership = Effect.fn("getAssignmentMembership")(function* (
 	userId: string,
 	assignmentId: string,
@@ -131,20 +134,11 @@ const getAssignmentMembership = Effect.fn("getAssignmentMembership")(function* (
 		)
 		.limit(1);
 
-	const groupRows = yield* db
-		.select({ condition: assignmentExperimentGroups.condition })
-		.from(assignmentExperimentGroups)
-		.where(
-			and(
-				eq(assignmentExperimentGroups.assignmentId, assignmentId),
-				eq(assignmentExperimentGroups.userId, userId),
-			),
-		)
-		.limit(1);
+	const userRows = yield* db.select({ studyGroup: user.studyGroup }).from(user).where(eq(user.id, userId)).limit(1);
 
 	return {
 		hasAccess: membershipRows.length > 0,
-		condition: groupRows[0]?.condition ?? null,
+		condition: mapStudyGroupToCondition(userRows[0]?.studyGroup ?? null),
 	};
 });
 

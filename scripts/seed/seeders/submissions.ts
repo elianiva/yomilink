@@ -115,6 +115,7 @@ function seedLearnerMapSubmissions(
 		const db = yield* Database;
 		const edgeById: Record<string, { source: string; target: string }> = {};
 		for (const edge of dailyLifeData.edges) edgeById[edge.id] = { source: edge.source, target: edge.target };
+		const totalGoalEdges = dailyLifeData.edges.length;
 
 		const existingLearnerMaps = yield* db.select().from(learnerMaps).where(eq(learnerMaps.assignmentId, demoAssignmentId));
 		const existingKeys = new Set(existingLearnerMaps.map((row) => row.userId + ":" + row.attempt));
@@ -151,11 +152,16 @@ function seedLearnerMapSubmissions(
 				id: randomString(),
 				goalMapId: dailyLifeGoalMapId,
 				learnerMapId,
-				summary: "Score: " + String(Math.round(config.expectedScore * 100)) + "% (" + String(config.correctEdgeIds.length) + "/15 correct edges)",
+				summary: "Score: " + String(Math.round(config.expectedScore * 100)) + "% (" + String(config.correctEdgeIds.length) + "/" + String(totalGoalEdges) + " correct edges)",
 				perLink: {
-					correct: config.correctEdgeIds.map((edgeId) => ({ edgeId, ...edgeById[edgeId] })),
-					missing: dailyLifeData.edges.filter((edge) => !config.correctEdgeIds.includes(edge.id)).map((edge) => ({ edgeId: edge.id, source: edge.source, target: edge.target })),
-					excessive: config.excessiveEdges.map((edge, index) => ({ edgeId: "excess-" + String(index + 1), source: edge.source, target: edge.target })),
+					correct: config.correctEdgeIds
+						.map((edgeId) => edgeById[edgeId])
+						.filter((edge): edge is { source: string; target: string } => Boolean(edge))
+						.map((edge) => ({ source: edge.source, target: edge.target })),
+					missing: dailyLifeData.edges
+						.filter((edge) => !config.correctEdgeIds.includes(edge.id))
+						.map((edge) => ({ source: edge.source, target: edge.target })),
+					excessive: config.excessiveEdges.map((edge) => ({ source: edge.source, target: edge.target })),
 				},
 				score: config.expectedScore,
 				rubricVersion: "v1.0",

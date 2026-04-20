@@ -129,47 +129,35 @@ export function seedLearnerMaps(
 					);
 
 					const correctCount = config.correctEdgeIds.length;
-					const totalGoalEdges = 15;
+					const totalGoalEdges = goalEdges.length;
 					const score = Math.round((correctCount / totalGoalEdges) * 100) / 100;
 
 					const perLink = {
-						correct: config.correctEdgeIds.map((edgeId) => {
-							const edge = edgeById[edgeId];
-							return {
-								source: edge?.source,
-								target: edge?.target,
-								edgeId,
-							};
-						}),
+						correct: config.correctEdgeIds
+							.map((edgeId) => edgeById[edgeId])
+							.filter((edge): edge is { source: string; target: string } => Boolean(edge))
+							.map((edge) => ({ source: edge.source, target: edge.target })),
 						missing: goalEdges
 							.filter((e) => !config.correctEdgeIds.includes(e.id))
-							.map((e) => ({
-								source: e.source,
-								target: e.target,
-								edgeId: e.id,
-							})),
-						excessive: config.excessiveEdges.map((e, i) => ({
-							source: e.source,
-							target: e.target,
-							edgeId: `excess-${i + 1}`,
-						})),
+							.map((e) => ({ source: e.source, target: e.target })),
+						excessive: config.excessiveEdges.map((e) => ({ source: e.source, target: e.target })),
 					};
 
-					yield* db.insert(diagnoses).values({
-						id: randomString(),
-						goalMapId: dailyLifeGoalMapId,
-						learnerMapId: learnerMapId,
-						summary: `Score: ${Math.round(score * 100)}% (${correctCount}/${totalGoalEdges} correct edges)`,
-						perLink: perLink,
-						score: score,
-						rubricVersion: "v1.0",
-					});
-					yield* Effect.log(
-						`  Created diagnosis for ${config.studentEmail}: ${Math.round(score * 100)}%`,
-					);
-				}),
-			),
-			{ concurrency: 10 },
+				yield* db.insert(diagnoses).values({
+					id: randomString(),
+					goalMapId: dailyLifeGoalMapId,
+					learnerMapId: learnerMapId,
+					summary: `Score: ${Math.round(score * 100)}% (${correctCount}/${totalGoalEdges} correct edges)`,
+					perLink: perLink,
+					score: score,
+					rubricVersion: "v1.0",
+				});
+				yield* Effect.log(
+					`  Created diagnosis for ${config.studentEmail}: ${Math.round(score * 100)}%`,
+				);
+			}),
+		),
+		{ concurrency: 10 },
 		);
 	});
 }

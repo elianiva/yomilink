@@ -5,7 +5,6 @@ import { parseJson, randomString, safeParseJson } from "@/lib/utils";
 import { NonEmpty } from "@/lib/validation-schemas";
 import { Database } from "@/server/db/client";
 import {
-	assignmentExperimentGroups,
 	assignmentTargets,
 	assignments,
 	formProgress,
@@ -86,67 +85,20 @@ type AssignmentFormRow = {
 	tamFormId: string | null;
 };
 
-type AssignmentConditionRow = {
-	assignmentId: string;
-	condition: "summarizing" | "concept_map";
-};
-
-const CONDITION_TO_AUDIENCE: Record<
-	AssignmentConditionRow["condition"],
-	Exclude<FormAudience, "all">
-> = {
-	summarizing: "control",
-	concept_map: "experiment",
-};
-
-function buildAccessibleFormAudiences(
-	assignmentRows: ReadonlyArray<AssignmentFormRow>,
-	experimentGroupRows: ReadonlyArray<AssignmentConditionRow>,
-) {
-	const assignmentConditionById = new Map(
-		experimentGroupRows.map((row) => [row.assignmentId, row.condition]),
-	);
-	const audiencesByFormId = new Map<string, Set<Exclude<FormAudience, "all">>>();
-
-	for (const assignment of assignmentRows) {
-		const condition = assignmentConditionById.get(assignment.id);
-		if (!condition) continue;
-
-		const audience = CONDITION_TO_AUDIENCE[condition];
-		for (const formId of [
-			assignment.preTestFormId,
-			assignment.postTestFormId,
-			assignment.delayedPostTestFormId,
-			assignment.tamFormId,
-		]) {
-			if (!formId) continue;
-
-			const existing = audiencesByFormId.get(formId);
-			if (existing) {
-				existing.add(audience);
-				continue;
-			}
-
-			audiencesByFormId.set(formId, new Set([audience]));
-		}
-	}
-
-	return audiencesByFormId;
-}
-
 function shouldExcludeForm(
 	form: { id: string; type: FormType; audience: FormAudience },
-	audiencesByFormId: Map<string, Set<Exclude<FormAudience, "all">>>,
+	studyGroup: "experiment" | "control" | null,
 ): boolean {
 	if (form.type === "registration") return true;
 	if (form.audience === "all") return false;
-	return !(audiencesByFormId.get(form.id)?.has(form.audience) ?? false);
+	if (!studyGroup) return true;
+	return form.audience !== studyGroup;
 }
 
 type FormAccessScope = {
 	linkedAssignmentRows: ReadonlyArray<AssignmentFormRow>;
 	accessibleAssignmentRows: ReadonlyArray<AssignmentFormRow>;
-	audiencesByFormId: Map<string, Set<Exclude<FormAudience, "all">>>;
+	studyGroup: "experiment" | "control" | null;
 };
 
 const getAccessibleAssignmentIdsForUser = Effect.fn("getAccessibleAssignmentIdsForUser")(function* (
@@ -207,11 +159,14 @@ const resolveFormAccessScope = Effect.fn("resolveFormAccessScope")(function* (
 			),
 		);
 
+	const userRows = yield* db.select({ studyGroup: users.studyGroup }).from(users).where(eq(users.id, userId)).limit(1);
+	const studyGroup = userRows[0]?.studyGroup ?? null;
+
 	if (linkedAssignmentRows.length === 0) {
 		return {
 			linkedAssignmentRows: [],
 			accessibleAssignmentRows: [],
-			audiencesByFormId: new Map(),
+			studyGroup,
 		};
 	}
 
@@ -224,32 +179,10 @@ const resolveFormAccessScope = Effect.fn("resolveFormAccessScope")(function* (
 		accessibleAssignmentIds.includes(row.id),
 	);
 
-	const experimentGroupRows: AssignmentConditionRow[] =
-		accessibleAssignmentIds.length > 0
-			? yield* db
-					.select({
-						assignmentId: assignmentExperimentGroups.assignmentId,
-						condition: assignmentExperimentGroups.condition,
-					})
-					.from(assignmentExperimentGroups)
-					.where(
-						and(
-							eq(assignmentExperimentGroups.userId, userId),
-							inArray(
-								assignmentExperimentGroups.assignmentId,
-								accessibleAssignmentIds,
-							),
-						),
-					)
-			: [];
-
 	return {
 		linkedAssignmentRows,
 		accessibleAssignmentRows,
-		audiencesByFormId: buildAccessibleFormAudiences(
-			accessibleAssignmentRows,
-			experimentGroupRows,
-		),
+		studyGroup,
 	};
 });
 
@@ -506,7 +439,7 @@ export const getStudentFormById = Effect.fn("getStudentFormById")(function* (
 	if (
 		shouldExcludeForm(
 			{ id: formRow.id, type: formRow.type, audience: formRow.audience },
-			formAccessScope.audiencesByFormId,
+			studyGroup,
 		)
 	) {
 		return yield* new FormNotAccessibleError({ formId });
@@ -1060,7 +993,7 @@ export const submitFormResponse = Effect.fn("submitFormResponse")(function* (
 	if (
 		shouldExcludeForm(
 			{ id: form.id, type: form.type, audience: form.audience },
-			formAccessScope.audiencesByFormId,
+			formAccessScope.studyGroup,
 		)
 	) {
 		return yield* new FormNotAccessibleError({ formId: data.formId });
@@ -1519,23 +1452,9 @@ export const getStudentForms = Effect.fn("getStudentForms")(function* (userId: s
 					.where(inArray(assignments.id, assignmentIds))
 			: [];
 
-	const experimentGroupRows: AssignmentConditionRow[] =
-		assignmentIds.length > 0
-			? yield* db
-					.select({
-						assignmentId: assignmentExperimentGroups.assignmentId,
-						condition: assignmentExperimentGroups.condition,
-					})
-					.from(assignmentExperimentGroups)
-					.where(
-						and(
-							eq(assignmentExperimentGroups.userId, userId),
-							inArray(assignmentExperimentGroups.assignmentId, assignmentIds),
-						),
-					)
-			: [];
 
-	const audiencesByFormId = buildAccessibleFormAudiences(assignmentRows, experimentGroupRows);
+	const userRows = yield* db.select({ studyGroup: users.studyGroup }).from(users).where(eq(users.id, userId)).limit(1);
+	const studyGroup = userRows[0]?.studyGroup ?? null;
 	const assignmentLinkedFormIds = new Set(
 		assignmentRows
 			.flatMap((assignment) => [
@@ -1560,7 +1479,7 @@ export const getStudentForms = Effect.fn("getStudentForms")(function* (userId: s
 			return false;
 		}
 
-		return !shouldExcludeForm(form, audiencesByFormId);
+		return !shouldExcludeForm(form, studyGroup);
 	});
 
 	const userProgressRows = yield* db

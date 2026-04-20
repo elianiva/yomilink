@@ -156,29 +156,6 @@ export const assignmentTargets = sqliteTable(
 	],
 );
 
-export const assignmentExperimentGroups = sqliteTable(
-	"assignment_experiment_groups",
-	{
-		id: text("id").primaryKey(),
-		assignmentId: text("assignment_id")
-			.notNull()
-			.references(() => assignments.id, { onDelete: "cascade" }),
-		userId: text("user_id")
-			.notNull()
-			.references(() => user.id, { onDelete: "cascade" }),
-		condition: text("condition", { enum: ["summarizing", "concept_map"] }).notNull(),
-		...timestamps,
-	},
-	(table) => [
-		index("assignment_experiment_groups_assignmentId_idx").on(table.assignmentId),
-		index("assignment_experiment_groups_userId_idx").on(table.userId),
-		uniqueIndex("assignment_experiment_groups_assignment_user_unique").on(
-			table.assignmentId,
-			table.userId,
-		),
-	],
-);
-
 export const learnerMaps = sqliteTable(
 	"learner_maps",
 	{
@@ -257,14 +234,12 @@ export const feedback = sqliteTable(
 );
 
 export const textsRelations = relations(texts, ({ many }) => ({
-	topics: many(topics),
 	goalMaps: many(goalMaps),
 	kits: many(kits),
 	kitSets: many(kitSets),
 }));
 
 export const topicsRelations = relations(topics, ({ many }) => ({
-	text: many(texts),
 	goalMaps: many(goalMaps),
 }));
 

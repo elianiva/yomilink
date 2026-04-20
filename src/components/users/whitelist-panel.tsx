@@ -89,7 +89,7 @@ export function WhitelistPanel() {
 									</TableCell>
 									<TableCell>{formatDate(entry.createdAt.getTime())}</TableCell>
 								</TableRow>
-							)),
+							))
 						)}
 					</TableBody>
 				</Table>

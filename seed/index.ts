@@ -21,16 +21,7 @@ const program = Effect.gen(function* () {
 	}
 
 	yield* Effect.log(
-		"--- Seed completed ---
-" +
-			"Demo credentials:
-" +
-			"  Admin: admin@demo.local / admin123
-" +
-			"  Teacher: teacher@demo.local / teacher123
-" +
-			"  Students: see seeded demo users
-",
+		`--- Seed completed ---\nDemo credentials:\n  Admin: admin@demo.local / admin123\n  Teacher: teacher@demo.local / teacher123\n  Students: see seeded demo users\n`,
 	);
 });
 

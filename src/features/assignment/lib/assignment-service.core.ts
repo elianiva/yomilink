@@ -7,7 +7,6 @@ import { NonEmpty } from "@/lib/validation-schemas";
 import { Database } from "@/server/db/client";
 import {
 	assignments,
-	assignmentExperimentGroups,
 	assignmentTargets,
 	formResponses,
 	forms,
@@ -474,43 +473,17 @@ export const saveExperimentGroups = Effect.fn("saveExperimentGroups")(function* 
 ) {
 	const db = yield* Database;
 
-	const startedRows = yield* db
-		.select({ id: learnerMaps.id })
-		.from(learnerMaps)
-		.where(eq(learnerMaps.assignmentId, input.assignmentId))
-		.limit(1);
-
-	const isLocked = startedRows.length > 0;
-	if (isLocked && !input.overrideLock) {
-		return yield* new ExperimentGroupAssignmentLockedError({
-			assignmentId: input.assignmentId,
-			actorUserId,
-		});
-	}
-
-	if (isLocked && input.overrideLock) {
-		yield* Effect.logWarning("Experiment group override applied").pipe(
-			Effect.annotateLogs({
-				assignmentId: input.assignmentId,
-				actorUserId,
-			}),
-		);
-	}
-
-	yield* db
-		.delete(assignmentExperimentGroups)
-		.where(eq(assignmentExperimentGroups.assignmentId, input.assignmentId));
-
 	const uniqueGroups = new Map(input.groups.map((group) => [group.userId, group]));
+	const userIds = Array.from(uniqueGroups.keys());
+	if (userIds.length === 0) return true;
+
 	const values = Array.from(uniqueGroups.values()).map((group) => ({
-		id: randomString(),
-		assignmentId: input.assignmentId,
 		userId: group.userId,
-		condition: group.condition,
+		studyGroup: group.condition === "concept_map" ? "experiment" : "control",
 	}));
 
-	if (values.length > 0) {
-		yield* db.insert(assignmentExperimentGroups).values(values);
+	for (const value of values) {
+		yield* db.update(user).set({ studyGroup: value.studyGroup }).where(eq(user.id, value.userId));
 	}
 
 	return true;
@@ -519,18 +492,26 @@ export const saveExperimentGroups = Effect.fn("saveExperimentGroups")(function* 
 export const getExperimentGroupsByAssignmentId = Effect.fn("getExperimentGroupsByAssignmentId")(
 	function* (assignmentId: string) {
 		const db = yield* Database;
-
-		const rows = yield* db
-			.select({
-				id: assignmentExperimentGroups.id,
-				assignmentId: assignmentExperimentGroups.assignmentId,
-				userId: assignmentExperimentGroups.userId,
-				condition: assignmentExperimentGroups.condition,
-			})
-			.from(assignmentExperimentGroups)
-			.where(eq(assignmentExperimentGroups.assignmentId, assignmentId));
-
-		return rows;
+		const targets = yield* db
+			.select({ userId: assignmentTargets.userId, cohortId: assignmentTargets.cohortId })
+			.from(assignmentTargets)
+			.where(eq(assignmentTargets.assignmentId, assignmentId));
+		const cohortIds = targets.map((t) => t.cohortId).filter((id): id is string => id !== null);
+		const directUserIds = targets.map((t) => t.userId).filter((id): id is string => id !== null);
+		const cohortUserIds =
+			cohortIds.length > 0
+				? yield* db.select({ userId: cohortMembers.userId }).from(cohortMembers).where(inArray(cohortMembers.cohortId, cohortIds))
+				: [];
+		const userIds = Array.from(new Set([...directUserIds, ...cohortUserIds.map((r) => r.userId)]));
+		const usersRows = userIds.length > 0
+			? yield* db.select({ id: user.id, studyGroup: user.studyGroup }).from(user).where(inArray(user.id, userIds))
+			: [];
+		return usersRows.map((row) => ({
+			id: randomString(),
+			assignmentId,
+			userId: row.id,
+			condition: row.studyGroup === "experiment" ? "concept_map" : "summarizing",
+		}));
 	},
 );
 
@@ -627,24 +608,14 @@ export const getExperimentCondition = Effect.fn("getExperimentCondition")(functi
 	userId: string,
 ) {
 	const db = yield* Database;
-
-	const rows = yield* db
-		.select({
-			id: assignmentExperimentGroups.id,
-			assignmentId: assignmentExperimentGroups.assignmentId,
-			userId: assignmentExperimentGroups.userId,
-			condition: assignmentExperimentGroups.condition,
-		})
-		.from(assignmentExperimentGroups)
-		.where(
-			and(
-				eq(assignmentExperimentGroups.assignmentId, assignmentId),
-				eq(assignmentExperimentGroups.userId, userId),
-			),
-		)
-		.limit(1);
-
-	return rows[0] ?? null;
+	const rows = yield* db.select({ studyGroup: user.studyGroup }).from(user).where(eq(user.id, userId)).limit(1);
+	const studyGroup = rows[0]?.studyGroup ?? "control";
+	return {
+		id: randomString(),
+		assignmentId,
+		userId,
+		condition: studyGroup === "experiment" ? "concept_map" : "summarizing",
+	};
 });
 
 // ============================================================================
@@ -764,20 +735,12 @@ export const getAssignmentExperimentStatus = Effect.fn("getAssignmentExperimentS
 	const userMap = new Map(users.map((u) => [u.id, u]));
 
 	const experimentGroupRows = yield* db
-		.select({
-			userId: assignmentExperimentGroups.userId,
-			condition: assignmentExperimentGroups.condition,
-		})
-		.from(assignmentExperimentGroups)
-		.where(
-			and(
-				eq(assignmentExperimentGroups.assignmentId, input.assignmentId),
-				inArray(assignmentExperimentGroups.userId, allUserIds),
-			),
-		);
+		.select({ id: user.id, studyGroup: user.studyGroup })
+		.from(user)
+		.where(inArray(user.id, allUserIds));
 
 	const experimentGroupMap = new Map(
-		experimentGroupRows.map((row) => [row.userId, row.condition]),
+		experimentGroupRows.map((row) => [row.id, row.studyGroup === "experiment" ? "concept_map" : "summarizing"]),
 	);
 
 	const scoreFormResponses = function* (
