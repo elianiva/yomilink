@@ -4,60 +4,60 @@ description: "Very easy N5 reading about a student's daily routine"
 nodes:
     - id: "tanaka"
       type: "text"
-      position: { x: 500, y: 40 }
+      position: { x: 600, y: 40 }
       data: { label: "田中さん", color: "green" }
-    - id: "student"
-      type: "text"
-      position: { x: 240, y: 200 }
-      data: { label: "がくせい", color: "blue" }
-    - id: "everyday"
-      type: "text"
-      position: { x: 500, y: 200 }
-      data: { label: "まいにち", color: "blue" }
-    - id: "school"
-      type: "text"
-      position: { x: 780, y: 200 }
-      data: { label: "がっこう", color: "blue" }
-    - id: "morning"
-      type: "text"
-      position: { x: 360, y: 360 }
-      data: { label: "あさ6じにおきる", color: "blue" }
-    - id: "study"
-      type: "text"
-      position: { x: 640, y: 360 }
-      data: { label: "4じかんべんきょうする", color: "amber" }
-    - id: "sleep"
-      type: "text"
-      position: { x: 920, y: 360 }
-      data: { label: "よる11じごろねる", color: "amber" }
     - id: "conn-is"
       type: "connector"
-      position: { x: 350, y: 110 }
+      position: { x: 600, y: 140 }
       data: { label: "は" }
+    - id: "student"
+      type: "text"
+      position: { x: 420, y: 260 }
+      data: { label: "がくせい", color: "blue" }
     - id: "conn-everyday"
       type: "connector"
-      position: { x: 500, y: 110 }
+      position: { x: 760, y: 140 }
       data: { label: "は" }
+    - id: "everyday"
+      type: "text"
+      position: { x: 760, y: 260 }
+      data: { label: "まいにち", color: "blue" }
     - id: "conn-wake"
       type: "connector"
-      position: { x: 430, y: 280 }
+      position: { x: 760, y: 360 }
       data: { label: "に" }
+    - id: "morning"
+      type: "text"
+      position: { x: 760, y: 460 }
+      data: { label: "あさ6じにおきる", color: "blue" }
     - id: "conn-go-school"
       type: "connector"
-      position: { x: 620, y: 280 }
+      position: { x: 760, y: 560 }
       data: { label: "のあと" }
+    - id: "school"
+      type: "text"
+      position: { x: 760, y: 660 }
+      data: { label: "がっこう", color: "blue" }
     - id: "conn-study-at"
       type: "connector"
-      position: { x: 720, y: 280 }
+      position: { x: 760, y: 760 }
       data: { label: "で" }
-    - id: "conn-after-study"
-      type: "connector"
-      position: { x: 780, y: 360 }
-      data: { label: "のあと" }
     - id: "conn-does-study"
       type: "connector"
-      position: { x: 560, y: 280 }
+      position: { x: 760, y: 860 }
       data: { label: "を" }
+    - id: "study"
+      type: "text"
+      position: { x: 760, y: 960 }
+      data: { label: "4じかんべんきょうする", color: "amber" }
+    - id: "conn-after-study"
+      type: "connector"
+      position: { x: 760, y: 1060 }
+      data: { label: "のあと" }
+    - id: "sleep"
+      type: "text"
+      position: { x: 760, y: 1160 }
+      data: { label: "よる11じごろねる", color: "amber" }
 edges:
     - id: "e1"
       source: "tanaka"
@@ -72,38 +72,32 @@ edges:
       source: "conn-everyday"
       target: "everyday"
     - id: "e5"
-      source: "conn-is"
-      target: "morning"
-    - id: "e6"
-      source: "conn-is"
-      target: "sleep"
-    - id: "e7"
       source: "everyday"
       target: "conn-wake"
-    - id: "e8"
+    - id: "e6"
       source: "conn-wake"
       target: "morning"
-    - id: "e9"
+    - id: "e7"
       source: "morning"
       target: "conn-go-school"
-    - id: "e10"
+    - id: "e8"
       source: "conn-go-school"
       target: "school"
-    - id: "e11"
+    - id: "e9"
       source: "school"
       target: "conn-study-at"
-    - id: "e12"
+    - id: "e10"
       source: "conn-study-at"
+      target: "conn-does-study"
+    - id: "e11"
+      source: "conn-does-study"
       target: "study"
-    - id: "e13"
+    - id: "e12"
       source: "study"
       target: "conn-after-study"
-    - id: "e14"
+    - id: "e13"
       source: "conn-after-study"
       target: "sleep"
-    - id: "e15"
-      source: "conn-is"
-      target: "study"
 ---
 
 田中さんはがくせいです。まいにち、あさ6じにおきます。
