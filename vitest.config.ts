@@ -5,6 +5,7 @@ export default defineConfig({
 		environment: "jsdom",
 		include: ["**/*.ignored"], // Don't run any tests by default - use test:ui or test:service
 		globals: true,
+		setupFiles: ["src/__tests__/setup/ui.ts"],
 		alias: {
 			"@": new URL("./src/", import.meta.url).pathname,
 			"cloudflare:workers": new URL(

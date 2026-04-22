@@ -51,7 +51,7 @@ export const Route = createFileRoute("/login")({
 });
 
 const LoginSchema = Schema.Struct({
-    studentId: Schema.optionalWith(Schema.String, { default: () => "" }),
+    studentId: Schema.String,
     password: Password(8),
 });
 
@@ -180,7 +180,7 @@ function LoginPage() {
             <div className="text-center pt-4 space-y-2">
                 <p className="text-sm text-muted-foreground">
                     Don't have an account yet?{" "}
-                    <Link to="/signup/" className="font-medium text-primary hover:underline">
+                    <Link to="/signup" className="font-medium text-primary hover:underline">
                         Sign up here
                     </Link>
                 </p>

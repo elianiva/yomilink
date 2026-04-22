@@ -12,7 +12,7 @@ import {
 	WhitelistAlreadyClaimedError,
 	WhitelistImportFailedError,
 	type WhitelistImportResult,
-	type WhitelistCsvRow,
+	WhitelistCsvRow,
 } from "./whitelist-service.shared";
 
 function readRowValue(row: Record<string, unknown>, keys: string[]) {

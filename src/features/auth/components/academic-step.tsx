@@ -12,7 +12,7 @@ interface AcademicStepProps {
     onLastFieldSubmit?: () => void;
 }
 
-export function AcademicStep({ form, cohorts, onLastFieldSubmit }: AcademicStepProps) {
+export function AcademicStep({ form, cohorts, onLastFieldSubmit: _onLastFieldSubmit }: AcademicStepProps) {
     return (
         <fieldset className="space-y-5">
             <form.Field name="studentId">

@@ -10,10 +10,8 @@ import { Rpc, logRpcError, logAndReturnError, logAndReturnDefect } from "../rpc-
 import { importWhitelistCsv, listUnregisteredWhitelist } from "@/features/whitelist/lib/whitelist-service.mutations";
 import { getWhitelistEntryByStudentId } from "@/features/whitelist/lib/whitelist-service.queries";
 import {
-	WhitelistImportFailedError,
 	WhitelistImportInput,
 	WhitelistLookupInput,
-	WhitelistNotFoundError,
 } from "@/features/whitelist/lib/whitelist-service.shared";
 
 export const getWhitelistEntryRpc = createServerFn()

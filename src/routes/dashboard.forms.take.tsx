@@ -22,7 +22,7 @@ type FormTakeSearch = {
 	returnTo?: string;
 };
 
-function mapQuestionData(questions: Array<{
+function mapQuestionData(questions: ReadonlyArray<{
 	id: string;
 	questionText: string;
 	type: "mcq" | "likert" | "text";
@@ -73,23 +73,29 @@ function mapQuestionData(questions: Array<{
 	});
 }
 
+function formatUnknownValue(value: unknown): string {
+	if (typeof value === "string") return value;
+	if (typeof value === "number") return String(value);
+	return JSON.stringify(value);
+}
+
 function getSubmittedAnswerText(question: QuestionWithOptions, rawAnswer: unknown): string {
 	if (rawAnswer === null || rawAnswer === undefined) return "No answer";
 
 	if (question.type === "mcq") {
 		if (!Array.isArray(question.options)) return "No answer";
 		const selected = question.options.find((option) => option.id === rawAnswer);
-		return selected?.text ?? String(rawAnswer);
+		return selected?.text ?? formatUnknownValue(rawAnswer);
 	}
 
 	if (question.type === "likert") {
 		if (Array.isArray(question.options) || question.options.type !== "likert") {
-			return String(rawAnswer);
+			return formatUnknownValue(rawAnswer);
 		}
-		return question.options.labels[String(rawAnswer)] ?? String(rawAnswer);
+		return question.options.labels[formatUnknownValue(rawAnswer)] ?? formatUnknownValue(rawAnswer);
 	}
 
-	return String(rawAnswer);
+	return formatUnknownValue(rawAnswer);
 }
 
 function FormTakerPage() {
@@ -219,7 +225,7 @@ function FormTakerPage() {
 									<p className="text-sm text-muted-foreground">Question {index + 1}</p>
 									<p className="font-medium">{question.questionText}</p>
 									<p className="mt-1 text-sm">
-										{getSubmittedAnswerText(question, data.submission.answers[question.id])}
+										{getSubmittedAnswerText(question, data.submission?.answers[question.id])}
 									</p>
 								</div>
 							))}

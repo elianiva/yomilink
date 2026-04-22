@@ -12,7 +12,7 @@ import { cohortMembers, cohorts } from "@/server/db/schema/auth-schema";
 
 import { claimWhitelistEntry } from "@/features/whitelist/lib/whitelist-service.mutations";
 import { getWhitelistEntryByStudentId } from "@/features/whitelist/lib/whitelist-service.queries";
-import { WhitelistAlreadyClaimedError, WhitelistNotFoundError } from "@/features/whitelist/lib/whitelist-service.shared";
+import { WhitelistAlreadyClaimedError } from "@/features/whitelist/lib/whitelist-service.shared";
 
 import { AppRuntime } from "../app-runtime";
 import { Rpc, logRpcError, logAndReturnError, logAndReturnDefect } from "../rpc-helper";
