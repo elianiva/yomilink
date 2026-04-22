@@ -12,7 +12,7 @@ import { AssignmentRpc } from "@/server/rpc/assignment";
 import { FormRpc } from "@/server/rpc/form";
 import { KitRpc } from "@/server/rpc/kit";
 
-import { Button } from "../ui/button";
+import { Button } from "@/components/ui/button";
 
 type FormState = {
 	currentStep: number;
