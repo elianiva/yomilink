@@ -3,7 +3,7 @@ import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { FilePlusIcon, Loader2 } from "lucide-react";
 import { useState } from "react";
 
-import { Guard } from "@/components/auth/Guard";
+import { Guard } from "@/features/auth/components/Guard";
 import { Button } from "@/components/ui/button";
 import {
 	Dialog,

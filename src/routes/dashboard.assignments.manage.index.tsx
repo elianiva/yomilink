@@ -3,8 +3,8 @@ import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { ClipboardListIcon, Loader2 } from "lucide-react";
 import { useState } from "react";
 
-import { CreateAssignmentDialog } from "@/components/assignments/create-assignment-dialog";
-import { Guard } from "@/components/auth/Guard";
+import { CreateAssignmentDialog } from "@/features/assignment/components/create-assignment-dialog";
+import { Guard } from "@/features/auth/components/Guard";
 import { Button } from "@/components/ui/button";
 import {
 	Dialog,

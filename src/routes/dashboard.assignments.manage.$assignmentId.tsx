@@ -1,6 +1,6 @@
 import { createFileRoute } from "@tanstack/react-router";
 
-import { Guard } from "@/components/auth/Guard";
+import { Guard } from "@/features/auth/components/Guard";
 import { AssignmentDetailContainer } from "@/features/assignment/components/assignment-detail-container";
 import { AssignmentDetailSkeleton } from "@/features/assignment/components/assignment-detail-skeleton";
 

@@ -1,7 +1,7 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useCallback, useMemo, useState } from "react";
 
-import { Guard } from "@/components/auth/Guard";
+import { Guard } from "@/features/auth/components/Guard";
 import { createTooltipHandle, TooltipContent, TooltipProvider } from "@/components/ui/tooltip";
 import { AnalyticsCanvasWrapper } from "@/features/analyzer/components/analytics-canvas-wrapper";
 import { AnalyticsControls } from "@/features/analyzer/components/analytics-controls";

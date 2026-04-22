@@ -1,7 +1,7 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { lazy, Suspense } from "react";
 
-import { Guard } from "@/components/auth/Guard";
+import { Guard } from "@/features/auth/components/Guard";
 import { Skeleton } from "@/components/ui/skeleton";
 
 // Lazy load the Learner Map Result page with React Flow

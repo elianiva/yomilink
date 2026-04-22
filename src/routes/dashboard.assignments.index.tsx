@@ -1,7 +1,7 @@
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { BookOpenIcon } from "lucide-react";
 
-import { Guard } from "@/components/auth/Guard";
+import { Guard } from "@/features/auth/components/Guard";
 import { Skeleton } from "@/components/ui/skeleton";
 import {
 	AssignmentList,
