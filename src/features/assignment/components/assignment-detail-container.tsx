@@ -1,6 +1,6 @@
 import { useParams } from "@tanstack/react-router";
 
-import { ErrorCard } from "@/components/error-card";
+import { ErrorCard } from "@/components/ui/error-card";
 import { NotFoundCard } from "@/components/not-found-card";
 import { useRpcQuery } from "@/hooks/use-rpc-query";
 import { AssignmentRpc } from "@/server/rpc/assignment";
