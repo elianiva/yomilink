@@ -11,9 +11,9 @@ import { ZoomIn, ZoomOut } from "lucide-react";
 import { useEffect, useMemo, useState } from "react";
 
 import "@xyflow/react/dist/style.css";
-import { ConnectorNode } from "@/features/kitbuild/components/connector-node";
-import { FloatingEdge } from "@/features/kitbuild/components/floating-edge";
-import { TextNode } from "@/features/kitbuild/components/text-node";
+import { ConnectorNode } from "@/features/kit/components/connector-node";
+import { FloatingEdge } from "@/features/kit/components/floating-edge";
+import { TextNode } from "@/features/kit/components/text-node";
 import { useGraphChangeHandlers } from "@/hooks/use-graph-change-handlers";
 
 interface AnalyticsCanvasProps {

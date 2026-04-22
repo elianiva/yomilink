@@ -15,8 +15,8 @@ import {
 	DEFAULT_COLOR,
 	TAILWIND_COLORS,
 	type TailwindColor,
-} from "@/features/kitbuild/components/color-picker";
-import { TextNode } from "@/features/kitbuild/components/text-node";
+} from "@/features/kit/components/color-picker";
+import { TextNode } from "@/features/kit/components/text-node";
 import { cn } from "@/lib/utils";
 
 export type AddConceptDialogProps = {

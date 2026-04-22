@@ -32,10 +32,10 @@ import {
 	DEFAULT_COLOR,
 	getColorByValue,
 	type TailwindColor,
-} from "@/features/kitbuild/components/color-picker";
-import { ConceptMapCanvas } from "@/features/kitbuild/components/concept-map-canvas";
-import { NodeContextMenu } from "@/features/kitbuild/components/node-context-menu";
-import { SearchNodesPanel } from "@/features/kitbuild/components/search-nodes-panel";
+} from "@/features/kit/components/color-picker";
+import { ConceptMapCanvas } from "@/features/kit/components/concept-map-canvas";
+import { NodeContextMenu } from "@/features/kit/components/node-context-menu";
+import { SearchNodesPanel } from "@/features/kit/components/search-nodes-panel";
 import { useRpcMutation, useRpcQuery } from "@/hooks/use-rpc-query";
 import { toast } from "@/lib/error-toast";
 import { areNodesConnected } from "@/lib/react-flow-types";

@@ -11,7 +11,7 @@ import {
 } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { ConnectorNode } from "@/features/kitbuild/components/connector-node";
+import { ConnectorNode } from "@/features/kit/components/connector-node";
 
 const LINK_PRESETS = [
 	"is",

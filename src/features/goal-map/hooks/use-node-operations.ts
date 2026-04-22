@@ -2,7 +2,7 @@ import { useReactFlow } from "@xyflow/react";
 import { useAtom, useSetAtom } from "jotai";
 import { useCallback } from "react";
 
-import type { TailwindColor } from "@/features/kitbuild/components/color-picker";
+import type { TailwindColor } from "@/features/kit/components/color-picker";
 
 import { edgesAtom, nodesAtom } from "../lib/atoms";
 

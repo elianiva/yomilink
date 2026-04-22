@@ -20,9 +20,9 @@ import {
 	AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
 import { Button } from "@/components/ui/button";
-import { ConceptMapCanvas } from "@/features/kitbuild/components/concept-map-canvas";
-import { SearchNodesPanel } from "@/features/kitbuild/components/search-nodes-panel";
-import { getLayoutedElements } from "@/features/kitbuild/lib/layout";
+import { ConceptMapCanvas } from "@/features/kit/components/concept-map-canvas";
+import { SearchNodesPanel } from "@/features/kit/components/search-nodes-panel";
+import { getLayoutedElements } from "@/features/kit/lib/layout";
 import { LearnerToolbar } from "@/features/learner-map/components/learner-toolbar";
 import { MaterialDialog } from "@/features/learner-map/components/material-dialog";
 import {

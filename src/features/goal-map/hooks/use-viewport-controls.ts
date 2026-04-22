@@ -2,7 +2,7 @@ import { useReactFlow } from "@xyflow/react";
 import { useAtom } from "jotai";
 import { useCallback } from "react";
 
-import { getLayoutedElements } from "@/features/kitbuild/lib/layout";
+import { getLayoutedElements } from "@/features/kit/lib/layout";
 
 import { edgesAtom, nodesAtom } from "../lib/atoms";
 
