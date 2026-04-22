@@ -3,32 +3,36 @@ import { createServerFn } from "@tanstack/react-start";
 import { Effect, Schema } from "effect";
 
 import {
+	cloneForm,
+	createForm,
+	createQuestion,
+	deleteForm,
+	deleteQuestion,
+	publishForm,
+	reorderQuestions,
+	submitFormResponse,
+	unpublishForm,
+	updateForm,
+	updateQuestion,
+} from "@/features/form/lib/form-service.mutations";
+import {
+	getFormById,
+	getFormResponses,
+	getStudentForms,
+	getStudentFormById,
+	listForms,
+} from "@/features/form/lib/form-service.queries";
+import {
 	CloneFormInput,
 	CreateFormInput,
 	CreateQuestionInput,
 	GetFormByIdInput,
 	GetQuestionByIdInput,
 	UpdateFormInput,
-	cloneForm,
-	createForm,
-	createQuestion,
-	deleteForm,
-	deleteQuestion,
 	GetFormResponsesInput,
-	getFormById,
-	getFormResponses,
-	getStudentForms,
-	getStudentFormById,
-	listForms,
-	publishForm,
 	ReorderQuestionsInput,
-	reorderQuestions,
-	submitFormResponse,
 	UpdateQuestionInput,
-	unpublishForm,
-	updateForm,
-	updateQuestion,
-} from "@/features/form/lib/form-service.core";
+} from "@/features/form/lib/form-service.shared";
 import { requireRoleMiddleware } from "@/middlewares/auth";
 
 import { AppRuntime } from "../app-runtime";

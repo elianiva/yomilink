@@ -9,7 +9,7 @@ import type {
 	CreateQuestionInput,
 	ReadingMaterialSection,
 	UpdateQuestionInput,
-} from "@/features/form/lib/form-service.core";
+} from "@/features/form/lib/form-service.shared";
 import { useRpcMutation, useRpcQuery } from "@/hooks/use-rpc-query";
 import { FormRpc } from "@/server/rpc/form";
 

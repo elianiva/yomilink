@@ -2,7 +2,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import type { FormMetadata } from "@/features/form/components/form-metadata-editor";
 import type { QuestionWithOptions as FormPreviewQuestion } from "@/features/form/components/form-renderer/form-preview";
 import { FormPreview } from "@/features/form/components/form-renderer/form-preview";
-import type { ReadingMaterialSection } from "@/features/form/lib/form-service.core";
+import type { ReadingMaterialSection } from "@/features/form/lib/form-service.shared";
 
 import { EditorContent } from "./editor-content";
 import type { EditorMode, QuestionType, QuestionWithOptions } from "./types";

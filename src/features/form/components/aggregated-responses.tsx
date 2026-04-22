@@ -4,7 +4,7 @@ import { Bar, BarChart, ResponsiveContainer, XAxis, YAxis } from "recharts";
 import type {
 	FormResponseOutput as FormResponse,
 	QuestionOutput as ResponseQuestion,
-} from "@/features/form/lib/form-service.core";
+} from "@/features/form/lib/form-service.shared";
 
 type AggregatedResponsesProps = {
 	responses: ReadonlyArray<FormResponse>;

@@ -2,19 +2,21 @@ import { mutationOptions, queryOptions } from "@tanstack/react-query";
 import { createServerFn } from "@tanstack/react-start";
 import { Effect, Schema } from "effect";
 
+import { exportAnalyticsData } from "@/features/analyzer/lib/analytics-service.mutations";
 import {
-	ExportAnalyticsDataInput,
-	exportAnalyticsData,
-	GetAnalyticsForAssignmentInput,
-	GetLearnerMapForAnalyticsInput,
-	GetLearnerSummaryTextInput,
-	GetMultipleLearnerMapsInput,
 	getAnalyticsForAssignment,
 	getLearnerMapForAnalytics,
 	getLearnerSummaryText,
 	getMultipleLearnerMaps,
 	getTeacherAssignments,
-} from "@/features/analyzer/lib/analytics-service.core";
+} from "@/features/analyzer/lib/analytics-service.queries";
+import {
+	ExportAnalyticsDataInput,
+	GetAnalyticsForAssignmentInput,
+	GetLearnerMapForAnalyticsInput,
+	GetLearnerSummaryTextInput,
+	GetMultipleLearnerMapsInput,
+} from "@/features/analyzer/lib/analytics-service.shared";
 import { authMiddleware } from "@/middlewares/auth";
 
 import { AppRuntime } from "../app-runtime";

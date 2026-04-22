@@ -5,7 +5,7 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { useRpcQuery } from "@/hooks/use-rpc-query";
 import { AnalyticsRpc } from "@/server/rpc/analytics";
 
-import type { AssignmentAnalytics } from "../lib/analytics-service.core";
+import type { AssignmentAnalytics } from "../lib/analytics-service.shared";
 import { CanvasContent } from "./canvas-content";
 
 interface VisibilityState {

@@ -4,16 +4,20 @@ import { Effect, Schema } from "effect";
 
 import {
 	createAssignment,
-	listTeacherAssignments,
 	deleteAssignment,
+} from "@/features/assignment/lib/assignment-service.mutations";
+import {
+	listTeacherAssignments,
 	getAvailableCohorts,
 	getAvailableUsers,
 	getTeacherGoalMaps,
-	CreateAssignmentInput,
 	getAssignmentByPreTestFormId,
-	DeleteAssignmentInput,
 	getAssignmentById,
-} from "@/features/assignment/lib/assignment-service.core";
+} from "@/features/assignment/lib/assignment-service.queries";
+import {
+	CreateAssignmentInput,
+	DeleteAssignmentInput,
+} from "@/features/assignment/lib/assignment-service.shared";
 import { requireRoleMiddleware } from "@/middlewares/auth";
 
 import { AppRuntime } from "../app-runtime";

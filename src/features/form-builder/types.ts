@@ -5,7 +5,7 @@ import type {
 	McqOptions,
 	ReadingMaterialSection,
 	TextOptions,
-} from "@/features/form/lib/form-service.core";
+} from "@/features/form/lib/form-service.shared";
 
 export type QuestionType = "mcq" | "likert" | "text";
 export type EditorMode = "edit" | "preview";

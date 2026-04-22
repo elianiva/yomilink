@@ -3,14 +3,18 @@ import { createServerFn } from "@tanstack/react-start";
 import { Effect, Schema } from "effect";
 
 import {
-	listStudentAssignments,
-	getAssignmentForStudent,
 	saveLearnerMap,
 	submitLearnerMap,
-	getDiagnosis,
 	startNewAttempt,
-	getPeerStats,
 	submitControlText,
+} from "@/features/learner-map/lib/learner-map-service.mutations";
+import {
+	listStudentAssignments,
+	getAssignmentForStudent,
+	getDiagnosis,
+	getPeerStats,
+} from "@/features/learner-map/lib/learner-map-service.queries";
+import {
 	GetAssignmentForStudentInput,
 	SaveLearnerMapInput,
 	SubmitLearnerMapInput,
@@ -18,7 +22,7 @@ import {
 	StartNewAttemptInput,
 	GetPeerStatsInput,
 	SubmitControlTextInput,
-} from "@/features/learner-map/lib/learner-map-service.core";
+} from "@/features/learner-map/lib/learner-map-service.shared";
 import { authMiddleware } from "@/middlewares/auth";
 
 import { AppRuntime } from "../app-runtime";

@@ -22,7 +22,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { cn } from "@/lib/utils";
 
-import type { LikertOptions, McqOptions, TextOptions } from "../lib/form-service.core";
+import type { LikertOptions, McqOptions, TextOptions } from "../lib/form-service.shared";
 import { QuestionPreview } from "./question-preview";
 
 export type QuestionType = "mcq" | "likert" | "text";

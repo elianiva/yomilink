@@ -5,7 +5,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 
-import type { ReadingMaterialSection } from "../lib/form-service.core";
+import type { ReadingMaterialSection } from "../lib/form-service.shared";
 
 interface ReadingMaterialRangesEditorProps {
 	sections: ReadingMaterialSection[];

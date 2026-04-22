@@ -16,7 +16,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useRpcQuery } from "@/hooks/use-rpc-query";
 import { AnalyticsRpc } from "@/server/rpc/analytics";
 
-import type { LearnerAnalytics } from "../lib/analytics-service.core";
+import type { LearnerAnalytics } from "../lib/analytics-service.shared";
 import { AssignmentSelectContent } from "./assignment-select-content";
 import { LearnerList } from "./learner-list";
 

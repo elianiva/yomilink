@@ -1,4 +1,4 @@
-import type { LearnerAnalytics } from "../lib/analytics-service.core";
+import type { LearnerAnalytics } from "../lib/analytics-service.shared";
 
 function LegendDot({ color }: { color: string }) {
 	return <span className="inline-block size-3 rounded-full" style={{ backgroundColor: color }} />;

@@ -1,7 +1,7 @@
 import { Check } from "lucide-react";
 import { useMemo } from "react";
 
-import type { McqOptions } from "@/features/form/lib/form-service.core";
+import type { McqOptions } from "@/features/form/lib/form-service.shared";
 import { cn } from "@/lib/utils";
 
 export interface McqQuestionData {

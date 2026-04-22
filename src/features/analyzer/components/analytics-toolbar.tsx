@@ -6,7 +6,7 @@ import { ToolbarButton } from "@/components/toolbar/toolbar-button";
 import { Button } from "@/components/ui/button";
 import { Separator } from "@/components/ui/separator";
 import type { TooltipTriggerProps } from "@/components/ui/tooltip";
-import type { AssignmentAnalytics } from "@/features/analyzer/lib/analytics-service.core";
+import type { AssignmentAnalytics } from "@/features/analyzer/lib/analytics-service.shared";
 import { useRpcMutation } from "@/hooks/use-rpc-query";
 import { toast } from "@/lib/error-toast";
 import { AnalyticsRpc } from "@/server/rpc/analytics";

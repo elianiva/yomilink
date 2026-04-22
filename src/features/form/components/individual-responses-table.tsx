@@ -10,7 +10,7 @@ import {
 	TableHeader,
 	TableRow,
 } from "@/components/ui/table";
-import type { FormResponseOutput, QuestionOutput } from "@/features/form/lib/form-service.core";
+import type { FormResponseOutput, QuestionOutput } from "@/features/form/lib/form-service.shared";
 import { useRpcQuery } from "@/hooks/use-rpc-query";
 import { formatDateTime } from "@/lib/date-utils";
 import { FormRpc } from "@/server/rpc/form";

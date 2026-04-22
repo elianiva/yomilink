@@ -3,7 +3,7 @@ import { Check } from "lucide-react";
 import { Textarea } from "@/components/ui/textarea";
 import { cn } from "@/lib/utils";
 
-import type { LikertOptions, McqOptions, TextOptions } from "../lib/form-service.core";
+import type { LikertOptions, McqOptions, TextOptions } from "../lib/form-service.shared";
 
 interface QuestionPreviewProps {
 	question: {

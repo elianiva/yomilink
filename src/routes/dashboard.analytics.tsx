@@ -12,7 +12,7 @@ import {
 import { AnalyticsSummaryPanel } from "@/features/analyzer/components/analytics-summary-panel";
 import { AnalyticsToolbar } from "@/features/analyzer/components/analytics-toolbar";
 import { SelectedLearnerStats } from "@/features/analyzer/components/selected-learner-stats";
-import type { LearnerAnalytics } from "@/features/analyzer/lib/analytics-service.core";
+import type { LearnerAnalytics } from "@/features/analyzer/lib/analytics-service.shared";
 import { useRpcQuery } from "@/hooks/use-rpc-query";
 import { AnalyticsRpc } from "@/server/rpc/analytics";
 
