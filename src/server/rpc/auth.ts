@@ -1,5 +1,6 @@
 import { queryOptions, mutationOptions } from "@tanstack/react-query";
 import { createServerFn } from "@tanstack/react-start";
+import { and, eq } from "drizzle-orm";
 import { Data, Effect, Schema } from "effect";
 
 import { claimWhitelistEntry } from "@/features/whitelist/lib/whitelist-service.mutations";
@@ -11,7 +12,7 @@ import { randomString } from "@/lib/utils";
 import { NonEmpty, Password } from "@/lib/validation-schemas";
 import { authMiddlewareOptional } from "@/middlewares/auth";
 import { Database } from "@/server/db/client";
-import { cohortMembers, cohorts } from "@/server/db/schema/auth-schema";
+import { cohortMembers, cohorts, user as users } from "@/server/db/schema/auth-schema";
 
 import { AppRuntime } from "../app-runtime";
 import { Rpc, logRpcError, logAndReturnError, logAndReturnDefect } from "../rpc-helper";
@@ -40,6 +41,52 @@ export type SignUpInput = typeof SignUpInput.Type;
 export class SignUpFailedError extends Data.TaggedError("SignUpFailedError")<{
 	readonly message: string;
 }> {}
+
+class UserAlreadyExistsError extends Data.TaggedError("UserAlreadyExistsError")<{
+	readonly studentId: string;
+	readonly cohortId: string;
+}> {}
+
+const recoverSignup = (studentId: string, cohortId: string) =>
+	Effect.gen(function* () {
+		const db = yield* Database;
+		const email = studentIdToAuthEmail(studentId);
+
+		const rows = yield* db
+			.select({ id: users.id })
+			.from(users)
+			.where(eq(users.email, email))
+			.limit(1);
+
+		const existingUser = rows[0];
+		if (!existingUser) {
+			return Rpc.err("Account recovery failed. Please contact support.");
+		}
+
+		const memberRows = yield* db
+			.select({ id: cohortMembers.id })
+			.from(cohortMembers)
+			.where(
+				and(
+					eq(cohortMembers.userId, existingUser.id),
+					eq(cohortMembers.cohortId, cohortId),
+				),
+			)
+			.limit(1);
+
+		if (!memberRows[0]) {
+			yield* db.insert(cohortMembers).values({
+				id: randomString(),
+				userId: existingUser.id,
+				cohortId,
+				role: "member",
+			});
+		}
+
+		yield* claimWhitelistEntry(studentId, existingUser.id);
+
+		return Rpc.ok({ success: true });
+	});
 
 function getFriendlySignUpError(err: unknown): string {
 	const raw =
@@ -100,21 +147,45 @@ export const signUpRpc = createServerFn({ method: "POST" })
 								consentGiven: data.consentGiven,
 							},
 						}),
-					catch: (e) => new SignUpFailedError({ message: getFriendlySignUpError(e) }),
-				});
+					catch: (e) => {
+						const raw =
+							e instanceof Error
+								? e.message
+								: typeof e === "string"
+									? e
+									: "Unknown error";
+						if (/already exists|duplicate/i.test(raw)) {
+							return new UserAlreadyExistsError({
+								studentId: whitelist.studentId,
+								cohortId: data.cohortId,
+							});
+						}
+						return new SignUpFailedError({ message: getFriendlySignUpError(e) });
+					},
+				}).pipe(
+					Effect.catchTag("UserAlreadyExistsError", (e) =>
+						recoverSignup(e.studentId, e.cohortId),
+					),
+				);
 
-				if (!result || !result.user) {
+				if ("success" in result && result.success === true) {
+					return result;
+				}
+
+				const signUpResult = result as { user: { id: string } };
+
+				if (!signUpResult || !signUpResult.user) {
 					return yield* new SignUpFailedError({ message: "Signup returned no result" });
 				}
 
 				yield* db.insert(cohortMembers).values({
 					id: randomString(),
-					userId: result.user.id,
+					userId: signUpResult.user.id,
 					cohortId: data.cohortId,
 					role: "member",
 				});
 
-				yield* claimWhitelistEntry(whitelist.studentId, result.user.id);
+				yield* claimWhitelistEntry(whitelist.studentId, signUpResult.user.id);
 
 				return Rpc.ok({ success: true });
 			}).pipe(
