@@ -158,7 +158,17 @@ export const submitLearnerMap = Effect.fn("submitLearnerMap")(function* (
 			status: "submitted",
 			submittedAt: new Date(),
 		})
-		.where(eq(learnerMaps.id, learnerMap.id));
+		.where(and(eq(learnerMaps.id, learnerMap.id), eq(learnerMaps.status, "draft")));
+
+	const updatedRow = yield* db
+		.select({ status: learnerMaps.status })
+		.from(learnerMaps)
+		.where(eq(learnerMaps.id, learnerMap.id))
+		.limit(1);
+
+	if (updatedRow[0]?.status !== "submitted") {
+		return yield* new LearnerMapAlreadySubmittedError({ learnerMapId: learnerMap.id });
+	}
 
 	const diagnosisId = randomString();
 	yield* db.insert(diagnoses).values({
@@ -253,6 +263,10 @@ export const submitControlText = Effect.fn("submitControlText")(function* (
 	}
 
 	if (existing) {
+		if (existing.status === "submitted") {
+			return yield* new LearnerMapAlreadySubmittedError({ learnerMapId: existing.id });
+		}
+
 		yield* db
 			.update(learnerMaps)
 			.set({
@@ -260,7 +274,17 @@ export const submitControlText = Effect.fn("submitControlText")(function* (
 				status: "submitted",
 				submittedAt: new Date(),
 			})
-			.where(eq(learnerMaps.id, existing.id));
+			.where(and(eq(learnerMaps.id, existing.id), eq(learnerMaps.status, "draft")));
+
+		const updatedRow = yield* db
+			.select({ status: learnerMaps.status })
+			.from(learnerMaps)
+			.where(eq(learnerMaps.id, existing.id))
+			.limit(1);
+
+		if (updatedRow[0]?.status !== "submitted") {
+			return yield* new LearnerMapAlreadySubmittedError({ learnerMapId: existing.id });
+		}
 	} else {
 		const learnerMapId = randomString();
 		yield* db.insert(learnerMaps).values({
