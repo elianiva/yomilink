@@ -131,6 +131,8 @@ export const startNewAttemptRpc = createServerFn({ method: "POST" })
 					PreviousAttemptNotSubmittedError: () =>
 						Rpc.err("Previous attempt not submitted"),
 				}),
+				Effect.catchAll(logAndReturnError("startNewAttempt")),
+				Effect.catchAllDefect(logAndReturnDefect("startNewAttempt")),
 			),
 		),
 	);
