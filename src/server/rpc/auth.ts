@@ -40,12 +40,18 @@ export type SignUpInput = typeof SignUpInput.Type;
 
 export class SignUpFailedError extends Data.TaggedError("SignUpFailedError")<{ readonly message: string }> {}
 
+class SignUpPartialError extends Data.TaggedError("SignUpPartialError")<{
+	readonly studentId: string;
+	readonly cohortId: string;
+	readonly password: string;
+}> {}
+
 function getFriendlySignUpError(err: unknown): string {
 	const raw = err instanceof Error ? err.message : typeof err === "string" ? err : "Unknown error";
 	const msg = raw.toLowerCase();
 
 	if (msg.includes("already exists") || msg.includes("duplicate")) {
-		return "An account with this student ID already exists.";
+		return "An account with this student ID already exists. Try signing in or contact support.";
 	}
 	if (msg.includes("not whitelisted") || msg.includes("whitelist")) {
 		return "This student ID is not whitelisted.";
@@ -95,7 +101,27 @@ export const signUpRpc = createServerFn({ method: "POST" })
 								consentGiven: data.consentGiven,
 							},
 						}),
-					catch: (e) => new SignUpFailedError({ message: getFriendlySignUpError(e) }),
+					catch: (e) => {
+						const msg =
+							e instanceof Error
+								? e.message
+								: typeof e === "string"
+									? e
+									: "Unknown error";
+						if (
+							msg.toLowerCase().includes("already exists") ||
+							msg.toLowerCase().includes("duplicate")
+						) {
+							return new SignUpPartialError({
+								studentId: whitelist.studentId,
+								cohortId: data.cohortId,
+								password: data.password,
+							});
+						}
+						return new SignUpFailedError({
+							message: getFriendlySignUpError(e),
+						});
+					},
 				});
 
 				if (!result || !result.user) {
@@ -117,8 +143,41 @@ export const signUpRpc = createServerFn({ method: "POST" })
 				Effect.tapError(logRpcError("signUp")),
 				Effect.catchTags({
 					WhitelistNotFoundError: () => Rpc.err("This student ID is not whitelisted."),
-					WhitelistAlreadyClaimedError: () => Rpc.err("This whitelist entry was already used."),
+					WhitelistAlreadyClaimedError: () =>
+						Rpc.err("This whitelist entry was already used."),
 					SignUpFailedError: (e) => Rpc.err(e.message),
+					SignUpPartialError: (e) =>
+						Effect.gen(function* () {
+							const recoveryAuth = yield* Auth;
+							const recoveryDb = yield* Database;
+
+							const loginResult = yield* Effect.tryPromise(() =>
+								recoveryAuth.api.signInEmail({
+									body: {
+										email: studentIdToAuthEmail(e.studentId),
+										password: e.password,
+									},
+								}),
+							);
+
+							if (!loginResult?.user) {
+								return Rpc.err(
+									"Account exists but could not sign in. Check your password or contact support.",
+									"PARTIAL_SIGNUP_RECOVERY_FAILED",
+								);
+							}
+
+							yield* recoveryDb.insert(cohortMembers).values({
+								id: randomString(),
+								userId: loginResult.user.id,
+								cohortId: e.cohortId,
+								role: "member",
+							});
+
+							yield* claimWhitelistEntry(e.studentId, loginResult.user.id);
+
+							return Rpc.ok({ success: true });
+						}),
 				}),
 				Effect.catchAll(logAndReturnError("signUp")),
 				Effect.catchAllDefect(logAndReturnDefect("signUp")),
