@@ -1,11 +1,11 @@
 import { and, eq } from "drizzle-orm";
-import { Effect } from "effect";
+import { Effect, Schema } from "effect";
 
-import { randomString } from "@/lib/utils";
+import { randomString, safeParseJson } from "@/lib/utils";
 import { Database } from "@/server/db/client";
 import { assignments, diagnoses, goalMaps, learnerMaps } from "@/server/db/schema/app-schema";
 
-import { compareMaps } from "./comparator";
+import { compareMaps, EdgeSchema } from "./comparator";
 import {
 	AssignmentNotFoundError,
 	GoalMapNotFoundError,
@@ -147,8 +147,10 @@ export const submitLearnerMap = Effect.fn("submitLearnerMap")(function* (
 		return yield* new GoalMapNotFoundError({ goalMapId: assignment.goalMapId });
 	}
 
-	const goalMapEdges = Array.isArray(goalMap.edges) ? goalMap.edges : [];
-	const learnerEdges = Array.isArray(learnerMap.edges) ? learnerMap.edges : [];
+	const [goalMapEdges, learnerEdges] = yield* Effect.all([
+		safeParseJson(goalMap.edges, [], Schema.Array(EdgeSchema)),
+		safeParseJson(learnerMap.edges, [], Schema.Array(EdgeSchema)),
+	]);
 
 	const diagnosis = compareMaps(goalMapEdges, learnerEdges);
 
