@@ -426,6 +426,7 @@ export const formResponses = sqliteTable(
 	(table) => [
 		index("form_responses_formId_idx").on(table.formId),
 		index("form_responses_userId_idx").on(table.userId),
+		uniqueIndex("form_responses_form_user_unique").on(table.formId, table.userId),
 	],
 );
 
