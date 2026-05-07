@@ -266,46 +266,59 @@ export const listForms = Effect.fn("listForms")(function* (userId: string) {
 		.where(eq(forms.createdBy, userId))
 		.orderBy(forms.createdAt);
 
-	const formsWithStats = yield* Effect.all(
-		formRows.map((formRow) =>
-			Effect.gen(function* () {
-				const progressRows = yield* db
+	const formIds = formRows.map((f) => f.id);
+
+	const allProgressRows =
+		formIds.length > 0
+			? yield* db
 					.select({
+						formId: formProgress.formId,
 						status: formProgress.status,
 						count: count(),
 					})
 					.from(formProgress)
-					.where(eq(formProgress.formId, formRow.id))
-					.groupBy(formProgress.status);
+					.where(inArray(formProgress.formId, formIds))
+					.groupBy(formProgress.formId, formProgress.status)
+			: [];
 
-				const stats = {
-					completed: 0,
-					available: 0,
-					locked: 0,
-					total: 0,
-				};
+	const progressByForm = new Map<
+		string,
+		{ completed: number; available: number; locked: number }
+	>();
 
-				for (const row of progressRows) {
-					stats[row.status] = row.count;
-					stats.total += row.count;
-				}
+	for (const row of allProgressRows) {
+		const entry = progressByForm.get(row.formId) ?? {
+			completed: 0,
+			available: 0,
+			locked: 0,
+		};
+		entry[row.status] = row.count;
+		progressByForm.set(row.formId, entry);
+	}
 
-				return {
-					id: formRow.id,
-					title: formRow.title,
-					description: formRow.description,
-					type: formRow.type,
-					status: formRow.status,
-					audience: formRow.audience,
-					createdBy: formRow.createdBy,
-					createdAt: formRow.createdAt,
-					updatedAt: formRow.updatedAt,
-					stats,
-				};
-			}),
-		),
-		{ concurrency: "unbounded" },
-	);
+	const formsWithStats = formRows.map((formRow) => {
+		const progress = progressByForm.get(formRow.id) ?? {
+			completed: 0,
+			available: 0,
+			locked: 0,
+		};
+
+		return {
+			id: formRow.id,
+			title: formRow.title,
+			description: formRow.description,
+			type: formRow.type,
+			status: formRow.status,
+			audience: formRow.audience,
+			createdBy: formRow.createdBy,
+			createdAt: formRow.createdAt,
+			updatedAt: formRow.updatedAt,
+			stats: {
+				...progress,
+				total: progress.completed + progress.available + progress.locked,
+			},
+		};
+	});
 
 	return formsWithStats;
 });
