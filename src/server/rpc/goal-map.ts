@@ -64,7 +64,13 @@ export const listGoalMapsRpc = createServerFn()
 	.middleware([authMiddleware])
 	.handler(({ context }) =>
 		AppRuntime.runPromise(
-			listGoalMaps(context.user.id).pipe(Effect.map(Rpc.ok), Effect.withSpan("listGoalMaps")),
+			listGoalMaps(context.user.id).pipe(
+				Effect.map(Rpc.ok),
+				Effect.withSpan("listGoalMaps"),
+				Effect.tapError(logRpcError("listGoalMaps")),
+				Effect.catchAll(logAndReturnError("listGoalMaps")),
+				Effect.catchAllDefect(logAndReturnDefect("listGoalMaps")),
+			),
 		),
 	);
 
