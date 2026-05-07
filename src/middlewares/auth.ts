@@ -46,7 +46,15 @@ export const requireRoleMiddleware = (...roles: string[]) =>
 			try {
 				await AppRuntime.runPromise(requireAnyRole(...roles)(context.user.id));
 			} catch (error) {
-				throw new Error((error as { message: string })?.message || "Authorization failed");
+				const message =
+					error && typeof error === "object" && "_tag" in error && "message" in error
+						? String(
+								(error as { message: unknown }).message,
+							)
+					: error instanceof Error
+						? error.message
+						: "Authorization failed";
+				throw new Error(message);
 			}
 
 			return next({ context });
