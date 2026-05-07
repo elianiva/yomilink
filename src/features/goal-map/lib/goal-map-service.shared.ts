@@ -1,5 +1,6 @@
 import { Data, Schema } from "effect";
 
+import { GoalMapNotFoundError } from "@/lib/errors";
 import { NonEmpty } from "@/lib/validation-schemas";
 
 export const SaveGoalMapOutput = Schema.Struct({
@@ -55,9 +56,7 @@ export class GoalMapValidationError extends Data.TaggedError("GoalMapValidationE
 	warnings: string[];
 }> {}
 
-export class GoalMapNotFoundError extends Data.TaggedError("GoalMapNotFoundError")<{
-	readonly goalMapId: string;
-}> {}
+export { GoalMapNotFoundError };
 
 export class GoalMapAccessDeniedError extends Data.TaggedError("GoalMapAccessDeniedError")<{
 	readonly goalMapId: string;

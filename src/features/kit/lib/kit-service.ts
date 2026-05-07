@@ -1,6 +1,7 @@
 import { desc, eq } from "drizzle-orm";
-import { Data, Effect, Schema } from "effect";
+import { Effect, Schema } from "effect";
 
+import { GoalMapNotFoundError } from "@/lib/errors";
 import { safeParseJson } from "@/lib/utils";
 import { NonEmpty } from "@/lib/validation-schemas";
 import { Database } from "@/server/db/client";
@@ -38,10 +39,6 @@ export const GenerateKitInput = Schema.Struct({
 });
 
 export type GenerateKitInput = typeof GenerateKitInput.Type;
-
-class GoalMapNotFoundError extends Data.TaggedError("GoalMapNotFoundError")<{
-	readonly goalMapId: string;
-}> {}
 
 export const listStudentKits = Effect.fn("listStudentKits")(function* () {
 	const db = yield* Database;

@@ -2,12 +2,14 @@ import { and, eq, inArray, or } from "drizzle-orm";
 import { Data, Effect, Schema } from "effect";
 
 import { PerLinkDiagnosisSchema } from "@/features/analyzer/lib/analytics-service.shared";
+import { GoalMapNotFoundError } from "@/lib/errors";
 import { NonEmpty } from "@/lib/validation-schemas";
 import { Database } from "@/server/db/client";
 import { assignments, assignmentTargets } from "@/server/db/schema/app-schema";
 import { cohortMembers, user } from "@/server/db/schema/auth-schema";
 
 export { PerLinkDiagnosisSchema };
+export { GoalMapNotFoundError };
 
 export class AssignmentNotFoundError extends Data.TaggedError("AssignmentNotFoundError")<{
 	readonly assignmentId: string;
@@ -22,10 +24,6 @@ export class LearnerMapAlreadySubmittedError extends Data.TaggedError(
 	"LearnerMapAlreadySubmittedError",
 )<{
 	readonly learnerMapId: string;
-}> {}
-
-export class GoalMapNotFoundError extends Data.TaggedError("GoalMapNotFoundError")<{
-	readonly goalMapId: string;
 }> {}
 
 export class AccessDeniedError extends Data.TaggedError("AccessDeniedError")<{

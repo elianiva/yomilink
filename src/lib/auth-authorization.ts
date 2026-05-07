@@ -1,16 +1,13 @@
 import { and, eq, inArray } from "drizzle-orm";
 import { Data, Effect } from "effect";
 
+import { GoalMapNotFoundError } from "@/lib/errors";
 import { Database } from "@/server/db/client";
 import { assignments, assignmentTargets, goalMaps } from "@/server/db/schema/app-schema";
 import { cohortMembers, user } from "@/server/db/schema/auth-schema";
 
 class ForbiddenError extends Data.TaggedError("ForbiddenError")<{
 	readonly message: string;
-}> {}
-
-class GoalMapNotFoundError extends Data.TaggedError("GoalMapNotFoundError")<{
-	readonly goalMapId: string;
 }> {}
 
 class AssignmentNotFoundError extends Data.TaggedError("AssignmentNotFoundError")<{

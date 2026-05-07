@@ -1,6 +1,7 @@
 import { Data, Schema } from "effect";
 
 import { EdgeSchema, NodeSchema } from "@/features/learner-map/lib/comparator";
+import { GoalMapNotFoundError } from "@/lib/errors";
 import { NonEmpty } from "@/lib/validation-schemas";
 
 export const GetAnalyticsForAssignmentInput = Schema.Struct({
@@ -58,10 +59,6 @@ export type PerLinkDiagnosis = typeof PerLinkDiagnosisSchema.Type;
 
 class AssignmentNotFoundError extends Data.TaggedError("AssignmentNotFoundError")<{
 	readonly assignmentId: string;
-}> {}
-
-class GoalMapNotFoundError extends Data.TaggedError("GoalMapNotFoundError")<{
-	readonly goalMapId: string;
 }> {}
 
 class LearnerMapNotFoundError extends Data.TaggedError("LearnerMapNotFoundError")<{
