@@ -217,7 +217,17 @@ export const startNewAttempt = Effect.fn("startNewAttempt")(function* (
 			attempt: existing.attempt + 1,
 			submittedAt: null,
 		})
-		.where(eq(learnerMaps.id, existing.id));
+		.where(and(eq(learnerMaps.id, existing.id), eq(learnerMaps.status, "submitted")));
+
+	const afterRow = yield* db
+		.select({ status: learnerMaps.status })
+		.from(learnerMaps)
+		.where(eq(learnerMaps.id, existing.id))
+		.limit(1);
+
+	if (afterRow[0]?.status !== "draft") {
+		return yield* new PreviousAttemptNotSubmittedError({ learnerMapId: existing.id });
+	}
 
 	return true;
 });
