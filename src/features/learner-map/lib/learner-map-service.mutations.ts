@@ -51,9 +51,7 @@ export const saveLearnerMap = Effect.fn("saveLearnerMap")(function* (
 	const existingRows = yield* db
 		.select({ id: learnerMaps.id, status: learnerMaps.status })
 		.from(learnerMaps)
-		.where(
-			and(eq(learnerMaps.assignmentId, data.assignmentId), eq(learnerMaps.userId, userId)),
-		)
+		.where(and(eq(learnerMaps.assignmentId, data.assignmentId), eq(learnerMaps.userId, userId)))
 		.limit(1);
 
 	const existing = existingRows[0];
@@ -265,10 +263,6 @@ export const submitControlText = Effect.fn("submitControlText")(function* (
 	}
 
 	if (existing) {
-		if (existing.status === "submitted") {
-			return yield* new LearnerMapAlreadySubmittedError({ learnerMapId: existing.id });
-		}
-
 		yield* db
 			.update(learnerMaps)
 			.set({

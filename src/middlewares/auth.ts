@@ -48,12 +48,10 @@ export const requireRoleMiddleware = (...roles: string[]) =>
 			} catch (error) {
 				const message =
 					error && typeof error === "object" && "_tag" in error && "message" in error
-						? String(
-								(error as { message: unknown }).message,
-							)
-					: error instanceof Error
-						? error.message
-						: "Authorization failed";
+						? String((error as { message: unknown }).message)
+						: error instanceof Error
+							? error.message
+							: "Authorization failed";
 				throw new Error(message);
 			}
 

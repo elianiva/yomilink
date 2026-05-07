@@ -164,35 +164,61 @@ export const READING_COMPREHENSION_QUESTIONS: ReadingQuestion[] = [
 	},
 	{
 		questionText: "この文章は田中さんのどんな生活を表していますか？",
-		options: createMcqOptions(6, ["あたらしい生活", "きそく正しい生活", "ひまな生活", "旅行の生活"]),
+		options: createMcqOptions(6, [
+			"あたらしい生活",
+			"きそく正しい生活",
+			"ひまな生活",
+			"旅行の生活",
+		]),
 		correctOptionId: generateOptionId(6, 1),
 		bloomLevel: "L2-Understanding",
 		targetInfo: "Interpret the routine",
 	},
 	{
 		questionText: "田中さんは毎日どんな日課を送っていますか？",
-		options: createMcqOptions(7, ["ばらばらな日課", "毎日同じような日課", "あさだけの生活", "よるだけの生活"]),
+		options: createMcqOptions(7, [
+			"ばらばらな日課",
+			"毎日同じような日課",
+			"あさだけの生活",
+			"よるだけの生活",
+		]),
 		correctOptionId: generateOptionId(7, 1),
 		bloomLevel: "L2-Understanding",
 		targetInfo: "Summarize the routine pattern",
 	},
 	{
 		questionText: "朝ごはんのあと、田中さんは何をしますか？",
-		options: createMcqOptions(8, ["でんしゃでがっこうへいく", "うちでねる", "しょくどうでかいものする", "ともだちとあそぶ"]),
+		options: createMcqOptions(8, [
+			"でんしゃでがっこうへいく",
+			"うちでねる",
+			"しょくどうでかいものする",
+			"ともだちとあそぶ",
+		]),
 		correctOptionId: generateOptionId(8, 0),
 		bloomLevel: "L3-Applying",
 		targetInfo: "Apply sequence to morning routine",
 	},
 	{
 		questionText: "田中さんが学校につく前に必要なことはどれですか？",
-		options: createMcqOptions(9, ["6じにおきる", "11じにねる", "4じかんべんきょうする", "しょくどうでひるごはんをたべる"]),
+		options: createMcqOptions(9, [
+			"6じにおきる",
+			"11じにねる",
+			"4じかんべんきょうする",
+			"しょくどうでひるごはんをたべる",
+		]),
 		correctOptionId: generateOptionId(9, 0),
 		bloomLevel: "L3-Applying",
 		targetInfo: "Apply the routine before school",
 	},
 	{
-		questionText: "『朝ごはんをたべて、でんしゃでがっこうへいきます』から、分かることはどれですか？",
-		options: createMcqOptions(10, ["朝ごはんのあとに通学する", "学校のあとに朝ごはんをたべる", "毎日おそくおきる", "学校へはあるいていく"]),
+		questionText:
+			"『朝ごはんをたべて、でんしゃでがっこうへいきます』から、分かることはどれですか？",
+		options: createMcqOptions(10, [
+			"朝ごはんのあとに通学する",
+			"学校のあとに朝ごはんをたべる",
+			"毎日おそくおきる",
+			"学校へはあるいていく",
+		]),
 		correctOptionId: generateOptionId(10, 0),
 		bloomLevel: "L3-Applying",
 		targetInfo: "Apply a direct statement to a concrete action",
@@ -211,35 +237,60 @@ export const READING_COMPREHENSION_QUESTIONS: ReadingQuestion[] = [
 	},
 	{
 		questionText: "田中さんが『4じかんべんきょうする』には、どんな考え方が必要ですか？",
-		options: createMcqOptions(12, ["早起きと時間管理", "あさごはんをぬくこと", "夜おそくまであそぶこと", "がっこうへ行かないこと"]),
+		options: createMcqOptions(12, [
+			"早起きと時間管理",
+			"あさごはんをぬくこと",
+			"夜おそくまであそぶこと",
+			"がっこうへ行かないこと",
+		]),
 		correctOptionId: generateOptionId(12, 0),
 		bloomLevel: "L4-Analyzing",
 		targetInfo: "Analyze the time needed to keep the schedule",
 	},
 	{
 		questionText: "学校で行うこととして合っているのはどれですか？",
-		options: createMcqOptions(13, ["4じかんべんきょうする", "あさごはんをたべる", "6じにおきる", "よる11じにねる"]),
+		options: createMcqOptions(13, [
+			"4じかんべんきょうする",
+			"あさごはんをたべる",
+			"6じにおきる",
+			"よる11じにねる",
+		]),
 		correctOptionId: generateOptionId(13, 0),
 		bloomLevel: "L4-Analyzing",
 		targetInfo: "Analyze where each action happens",
 	},
 	{
 		questionText: "田中さんの生活の特徴として最も近いものはどれですか？",
-		options: createMcqOptions(14, ["短くて、きそく正しい日課", "いつもとてもふきそく", "学校と関係がない生活", "夜だけ活動する生活"]),
+		options: createMcqOptions(14, [
+			"短くて、きそく正しい日課",
+			"いつもとてもふきそく",
+			"学校と関係がない生活",
+			"夜だけ活動する生活",
+		]),
 		correctOptionId: generateOptionId(14, 0),
 		bloomLevel: "L5-Evaluating",
 		targetInfo: "Evaluate the overall routine",
 	},
 	{
 		questionText: "この文章から、学習にいちばん大切だと考えられるのはどれですか？",
-		options: createMcqOptions(15, ["時間をうまくつかうこと", "テレビを見ること", "たくさん買い物をすること", "毎日ねる時間を変えること"]),
+		options: createMcqOptions(15, [
+			"時間をうまくつかうこと",
+			"テレビを見ること",
+			"たくさん買い物をすること",
+			"毎日ねる時間を変えること",
+		]),
 		correctOptionId: generateOptionId(15, 0),
 		bloomLevel: "L5-Evaluating",
 		targetInfo: "Evaluate the key skill behind the routine",
 	},
 	{
 		questionText: "田中さんの生活について、もっともよい説明はどれですか？",
-		options: createMcqOptions(16, ["早起きして学校で勉強する生活", "夜ふかし中心の生活", "家にこもる生活", "旅行ばかりする生活"]),
+		options: createMcqOptions(16, [
+			"早起きして学校で勉強する生活",
+			"夜ふかし中心の生活",
+			"家にこもる生活",
+			"旅行ばかりする生活",
+		]),
 		correctOptionId: generateOptionId(16, 0),
 		bloomLevel: "L5-Evaluating",
 		targetInfo: "Evaluate the best description of the lifestyle",
@@ -258,14 +309,24 @@ export const READING_COMPREHENSION_QUESTIONS: ReadingQuestion[] = [
 	},
 	{
 		questionText: "同じような朝の予定を作るなら、最初に入れるべき行動はどれですか？",
-		options: createMcqOptions(18, ["6じにおきる", "4じかんべんきょうする", "11じごろねる", "しょくどうでひるごはんをたべる"]),
+		options: createMcqOptions(18, [
+			"6じにおきる",
+			"4じかんべんきょうする",
+			"11じごろねる",
+			"しょくどうでひるごはんをたべる",
+		]),
 		correctOptionId: generateOptionId(18, 0),
 		bloomLevel: "L6-Creating",
 		targetInfo: "Create a morning schedule from the passage",
 	},
 	{
 		questionText: "この文章をもとに新しい一日の日課を作るなら、必ず入る要素はどれですか？",
-		options: createMcqOptions(19, ["早起き・通学・勉強・早寝", "夜ふかし・買い物・旅行", "朝ごはんをぬくこと", "学校へ行かないこと"]),
+		options: createMcqOptions(19, [
+			"早起き・通学・勉強・早寝",
+			"夜ふかし・買い物・旅行",
+			"朝ごはんをぬくこと",
+			"学校へ行かないこと",
+		]),
 		correctOptionId: generateOptionId(19, 0),
 		bloomLevel: "L6-Creating",
 		targetInfo: "Create a routine that preserves the main actions",
@@ -286,4 +347,5 @@ export const QUESTION_OPTION_IDS: Record<number, string[]> = READING_COMPREHENSI
 		acc[idx] = q.options.map((o) => o.id);
 		return acc;
 	},
-	{} as Record<number, string[]>);
+	{} as Record<number, string[]>,
+);

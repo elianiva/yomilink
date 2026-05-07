@@ -22,14 +22,16 @@ type FormTakeSearch = {
 	returnTo?: string;
 };
 
-function mapQuestionData(questions: ReadonlyArray<{
-	id: string;
-	questionText: string;
-	type: "mcq" | "likert" | "text";
-	orderIndex: number;
-	required: boolean;
-	options: unknown;
-}>): QuestionWithOptions[] {
+function mapQuestionData(
+	questions: ReadonlyArray<{
+		id: string;
+		questionText: string;
+		type: "mcq" | "likert" | "text";
+		orderIndex: number;
+		required: boolean;
+		options: unknown;
+	}>,
+): QuestionWithOptions[] {
 	return questions.map((q) => {
 		let transformedOptions: QuestionWithOptions["options"];
 		let shuffle: boolean | undefined;
@@ -92,7 +94,9 @@ function getSubmittedAnswerText(question: QuestionWithOptions, rawAnswer: unknow
 		if (Array.isArray(question.options) || question.options.type !== "likert") {
 			return formatUnknownValue(rawAnswer);
 		}
-		return question.options.labels[formatUnknownValue(rawAnswer)] ?? formatUnknownValue(rawAnswer);
+		return (
+			question.options.labels[formatUnknownValue(rawAnswer)] ?? formatUnknownValue(rawAnswer)
+		);
 	}
 
 	return formatUnknownValue(rawAnswer);
@@ -222,10 +226,15 @@ function FormTakerPage() {
 							<h3 className="font-semibold">Your answers</h3>
 							{questionData.map((question, index) => (
 								<div key={question.id} className="rounded-lg border p-3">
-									<p className="text-sm text-muted-foreground">Question {index + 1}</p>
+									<p className="text-sm text-muted-foreground">
+										Question {index + 1}
+									</p>
 									<p className="font-medium">{question.questionText}</p>
 									<p className="mt-1 text-sm">
-										{getSubmittedAnswerText(question, data.submission?.answers[question.id])}
+										{getSubmittedAnswerText(
+											question,
+											data.submission?.answers[question.id],
+										)}
 									</p>
 								</div>
 							))}

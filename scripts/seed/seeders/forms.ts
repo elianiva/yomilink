@@ -43,7 +43,9 @@ function getQuestionOptions(question: SeedQuestion): string {
 	return JSON.stringify(question.options);
 }
 
-function buildReadingMaterialSections(totalQuestions: number): ReadonlyArray<ReadingMaterialSection> {
+function buildReadingMaterialSections(
+	totalQuestions: number,
+): ReadonlyArray<ReadingMaterialSection> {
 	const readingMaterialContent =
 		GOAL_MAP_TO_MATERIAL["Japan: Main Islands and Cities"]?.content.trim() ?? "";
 	const content =
@@ -131,7 +133,11 @@ export function seedForms(teacherId: string) {
 		yield* Effect.log("--- Seeding TAM and questionnaire forms ---");
 
 		const tamFormTitle = "TAM Questionnaire - Kit-Build Evaluation";
-		const existingTamForm = yield* db.select().from(forms).where(eq(forms.title, tamFormTitle)).limit(1);
+		const existingTamForm = yield* db
+			.select()
+			.from(forms)
+			.where(eq(forms.title, tamFormTitle))
+			.limit(1);
 
 		const tamReadingMaterialSections = buildReadingMaterialSections(TAM_QUESTIONS.length);
 
@@ -170,9 +176,15 @@ export function seedForms(teacherId: string) {
 		yield* upsertQuestions(tamFormId, TAM_QUESTIONS);
 
 		const feedbackFormTitle = "Feedback Questionnaire - Kit-Build Experience";
-		const existingFeedbackForm = yield* db.select().from(forms).where(eq(forms.title, feedbackFormTitle)).limit(1);
+		const existingFeedbackForm = yield* db
+			.select()
+			.from(forms)
+			.where(eq(forms.title, feedbackFormTitle))
+			.limit(1);
 
-		const feedbackReadingMaterialSections = buildReadingMaterialSections(FEEDBACK_QUESTIONS.length);
+		const feedbackReadingMaterialSections = buildReadingMaterialSections(
+			FEEDBACK_QUESTIONS.length,
+		);
 
 		let feedbackFormId: string;
 		if (existingFeedbackForm[0]) {
@@ -214,7 +226,11 @@ export function seedForms(teacherId: string) {
 		);
 		const preTestDescription =
 			"Pre-test to measure baseline reading comprehension for Japan's three main islands and their major cities. 20 MCQ items based on Bloom's Taxonomy. The same questions are reused for the post-test and delayed-test.";
-		const existingPreTestForm = yield* db.select().from(forms).where(eq(forms.title, preTestFormTitle)).limit(1);
+		const existingPreTestForm = yield* db
+			.select()
+			.from(forms)
+			.where(eq(forms.title, preTestFormTitle))
+			.limit(1);
 
 		let preTestFormId: string;
 		if (existingPreTestForm[0]) {

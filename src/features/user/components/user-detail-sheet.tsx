@@ -220,7 +220,7 @@ export function UserDetailSheet({
 										<SelectValue placeholder="Select group" />
 									</SelectTrigger>
 									<SelectContent>
-												<SelectItem value="experiment">Experiment</SelectItem>
+										<SelectItem value="experiment">Experiment</SelectItem>
 										<SelectItem value="control">Control</SelectItem>
 									</SelectContent>
 								</Select>

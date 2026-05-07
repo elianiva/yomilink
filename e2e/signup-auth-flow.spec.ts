@@ -1,5 +1,4 @@
 import { test, expect } from "./fixtures";
-
 import {
 	completeConsentStep,
 	fillSignupAccountStep,
@@ -61,7 +60,11 @@ test.describe("Signup - Complete Flow with Auth", () => {
 		await page.locator('button:has-text("Next")').click();
 		await fillSignupPersonalStep(page, { age: "20", jlptLabel: "N5 (Beginner)" });
 		await page.locator('button:has-text("Next")').click();
-		await fillSignupAcademicStep(page, { studyGroup: "Control", japaneseLearningDuration: "6", mediaConsumption: "2" });
+		await fillSignupAcademicStep(page, {
+			studyGroup: "Control",
+			japaneseLearningDuration: "6",
+			mediaConsumption: "2",
+		});
 		await page.locator('button:has-text("Next")').click();
 		await completeConsentStep(page);
 		await page.locator('button:has-text("Create Account")').click();
@@ -78,7 +81,11 @@ test.describe("Signup - Complete Flow with Auth", () => {
 		await page.locator('button:has-text("Next")').click();
 		await fillSignupPersonalStep(page, { age: "25", jlptLabel: "N3 (Intermediate)" });
 		await page.locator('button:has-text("Next")').click();
-		await fillSignupAcademicStep(page, { studyGroup: "Experiment", japaneseLearningDuration: "24", mediaConsumption: "8" });
+		await fillSignupAcademicStep(page, {
+			studyGroup: "Experiment",
+			japaneseLearningDuration: "24",
+			mediaConsumption: "8",
+		});
 		await page.locator('button:has-text("Next")').click();
 		await completeConsentStep(page);
 		await page.locator('button:has-text("Create Account")').click();
@@ -100,7 +107,11 @@ test.describe("Signup - Complete Flow with Auth", () => {
 		await page1.locator('button:has-text("Next")').click();
 		await fillSignupPersonalStep(page1, { age: "21", jlptLabel: "N4 (Elementary)" });
 		await page1.locator('button:has-text("Next")').click();
-		await fillSignupAcademicStep(page1, { studyGroup: "Control", japaneseLearningDuration: "12", mediaConsumption: "5" });
+		await fillSignupAcademicStep(page1, {
+			studyGroup: "Control",
+			japaneseLearningDuration: "12",
+			mediaConsumption: "5",
+		});
 		await page1.locator('button:has-text("Next")').click();
 		await completeConsentStep(page1);
 		await page1.locator('button:has-text("Create Account")').click();
@@ -125,7 +136,11 @@ test.describe("Signup - Complete Flow with Auth", () => {
 		await page.locator('button:has-text("Next")').click();
 		await fillSignupPersonalStep(page, { age: "23", jlptLabel: "N4 (Elementary)" });
 		await page.locator('button:has-text("Next")').click();
-		await fillSignupAcademicStep(page, { studyGroup: "Experiment", japaneseLearningDuration: "18", mediaConsumption: "6" });
+		await fillSignupAcademicStep(page, {
+			studyGroup: "Experiment",
+			japaneseLearningDuration: "18",
+			mediaConsumption: "6",
+		});
 		await page.locator('button:has-text("Next")').click();
 		await completeConsentStep(page);
 		await page.locator('button:has-text("Create Account")').click();

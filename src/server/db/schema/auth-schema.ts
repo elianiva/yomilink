@@ -123,7 +123,9 @@ export const whitelistEntries = sqliteTable(
 		studentId: text("student_id").notNull().unique(),
 		name: text("name").notNull(),
 		cohortId: text("cohort_id").references(() => cohorts.id, { onDelete: "set null" }),
-		claimedUserId: text("claimed_user_id").references(() => user.id, { onDelete: "set null" }).unique(),
+		claimedUserId: text("claimed_user_id")
+			.references(() => user.id, { onDelete: "set null" })
+			.unique(),
 		claimedAt: integer("claimed_at", { mode: "timestamp_ms" }),
 		createdAt: integer("created_at", { mode: "timestamp_ms" })
 			.default(sql`(cast(unixepoch('subsecond') * 1000 as integer))`)

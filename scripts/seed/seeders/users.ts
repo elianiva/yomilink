@@ -72,7 +72,7 @@ export function seedUsers() {
 							previousJapaneseScore: demoStudent.previousJapaneseScore,
 							mediaConsumption: demoStudent.mediaConsumption,
 							motivation: demoStudent.motivation,
-									studyGroup: "experiment",
+							studyGroup: "experiment",
 						})
 						.where(eq(user.id, userId));
 					yield* Effect.log(`Set demographic data for ${seedUser.email}`);

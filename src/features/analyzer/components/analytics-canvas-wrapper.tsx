@@ -43,10 +43,7 @@ export function AnalyticsCanvasWrapper({
 	analyticsData,
 	visibility,
 }: AnalyticsCanvasWrapperProps) {
-	const learnerMapIds = useMemo(
-		() => [...selectedLearnerMapIds].sort(),
-		[selectedLearnerMapIds],
-	);
+	const learnerMapIds = useMemo(() => [...selectedLearnerMapIds].sort(), [selectedLearnerMapIds]);
 
 	const {
 		data: multipleLearnerMapDetails,
@@ -76,7 +73,9 @@ export function AnalyticsCanvasWrapper({
 
 	return (
 		<div className="flex-1 m-3 rounded-md overflow-hidden">
-			{multipleLearnerMapsLoading && selectedLearnerMapIds.size > 0 && !multipleLearnerMapDetails ? (
+			{multipleLearnerMapsLoading &&
+			selectedLearnerMapIds.size > 0 &&
+			!multipleLearnerMapDetails ? (
 				<CanvasSkeleton />
 			) : (
 				<CanvasContent

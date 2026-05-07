@@ -17,8 +17,14 @@ test.describe("Signup - Step 1: Account", () => {
 	test("should show error when passwords don't match", async ({ page }) => {
 		await page.goto("/signup");
 		await page.locator("#studentId").click();
-		await page.getByPlaceholder("Search your name or student ID").fill(whitelistAccounts[0].studentId);
-		await page.getByText(whitelistAccounts[0].name + " (" + whitelistAccounts[0].studentId + ")", { exact: true }).click();
+		await page
+			.getByPlaceholder("Search your name or student ID")
+			.fill(whitelistAccounts[0].studentId);
+		await page
+			.getByText(whitelistAccounts[0].name + " (" + whitelistAccounts[0].studentId + ")", {
+				exact: true,
+			})
+			.click();
 		await page.locator("#password").fill("password123");
 		await page.locator("#confirmPassword").fill("differentpassword");
 		await page.locator('button:has-text("Next")').click();
@@ -32,7 +38,11 @@ test.describe("Signup - Step 1: Account", () => {
 		await page.locator('button:has-text("Next")').click();
 		await fillSignupPersonalStep(page, { age: "20", jlptLabel: "N5 (Beginner)" });
 		await page.locator('button:has-text("Next")').click();
-		await fillSignupAcademicStep(page, { studyGroup: "Experiment", japaneseLearningDuration: "6", mediaConsumption: "3" });
+		await fillSignupAcademicStep(page, {
+			studyGroup: "Experiment",
+			japaneseLearningDuration: "6",
+			mediaConsumption: "3",
+		});
 		await page.locator('button:has-text("Next")').click();
 		await page.locator("#consentGiven").click();
 		await page.locator('button:has-text("Create Account")').click();
@@ -43,7 +53,11 @@ test.describe("Signup - Step 1: Account", () => {
 		await page.locator('button:has-text("Next")').click();
 		await fillSignupPersonalStep(page, { age: "20", jlptLabel: "N5 (Beginner)" });
 		await page.locator('button:has-text("Next")').click();
-		await fillSignupAcademicStep(page, { studyGroup: "Experiment", japaneseLearningDuration: "6", mediaConsumption: "3" });
+		await fillSignupAcademicStep(page, {
+			studyGroup: "Experiment",
+			japaneseLearningDuration: "6",
+			mediaConsumption: "3",
+		});
 		await page.locator('button:has-text("Next")').click();
 		await page.locator("#consentGiven").click();
 		await page.locator('button:has-text("Create Account")').click();
@@ -85,7 +99,11 @@ test.describe("Signup - Step 3: Academic", () => {
 		await page.locator('button:has-text("Next")').click();
 		await fillSignupPersonalStep(page, { age: "20", jlptLabel: "N5 (Beginner)" });
 		await page.locator('button:has-text("Next")').click();
-		await fillSignupAcademicStep(page, { studyGroup: "Experiment", japaneseLearningDuration: "6", mediaConsumption: "2" });
+		await fillSignupAcademicStep(page, {
+			studyGroup: "Experiment",
+			japaneseLearningDuration: "6",
+			mediaConsumption: "2",
+		});
 		await expect(page.locator('button:has-text("Next")')).toBeEnabled();
 	});
 });
@@ -97,7 +115,11 @@ test.describe("Signup - Step 4: Consent", () => {
 		await page.locator('button:has-text("Next")').click();
 		await fillSignupPersonalStep(page, { age: "20", jlptLabel: "N5 (Beginner)" });
 		await page.locator('button:has-text("Next")').click();
-		await fillSignupAcademicStep(page, { studyGroup: "Control", japaneseLearningDuration: "6", mediaConsumption: "2" });
+		await fillSignupAcademicStep(page, {
+			studyGroup: "Control",
+			japaneseLearningDuration: "6",
+			mediaConsumption: "2",
+		});
 		await page.locator('button:has-text("Next")').click();
 		await expect(page.locator('button:has-text("Create Account")')).toBeDisabled();
 	});

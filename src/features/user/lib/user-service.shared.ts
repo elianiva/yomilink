@@ -30,10 +30,9 @@ export const UpdateUserInput = Schema.Struct({
 	previousJapaneseScore: Schema.optionalWith(Schema.Number, { nullable: true }),
 	mediaConsumption: Schema.optionalWith(Schema.Number, { nullable: true }),
 	motivation: Schema.optionalWith(Schema.String, { nullable: true }),
-	studyGroup: Schema.optionalWith(
-		Schema.Union(Schema.Literal("experiment", "control")),
-		{ nullable: true },
-	),
+	studyGroup: Schema.optionalWith(Schema.Union(Schema.Literal("experiment", "control")), {
+		nullable: true,
+	}),
 });
 
 export type UpdateUserInput = typeof UpdateUserInput.Type;

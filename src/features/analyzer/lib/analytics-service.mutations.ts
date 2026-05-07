@@ -1,10 +1,7 @@
 import { Effect, Schema } from "effect";
 import Papa from "papaparse";
 
-import {
-	ExportAnalyticsDataInput,
-	ExportResultSchema,
-} from "./analytics-service.shared";
+import { ExportAnalyticsDataInput, ExportResultSchema } from "./analytics-service.shared";
 
 export const exportAnalyticsData = Effect.fn("exportAnalyticsData")(function* (
 	input: ExportAnalyticsDataInput,

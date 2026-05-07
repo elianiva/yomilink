@@ -247,33 +247,30 @@ export const submitFormResponse = Effect.fn("submitFormResponse")(function* (
 		return yield* new FormNotAccessibleError({ formId: data.formId });
 	}
 
+	const existingResponse = yield* db
+		.select()
+		.from(formResponses)
+		.where(and(eq(formResponses.formId, data.formId), eq(formResponses.userId, data.userId)))
+		.limit(1);
+
+	if (existingResponse.length > 0) {
+		return yield* new FormAlreadySubmittedError({
+			formId: data.formId,
+			userId: data.userId,
+		});
+	}
+
 	const responseId = randomString();
 	const submittedAt = new Date();
 
-	yield* db
-		.insert(formResponses)
-		.values({
-			id: responseId,
-			formId: data.formId,
-			userId: data.userId,
-			answers: data.answers,
-			submittedAt,
-			timeSpentSeconds: data.timeSpentSeconds ?? null,
-		})
-		.pipe(
-			Effect.catchAll((error) => {
-				const message = String(
-					(error as { message?: unknown }).message ?? error,
-				);
-				if (message.includes("UNIQUE constraint")) {
-					return new FormAlreadySubmittedError({
-						formId: data.formId,
-						userId: data.userId,
-					});
-				}
-				return Effect.fail(error);
-			}),
-		);
+	yield* db.insert(formResponses).values({
+		id: responseId,
+		formId: data.formId,
+		userId: data.userId,
+		answers: data.answers,
+		submittedAt,
+		timeSpentSeconds: data.timeSpentSeconds ?? null,
+	});
 
 	const existingProgress = yield* db
 		.select()

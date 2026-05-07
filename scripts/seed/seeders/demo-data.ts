@@ -148,7 +148,8 @@ export function seedDemoData(
 
 		yield* Effect.log("Creating assignment...");
 		const assignmentTitle = "Japan Islands Tree Demo";
-		const readingMaterialContent = GOAL_MAP_TO_MATERIAL["Japan: Main Islands and Cities"]?.content || "";
+		const readingMaterialContent =
+			GOAL_MAP_TO_MATERIAL["Japan: Main Islands and Cities"]?.content || "";
 		const existingAssignment = yield* db
 			.select()
 			.from(assignments)
@@ -170,7 +171,8 @@ export function seedDemoData(
 					goalMapId: dailyLifeGoalMapId,
 					kitId: demoKitId,
 					title: assignmentTitle,
-					description: "Simple demo assignment for Japan's three main islands and their major cities.",
+					description:
+						"Simple demo assignment for Japan's three main islands and their major cities.",
 					readingMaterial: readingMaterialContent,
 					timeLimitMinutes: 20,
 					startDate,
@@ -190,7 +192,8 @@ export function seedDemoData(
 				goalMapId: dailyLifeGoalMapId,
 				kitId: demoKitId,
 				title: assignmentTitle,
-				description: "Simple demo assignment for Japan's three main islands and their major cities.",
+				description:
+					"Simple demo assignment for Japan's three main islands and their major cities.",
 				readingMaterial: readingMaterialContent,
 				timeLimitMinutes: 20,
 				startDate,

@@ -59,8 +59,12 @@ export function safeParseJson<S extends Schema.Schema<any, any, any>>(
 	schema: S,
 ): Effect.Effect<Schema.Schema.Type<S>, never, Schema.Schema.Context<S>>;
 
-function tapParseError(defaultValue: unknown) {
-	return Effect.tapError((error: unknown) => {
+export function safeParseJson<S extends Schema.Schema<any, any, any>>(
+	input: unknown,
+	defaultValue: unknown,
+	schema?: S,
+): Effect.Effect<unknown, never, Schema.Schema.Context<S>> {
+	const warn = (error: unknown) => {
 		const details =
 			error instanceof Error
 				? { message: error.message, stack: error.stack }
@@ -68,23 +72,15 @@ function tapParseError(defaultValue: unknown) {
 		return Effect.logWarning("safeParseJson fell back to default value", details).pipe(
 			Effect.annotateLogs({ defaultValue: String(defaultValue).slice(0, 100) }),
 		);
-	});
-}
+	};
 
-export function safeParseJson<S extends Schema.Schema<any, any, any>>(
-	input: unknown,
-	defaultValue: unknown,
-	schema?: S,
-): Effect.Effect<unknown, never, Schema.Schema.Context<S>> {
-	return schema
-		? parseJson(input, schema).pipe(
-				tapParseError(defaultValue),
-				Effect.orElse(() => Effect.succeed(defaultValue)),
-			)
-		: parseJson(input).pipe(
-				tapParseError(defaultValue),
-				Effect.orElse(() => Effect.succeed(defaultValue)),
-			);
+	const withFallback = <A, E, R>(effect: Effect.Effect<A, E, R>): Effect.Effect<A, never, R> =>
+		effect.pipe(
+			Effect.tapError(warn),
+			Effect.orElse(() => Effect.succeed(defaultValue as A)),
+		);
+
+	return schema ? withFallback(parseJson(input, schema)) : withFallback(parseJson(input));
 }
 
 export function roundToDecimals(value: number, decimals: number): number {

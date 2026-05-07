@@ -69,7 +69,11 @@ test.describe("Signup - Step 4 Validation", () => {
 		await page.locator('button:has-text("Next")').click();
 		await fillSignupPersonalStep(page, { age: "20", jlptLabel: "N5 (Beginner)" });
 		await page.locator('button:has-text("Next")').click();
-		await fillSignupAcademicStep(page, { studyGroup: "Experiment", japaneseLearningDuration: "6", mediaConsumption: "2" });
+		await fillSignupAcademicStep(page, {
+			studyGroup: "Experiment",
+			japaneseLearningDuration: "6",
+			mediaConsumption: "2",
+		});
 		await page.locator('button:has-text("Next")').click();
 		await expect(page.locator('button:has-text("Create Account")')).toBeDisabled();
 	});
@@ -79,7 +83,11 @@ test.describe("Signup - Step 4 Validation", () => {
 		await page.locator('button:has-text("Next")').click();
 		await fillSignupPersonalStep(page, { age: "20", jlptLabel: "N5 (Beginner)" });
 		await page.locator('button:has-text("Next")').click();
-		await fillSignupAcademicStep(page, { studyGroup: "Control", japaneseLearningDuration: "6", mediaConsumption: "2" });
+		await fillSignupAcademicStep(page, {
+			studyGroup: "Control",
+			japaneseLearningDuration: "6",
+			mediaConsumption: "2",
+		});
 		await page.locator('button:has-text("Next")').click();
 		await expect(page.locator('button:has-text("Create Account")')).toBeDisabled();
 		await page.locator("#consentGiven").click();

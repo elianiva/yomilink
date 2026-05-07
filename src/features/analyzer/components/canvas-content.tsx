@@ -1,8 +1,8 @@
 import { Loader2Icon } from "lucide-react";
 import { lazy, Suspense, useMemo } from "react";
 
-import type { AssignmentAnalytics } from "@/features/analyzer/lib/analytics-service.shared";
 import type { LearnerMapResult } from "@/features/analyzer/lib/analytics-service.queries";
+import type { AssignmentAnalytics } from "@/features/analyzer/lib/analytics-service.shared";
 
 // Lazy load AnalyticsCanvas (heavy React Flow component)
 const AnalyticsCanvas = lazy(() =>

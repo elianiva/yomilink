@@ -1,5 +1,5 @@
 import { relations, sql } from "drizzle-orm";
-import { index, integer, real, sqliteTable, text } from "drizzle-orm/sqlite-core";
+import { index, integer, real, sqliteTable, text, unique } from "drizzle-orm/sqlite-core";
 
 import { cohorts, user } from "./auth-schema";
 
@@ -426,7 +426,7 @@ export const formResponses = sqliteTable(
 	(table) => [
 		index("form_responses_formId_idx").on(table.formId),
 		index("form_responses_userId_idx").on(table.userId),
-		uniqueIndex("form_responses_form_user_unique").on(table.formId, table.userId),
+		unique("form_responses_form_user_unique").on(table.formId, table.userId),
 	],
 );
 

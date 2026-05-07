@@ -1,7 +1,11 @@
 import { eq } from "drizzle-orm";
 import { Effect } from "effect";
 
-import type { FormAudience, FormType, ReadingMaterialSection } from "@/features/form/lib/form-service.shared";
+import type {
+	FormAudience,
+	FormType,
+	ReadingMaterialSection,
+} from "@/features/form/lib/form-service.shared";
 import { randomString } from "@/lib/utils";
 import { Database } from "@/server/db/client";
 import { forms, questions } from "@/server/db/schema/app-schema";
@@ -29,7 +33,11 @@ export function copyFormWithQuestions({
 		const db = yield* Database;
 
 		const existingForm = yield* db.select().from(forms).where(eq(forms.title, title)).limit(1);
-		const sourceForm = yield* db.select().from(forms).where(eq(forms.id, sourceFormId)).limit(1);
+		const sourceForm = yield* db
+			.select()
+			.from(forms)
+			.where(eq(forms.id, sourceFormId))
+			.limit(1);
 		const normalizedReadingMaterialSections =
 			readingMaterialSections ?? sourceForm[0]?.readingMaterialSections ?? null;
 

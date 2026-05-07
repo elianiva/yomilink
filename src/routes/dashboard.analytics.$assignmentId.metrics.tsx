@@ -1,9 +1,9 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { lazy, Suspense } from "react";
 
-import { Guard } from "@/features/auth/components/Guard";
 import { Card, CardContent } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
+import { Guard } from "@/features/auth/components/Guard";
 
 // Lazy load the heavy metrics content with Recharts
 const MetricsContent = lazy(() =>

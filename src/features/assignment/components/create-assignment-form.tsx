@@ -1,6 +1,7 @@
 import { UserIcon, UsersIcon } from "lucide-react";
 import { SubmitEvent, useReducer } from "react";
 
+import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Progress } from "@/components/ui/progress";
@@ -11,8 +12,6 @@ import { parseDateInput } from "@/lib/date-utils";
 import { AssignmentRpc } from "@/server/rpc/assignment";
 import { FormRpc } from "@/server/rpc/form";
 import { KitRpc } from "@/server/rpc/kit";
-
-import { Button } from "@/components/ui/button";
 
 type FormState = {
 	currentStep: number;

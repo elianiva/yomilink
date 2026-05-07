@@ -19,7 +19,11 @@ test.describe("Student Complete Learning Flow", () => {
 		await page.locator('button:has-text("Next")').click();
 		await fillSignupPersonalStep(page, { age: "20", jlptLabel: "N5 (Beginner)" });
 		await page.locator('button:has-text("Next")').click();
-		await fillSignupAcademicStep(page, { studyGroup: "Experiment", japaneseLearningDuration: "6", mediaConsumption: "2" });
+		await fillSignupAcademicStep(page, {
+			studyGroup: "Experiment",
+			japaneseLearningDuration: "6",
+			mediaConsumption: "2",
+		});
 		await page.locator('button:has-text("Next")').click();
 		await completeConsentStep(page);
 		await page.locator('button:has-text("Create Account")').click();

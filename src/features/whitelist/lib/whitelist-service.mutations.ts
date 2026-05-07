@@ -1,13 +1,16 @@
 import { eq } from "drizzle-orm";
-import Papa from "papaparse";
 import { Effect, Schema } from "effect";
+import Papa from "papaparse";
 
-import { randomString } from "@/lib/utils";
 import { normalizeStudentId } from "@/lib/student-id-auth";
+import { randomString } from "@/lib/utils";
 import { Database } from "@/server/db/client";
 import { whitelistEntries } from "@/server/db/schema/auth-schema";
 
-import { getWhitelistEntryByStudentId, listUnregisteredWhitelistEntries } from "./whitelist-service.queries";
+import {
+	getWhitelistEntryByStudentId,
+	listUnregisteredWhitelistEntries,
+} from "./whitelist-service.queries";
 import {
 	WhitelistAlreadyClaimedError,
 	WhitelistImportFailedError,
@@ -93,27 +96,28 @@ export const importWhitelistCsv = Effect.fn("importWhitelistCsv")((csvText: stri
 	}),
 );
 
-export const claimWhitelistEntry = Effect.fn("claimWhitelistEntry")((studentId: string, userId: string) =>
-	Effect.gen(function* () {
-		const db = yield* Database;
-		const normalizedStudentId = normalizeStudentId(studentId);
+export const claimWhitelistEntry = Effect.fn("claimWhitelistEntry")(
+	(studentId: string, userId: string) =>
+		Effect.gen(function* () {
+			const db = yield* Database;
+			const normalizedStudentId = normalizeStudentId(studentId);
 
-		const entry = yield* getWhitelistEntryByStudentId(normalizedStudentId);
-		if (entry.claimedUserId) {
-			return yield* new WhitelistAlreadyClaimedError({ studentId: normalizedStudentId });
-		}
+			const entry = yield* getWhitelistEntryByStudentId(normalizedStudentId);
+			if (entry.claimedUserId) {
+				return yield* new WhitelistAlreadyClaimedError({ studentId: normalizedStudentId });
+			}
 
-		yield* db
-			.update(whitelistEntries)
-			.set({
-				claimedUserId: userId,
-				claimedAt: new Date(),
-				updatedAt: new Date(),
-			})
-			.where(eq(whitelistEntries.studentId, normalizedStudentId));
+			yield* db
+				.update(whitelistEntries)
+				.set({
+					claimedUserId: userId,
+					claimedAt: new Date(),
+					updatedAt: new Date(),
+				})
+				.where(eq(whitelistEntries.studentId, normalizedStudentId));
 
-		return entry;
-	}),
+			return entry;
+		}),
 );
 
 export const listUnregisteredWhitelist = listUnregisteredWhitelistEntries;

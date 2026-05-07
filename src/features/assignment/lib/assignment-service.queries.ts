@@ -1,7 +1,6 @@
 import { and, desc, eq, inArray, isNotNull, sql } from "drizzle-orm";
 import { Effect } from "effect";
 
-
 import { Database } from "@/server/db/client";
 import {
 	assignments,

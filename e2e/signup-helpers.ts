@@ -29,7 +29,10 @@ export const whitelistAccounts = [
 	{ studentId: "20260020", name: "Shimizu Hina", password: "signup444" },
 ] as const;
 
-export async function selectWhitelistAccount(page: Page, account: Pick<WhitelistAccount, "studentId" | "name">) {
+export async function selectWhitelistAccount(
+	page: Page,
+	account: Pick<WhitelistAccount, "studentId" | "name">,
+) {
 	await page.locator("#studentId").click();
 	await page.getByPlaceholder("Search your name or student ID").fill(account.studentId);
 	await page.getByText(`${account.name} (${account.studentId})`, { exact: true }).click();
@@ -41,20 +44,35 @@ export async function fillSignupAccountStep(page: Page, account: WhitelistAccoun
 	await page.locator("#confirmPassword").fill(account.password);
 }
 
-export async function fillSignupPersonalStep(page: Page, values: { age: string; jlptLabel: string }) {
+export async function fillSignupPersonalStep(
+	page: Page,
+	values: { age: string; jlptLabel: string },
+) {
 	await page.locator("#age").fill(values.age);
 	await page.locator("#jlptLevel").click();
 	await page.getByText(values.jlptLabel, { exact: true }).click();
 }
 
-export async function fillSignupAcademicStep(page: Page, values: { studyGroup?: string; japaneseLearningDuration?: string; previousJapaneseScore?: string; mediaConsumption?: string; motivation?: string; }) {
+export async function fillSignupAcademicStep(
+	page: Page,
+	values: {
+		studyGroup?: string;
+		japaneseLearningDuration?: string;
+		previousJapaneseScore?: string;
+		mediaConsumption?: string;
+		motivation?: string;
+	},
+) {
 	if (values.studyGroup) {
 		await page.locator("#studyGroup").click();
 		await page.getByText(values.studyGroup, { exact: true }).click();
 	}
-	if (values.japaneseLearningDuration !== undefined) await page.locator("#japaneseLearningDuration").fill(values.japaneseLearningDuration);
-	if (values.previousJapaneseScore !== undefined) await page.locator("#previousJapaneseScore").fill(values.previousJapaneseScore);
-	if (values.mediaConsumption !== undefined) await page.locator("#mediaConsumption").fill(values.mediaConsumption);
+	if (values.japaneseLearningDuration !== undefined)
+		await page.locator("#japaneseLearningDuration").fill(values.japaneseLearningDuration);
+	if (values.previousJapaneseScore !== undefined)
+		await page.locator("#previousJapaneseScore").fill(values.previousJapaneseScore);
+	if (values.mediaConsumption !== undefined)
+		await page.locator("#mediaConsumption").fill(values.mediaConsumption);
 	if (values.motivation !== undefined) await page.locator("#motivation").fill(values.motivation);
 }
 

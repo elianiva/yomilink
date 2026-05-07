@@ -3,10 +3,10 @@ import { createFileRoute } from "@tanstack/react-router";
 import { useState } from "react";
 import { toast } from "sonner";
 
-import { Guard } from "@/features/auth/components/Guard";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Guard } from "@/features/auth/components/Guard";
 import { BulkCohortDialog } from "@/features/user/components/bulk-cohort-dialog";
 import { UserDetailSheet } from "@/features/user/components/user-detail-sheet";
 import { UserFilterBar } from "@/features/user/components/user-filter-bar";
@@ -174,84 +174,86 @@ function UsersPage() {
 			</TabsList>
 			<TabsContent value="users" className="space-y-6">
 				<div className="space-y-6">
-			<div>
-				<h1 className="text-2xl font-semibold">Users</h1>
-				<p className="text-muted-foreground">Manage user accounts and permissions</p>
-			</div>
+					<div>
+						<h1 className="text-2xl font-semibold">Users</h1>
+						<p className="text-muted-foreground">
+							Manage user accounts and permissions
+						</p>
+					</div>
 
-			<UserFilterBar
-				cohorts={cohorts}
-				filters={filters}
-				onFiltersChange={setFilters}
-				onBulkAction={handleBulkAction}
-				selectedCount={selectedIds.length}
-				isAdmin={isAdmin}
-			/>
-
-			{isLoading ? (
-				<Skeleton className="h-96 w-full" />
-			) : (
-				<>
-					<UserTable
-						users={users}
-						selectedIds={selectedIds}
-						onSelectionChange={setSelectedIds}
-						onUserClick={handleUserClick}
+					<UserFilterBar
+						cohorts={cohorts}
+						filters={filters}
+						onFiltersChange={setFilters}
+						onBulkAction={handleBulkAction}
+						selectedCount={selectedIds.length}
+						isAdmin={isAdmin}
 					/>
 
-					{totalPages > 1 && (
-						<div className="flex items-center justify-between">
-							<p className="text-sm text-muted-foreground">
-								Showing {users.length} of {total} users
-							</p>
-							<div className="flex items-center gap-2">
-								<Button
-									variant="outline"
-									size="sm"
-									disabled={page <= 1}
-									onClick={() => handlePageChange(page - 1)}
-								>
-									Previous
-								</Button>
-								<span className="text-sm">
-									Page {page} of {totalPages}
-								</span>
-								<Button
-									variant="outline"
-									size="sm"
-									disabled={page >= totalPages}
-									onClick={() => handlePageChange(page + 1)}
-								>
-									Next
-								</Button>
-							</div>
-						</div>
+					{isLoading ? (
+						<Skeleton className="h-96 w-full" />
+					) : (
+						<>
+							<UserTable
+								users={users}
+								selectedIds={selectedIds}
+								onSelectionChange={setSelectedIds}
+								onUserClick={handleUserClick}
+							/>
+
+							{totalPages > 1 && (
+								<div className="flex items-center justify-between">
+									<p className="text-sm text-muted-foreground">
+										Showing {users.length} of {total} users
+									</p>
+									<div className="flex items-center gap-2">
+										<Button
+											variant="outline"
+											size="sm"
+											disabled={page <= 1}
+											onClick={() => handlePageChange(page - 1)}
+										>
+											Previous
+										</Button>
+										<span className="text-sm">
+											Page {page} of {totalPages}
+										</span>
+										<Button
+											variant="outline"
+											size="sm"
+											disabled={page >= totalPages}
+											onClick={() => handlePageChange(page + 1)}
+										>
+											Next
+										</Button>
+									</div>
+								</div>
+							)}
+						</>
 					)}
-				</>
-			)}
 
-			<UserDetailSheet
-				user={selectedUser}
-				open={sheetOpen}
-				onOpenChange={setSheetOpen}
-				onSave={handleSave}
-				onBan={handleBan}
-				onUnban={handleUnban}
-				onRoleChange={handleRoleChange}
-				onPasswordReset={handlePasswordReset}
-				isAdmin={isAdmin}
-				currentUserId={currentUserId}
-				isSaving={updateMutation.isPending}
-			/>
+					<UserDetailSheet
+						user={selectedUser}
+						open={sheetOpen}
+						onOpenChange={setSheetOpen}
+						onSave={handleSave}
+						onBan={handleBan}
+						onUnban={handleUnban}
+						onRoleChange={handleRoleChange}
+						onPasswordReset={handlePasswordReset}
+						isAdmin={isAdmin}
+						currentUserId={currentUserId}
+						isSaving={updateMutation.isPending}
+					/>
 
-			<BulkCohortDialog
-				open={bulkDialogOpen && bulkAction === "assign"}
-				onOpenChange={setBulkDialogOpen}
-				cohorts={cohorts}
-				selectedCount={selectedIds.length}
-				onConfirm={handleBulkCohortConfirm}
-				isLoading={bulkCohortMutation.isPending}
-			/>
+					<BulkCohortDialog
+						open={bulkDialogOpen && bulkAction === "assign"}
+						onOpenChange={setBulkDialogOpen}
+						cohorts={cohorts}
+						selectedCount={selectedIds.length}
+						onConfirm={handleBulkCohortConfirm}
+						isLoading={bulkCohortMutation.isPending}
+					/>
 				</div>
 			</TabsContent>
 			<TabsContent value="whitelist">

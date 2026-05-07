@@ -1,5 +1,4 @@
 import { test, expect } from "./fixtures";
-
 import {
 	completeConsentStep,
 	fillSignupAccountStep,

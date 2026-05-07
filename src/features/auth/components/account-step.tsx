@@ -13,7 +13,12 @@ interface AccountStepProps {
 	onLastFieldSubmit?: () => void;
 }
 
-export function AccountStep({ form, whitelistOptions, isLoading, onLastFieldSubmit }: AccountStepProps) {
+export function AccountStep({
+	form,
+	whitelistOptions,
+	isLoading,
+	onLastFieldSubmit,
+}: AccountStepProps) {
 	return (
 		<fieldset className="space-y-5">
 			<form.Field name="studentId">

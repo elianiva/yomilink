@@ -78,38 +78,40 @@ export type FormAccessScope = {
 	studyGroup: "experiment" | "control" | null;
 };
 
-export const getAccessibleAssignmentIdsForUser = Effect.fn(
-	"getAccessibleAssignmentIdsForUser",
-)(function* (userId: string, assignmentIds: ReadonlyArray<string>) {
-	if (assignmentIds.length === 0) return [] as string[];
+export const getAccessibleAssignmentIdsForUser = Effect.fn("getAccessibleAssignmentIdsForUser")(
+	function* (userId: string, assignmentIds: ReadonlyArray<string>) {
+		if (assignmentIds.length === 0) return [] as string[];
 
-	const db = yield* Database;
+		const db = yield* Database;
 
-	const directAssignmentRows = yield* db
-		.select({ assignmentId: assignmentTargets.assignmentId })
-		.from(assignmentTargets)
-		.where(
-			and(
-				eq(assignmentTargets.userId, userId),
-				inArray(assignmentTargets.assignmentId, assignmentIds),
+		const directAssignmentRows = yield* db
+			.select({ assignmentId: assignmentTargets.assignmentId })
+			.from(assignmentTargets)
+			.where(
+				and(
+					eq(assignmentTargets.userId, userId),
+					inArray(assignmentTargets.assignmentId, assignmentIds),
+				),
+			);
+
+		const cohortAssignmentRows = yield* db
+			.select({ assignmentId: assignmentTargets.assignmentId })
+			.from(assignmentTargets)
+			.innerJoin(cohortMembers, eq(cohortMembers.cohortId, assignmentTargets.cohortId))
+			.where(
+				and(
+					eq(cohortMembers.userId, userId),
+					inArray(assignmentTargets.assignmentId, assignmentIds),
+				),
+			);
+
+		return Array.from(
+			new Set(
+				[...directAssignmentRows, ...cohortAssignmentRows].map((row) => row.assignmentId),
 			),
 		);
-
-	const cohortAssignmentRows = yield* db
-		.select({ assignmentId: assignmentTargets.assignmentId })
-		.from(assignmentTargets)
-		.innerJoin(cohortMembers, eq(cohortMembers.cohortId, assignmentTargets.cohortId))
-		.where(
-			and(
-				eq(cohortMembers.userId, userId),
-				inArray(assignmentTargets.assignmentId, assignmentIds),
-			),
-		);
-
-	return Array.from(
-		new Set([...directAssignmentRows, ...cohortAssignmentRows].map((row) => row.assignmentId)),
-	);
-});
+	},
+);
 
 export const resolveFormAccessScope = Effect.fn("resolveFormAccessScope")(function* (
 	formId: string,

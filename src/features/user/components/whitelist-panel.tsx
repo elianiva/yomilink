@@ -4,7 +4,14 @@ import { useState } from "react";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
+import {
+	Table,
+	TableBody,
+	TableCell,
+	TableHead,
+	TableHeader,
+	TableRow,
+} from "@/components/ui/table";
 import { useRpcMutation, useRpcQuery } from "@/hooks/use-rpc-query";
 import { formatDate } from "@/lib/date-utils";
 import { WhitelistRpc } from "@/server/rpc/whitelist";
@@ -37,7 +44,9 @@ export function WhitelistPanel() {
 			<div className="rounded-xl border bg-card p-4 space-y-4">
 				<div>
 					<h2 className="text-lg font-semibold">Whitelist</h2>
-					<p className="text-sm text-muted-foreground">Import CSV. Columns: studentId, name, cohortId.</p>
+					<p className="text-sm text-muted-foreground">
+						Import CSV. Columns: studentId, name, cohortId.
+					</p>
 				</div>
 				<div className="grid gap-3 md:grid-cols-[1fr_auto] md:items-end">
 					<div className="space-y-1.5">
@@ -46,9 +55,14 @@ export function WhitelistPanel() {
 							accept=".csv,text/csv"
 							onChange={(e) => setSelectedFile(e.target.files?.[0] ?? null)}
 						/>
-						<p className="text-xs text-muted-foreground">{selectedFile ? selectedFile.name : "No file selected"}</p>
+						<p className="text-xs text-muted-foreground">
+							{selectedFile ? selectedFile.name : "No file selected"}
+						</p>
 					</div>
-					<Button onClick={() => void handleImport()} disabled={!selectedFile || importMutation.isPending}>
+					<Button
+						onClick={() => void handleImport()}
+						disabled={!selectedFile || importMutation.isPending}
+					>
 						{importMutation.isPending ? "Importing..." : "Import CSV"}
 					</Button>
 				</div>
@@ -68,13 +82,19 @@ export function WhitelistPanel() {
 					<TableBody>
 						{isLoading ? (
 							<TableRow>
-								<TableCell colSpan={5} className="py-8 text-center text-muted-foreground">
+								<TableCell
+									colSpan={5}
+									className="py-8 text-center text-muted-foreground"
+								>
 									Loading whitelist...
 								</TableCell>
 							</TableRow>
 						) : entries.length === 0 ? (
 							<TableRow>
-								<TableCell colSpan={5} className="py-8 text-center text-muted-foreground">
+								<TableCell
+									colSpan={5}
+									className="py-8 text-center text-muted-foreground"
+								>
 									No unregistered whitelist entries
 								</TableCell>
 							</TableRow>

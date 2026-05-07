@@ -1,12 +1,12 @@
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { BookOpenIcon } from "lucide-react";
 
-import { Guard } from "@/features/auth/components/Guard";
 import { Skeleton } from "@/components/ui/skeleton";
 import {
 	AssignmentList,
 	type AssignmentListItem,
 } from "@/features/assignment/components/assignment-list";
+import { Guard } from "@/features/auth/components/Guard";
 import { useRpcQuery } from "@/hooks/use-rpc-query";
 import { LearnerMapRpc } from "@/server/rpc/learner-map";
 

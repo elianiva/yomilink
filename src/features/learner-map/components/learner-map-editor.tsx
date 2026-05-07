@@ -319,7 +319,6 @@ export function LearnerMapEditor() {
 		);
 	}
 
-
 	if (!condition) {
 		return (
 			<div className="h-full flex items-center justify-center">

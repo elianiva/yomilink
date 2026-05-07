@@ -2,11 +2,11 @@ import { Link, createFileRoute } from "@tanstack/react-router";
 import { Plus } from "lucide-react";
 import { useMemo, useState } from "react";
 
-import { Guard } from "@/features/auth/components/Guard";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
 import { NewTopicDialog } from "@/features/analyzer/components/new-topic-dialog";
 import type { Topic } from "@/features/analyzer/lib/topic-service";
+import { Guard } from "@/features/auth/components/Guard";
 import { GoalMapCard } from "@/features/goal-map/components/goal-map-card";
 import { useRpcMutation, useRpcQuery } from "@/hooks/use-rpc-query";
 import { cn } from "@/lib/utils";

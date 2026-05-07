@@ -56,9 +56,15 @@ const program = Effect.gen(function* () {
 			"  Teacher: teacher@demo.local / teacher123\n" +
 			"  Whitelist: 20 reserved student IDs\n" +
 			"Created:\n" +
-			"  - Cohort: Demo Class 2025 (" + demoData.demoCohortId.slice(0, 8) + "...)\n" +
-			"  - Kit: Japan Islands Tree Kit (" + demoData.demoKitId.slice(0, 8) + "...)\n" +
-			"  - Assignment: Japan Islands Tree Demo (" + demoData.demoAssignmentId.slice(0, 8) + "...)\n" +
+			"  - Cohort: Demo Class 2025 (" +
+			demoData.demoCohortId.slice(0, 8) +
+			"...)\n" +
+			"  - Kit: Japan Islands Tree Kit (" +
+			demoData.demoKitId.slice(0, 8) +
+			"...)\n" +
+			"  - Assignment: Japan Islands Tree Demo (" +
+			demoData.demoAssignmentId.slice(0, 8) +
+			"...)\n" +
 			"  - Forms: pre-test, post-test, delayed-test\n" +
 			"  - Submissions: 5 whitelist accounts\n",
 	);

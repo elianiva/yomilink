@@ -19,7 +19,11 @@ export function seedWhitelistAccounts() {
 		const userIdsByStudentId: Record<string, string> = {};
 
 		for (const account of WHITELIST_FLOW_ACCOUNTS) {
-			const existingUser = yield* db.select().from(user).where(eq(user.email, account.email)).limit(1);
+			const existingUser = yield* db
+				.select()
+				.from(user)
+				.where(eq(user.email, account.email))
+				.limit(1);
 
 			let userId = existingUser[0]?.id ?? "";
 			if (!userId) {
@@ -34,7 +38,10 @@ export function seedWhitelistAccounts() {
 							},
 						}),
 					catch: (error) => {
-						console.error("Failed to create whitelist account " + account.email + ":", error);
+						console.error(
+							"Failed to create whitelist account " + account.email + ":",
+							error,
+						);
 						return { user: null };
 					},
 				});
@@ -60,7 +67,7 @@ export function seedWhitelistAccounts() {
 					previousJapaneseScore: account.previousJapaneseScore,
 					mediaConsumption: account.mediaConsumption,
 					motivation: account.motivation,
-									studyGroup: "experiment",
+					studyGroup: "experiment",
 				})
 				.where(eq(user.id, userId));
 

@@ -21,12 +21,16 @@ test.describe("Login - Redirects", () => {
 		await expect(teacherPage).toHaveURL("/dashboard");
 	});
 
-	test("should redirect unauthenticated user to login when accessing protected route", async ({ page }) => {
+	test("should redirect unauthenticated user to login when accessing protected route", async ({
+		page,
+	}) => {
 		await page.goto("/dashboard/assignments");
 		await expect(page).toHaveURL("/login");
 	});
 
-	test("should redirect unauthenticated user to login when accessing teacher dashboard", async ({ page }) => {
+	test("should redirect unauthenticated user to login when accessing teacher dashboard", async ({
+		page,
+	}) => {
 		await page.goto("/dashboard");
 		await expect(page).toHaveURL("/login");
 	});

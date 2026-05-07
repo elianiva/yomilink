@@ -3,8 +3,6 @@ import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { ClipboardListIcon, Loader2 } from "lucide-react";
 import { useState } from "react";
 
-import { CreateAssignmentDialog } from "@/features/assignment/components/create-assignment-dialog";
-import { Guard } from "@/features/auth/components/Guard";
 import { Button } from "@/components/ui/button";
 import {
 	Dialog,
@@ -18,6 +16,8 @@ import {
 	AssignmentList,
 	type AssignmentListItem,
 } from "@/features/assignment/components/assignment-list";
+import { CreateAssignmentDialog } from "@/features/assignment/components/create-assignment-dialog";
+import { Guard } from "@/features/auth/components/Guard";
 import { useRpcMutation, useRpcQuery } from "@/hooks/use-rpc-query";
 import { AssignmentRpc } from "@/server/rpc/assignment";
 

@@ -1,8 +1,8 @@
 import { createFileRoute, useParams } from "@tanstack/react-router";
 import { lazy, Suspense } from "react";
 
-import { Guard } from "@/features/auth/components/Guard";
 import { Skeleton } from "@/components/ui/skeleton";
+import { Guard } from "@/features/auth/components/Guard";
 import { useRpcQuery } from "@/hooks/use-rpc-query";
 import { LearnerMapRpc } from "@/server/rpc/learner-map";
 

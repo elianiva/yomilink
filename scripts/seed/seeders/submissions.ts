@@ -3,7 +3,13 @@ import { Effect } from "effect";
 
 import { randomString } from "@/lib/utils";
 import { Database } from "@/server/db/client";
-import { diagnoses, formProgress, formResponses, learnerMaps, questions } from "@/server/db/schema/app-schema";
+import {
+	diagnoses,
+	formProgress,
+	formResponses,
+	learnerMaps,
+	questions,
+} from "@/server/db/schema/app-schema";
 
 import {
 	WHITELIST_FLOW_ACCOUNTS,
@@ -21,9 +27,9 @@ type QuestionRow = {
 type ParsedQuestionOptions =
 	| Array<{ id: string }>
 	| {
-		options?: Array<{ id: string }>;
-		correctOptionIds?: string[];
-	};
+			options?: Array<{ id: string }>;
+			correctOptionIds?: string[];
+	  };
 
 type DailyLifeData = {
 	nodes: unknown[];
@@ -37,11 +43,15 @@ type LearnerMapConfig = (typeof WHITELIST_FLOW_LEARNER_MAP_CONFIGS)[number];
 function pickOptionId(questionRow: QuestionRow, correct: boolean): string | null {
 	if (!questionRow.options) return null;
 	const parsed = JSON.parse(questionRow.options) as ParsedQuestionOptions;
-	const options = Array.isArray(parsed) ? parsed : parsed.options ?? [];
-	const correctOptionIds = Array.isArray(parsed) ? [] : parsed.correctOptionIds ?? [];
+	const options = Array.isArray(parsed) ? parsed : (parsed.options ?? []);
+	const correctOptionIds = Array.isArray(parsed) ? [] : (parsed.correctOptionIds ?? []);
 	if (options.length === 0) return null;
 	if (correct) return correctOptionIds[0] ?? options[0]?.id ?? null;
-	return options.find((option) => !correctOptionIds.includes(option.id))?.id ?? options[0]?.id ?? null;
+	return (
+		options.find((option) => !correctOptionIds.includes(option.id))?.id ??
+		options[0]?.id ??
+		null
+	);
 }
 
 function buildAnswers(questionRows: QuestionRow[], scores: number[]): Record<string, string> {
@@ -68,8 +78,14 @@ function seedFormResponsesForForm(
 			.from(questions)
 			.where(eq(questions.formId, formId))
 			.orderBy(asc(questions.orderIndex))) as QuestionRow[];
-		const existingResponses = yield* db.select().from(formResponses).where(eq(formResponses.formId, formId));
-		const existingProgress = yield* db.select().from(formProgress).where(eq(formProgress.formId, formId));
+		const existingResponses = yield* db
+			.select()
+			.from(formResponses)
+			.where(eq(formResponses.formId, formId));
+		const existingProgress = yield* db
+			.select()
+			.from(formProgress)
+			.where(eq(formProgress.formId, formId));
 		const existingUserIds = new Set(existingResponses.map((r) => r.userId));
 		const existingProgressIds = new Set(existingProgress.map((p) => p.userId));
 
@@ -114,11 +130,17 @@ function seedLearnerMapSubmissions(
 	return Effect.gen(function* () {
 		const db = yield* Database;
 		const edgeById: Record<string, { source: string; target: string }> = {};
-		for (const edge of dailyLifeData.edges) edgeById[edge.id] = { source: edge.source, target: edge.target };
+		for (const edge of dailyLifeData.edges)
+			edgeById[edge.id] = { source: edge.source, target: edge.target };
 		const totalGoalEdges = dailyLifeData.edges.length;
 
-		const existingLearnerMaps = yield* db.select().from(learnerMaps).where(eq(learnerMaps.assignmentId, demoAssignmentId));
-		const existingKeys = new Set(existingLearnerMaps.map((row) => row.userId + ":" + row.attempt));
+		const existingLearnerMaps = yield* db
+			.select()
+			.from(learnerMaps)
+			.where(eq(learnerMaps.assignmentId, demoAssignmentId));
+		const existingKeys = new Set(
+			existingLearnerMaps.map((row) => row.userId + ":" + row.attempt),
+		);
 
 		for (const config of WHITELIST_FLOW_LEARNER_MAP_CONFIGS as readonly LearnerMapConfig[]) {
 			const userId = userIdsByEmail[config.studentEmail];
@@ -130,8 +152,16 @@ function seedLearnerMapSubmissions(
 				...config.correctEdgeIds
 					.map((edgeId) => edgeById[edgeId])
 					.filter((edge): edge is { source: string; target: string } => Boolean(edge))
-					.map((edge, index) => ({ id: "correct-" + String(index + 1), source: edge.source, target: edge.target })),
-				...config.excessiveEdges.map((edge, index) => ({ id: "excess-" + String(index + 1), source: edge.source, target: edge.target })),
+					.map((edge, index) => ({
+						id: "correct-" + String(index + 1),
+						source: edge.source,
+						target: edge.target,
+					})),
+				...config.excessiveEdges.map((edge, index) => ({
+					id: "excess-" + String(index + 1),
+					source: edge.source,
+					target: edge.target,
+				})),
 			];
 
 			const learnerMapId = randomString();
@@ -152,7 +182,14 @@ function seedLearnerMapSubmissions(
 				id: randomString(),
 				goalMapId: dailyLifeGoalMapId,
 				learnerMapId,
-				summary: "Score: " + String(Math.round(config.expectedScore * 100)) + "% (" + String(config.correctEdgeIds.length) + "/" + String(totalGoalEdges) + " correct edges)",
+				summary:
+					"Score: " +
+					String(Math.round(config.expectedScore * 100)) +
+					"% (" +
+					String(config.correctEdgeIds.length) +
+					"/" +
+					String(totalGoalEdges) +
+					" correct edges)",
 				perLink: {
 					correct: config.correctEdgeIds
 						.map((edgeId) => edgeById[edgeId])
@@ -161,7 +198,10 @@ function seedLearnerMapSubmissions(
 					missing: dailyLifeData.edges
 						.filter((edge) => !config.correctEdgeIds.includes(edge.id))
 						.map((edge) => ({ source: edge.source, target: edge.target })),
-					excessive: config.excessiveEdges.map((edge) => ({ source: edge.source, target: edge.target })),
+					excessive: config.excessiveEdges.map((edge) => ({
+						source: edge.source,
+						target: edge.target,
+					})),
 				},
 				score: config.expectedScore,
 				rubricVersion: "v1.0",
@@ -185,9 +225,31 @@ export function seedSubmissions(
 		const learnerMapDate = new Date(Date.now() - 13 * 24 * 60 * 60 * 1000 - 45 * 60 * 1000);
 
 		yield* Effect.log("--- Seeding whitelist app-flow submissions ---");
-		yield* seedFormResponsesForForm(formIds.preTestFormId, WHITELIST_FLOW_PRETEST_SCORES, userIdsByEmail, preTestDate);
-		yield* seedLearnerMapSubmissions(userIdsByEmail, demoAssignmentId, dailyLifeGoalMapId, demoKitId, dailyLifeData, learnerMapDate);
-		yield* seedFormResponsesForForm(formIds.postTestFormId, WHITELIST_FLOW_POSTTEST_SCORES, userIdsByEmail, postTestDate);
-		yield* seedFormResponsesForForm(formIds.delayedTestFormId, WHITELIST_FLOW_DELAYEDTEST_SCORES, userIdsByEmail, delayedTestDate);
+		yield* seedFormResponsesForForm(
+			formIds.preTestFormId,
+			WHITELIST_FLOW_PRETEST_SCORES,
+			userIdsByEmail,
+			preTestDate,
+		);
+		yield* seedLearnerMapSubmissions(
+			userIdsByEmail,
+			demoAssignmentId,
+			dailyLifeGoalMapId,
+			demoKitId,
+			dailyLifeData,
+			learnerMapDate,
+		);
+		yield* seedFormResponsesForForm(
+			formIds.postTestFormId,
+			WHITELIST_FLOW_POSTTEST_SCORES,
+			userIdsByEmail,
+			postTestDate,
+		);
+		yield* seedFormResponsesForForm(
+			formIds.delayedTestFormId,
+			WHITELIST_FLOW_DELAYEDTEST_SCORES,
+			userIdsByEmail,
+			delayedTestDate,
+		);
 	});
 }

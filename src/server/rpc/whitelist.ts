@@ -2,17 +2,19 @@ import { mutationOptions, queryOptions } from "@tanstack/react-query";
 import { createServerFn } from "@tanstack/react-start";
 import { Effect, Schema } from "effect";
 
-import { requireRoleMiddleware } from "@/middlewares/auth";
-
-import { AppRuntime } from "../app-runtime";
-import { Rpc, logRpcError, logAndReturnError, logAndReturnDefect } from "../rpc-helper";
-
-import { importWhitelistCsv, listUnregisteredWhitelist } from "@/features/whitelist/lib/whitelist-service.mutations";
+import {
+	importWhitelistCsv,
+	listUnregisteredWhitelist,
+} from "@/features/whitelist/lib/whitelist-service.mutations";
 import { getWhitelistEntryByStudentId } from "@/features/whitelist/lib/whitelist-service.queries";
 import {
 	WhitelistImportInput,
 	WhitelistLookupInput,
 } from "@/features/whitelist/lib/whitelist-service.shared";
+import { requireRoleMiddleware } from "@/middlewares/auth";
+
+import { AppRuntime } from "../app-runtime";
+import { Rpc, logRpcError, logAndReturnError, logAndReturnDefect } from "../rpc-helper";
 
 export const getWhitelistEntryRpc = createServerFn()
 	.inputValidator((raw) => Schema.decodeUnknownSync(WhitelistLookupInput)(raw))
@@ -31,18 +33,17 @@ export const getWhitelistEntryRpc = createServerFn()
 		),
 	);
 
-export const listUnregisteredWhitelistRpc = createServerFn()
-	.handler(() =>
-		AppRuntime.runPromise(
-			listUnregisteredWhitelist().pipe(
-				Effect.map(Rpc.ok),
-				Effect.withSpan("listUnregisteredWhitelist"),
-				Effect.tapError(logRpcError("listUnregisteredWhitelist")),
-				Effect.catchAll(logAndReturnError("listUnregisteredWhitelist")),
-				Effect.catchAllDefect(logAndReturnDefect("listUnregisteredWhitelist")),
-			),
+export const listUnregisteredWhitelistRpc = createServerFn().handler(() =>
+	AppRuntime.runPromise(
+		listUnregisteredWhitelist().pipe(
+			Effect.map(Rpc.ok),
+			Effect.withSpan("listUnregisteredWhitelist"),
+			Effect.tapError(logRpcError("listUnregisteredWhitelist")),
+			Effect.catchAll(logAndReturnError("listUnregisteredWhitelist")),
+			Effect.catchAllDefect(logAndReturnDefect("listUnregisteredWhitelist")),
 		),
-	);
+	),
+);
 
 export const importWhitelistCsvRpc = createServerFn({ method: "POST" })
 	.middleware([requireRoleMiddleware("admin")])

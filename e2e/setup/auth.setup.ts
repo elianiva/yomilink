@@ -4,7 +4,13 @@ import { expect, test as setup, type Page } from "@playwright/test";
 
 const authDir = "./playwright/.auth";
 
-async function signInAndSaveState(page: Page, email: string, password: string, targetUrl: string, storagePath: string) {
+async function signInAndSaveState(
+	page: Page,
+	email: string,
+	password: string,
+	targetUrl: string,
+	storagePath: string,
+) {
 	const response = await page.evaluate(
 		async ({ email, password }) => {
 			const res = await fetch("/api/auth/sign-in/email", {
@@ -43,11 +49,23 @@ setup("seed database", async () => {
 });
 
 setup("authenticate student", async ({ page }) => {
-	await signInAndSaveState(page, "tanaka@demo.local", "demo12345", "/dashboard/assignments", authDir + "/student.json");
+	await signInAndSaveState(
+		page,
+		"tanaka@demo.local",
+		"demo12345",
+		"/dashboard/assignments",
+		authDir + "/student.json",
+	);
 	console.log("Student auth state saved");
 });
 
 setup("authenticate teacher", async ({ page }) => {
-	await signInAndSaveState(page, "teacher@demo.local", "teacher123", "/dashboard", authDir + "/teacher.json");
+	await signInAndSaveState(
+		page,
+		"teacher@demo.local",
+		"teacher123",
+		"/dashboard",
+		authDir + "/teacher.json",
+	);
 	console.log("Teacher auth state saved");
 });

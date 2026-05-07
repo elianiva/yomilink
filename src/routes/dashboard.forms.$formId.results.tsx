@@ -2,9 +2,9 @@ import { createFileRoute } from "@tanstack/react-router";
 import { BarChart3, List, Loader2, Users } from "lucide-react";
 import { useState } from "react";
 
-import { Guard } from "@/features/auth/components/Guard";
 import { Button } from "@/components/ui/button";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Guard } from "@/features/auth/components/Guard";
 import { AggregatedResponses } from "@/features/form/components/aggregated-responses";
 import { IndividualResponsesTable } from "@/features/form/components/individual-responses-table";
 import type { FormResponseOutput, QuestionOutput } from "@/features/form/lib/form-service.shared";
@@ -129,7 +129,6 @@ function FormResultsPage() {
 				<TabsContent value="aggregated" className="mt-6">
 					<AggregatedResponses responses={responses} questions={questions} />
 				</TabsContent>
-
 			</Tabs>
 		</div>
 	);

@@ -190,8 +190,4 @@ export const ExportResultSchema = Schema.Struct({
 
 export type ExportResult = typeof ExportResultSchema.Type;
 
-export {
-	AssignmentNotFoundError,
-	GoalMapNotFoundError,
-	LearnerMapNotFoundError,
-};
+export { AssignmentNotFoundError, GoalMapNotFoundError, LearnerMapNotFoundError };

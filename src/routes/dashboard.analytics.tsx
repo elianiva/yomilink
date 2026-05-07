@@ -1,7 +1,6 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useCallback, useMemo, useState } from "react";
 
-import { Guard } from "@/features/auth/components/Guard";
 import { createTooltipHandle, TooltipContent, TooltipProvider } from "@/components/ui/tooltip";
 import { AnalyticsCanvasWrapper } from "@/features/analyzer/components/analytics-canvas-wrapper";
 import { AnalyticsControls } from "@/features/analyzer/components/analytics-controls";
@@ -13,6 +12,7 @@ import { AnalyticsSummaryPanel } from "@/features/analyzer/components/analytics-
 import { AnalyticsToolbar } from "@/features/analyzer/components/analytics-toolbar";
 import { SelectedLearnerStats } from "@/features/analyzer/components/selected-learner-stats";
 import type { LearnerAnalytics } from "@/features/analyzer/lib/analytics-service.shared";
+import { Guard } from "@/features/auth/components/Guard";
 import { useRpcQuery } from "@/hooks/use-rpc-query";
 import { AnalyticsRpc } from "@/server/rpc/analytics";
 
