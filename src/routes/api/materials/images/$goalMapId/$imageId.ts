@@ -19,14 +19,15 @@ export const Route = createFileRoute("/api/materials/images/$goalMapId/$imageId"
 						return new Response("Unauthorized", { status: 401 });
 					}
 
-					yield* requireGoalMapAccess(user.id, goalMapId).pipe(
+					const accessResult = yield* requireGoalMapAccess(user.id, goalMapId).pipe(
 						Effect.catchTags({
-							ForbiddenError: () =>
-								Effect.succeed(new Response("Forbidden", { status: 403 })),
+							ForbiddenError: () => Effect.succeed(new Response("Forbidden", { status: 403 })),
 							GoalMapNotFoundError: () =>
 								Effect.succeed(new Response("Goal map not found", { status: 404 })),
 						}),
 					);
+
+					if (accessResult instanceof Response) return accessResult;
 
 					const key = `materials/${goalMapId}/${imageId}`;
 
