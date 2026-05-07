@@ -118,18 +118,19 @@ export const getServerUser = Effect.fn("getServerUser")(function* (headers: Head
 	const auth = yield* Auth;
 	const session = yield* Effect.tryPromise(() => auth.api.getSession({ headers })).pipe(
 		Effect.catchTag("UnknownException", (e) => {
-			const errorDetails =
-				e instanceof Error
-					? {
-							message: e.message,
-							stack: e.stack,
-						}
-					: {
-							message: String(e),
-						};
-			return Effect.logError("Failed to get user session from auth", errorDetails).pipe(
-				Effect.andThen(Effect.succeed(null)),
-			);
+			const message = e instanceof Error ? e.message : String(e);
+			const isTransient =
+				message.toLowerCase().includes("session") ||
+				message.toLowerCase().includes("token") ||
+				message.toLowerCase().includes("not found");
+
+			if (!isTransient) {
+				return Effect.fail(e);
+			}
+
+			return Effect.logWarning("Session verification failed, treating as unauthenticated", {
+				message,
+			}).pipe(Effect.andThen(Effect.succeed(null)));
 		}),
 	);
 	if (!session) return null;
