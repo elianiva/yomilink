@@ -87,7 +87,7 @@ export const getKit = Effect.fn("getKit")(function* (input: GetKitInput) {
 			safeParseJson(row.nodes, [], Schema.Array(KitNodeSchema)),
 			safeParseJson(row.edges, [], Schema.Array(KitEdgeSchema)),
 		],
-		{ concurrency: "unbounded" },
+		{ concurrency: 10 },
 	);
 
 	return {

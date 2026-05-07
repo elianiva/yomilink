@@ -117,7 +117,7 @@ export const getAnalyticsForAssignment = Effect.fn("getAnalyticsForAssignment")(
 			safeParseJson(goalMap.nodes, [], Schema.Array(NodeSchema)),
 			safeParseJson(goalMap.edges, [], Schema.Array(EdgeSchema)),
 		],
-		{ concurrency: "unbounded" },
+		{ concurrency: 10 },
 	);
 
 	const learnerMapsData = yield* db
@@ -270,7 +270,7 @@ export const getLearnerMapForAnalytics = Effect.fn("getLearnerMapForAnalytics")(
 				safeParseJson(learnerMap.nodes, [], Schema.Array(NodeSchema)),
 				safeParseJson(learnerMap.edges, [], Schema.Array(EdgeSchema)),
 			],
-			{ concurrency: "unbounded" },
+			{ concurrency: 10 },
 		);
 
 	const diagnosis = compareMaps(parsedGoalMapEdges, parsedLearnerMapEdges);

@@ -177,7 +177,7 @@ export const getAssignmentForStudent = Effect.fn("getAssignmentForStudent")(func
 					)
 				: Effect.succeed(null),
 		],
-		{ concurrency: "unbounded" },
+		{ concurrency: 10 },
 	);
 
 	return {
@@ -281,7 +281,7 @@ export const getDiagnosis = Effect.fn("getDiagnosis")(function* (
 			safeParseJson(goalMap.nodes, [], Schema.Array(NodeSchema)),
 			safeParseJson(goalMap.edges, [], Schema.Array(EdgeSchema)),
 		],
-		{ concurrency: "unbounded" },
+		{ concurrency: 10 },
 	);
 
 	return {

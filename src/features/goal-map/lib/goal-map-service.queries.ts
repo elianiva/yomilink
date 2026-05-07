@@ -45,7 +45,7 @@ export const getGoalMap = Effect.fn("getGoalMap")(function* (input: GetGoalMapIn
 				? safeParseJson(row.materialImages, [], Schema.Array(Schema.String))
 				: Effect.succeed([]),
 		],
-		{ concurrency: "unbounded" },
+		{ concurrency: 10 },
 	);
 
 	return {
@@ -88,7 +88,7 @@ export const listGoalMaps = Effect.fn("listGoalMaps")(function* (userId: string)
 						safeParseJson(row.nodes, [], Schema.Array(NodeSchema)),
 						safeParseJson(row.edges, [], Schema.Array(EdgeSchema)),
 					],
-					{ concurrency: "unbounded" },
+					{ concurrency: 10 },
 				);
 
 				return {
@@ -139,7 +139,7 @@ export const listGoalMapsByTopic = Effect.fn("listGoalMapsByTopic")(function* (
 						safeParseJson(row.nodes, [], Schema.Array(NodeSchema)),
 						safeParseJson(row.edges, [], Schema.Array(EdgeSchema)),
 					],
-					{ concurrency: "unbounded" },
+					{ concurrency: 10 },
 				);
 
 				return {

@@ -83,7 +83,7 @@ export const getFormById = Effect.fn("getFormById")(function* (formId: string) {
 				};
 			}),
 		),
-		{ concurrency: "unbounded" },
+		{ concurrency: 10 },
 	);
 
 	return yield* Schema.encode(GetFormByIdOutputSchema)({
@@ -233,7 +233,7 @@ export const getStudentFormById = Effect.fn("getStudentFormById")(function* (
 				};
 			}),
 		),
-		{ concurrency: "unbounded" },
+		{ concurrency: 10 },
 	);
 
 	const submission = responseRow
