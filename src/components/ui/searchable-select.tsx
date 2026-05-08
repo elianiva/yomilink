@@ -17,6 +17,7 @@ export type SearchableSelectOption = {
 	id: string;
 	label: string;
 	description?: string | null;
+	group?: string;
 };
 
 interface SearchableSelectProps {
@@ -26,6 +27,16 @@ interface SearchableSelectProps {
 	options: SearchableSelectOption[];
 	placeholder?: string;
 	searchPlaceholder?: string;
+}
+
+function groupOptions(options: SearchableSelectOption[]): Map<string, SearchableSelectOption[]> {
+	const groups = new Map<string, SearchableSelectOption[]>();
+	for (const opt of options) {
+		const key = opt.group ?? "";
+		if (!groups.has(key)) groups.set(key, []);
+		groups.get(key)!.push(opt);
+	}
+	return groups;
 }
 
 export function SearchableSelect({
@@ -39,9 +50,11 @@ export function SearchableSelect({
 	const [open, setOpen] = useState(false);
 	const [search, setSearch] = useState("");
 
-	const filteredOptions = options.filter((option) =>
-		option.label.toLowerCase().includes(search.toLowerCase()),
-	);
+	const grouped = groupOptions(options);
+	const sortedGroups = [...grouped.entries()].sort(([a], [b]) => a.localeCompare(b));
+
+	const filterOption = (opt: SearchableSelectOption) =>
+		opt.label.toLowerCase().includes(search.toLowerCase());
 
 	const selectedOption = options.find((opt) => opt.id === value);
 
@@ -70,33 +83,69 @@ export function SearchableSelect({
 					/>
 					<CommandList>
 						<CommandEmpty>No options found.</CommandEmpty>
-						<CommandGroup>
-							{filteredOptions.map((option) => (
-								<CommandItem
-									key={option.id}
-									value={option.id}
-									onSelect={() => {
-										onChange(option.id);
-										setOpen(false);
-									}}
-								>
-									<CheckIcon
-										className={cn(
-											"mr-2 size-4",
-											value === option.id ? "opacity-100" : "opacity-0",
-										)}
-									/>
-									<div className="flex flex-col">
-										<span>{option.label}</span>
-										{option.description && (
-											<span className="text-xs text-muted-foreground">
-												{option.description}
-											</span>
-										)}
-									</div>
-								</CommandItem>
-							))}
-						</CommandGroup>
+						{sortedGroups.length === 1 ? (
+							<CommandGroup>
+								{sortedGroups[0][1].filter(filterOption).map((option) => (
+									<CommandItem
+										key={option.id}
+										value={option.id}
+										onSelect={() => {
+											onChange(option.id);
+											setOpen(false);
+										}}
+									>
+										<CheckIcon
+											className={cn(
+												"mr-2 size-4",
+												value === option.id ? "opacity-100" : "opacity-0",
+											)}
+										/>
+										<div className="flex flex-col">
+											<span>{option.label}</span>
+											{option.description && (
+												<span className="text-xs text-muted-foreground">
+													{option.description}
+												</span>
+											)}
+										</div>
+									</CommandItem>
+								))}
+							</CommandGroup>
+						) : (
+							sortedGroups.map(([group, opts]) => {
+								const filtered = opts.filter(filterOption);
+								if (filtered.length === 0) return null;
+								return (
+									<CommandGroup key={group} heading={group || "No Cohort"}>
+										{filtered.map((option) => (
+											<CommandItem
+												key={option.id}
+												value={option.id}
+												onSelect={() => {
+													onChange(option.id);
+													setOpen(false);
+												}}
+											>
+												<CheckIcon
+													className={cn(
+														"mr-2 size-4",
+														value === option.id ? "opacity-100" : "opacity-0",
+													)}
+												/>
+												<div className="flex flex-col">
+													<span>{option.label}</span>
+													{option.description && (
+														<span className="text-xs text-muted-foreground">
+															{option.description}
+														</span>
+													)}
+												</div>
+											</CommandItem>
+										))}
+									</CommandGroup>
+								);
+							})
+						)}
 					</CommandList>
 				</Command>
 			</PopoverContent>

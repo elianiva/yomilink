@@ -199,10 +199,14 @@ function SignUpPage() {
 	const { data: cohortsData } = useRpcQuery(AuthRpc.listCohorts());
 
 	const whitelistEntries = whitelistData ?? [];
-	const whitelistOptions = whitelistEntries.map((entry) => ({
-		id: entry.studentId,
-		label: `${entry.name} (${entry.studentId})`,
-	}));
+	const whitelistOptions = whitelistEntries
+		.slice()
+		.sort((a, b) => a.name.localeCompare(b.name))
+		.map((entry) => ({
+			id: entry.studentId,
+			label: `${entry.name} (${entry.studentId})`,
+			group: entry.cohortName ?? undefined,
+		}));
 	const cohorts = (cohortsData ?? []).map((cohort) => ({
 		id: cohort.id,
 		label: cohort.name,
