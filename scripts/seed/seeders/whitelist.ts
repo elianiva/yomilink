@@ -1,20 +1,10 @@
-import { eq } from "drizzle-orm";
+import { eq, inArray } from "drizzle-orm";
 import { Effect } from "effect";
 
 import { Database } from "@/server/db/client";
-import { whitelistEntries } from "@/server/db/schema/auth-schema";
+import { cohorts, whitelistEntries } from "@/server/db/schema/auth-schema";
 
 import { EXTRACTED_STUDENTS } from "../data/extracted-students.js";
-
-const SEEDED_WHITELIST_ENTRIES: Array<{
-	id: string;
-	studentId: string;
-	name: string;
-}> = EXTRACTED_STUDENTS.map((s) => ({
-	id: s.id,
-	studentId: s.studentId,
-	name: s.name,
-}));
 
 export function seedWhitelistEntries() {
 	return Effect.gen(function* () {
@@ -22,7 +12,21 @@ export function seedWhitelistEntries() {
 
 		yield* Effect.log("--- Seeding Whitelist Entries ---");
 
-		for (const entry of SEEDED_WHITELIST_ENTRIES) {
+		// Look up cohort IDs to map extracted cohort tags to actual DB IDs
+		const cohortRows = yield* db
+			.select({ id: cohorts.id, name: cohorts.name })
+			.from(cohorts)
+			.where(inArray(cohorts.name, ["2A Business Administration", "2B Business Administration"]));
+
+		const cohortMap: Record<string, string> = {};
+		for (const row of cohortRows) {
+			if (row.name.startsWith("2A")) cohortMap["2A"] = row.id;
+			if (row.name.startsWith("2B")) cohortMap["2B"] = row.id;
+		}
+
+		for (const entry of EXTRACTED_STUDENTS) {
+			const cohortId = cohortMap[entry.cohort] ?? null;
+
 			const existing = yield* db
 				.select()
 				.from(whitelistEntries)
@@ -30,7 +34,11 @@ export function seedWhitelistEntries() {
 				.limit(1);
 
 			if (existing[0]) {
-				yield* Effect.log("Whitelist entry " + entry.studentId + " already exists");
+				yield* db
+					.update(whitelistEntries)
+					.set({ name: entry.name, cohortId })
+					.where(eq(whitelistEntries.studentId, entry.studentId));
+				yield* Effect.log("Updated whitelist entry: " + entry.studentId);
 				continue;
 			}
 
@@ -38,6 +46,7 @@ export function seedWhitelistEntries() {
 				id: entry.id,
 				studentId: entry.studentId,
 				name: entry.name,
+				cohortId,
 			});
 			yield* Effect.log("Created whitelist entry: " + entry.studentId);
 		}

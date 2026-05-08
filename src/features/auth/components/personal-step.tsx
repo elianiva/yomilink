@@ -8,14 +8,14 @@ import { Textarea } from "@/components/ui/textarea";
 import type { SignUpInput } from "@/server/rpc/auth";
 
 import { jlptOptions } from "../types";
+import { useSignUpForm } from "./signup-form.context";
 
 interface PersonalStepProps {
-	// biome-ignore lint/suspicious/noExplicitAny: <explanation>
-	form: any;
 	onLastFieldSubmit?: () => void;
 }
 
-export function PersonalStep({ form, onLastFieldSubmit }: PersonalStepProps) {
+export function PersonalStep({ onLastFieldSubmit }: PersonalStepProps) {
+	const form = useSignUpForm();
 	return (
 		<fieldset className="space-y-5">
 			<div className="grid grid-cols-12 gap-4">

@@ -1,4 +1,4 @@
-import { useForm } from "@tanstack/react-form";
+import { useStore } from "@tanstack/react-form";
 import { createFileRoute, Link, redirect, useNavigate } from "@tanstack/react-router";
 import { Schema } from "effect";
 import { useReducer } from "react";
@@ -9,6 +9,7 @@ import { AccountStep } from "@/features/auth/components/account-step";
 import { ConsentStep } from "@/features/auth/components/consent-step";
 import { PersonalStep } from "@/features/auth/components/personal-step";
 import { steps, SignUpSchema } from "@/features/auth/types";
+import { useAppForm } from "@/features/auth/components/use-app-form";
 import { useRpcMutation, useRpcQuery } from "@/hooks/use-rpc-query";
 import { AuthRpc, type SignUpInput } from "@/server/rpc/auth";
 import { getMe } from "@/server/rpc/profile";
@@ -47,10 +48,10 @@ type SignUpMachineEvent =
 	| { type: "clearError" };
 
 type StepRenderProps = {
-	form: any;
 	whitelistOptions: Array<{ id: string; label: string }>;
 	whitelistLoading: boolean;
 	cohorts: Array<{ id: string; label: string }>;
+	preselectedCohortName: string | null;
 	onLastFieldSubmit?: () => void;
 };
 
@@ -96,8 +97,17 @@ function signUpMachineReducer(
 	}
 }
 
-function selectSignUpStepSnapshot(state: any): SignUpStepSnapshot {
+function selectSignUpStepSnapshot(
+	state: any,
+	whitelistEntries: Array<{ studentId: string; cohortId: string | null }>,
+): SignUpStepSnapshot {
 	const { studentId, password, confirmPassword, age, jlptLevel, cohortId } = state.values;
+
+	// Derive effective cohortId: form value falls back to whitelist mapping
+	const whitelistCohortId = studentId
+		? whitelistEntries.find((e) => e.studentId === studentId)?.cohortId
+		: null;
+	const effectiveCohortId = cohortId || whitelistCohortId || "";
 
 	return {
 		account: {
@@ -115,7 +125,7 @@ function selectSignUpStepSnapshot(state: any): SignUpStepSnapshot {
 				(state.fieldMeta.jlptLevel?.errors.length ?? 0),
 		},
 		academic: {
-			filled: !!cohortId,
+			filled: !!effectiveCohortId,
 			errors: state.fieldMeta.cohortId?.errors.length ?? 0,
 		},
 		consent: {
@@ -133,13 +143,11 @@ const signupSteps = [
 			snapshot.account.errors === 0 &&
 			snapshot.account.passwordsMatch,
 		render: ({
-			form,
 			whitelistOptions,
 			whitelistLoading,
 			onLastFieldSubmit,
 		}: StepRenderProps) => (
 			<AccountStep
-				form={form}
 				whitelistOptions={whitelistOptions}
 				isLoading={whitelistLoading}
 				onLastFieldSubmit={onLastFieldSubmit}
@@ -150,24 +158,32 @@ const signupSteps = [
 		...steps[1],
 		guard: (snapshot: SignUpStepSnapshot) =>
 			snapshot.personal.filled && snapshot.personal.errors === 0,
-		render: ({ form, onLastFieldSubmit }: StepRenderProps) => (
-			<PersonalStep form={form} onLastFieldSubmit={onLastFieldSubmit} />
+		render: ({ onLastFieldSubmit }: StepRenderProps) => (
+			<PersonalStep onLastFieldSubmit={onLastFieldSubmit} />
 		),
 	},
 	{
 		...steps[2],
 		guard: (snapshot: SignUpStepSnapshot) =>
 			snapshot.academic.filled && snapshot.academic.errors === 0,
-		render: ({ form, cohorts, onLastFieldSubmit }: StepRenderProps) => (
-			<AcademicStep form={form} cohorts={cohorts} onLastFieldSubmit={onLastFieldSubmit} />
+		render: ({
+			cohorts,
+			preselectedCohortName,
+			onLastFieldSubmit,
+		}: StepRenderProps) => (
+			<AcademicStep
+				cohorts={cohorts}
+				preselectedCohortName={preselectedCohortName}
+				onLastFieldSubmit={onLastFieldSubmit}
+			/>
 		),
 	},
 	{
 		...steps[3],
 		guard: (snapshot: SignUpStepSnapshot) =>
 			snapshot.consent.filled && snapshot.consent.errors === 0,
-		render: ({ form, onLastFieldSubmit }: StepRenderProps) => (
-			<ConsentStep form={form} onLastFieldSubmit={onLastFieldSubmit} />
+		render: ({ onLastFieldSubmit }: StepRenderProps) => (
+			<ConsentStep onLastFieldSubmit={onLastFieldSubmit} />
 		),
 	},
 ] as const;
@@ -221,7 +237,7 @@ function SignUpPage() {
 		},
 	});
 
-	const form = useForm({
+	const form = useAppForm({
 		defaultValues: {
 			studentId: "",
 			password: "",
@@ -257,12 +273,22 @@ function SignUpPage() {
 				return;
 			}
 
+			// Derive effective cohortId: form selection falls back to whitelist mapping
+			const effectiveCohortId = value.cohortId || selectedWhitelist.cohortId;
+			if (!effectiveCohortId) {
+				dispatch({
+					type: "setError",
+					message: "No cohort assigned. Please contact your teacher.",
+				});
+				return;
+			}
+
 			signUpMutation.mutate({
 				studentId: selectedWhitelist.studentId,
 				password: value.password,
 				age: value.age,
 				jlptLevel: value.jlptLevel,
-				cohortId: value.cohortId,
+				cohortId: effectiveCohortId,
 				japaneseLearningDuration: value.japaneseLearningDuration,
 				previousJapaneseScore: value.previousJapaneseScore,
 				mediaConsumption: value.mediaConsumption,
@@ -271,6 +297,15 @@ function SignUpPage() {
 			});
 		},
 	});
+
+	// Derive effective cohort from whitelist when form cohortId is empty
+	const currentStudentId = useStore(form.store, (state) => state.values.studentId);
+	const formCohortId = useStore(form.store, (state) => state.values.cohortId);
+	const whitelistEntry = currentStudentId
+		? whitelistEntries.find((e) => e.studentId === currentStudentId)
+		: null;
+	const preselectedCohortName =
+		whitelistEntry?.cohortId && !formCohortId ? whitelistEntry.cohortName : null;
 
 	const currentStep = machine.step;
 	const currentStepMeta = signupSteps[currentStep];
@@ -350,79 +385,85 @@ function SignUpPage() {
 						</div>
 					) : null}
 
-					<form
-						onSubmit={(e) => {
-							e.preventDefault();
-							e.stopPropagation();
-							void form.handleSubmit();
-						}}
-						className="flex flex-col flex-1"
-					>
-						<div className="space-y-5 relative flex-1">
-							<div className="pr-2 overflow-visible">
-								{currentStepMeta.render({
-									form,
-									whitelistOptions,
-									whitelistLoading,
-									cohorts,
-									onLastFieldSubmit:
-										currentStep < signupSteps.length - 1
-											? () => dispatch({ type: "next" })
-											: undefined,
-								})}
+					<form.AppForm>
+						<form
+							onSubmit={(e) => {
+								e.preventDefault();
+								e.stopPropagation();
+								void form.handleSubmit();
+							}}
+							className="flex flex-col flex-1"
+						>
+							<div className="space-y-5 relative flex-1">
+								<div className="pr-2 overflow-visible">
+									{currentStepMeta.render({
+										whitelistOptions,
+										whitelistLoading,
+										cohorts,
+										preselectedCohortName,
+										onLastFieldSubmit:
+											currentStep < signupSteps.length - 1
+												? () => dispatch({ type: "next" })
+												: undefined,
+									})}
+								</div>
 							</div>
-						</div>
-						<div className="flex gap-2 justify-between">
-							{currentStep > 0 ? (
-								<Button
-									type="button"
-									variant="outline"
-									onClick={() => dispatch({ type: "previous" })}
-								>
-									Previous
-								</Button>
-							) : (
-								<div />
-							)}
+							<div className="flex gap-2 justify-between">
+								{currentStep > 0 ? (
+									<Button
+										type="button"
+										variant="outline"
+										onClick={() => dispatch({ type: "previous" })}
+									>
+										Previous
+									</Button>
+								) : (
+									<div />
+								)}
 
-							{currentStep < signupSteps.length - 1 ? (
-								<form.Subscribe selector={selectSignUpStepSnapshot}>
-									{(snapshot) => {
-										const canProceed = signupSteps[currentStep].guard(snapshot);
+								{currentStep < signupSteps.length - 1 ? (
+									<form.Subscribe
+										selector={(state: any) =>
+											selectSignUpStepSnapshot(state, whitelistEntries)
+										}
+									>
+										{(snapshot) => {
+											const canProceed = signupSteps[currentStep].guard(snapshot);
 
-										return (
+											return (
+												<Button
+													type="button"
+													onClick={() => dispatch({ type: "next" })}
+													disabled={!canProceed}
+												>
+													Next
+												</Button>
+											);
+										}}
+									</form.Subscribe>
+								) : (
+									<form.Subscribe
+										selector={(s) => [s.canSubmit, s.isSubmitting] as const}
+									>
+										{([canSubmit, isSubmitting]) => (
 											<Button
-												type="button"
-												onClick={() => dispatch({ type: "next" })}
-												disabled={!canProceed}
+												type="submit"
+												disabled={
+													!canSubmit ||
+													isSubmitting ||
+													signUpMutation.isPending
+												}
 											>
-												Next
+												{signUpMutation.isPending
+													? "Creating account..."
+													: "Create Account"}
 											</Button>
-										);
-									}}
-								</form.Subscribe>
-							) : (
-								<form.Subscribe
-									selector={(s) => [s.canSubmit, s.isSubmitting] as const}
-								>
-									{([canSubmit, isSubmitting]) => (
-										<Button
-											type="submit"
-											disabled={
-												!canSubmit ||
-												isSubmitting ||
-												signUpMutation.isPending
-											}
-										>
-											{signUpMutation.isPending
-												? "Creating account..."
-												: "Create Account"}
-										</Button>
-									)}
-								</form.Subscribe>
-							)}
-						</div>
-					</form>
+										)}
+									</form.Subscribe>
+								)}
+							</div>
+						</form>
+					</form.AppForm>
 				</div>
 				<div className="text-center mt-4">
 					<p className="text-sm text-muted-foreground">

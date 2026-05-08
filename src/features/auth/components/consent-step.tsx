@@ -4,13 +4,14 @@ import { ShieldIcon, HatGlassesIcon, DatabaseIcon, DoorClosedIcon, RssIcon } fro
 import { Checkbox } from "@/components/ui/checkbox";
 import { FieldInfo } from "@/components/ui/field-info";
 
+import { useSignUpForm } from "./signup-form.context";
+
 interface ConsentStepProps {
-	// biome-ignore lint/suspicious/noExplicitAny: <explanation>
-	form: any;
 	onLastFieldSubmit?: () => void;
 }
 
-export function ConsentStep({ form, onLastFieldSubmit }: ConsentStepProps) {
+export function ConsentStep({ onLastFieldSubmit }: ConsentStepProps) {
+	const form = useSignUpForm();
 	return (
 		<fieldset className="space-y-5">
 			<div className="rounded-md border border-border/60 bg-muted/30 p-4 space-y-4 h-80 overflow-y-auto">

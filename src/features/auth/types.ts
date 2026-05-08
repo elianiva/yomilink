@@ -19,7 +19,7 @@ export const SignUpSchema = Schema.Struct({
 	confirmPassword: Schema.String,
 	age: Schema.NullOr(Schema.Number),
 	jlptLevel: JlptLevelSchema,
-	cohortId: NonEmpty("Cohort"),
+	cohortId: Schema.String,
 	japaneseLearningDuration: Schema.NullOr(Schema.Number),
 	previousJapaneseScore: Schema.NullOr(Schema.Number),
 	mediaConsumption: Schema.NullOr(Schema.Number),

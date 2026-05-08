@@ -5,20 +5,20 @@ import { PasswordInput } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { SearchableSelect, type SearchableSelectOption } from "@/components/ui/searchable-select";
 
+import { useSignUpForm } from "./signup-form.context";
+
 interface AccountStepProps {
-	// biome-ignore lint/suspicious/noExplicitAny: <explanation>
-	form: any;
 	whitelistOptions: SearchableSelectOption[];
 	isLoading?: boolean;
 	onLastFieldSubmit?: () => void;
 }
 
 export function AccountStep({
-	form,
 	whitelistOptions,
 	isLoading,
 	onLastFieldSubmit,
 }: AccountStepProps) {
+	const form = useSignUpForm();
 	return (
 		<fieldset className="space-y-5">
 			<form.Field name="studentId">
