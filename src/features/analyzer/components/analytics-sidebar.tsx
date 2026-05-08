@@ -14,6 +14,7 @@ import { Separator } from "@/components/ui/separator";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useRpcQuery } from "@/hooks/use-rpc-query";
+import { cn } from "@/lib/utils";
 import { AnalyticsRpc } from "@/server/rpc/analytics";
 
 import type { LearnerAnalytics } from "../lib/analytics-service.shared";
@@ -63,6 +64,7 @@ interface AnalyticsSidebarProps {
 	onToggleAll: (checked: boolean, learnerMapIds: string[]) => void;
 	activeTab: AnalyticsLearnerTab;
 	onTabChange: (tab: AnalyticsLearnerTab) => void;
+	className?: string;
 }
 
 export function AnalyticsSidebar({
@@ -73,6 +75,7 @@ export function AnalyticsSidebar({
 	onToggleAll,
 	activeTab,
 	onTabChange,
+	className,
 }: AnalyticsSidebarProps) {
 	const [searchQuery, setSearchQuery] = useState("");
 	const [statusFilter, setStatusFilter] = useState<"All" | "submitted" | "draft">("All");
@@ -155,9 +158,8 @@ export function AnalyticsSidebar({
 	);
 
 	return (
-		<aside className="bg-card p-3 space-y-4 border-r-[0.5px]">
-			{/* Assignment selector */}
-			<div className="space-y-2">
+		<aside className={cn("bg-card p-3 space-y-4", className)}>
+			<div className="space-y-1">
 				<SectionTitle>Assignment</SectionTitle>
 				<Select
 					value={selectedAssignmentId ?? ""}
@@ -175,7 +177,7 @@ export function AnalyticsSidebar({
 				</Select>
 			</div>
 
-			<Separator />
+			{selectedAssignmentId && <Separator />}
 
 			{/* Summary */}
 			{selectedAssignmentId && (

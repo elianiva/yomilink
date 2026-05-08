@@ -71,7 +71,7 @@ export function AnalyticsToolbar({
 	};
 
 	return (
-		<div className="border-b-[0.5px] bg-background/70 backdrop-blur supports-[backdrop-filter]:bg-background/50">
+		<div className="border-b-[0.5px] pointer-events-auto bg-background/70 backdrop-blur supports-[backdrop-filter]:bg-background/50 z-20">
 			<div className="h-12 px-3 flex items-center gap-2">
 				<div className="font-medium">Analytics</div>
 				<div className="ml-auto flex items-center gap-1.5">
@@ -104,8 +104,6 @@ export function AnalyticsToolbar({
 						<Download className="size-4" />
 						Export JSON
 					</Button>
-
-					<Separator className="h-6" orientation="vertical" />
 
 					<ToolbarButton
 						icon={Activity}

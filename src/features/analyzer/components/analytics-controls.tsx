@@ -1,4 +1,5 @@
 import { Switch } from "@/components/ui/switch";
+import { cn } from "@/lib/utils";
 
 function LegendDot({ color }: { color: string }) {
 	return <span className="inline-block size-3 rounded-full" style={{ backgroundColor: color }} />;
@@ -27,15 +28,17 @@ interface AnalyticsControlsProps {
 	visibility: VisibilityState;
 	onChange: (updates: Partial<VisibilityState>) => void;
 	showDisplayOptions?: boolean;
+	className?: string;
 }
 
 export function AnalyticsControls({
 	visibility,
 	onChange,
 	showDisplayOptions = true,
+	className,
 }: AnalyticsControlsProps) {
 	return (
-		<div className="border-b-[0.5px] p-3 space-y-3">
+		<div className={cn("border-b-[0.5px] p-3 space-y-3", className)}>
 			<div className="flex items-center justify-between">
 				<SectionTitle>Connector Visibility</SectionTitle>
 			</div>

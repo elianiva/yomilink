@@ -3,6 +3,7 @@ import { useMemo } from "react";
 import { ErrorCard } from "@/components/ui/error-card";
 import { Skeleton } from "@/components/ui/skeleton";
 import { useRpcQuery } from "@/hooks/use-rpc-query";
+import { cn } from "@/lib/utils";
 import { AnalyticsRpc } from "@/server/rpc/analytics";
 
 import type { AssignmentAnalytics } from "../lib/analytics-service.shared";
@@ -24,6 +25,7 @@ interface AnalyticsCanvasWrapperProps {
 	selectedLearnerMapIds: Set<string>;
 	analyticsData: AssignmentAnalytics | null;
 	visibility: VisibilityState;
+	className?: string;
 }
 
 function CanvasSkeleton() {
@@ -42,6 +44,7 @@ export function AnalyticsCanvasWrapper({
 	selectedLearnerMapIds,
 	analyticsData,
 	visibility,
+	className,
 }: AnalyticsCanvasWrapperProps) {
 	const learnerMapIds = useMemo(() => [...selectedLearnerMapIds].sort(), [selectedLearnerMapIds]);
 
@@ -72,7 +75,7 @@ export function AnalyticsCanvasWrapper({
 	}
 
 	return (
-		<div className="flex-1 m-3 rounded-md overflow-hidden">
+		<div className={cn("flex-1 m-3 rounded-md overflow-hidden", className)}>
 			{multipleLearnerMapsLoading &&
 			selectedLearnerMapIds.size > 0 &&
 			!multipleLearnerMapDetails ? (

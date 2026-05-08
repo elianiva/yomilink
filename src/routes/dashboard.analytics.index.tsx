@@ -1,6 +1,9 @@
 import { createFileRoute } from "@tanstack/react-router";
+import { ChevronRight, MenuIcon, XIcon } from "lucide-react";
+import { AnimatePresence, motion } from "motion/react";
 import { useCallback, useMemo, useState } from "react";
 
+import { Button } from "@/components/ui/button";
 import { createTooltipHandle, TooltipContent, TooltipProvider } from "@/components/ui/tooltip";
 import { AnalyticsCanvasWrapper } from "@/features/analyzer/components/analytics-canvas-wrapper";
 import { AnalyticsControls } from "@/features/analyzer/components/analytics-controls";
@@ -14,9 +17,10 @@ import { SelectedLearnerStats } from "@/features/analyzer/components/selected-le
 import type { LearnerAnalytics } from "@/features/analyzer/lib/analytics-service.shared";
 import { Guard } from "@/features/auth/components/Guard";
 import { useRpcQuery } from "@/hooks/use-rpc-query";
+import { cn } from "@/lib/utils";
 import { AnalyticsRpc } from "@/server/rpc/analytics";
 
-export const Route = createFileRoute("/dashboard/analytics")({
+export const Route = createFileRoute("/dashboard/analytics/")({
 	component: () => (
 		<Guard roles={["teacher", "admin"]}>
 			<AnalyticsPage />
@@ -28,6 +32,7 @@ function AnalyticsPage() {
 	const [selectedAssignmentId, setSelectedAssignmentId] = useState<string | null>(null);
 	const [selectedLearnerMapIds, setSelectedLearnerMapIds] = useState<Set<string>>(new Set());
 	const [activeLearnerTab, setActiveLearnerTab] = useState<AnalyticsLearnerTab>("conceptMap");
+	const [isSidebarOpen, setIsSidebarOpen] = useState(false);
 
 	const tooltipHandle = createTooltipHandle();
 
@@ -109,48 +114,98 @@ function AnalyticsPage() {
 
 	return (
 		<TooltipProvider delay={300}>
-			<section className="rounded-lg border-[0.5px] overflow-hidden h-full flex flex-col">
-				<AnalyticsToolbar
-					selectedAssignmentId={selectedAssignmentId}
-					analyticsData={analyticsData ?? null}
-					tooltipHandle={tooltipHandle}
-					onRefresh={handleRefresh}
-				/>
+			<section className="relative h-full overflow-hidden rounded-lg border-[0.5px]">
+				{/* Background layer — canvas/summary fills everything */}
+				<div className="absolute inset-0">
+					{activeLearnerTab === "conceptMap" ? (
+						<AnalyticsCanvasWrapper
+							className="size-full m-0 rounded-none"
+							selectedAssignmentId={selectedAssignmentId}
+							selectedLearnerMapIds={selectedLearnerMapIds}
+							analyticsData={analyticsData ?? null}
+							visibility={visibility}
+						/>
+					) : (
+						<AnalyticsSummaryPanel
+							selectedAssignmentId={selectedAssignmentId}
+							summaryLearners={summaryLearners}
+							selectedLearnerMapIds={selectedLearnerMapIds}
+						/>
+					)}
+				</div>
 
-				<div className="grid grid-cols-1 lg:grid-cols-[280px_1fr] flex-1">
-					<AnalyticsSidebar
+				{/* Floating UI layer — no pointer events so canvas gets clicks */}
+				<div className="absolute inset-0 z-10 pointer-events-none">
+					<AnalyticsToolbar
 						selectedAssignmentId={selectedAssignmentId}
-						onSelectAssignment={handleSelectAssignment}
-						selectedLearnerMapIds={selectedLearnerMapIds}
-						onToggleLearner={handleToggleLearner}
-						onToggleAll={handleToggleAll}
-						activeTab={activeLearnerTab}
-						onTabChange={setActiveLearnerTab}
+						analyticsData={analyticsData ?? null}
+						tooltipHandle={tooltipHandle}
+						onRefresh={handleRefresh}
 					/>
 
-					<div className="h-full flex flex-col">
-						{activeLearnerTab === "conceptMap" ? (
-							<>
-								<AnalyticsControls
-									visibility={visibility}
-									onChange={handleVisibilityChange}
-								/>
-								<SelectedLearnerStats selectedLearners={selectedLearners} />
-								<AnalyticsCanvasWrapper
-									selectedAssignmentId={selectedAssignmentId}
-									selectedLearnerMapIds={selectedLearnerMapIds}
-									analyticsData={analyticsData ?? null}
-									visibility={visibility}
-								/>
-							</>
+					{/* Pill toggle */}
+					<Button
+						onClick={() => setIsSidebarOpen((v) => !v)}
+						className="absolute top-15 right-3 z-20 bg-card hover:bg-card border rounded-md pointer-events-auto cursor-pointer"
+						size="icon-lg"
+					>
+						{isSidebarOpen ? (
+							<XIcon
+								className={cn(
+									"size-4 transition-transform text-foreground",
+									isSidebarOpen && "rotate-90",
+								)}
+							/>
 						) : (
-							<AnalyticsSummaryPanel
-								selectedAssignmentId={selectedAssignmentId}
-								summaryLearners={summaryLearners}
-								selectedLearnerMapIds={selectedLearnerMapIds}
+							<MenuIcon
+								className={cn(
+									"size-4 transition-transform text-foreground",
+									isSidebarOpen && "rotate-90",
+								)}
 							/>
 						)}
-					</div>
+					</Button>
+
+					{/* Floating sidebar panel */}
+					<AnimatePresence>
+						{isSidebarOpen && (
+							<motion.div
+								initial={{ opacity: 0, scale: 0.92, y: -6 }}
+								animate={{ opacity: 1, scale: 1, y: 0 }}
+								exit={{ opacity: 0, scale: 0.96, y: -3 }}
+								transition={{ duration: 0.2, ease: [0.23, 1, 0.32, 1] }}
+								style={{ transformOrigin: "top right" }}
+								className="absolute top-27 right-3 z-20 w-80 bg-card/30 backdrop-blur-lg border rounded-lg shadow-sm pointer-events-auto max-h-[calc(100vh-8rem)] overflow-y-auto"
+							>
+								<AnalyticsSidebar
+									className="bg-transparent"
+									selectedAssignmentId={selectedAssignmentId}
+									onSelectAssignment={handleSelectAssignment}
+									selectedLearnerMapIds={selectedLearnerMapIds}
+									onToggleLearner={handleToggleLearner}
+									onToggleAll={handleToggleAll}
+									activeTab={activeLearnerTab}
+									onTabChange={setActiveLearnerTab}
+								/>
+							</motion.div>
+						)}
+					</AnimatePresence>
+
+					{activeLearnerTab === "conceptMap" && (
+						<>
+							{selectedLearners.length > 0 && (
+								<SelectedLearnerStats
+									className="absolute top-16 left-3 bg-card/30 backdrop-blur-lg border rounded-lg shadow-sm px-3 py-2 pointer-events-auto"
+									selectedLearners={selectedLearners}
+								/>
+							)}
+							<AnalyticsControls
+								className="absolute bottom-3 left-3 bg-card/30 backdrop-blur-lg border rounded-lg shadow-lg pointer-events-auto max-w-64"
+								visibility={visibility}
+								onChange={handleVisibilityChange}
+							/>
+						</>
+					)}
 				</div>
 			</section>
 			<TooltipContent handle={tooltipHandle} />
