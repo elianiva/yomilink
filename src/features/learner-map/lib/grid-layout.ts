@@ -1,7 +1,7 @@
 import type { Node } from "@xyflow/react";
 
-const GRID_GAP_X = 200;
-const GRID_GAP_Y = 120;
+const GRID_GAP_X = 160;
+const GRID_GAP_Y = 80;
 const START_X = 50;
 const START_Y = 50;
 

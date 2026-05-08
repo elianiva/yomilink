@@ -16,7 +16,7 @@ export function getLayoutedElements(
 	const nodeWidth = 150;
 	const nodeHeight = 50;
 
-	dagreGraph.setGraph({ rankdir: direction });
+	dagreGraph.setGraph({ rankdir: direction, nodesep: 40, ranksep: 60 });
 
 	for (const node of nodes) {
 		dagreGraph.setNode(node.id, { width: nodeWidth, height: nodeHeight });
