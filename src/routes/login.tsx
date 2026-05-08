@@ -5,7 +5,7 @@ import { useState } from "react";
 
 import { Button } from "@/components/ui/button";
 import { FieldInfo } from "@/components/ui/field-info";
-import { Input } from "@/components/ui/input";
+import { Input, PasswordInput } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { studentIdToAuthEmail } from "@/lib/student-id-auth";
 import { Password } from "@/lib/validation-schemas";
@@ -151,9 +151,8 @@ function LoginPage() {
 						{(field) => (
 							<div className="space-y-1.5">
 								<Label htmlFor="password">Password</Label>
-								<Input
+								<PasswordInput
 									id="password"
-									type="password"
 									value={field.state.value}
 									onChange={(e) => field.handleChange(e.target.value)}
 									onBlur={field.handleBlur}
