@@ -8,8 +8,8 @@ import { AcademicStep } from "@/features/auth/components/academic-step";
 import { AccountStep } from "@/features/auth/components/account-step";
 import { ConsentStep } from "@/features/auth/components/consent-step";
 import { PersonalStep } from "@/features/auth/components/personal-step";
-import { steps, SignUpSchema } from "@/features/auth/types";
 import { useAppForm } from "@/features/auth/components/use-app-form";
+import { steps, SignUpSchema } from "@/features/auth/types";
 import { useRpcMutation, useRpcQuery } from "@/hooks/use-rpc-query";
 import { AuthRpc, type SignUpInput } from "@/server/rpc/auth";
 import { getMe } from "@/server/rpc/profile";
@@ -142,11 +142,7 @@ const signupSteps = [
 			snapshot.account.filled &&
 			snapshot.account.errors === 0 &&
 			snapshot.account.passwordsMatch,
-		render: ({
-			whitelistOptions,
-			whitelistLoading,
-			onLastFieldSubmit,
-		}: StepRenderProps) => (
+		render: ({ whitelistOptions, whitelistLoading, onLastFieldSubmit }: StepRenderProps) => (
 			<AccountStep
 				whitelistOptions={whitelistOptions}
 				isLoading={whitelistLoading}
@@ -166,11 +162,7 @@ const signupSteps = [
 		...steps[2],
 		guard: (snapshot: SignUpStepSnapshot) =>
 			snapshot.academic.filled && snapshot.academic.errors === 0,
-		render: ({
-			cohorts,
-			preselectedCohortName,
-			onLastFieldSubmit,
-		}: StepRenderProps) => (
+		render: ({ cohorts, preselectedCohortName, onLastFieldSubmit }: StepRenderProps) => (
 			<AcademicStep
 				cohorts={cohorts}
 				preselectedCohortName={preselectedCohortName}
@@ -428,7 +420,8 @@ function SignUpPage() {
 										}
 									>
 										{(snapshot) => {
-											const canProceed = signupSteps[currentStep].guard(snapshot);
+											const canProceed =
+												signupSteps[currentStep].guard(snapshot);
 
 											return (
 												<Button

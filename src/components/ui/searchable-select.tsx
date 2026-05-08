@@ -129,7 +129,9 @@ export function SearchableSelect({
 												<CheckIcon
 													className={cn(
 														"mr-2 size-4",
-														value === option.id ? "opacity-100" : "opacity-0",
+														value === option.id
+															? "opacity-100"
+															: "opacity-0",
 													)}
 												/>
 												<div className="flex flex-col">

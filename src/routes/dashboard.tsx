@@ -33,7 +33,7 @@ function DashboardLayout() {
 							/>
 						</div>
 					</header>
-					<div className="p-4 pt-0 flex-1">
+					<div className="pt-0 flex-1">
 						<Outlet />
 					</div>
 				</main>

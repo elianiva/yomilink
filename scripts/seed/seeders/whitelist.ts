@@ -16,7 +16,9 @@ export function seedWhitelistEntries() {
 		const cohortRows = yield* db
 			.select({ id: cohorts.id, name: cohorts.name })
 			.from(cohorts)
-			.where(inArray(cohorts.name, ["2A Business Administration", "2B Business Administration"]));
+			.where(
+				inArray(cohorts.name, ["2A Business Administration", "2B Business Administration"]),
+			);
 
 		const cohortMap: Record<string, string> = {};
 		for (const row of cohortRows) {
