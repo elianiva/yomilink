@@ -11,13 +11,7 @@ import {
 	questions,
 } from "@/server/db/schema/app-schema";
 
-import {
-	WHITELIST_FLOW_ACCOUNTS,
-	WHITELIST_FLOW_DELAYEDTEST_SCORES,
-	WHITELIST_FLOW_LEARNER_MAP_CONFIGS,
-	WHITELIST_FLOW_POSTTEST_SCORES,
-	WHITELIST_FLOW_PRETEST_SCORES,
-} from "../data/whitelist-flow.js";
+import { DEMO_STUDENTS } from "../data/users.js";
 
 type QuestionRow = {
 	id: string;
@@ -38,7 +32,112 @@ type DailyLifeData = {
 
 type ScoresByEmail = Record<string, number[]>;
 type UserIdsByEmail = Record<string, string>;
-type LearnerMapConfig = (typeof WHITELIST_FLOW_LEARNER_MAP_CONFIGS)[number];
+
+interface LearnerMapConfig {
+	studentEmail: string;
+	attempt: number;
+	correctEdgeIds: string[];
+	excessiveEdges: Array<{ source: string; target: string }>;
+	expectedScore: number;
+}
+
+const DEMO_PRETEST_SCORES: ScoresByEmail = {
+	"tanaka@demo.local": [
+		1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1,
+	],
+	"suzuki@demo.local": [
+		1, 1, 1, 0, 1, 1, 1, 1, 1, 1, 0, 1, 1, 1, 1, 0, 1, 0, 1, 1,
+	],
+	"yamamoto@demo.local": [
+		1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1,
+	],
+	"watanabe@demo.local": [
+		1, 1, 0, 1, 1, 1, 0, 1, 1, 0, 1, 1, 0, 1, 1, 0, 1, 0, 1, 0,
+	],
+	"takahashi@demo.local": [
+		1, 0, 1, 0, 1, 1, 0, 1, 0, 1, 0, 1, 1, 0, 0, 1, 0, 1, 0, 1,
+	],
+};
+
+const DEMO_POSTTEST_SCORES: ScoresByEmail = {
+	"tanaka@demo.local": [
+		1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1,
+	],
+	"suzuki@demo.local": [
+		1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 0, 1, 1, 1, 1,
+	],
+	"yamamoto@demo.local": [
+		1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1,
+	],
+	"watanabe@demo.local": [
+		1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 0, 1, 1, 1, 1, 1, 1, 1,
+	],
+	"takahashi@demo.local": [
+		1, 1, 1, 1, 1, 1, 1, 0, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 0,
+	],
+};
+
+const DEMO_DELAYEDTEST_SCORES: ScoresByEmail = {
+	"tanaka@demo.local": [
+		1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 0,
+	],
+	"suzuki@demo.local": [
+		1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 0, 1, 1, 1, 1, 1, 1, 1, 1,
+	],
+	"yamamoto@demo.local": [
+		1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1,
+	],
+	"watanabe@demo.local": [
+		1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 0, 1, 1, 1, 1, 1, 1, 1, 1, 0,
+	],
+	"takahashi@demo.local": [
+		1, 1, 1, 1, 0, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 0, 1, 1,
+	],
+};
+
+const DEMO_LEARNER_MAP_CONFIGS: LearnerMapConfig[] = [
+	{
+		studentEmail: "tanaka@demo.local",
+		attempt: 1,
+		correctEdgeIds: [
+			"e1", "e2", "e3", "e4", "e5", "e6",
+			"e7", "e8", "e9", "e10", "e11", "e12", "e13", "e14",
+		],
+		excessiveEdges: [],
+		expectedScore: 1.0,
+	},
+	{
+		studentEmail: "suzuki@demo.local",
+		attempt: 1,
+		correctEdgeIds: [
+			"e1", "e2", "e3", "e4", "e5", "e6",
+			"e7", "e8", "e9", "e10", "e11", "e12", "e13",
+		],
+		excessiveEdges: [],
+		expectedScore: 0.93,
+	},
+	{
+		studentEmail: "yamamoto@demo.local",
+		attempt: 1,
+		correctEdgeIds: ["e1", "e2", "e3", "e4", "e5", "e6", "e7", "e8", "e9", "e10", "e11"],
+		excessiveEdges: [{ source: "uchi", target: "suupaa" }],
+		expectedScore: 0.79,
+	},
+	{
+		studentEmail: "watanabe@demo.local",
+		attempt: 1,
+		correctEdgeIds: ["e1", "e2", "e3", "e4", "e5", "e6", "e7", "e8", "e9", "e10"],
+		excessiveEdges: [{ source: "kouen", target: "yuubinkyoku" }],
+		expectedScore: 0.71,
+	},
+	{
+		studentEmail: "takahashi@demo.local",
+		attempt: 1,
+		correctEdgeIds: ["e1", "e2", "e3", "e4", "e5", "e6", "e7", "e8"],
+		excessiveEdges: [{ source: "yuubinkyoku", target: "hanaya" }],
+		expectedScore: 0.57,
+	},
+];
 
 function pickOptionId(questionRow: QuestionRow, correct: boolean): string | null {
 	if (!questionRow.options) return null;
@@ -89,7 +188,7 @@ function seedFormResponsesForForm(
 		const existingUserIds = new Set(existingResponses.map((r) => r.userId));
 		const existingProgressIds = new Set(existingProgress.map((p) => p.userId));
 
-		for (const student of WHITELIST_FLOW_ACCOUNTS) {
+		for (const student of DEMO_STUDENTS) {
 			const userId = userIdsByEmail[student.email];
 			if (!userId) continue;
 			if (existingUserIds.has(userId)) continue;
@@ -142,7 +241,7 @@ function seedLearnerMapSubmissions(
 			existingLearnerMaps.map((row) => row.userId + ":" + row.attempt),
 		);
 
-		for (const config of WHITELIST_FLOW_LEARNER_MAP_CONFIGS as readonly LearnerMapConfig[]) {
+		for (const config of DEMO_LEARNER_MAP_CONFIGS) {
 			const userId = userIdsByEmail[config.studentEmail];
 			if (!userId) continue;
 			const key = userId + ":" + config.attempt;
@@ -224,10 +323,10 @@ export function seedSubmissions(
 		const delayedTestDate = new Date(Date.now() - 6 * 24 * 60 * 60 * 1000);
 		const learnerMapDate = new Date(Date.now() - 13 * 24 * 60 * 60 * 1000 - 45 * 60 * 1000);
 
-		yield* Effect.log("--- Seeding whitelist app-flow submissions ---");
+		yield* Effect.log("--- Seeding demo submissions ---");
 		yield* seedFormResponsesForForm(
 			formIds.preTestFormId,
-			WHITELIST_FLOW_PRETEST_SCORES,
+			DEMO_PRETEST_SCORES,
 			userIdsByEmail,
 			preTestDate,
 		);
@@ -241,13 +340,13 @@ export function seedSubmissions(
 		);
 		yield* seedFormResponsesForForm(
 			formIds.postTestFormId,
-			WHITELIST_FLOW_POSTTEST_SCORES,
+			DEMO_POSTTEST_SCORES,
 			userIdsByEmail,
 			postTestDate,
 		);
 		yield* seedFormResponsesForForm(
 			formIds.delayedTestFormId,
-			WHITELIST_FLOW_DELAYEDTEST_SCORES,
+			DEMO_DELAYEDTEST_SCORES,
 			userIdsByEmail,
 			delayedTestDate,
 		);

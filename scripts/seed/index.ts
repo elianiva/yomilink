@@ -10,7 +10,6 @@ import {
 	seedGoalMaps,
 	seedSubmissions,
 	seedUsers,
-	seedWhitelistAccounts,
 	seedWhitelistEntries,
 } from "./seeders/index.js";
 
@@ -21,14 +20,11 @@ const program = Effect.gen(function* () {
 	yield* seedCohorts();
 	yield* seedWhitelistEntries();
 
-	const whitelistAccounts = yield* seedWhitelistAccounts();
-	const allUserIdsByEmail = { ...userIdsByEmail, ...whitelistAccounts.userIdsByEmail };
-
 	const { goalMapIdsByTitle, goalMapDataByTitle } = yield* seedGoalMaps(teacherId);
 	const { preTestFormId, postTestFormId, delayedTestFormId } = yield* seedForms(teacherId);
 
 	const demoData = yield* seedDemoData(
-		allUserIdsByEmail,
+		userIdsByEmail,
 		teacherId,
 		goalMapIdsByTitle,
 		goalMapDataByTitle,
@@ -36,12 +32,12 @@ const program = Effect.gen(function* () {
 	);
 
 	if (!demoData) {
-		yield* Effect.log("Failed to create demo data - Japan map goal map not found");
+		yield* Effect.log("Failed to create demo data - わたしのうち goal map not found");
 		return;
 	}
 
 	yield* seedSubmissions(
-		allUserIdsByEmail,
+		userIdsByEmail,
 		demoData.demoAssignmentId,
 		demoData.dailyLifeGoalMapId,
 		demoData.demoKitId,
@@ -54,19 +50,17 @@ const program = Effect.gen(function* () {
 			"Demo credentials:\n" +
 			"  Admin: admin@demo.local / admin123\n" +
 			"  Teacher: teacher@demo.local / teacher123\n" +
-			"  Whitelist: 20 reserved student IDs\n" +
 			"Created:\n" +
-			"  - Cohort: Demo Class 2025 (" +
-			demoData.demoCohortId.slice(0, 8) +
-			"...)\n" +
-			"  - Kit: Japan Islands Tree Kit (" +
+			"  - Cohorts: 2A Business Administration, 2B Business Administration\n" +
+			"  - Kit: わたしのうち Kit (" +
 			demoData.demoKitId.slice(0, 8) +
 			"...)\n" +
-			"  - Assignment: Japan Islands Tree Demo (" +
+			"  - Assignment: わたしのうち Demo Assignment (" +
 			demoData.demoAssignmentId.slice(0, 8) +
 			"...)\n" +
 			"  - Forms: pre-test, post-test, delayed-test\n" +
-			"  - Submissions: 5 whitelist accounts\n",
+			"  - Submissions: 5 demo student accounts\n" +
+			"  - Whitelist: 47 reserved student IDs\n",
 	);
 }).pipe(Effect.provide(Layer.mergeAll(AppLayer, Auth.Default, Logger.pretty)));
 
