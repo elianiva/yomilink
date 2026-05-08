@@ -47,7 +47,7 @@ function buildReadingMaterialSections(
 	totalQuestions: number,
 ): ReadonlyArray<ReadingMaterialSection> {
 	const readingMaterialContent =
-		GOAL_MAP_TO_MATERIAL["Japan: Main Islands and Cities"]?.content.trim() ?? "";
+		GOAL_MAP_TO_MATERIAL["わたしのうち"]?.content.trim() ?? "";
 	const content =
 		readingMaterialContent.length > 0
 			? readingMaterialContent
@@ -55,8 +55,8 @@ function buildReadingMaterialSections(
 
 	return [
 		{
-			id: "seed-reading-japan-main-islands",
-			title: "Japan: Main Islands and Cities",
+			id: "seed-reading-watashi-no-uchi",
+			title: "わたしのうち",
 			startQuestion: 1,
 			endQuestion: Math.max(1, totalQuestions),
 			content,
@@ -225,7 +225,7 @@ export function seedForms(teacherId: string) {
 			READING_COMPREHENSION_QUESTIONS.length,
 		);
 		const preTestDescription =
-			"Pre-test to measure baseline reading comprehension for Japan's three main islands and their major cities. 20 MCQ items based on Bloom's Taxonomy. The same questions are reused for the post-test and delayed-test.";
+			"Pre-test to measure baseline reading comprehension for the わたしのうち passage. 20 MCQ items based on Bloom's Taxonomy. The same questions are reused for the post-test and delayed-test.";
 		const existingPreTestForm = yield* db
 			.select()
 			.from(forms)
@@ -268,7 +268,7 @@ export function seedForms(teacherId: string) {
 			sourceFormId: preTestFormId,
 			title: "Reading Comprehension Post-Test",
 			description:
-				"Post-test to measure immediate learning outcomes after the reading session. Same reading passage and same questions as the pre-test.",
+				"Post-test to measure immediate learning outcomes after the reading session. Same reading passage (わたしのうち) and same questions as the pre-test.",
 			type: "post_test",
 			audience: "all",
 			readingMaterialSections: readingComprehensionReadingMaterialSections,
@@ -279,7 +279,7 @@ export function seedForms(teacherId: string) {
 			sourceFormId: preTestFormId,
 			title: "Reading Comprehension Delayed Test",
 			description:
-				"Delayed test to measure retention after one week. Same reading passage and same questions as the pre-test.",
+				"Delayed test to measure retention after one week. Same reading passage (わたしのうち) and same questions as the pre-test.",
 			type: "delayed_test",
 			audience: "all",
 			readingMaterialSections: readingComprehensionReadingMaterialSections,

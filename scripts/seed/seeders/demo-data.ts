@@ -1,4 +1,4 @@
-import { eq } from "drizzle-orm";
+import { and, eq } from "drizzle-orm";
 import { Effect } from "effect";
 
 import { randomString } from "@/lib/utils";
@@ -8,9 +8,6 @@ import { cohortMembers, cohorts } from "@/server/db/schema/auth-schema";
 
 import { GOAL_MAP_TO_MATERIAL } from "../data/materials.js";
 import { DEMO_STUDENTS } from "../data/users.js";
-import { WHITELIST_FLOW_ACCOUNTS } from "../data/whitelist-flow.js";
-
-const COHORT_STUDENTS = [...DEMO_STUDENTS, ...WHITELIST_FLOW_ACCOUNTS];
 
 export function seedDemoData(
 	userIdsByEmail: Record<string, string>,
@@ -31,32 +28,34 @@ export function seedDemoData(
 
 		yield* Effect.log("--- Creating Demo Data ---");
 
-		const demoCohortName = "Demo Class 2025";
-		const existingCohort = yield* db
-			.select()
-			.from(cohorts)
-			.where(eq(cohorts.name, demoCohortName))
-			.limit(1);
+		const cohortNames = ["2A Business Administration", "2B Business Administration"];
+		const cohortIds: string[] = [];
 
-		let demoCohortId: string;
-		if (existingCohort[0]) {
-			demoCohortId = existingCohort[0].id;
-			yield* db
-				.update(cohorts)
-				.set({ description: "Single demo class for the simplified seed" })
-				.where(eq(cohorts.id, demoCohortId));
-			yield* Effect.log("  Cohort " + demoCohortName + " already exists");
-		} else {
-			demoCohortId = randomString();
-			yield* db.insert(cohorts).values({
-				id: demoCohortId,
-				name: demoCohortName,
-				description: "Single demo class for the simplified seed",
-			});
-			yield* Effect.log("  Created cohort: " + demoCohortName);
+		for (const cohortName of cohortNames) {
+			const existingCohort = yield* db
+				.select()
+				.from(cohorts)
+				.where(eq(cohorts.name, cohortName))
+				.limit(1);
+
+			if (existingCohort[0]) {
+				cohortIds.push(existingCohort[0].id);
+				yield* Effect.log("  Cohort " + cohortName + " already exists");
+			} else {
+				const cohortId = randomString();
+				cohortIds.push(cohortId);
+				yield* db.insert(cohorts).values({
+					id: cohortId,
+					name: cohortName,
+					description: cohortName + " cohort",
+				});
+				yield* Effect.log("  Created cohort: " + cohortName);
+			}
 		}
 
-		yield* Effect.log("Adding demo students to cohort...");
+		const demoCohortId = cohortIds[0];
+
+		yield* Effect.log("Adding demo students to first cohort...");
 
 		const existingMembers = yield* db
 			.select()
@@ -66,7 +65,7 @@ export function seedDemoData(
 		const existingMemberIds = new Set(existingMembers.map((m) => m.userId));
 
 		yield* Effect.all(
-			COHORT_STUDENTS.map((student) =>
+			DEMO_STUDENTS.map((student) =>
 				Effect.gen(function* () {
 					const studentId = userIdsByEmail[student.email];
 					if (!studentId) {
@@ -91,24 +90,24 @@ export function seedDemoData(
 			{ concurrency: 10 },
 		);
 
-		yield* Effect.log("Creating kit for Japan: Main Islands and Cities...");
-		const dailyLifeGoalMapId = goalMapIdsByTitle["Japan: Main Islands and Cities"];
-		const dailyLifeData = goalMapDataByTitle["Japan: Main Islands and Cities"];
+		yield* Effect.log("Creating kit for わたしのうち...");
+		const goalMapId = goalMapIdsByTitle["わたしのうち"];
+		const goalMapData = goalMapDataByTitle["わたしのうち"];
 
-		if (!dailyLifeGoalMapId || !dailyLifeData) {
-			yield* Effect.log("Japan map goal map not found!");
+		if (!goalMapId || !goalMapData) {
+			yield* Effect.log("わたしのうち goal map not found!");
 			return null;
 		}
 
-		const dailyLifeGoalMap = yield* db
+		const goalMap = yield* db
 			.select()
 			.from(goalMaps)
-			.where(eq(goalMaps.id, dailyLifeGoalMapId))
+			.where(eq(goalMaps.id, goalMapId))
 			.limit(1);
 
-		const dailyLifeTextId = dailyLifeGoalMap[0]?.textId || null;
+		const textId = goalMap[0]?.textId || null;
 
-		const kitName = "Japan Islands Tree Kit";
+		const kitName = "わたしのうち Kit";
 		const existingKit = yield* db.select().from(kits).where(eq(kits.name, kitName)).limit(1);
 
 		let demoKitId: string;
@@ -121,10 +120,10 @@ export function seedDemoData(
 					name: kitName,
 					layout: "preset",
 					enabled: true,
-					goalMapId: dailyLifeGoalMapId,
+					goalMapId,
 					teacherId,
-					textId: dailyLifeTextId,
-					nodes: JSON.stringify(dailyLifeData.nodes),
+					textId,
+					nodes: JSON.stringify(goalMapData.nodes),
 					edges: "[]",
 				})
 				.where(eq(kits.id, demoKitId));
@@ -137,19 +136,19 @@ export function seedDemoData(
 				name: kitName,
 				layout: "preset",
 				enabled: true,
-				goalMapId: dailyLifeGoalMapId,
+				goalMapId,
 				teacherId,
-				textId: dailyLifeTextId,
-				nodes: JSON.stringify(dailyLifeData.nodes),
+				textId,
+				nodes: JSON.stringify(goalMapData.nodes),
 				edges: "[]",
 			});
 			yield* Effect.log("  Created kit: " + kitName);
 		}
 
 		yield* Effect.log("Creating assignment...");
-		const assignmentTitle = "Japan Islands Tree Demo";
+		const assignmentTitle = "わたしのうち Demo Assignment";
 		const readingMaterialContent =
-			GOAL_MAP_TO_MATERIAL["Japan: Main Islands and Cities"]?.content || "";
+			GOAL_MAP_TO_MATERIAL["わたしのうち"]?.content || "";
 		const existingAssignment = yield* db
 			.select()
 			.from(assignments)
@@ -168,11 +167,11 @@ export function seedDemoData(
 			yield* db
 				.update(assignments)
 				.set({
-					goalMapId: dailyLifeGoalMapId,
+					goalMapId,
 					kitId: demoKitId,
 					title: assignmentTitle,
 					description:
-						"Simple demo assignment for Japan's three main islands and their major cities.",
+						"Demo assignment for the わたしのうち reading passage about a quiet neighborhood.",
 					readingMaterial: readingMaterialContent,
 					timeLimitMinutes: 20,
 					startDate,
@@ -189,11 +188,11 @@ export function seedDemoData(
 			demoAssignmentId = randomString();
 			yield* db.insert(assignments).values({
 				id: demoAssignmentId,
-				goalMapId: dailyLifeGoalMapId,
+				goalMapId,
 				kitId: demoKitId,
 				title: assignmentTitle,
 				description:
-					"Simple demo assignment for Japan's three main islands and their major cities.",
+					"Demo assignment for the わたしのうち reading passage about a quiet neighborhood.",
 				readingMaterial: readingMaterialContent,
 				timeLimitMinutes: 20,
 				startDate,
@@ -207,35 +206,38 @@ export function seedDemoData(
 			yield* Effect.log("  Created assignment: " + assignmentTitle);
 		}
 
-		yield* Effect.log("Linking assignment to cohort...");
-		const existingTarget = yield* db
-			.select()
-			.from(assignmentTargets)
-			.where(eq(assignmentTargets.assignmentId, demoAssignmentId))
-			.limit(1);
+		yield* Effect.log("Linking assignment to cohorts...");
+		for (const cohortId of cohortIds) {
+			const existingTarget = yield* db
+				.select()
+				.from(assignmentTargets)
+				.where(
+					and(
+						eq(assignmentTargets.assignmentId, demoAssignmentId),
+						eq(assignmentTargets.cohortId, cohortId),
+					),
+				)
+				.limit(1);
 
-		if (existingTarget[0]) {
-			yield* db
-				.update(assignmentTargets)
-				.set({ cohortId: demoCohortId, userId: null })
-				.where(eq(assignmentTargets.id, existingTarget[0].id));
-			yield* Effect.log("  Assignment already linked to cohort");
-		} else {
-			yield* db.insert(assignmentTargets).values({
-				id: randomString(),
-				assignmentId: demoAssignmentId,
-				cohortId: demoCohortId,
-				userId: null,
-			});
-			yield* Effect.log("  Linked assignment to cohort");
+			if (existingTarget[0]) {
+				yield* Effect.log("  Assignment already linked to cohort " + cohortId);
+			} else {
+				yield* db.insert(assignmentTargets).values({
+					id: randomString(),
+					assignmentId: demoAssignmentId,
+					cohortId,
+					userId: null,
+				});
+				yield* Effect.log("  Linked assignment to cohort " + cohortId);
+			}
 		}
 
 		return {
 			demoCohortId,
 			demoKitId,
 			demoAssignmentId,
-			dailyLifeGoalMapId,
-			dailyLifeData,
+			dailyLifeGoalMapId: goalMapId,
+			dailyLifeData: goalMapData,
 		};
 	});
 }
