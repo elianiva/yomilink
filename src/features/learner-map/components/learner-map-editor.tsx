@@ -41,7 +41,6 @@ import { arrangeNodesByType } from "@/features/learner-map/lib/grid-layout";
 import { useGraphChangeHandlers } from "@/hooks/use-graph-change-handlers";
 import { useHistory } from "@/hooks/use-history";
 import { useRpcMutation, useRpcQuery } from "@/hooks/use-rpc-query";
-import { formatDuration } from "@/lib/date-utils";
 import { toast } from "@/lib/error-toast";
 import { areNodesConnected, isValidConnection } from "@/lib/react-flow-types";
 import { cn } from "@/lib/utils";
@@ -69,7 +68,6 @@ export function LearnerMapEditor() {
 
 	// Local state
 	const [submitDialogOpen, setSubmitDialogOpen] = useState(false);
-	const [timeRemaining, setTimeRemaining] = useState<number | null>(null);
 
 	const isSubmitted = status === "submitted";
 
@@ -103,12 +101,8 @@ export function LearnerMapEditor() {
 	useEffect(() => {
 		if (assignmentData) {
 			setAssignment(assignmentData.assignment);
-
-			if (assignmentData.assignment.timeLimitMinutes && status === "not_started") {
-				setTimeRemaining(assignmentData.assignment.timeLimitMinutes * 60);
-			}
 		}
-	}, [assignmentData, setAssignment, status]);
+	}, [assignmentData, setAssignment]);
 
 	useEffect(() => {
 		if (!assignmentData) return;
@@ -166,17 +160,6 @@ export function LearnerMapEditor() {
 		saveMutation,
 		setLastSavedSnapshot,
 	]);
-
-	// Timer countdown
-	useEffect(() => {
-		if (timeRemaining === null || timeRemaining <= 0 || isSubmitted) return;
-
-		const timer = setInterval(() => {
-			setTimeRemaining((prev) => (prev !== null ? prev - 1 : null));
-		}, 1000);
-
-		return () => clearInterval(timer);
-	}, [timeRemaining, isSubmitted]);
 
 	const onNodeClick: NodeMouseHandler = useCallback(
 		(_event, node) => {
@@ -353,16 +336,6 @@ export function LearnerMapEditor() {
 					<p className="text-xs text-muted-foreground mt-1">Attempt {attempt}</p>
 				)}
 			</div>
-			{timeRemaining !== null && !isSubmitted && (
-				<div
-					className={cn(
-						"absolute top-4 left-1/2 -translate-x-1/2 z-10 bg-background/80 backdrop-blur-sm border rounded-lg px-4 py-2 font-mono font-medium",
-						timeRemaining < 60 && "text-red-600 border-red-200 animate-pulse",
-					)}
-				>
-					⏱ {formatDuration(timeRemaining)}
-				</div>
-			)}
 			{!isSubmitted && (
 				<div className="absolute top-4 right-4 z-10 bg-background/80 backdrop-blur-sm border rounded-lg px-4 py-2 w-48">
 					<div className="flex items-center justify-between text-xs mb-1">
