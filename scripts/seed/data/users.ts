@@ -26,15 +26,27 @@ export type SeedUser = Schema.Schema.Type<typeof SeedUserSchema>;
 
 export const DEFAULT_USERS: readonly SeedUser[] = [
 	{
-		email: "admin@demo.local",
+		email: "admin@kitbuild.mail",
 		password: "admin123",
 		name: "Admin",
 		roles: ["admin"],
 	},
 	{
-		email: "teacher@demo.local",
-		password: "teacher123",
-		name: "Teacher One",
+		email: "banni@kitbuild.mail",
+		password: "banni12345",
+		name: "Banni",
+		roles: ["teacher"],
+	},
+	{
+		email: "helmy@kitbuild.mail",
+		password: "helmy12345",
+		name: "Helmy",
+		roles: ["teacher"],
+	},
+	{
+		email: "dicha@kitbuild.mail",
+		password: "dicha12345",
+		name: "Dicha",
 		roles: ["teacher"],
 	},
 ];
@@ -54,8 +66,8 @@ export interface DemoStudent {
 
 export const DEMO_STUDENTS: DemoStudent[] = [
 	{
-		email: "tanaka@demo.local",
-		name: "Tanaka Yuki",
+		email: "tanaka@kitbuild.mail",
+		name: "Yuki",
 		studentId: "STD-001",
 		age: 20,
 		jlptLevel: "N5",
@@ -66,8 +78,8 @@ export const DEMO_STUDENTS: DemoStudent[] = [
 		studyGroup: "experiment",
 	},
 	{
-		email: "suzuki@demo.local",
-		name: "Suzuki Hana",
+		email: "suzuki@kitbuild.mail",
+		name: "Hana",
 		studentId: "STD-002",
 		age: 19,
 		jlptLevel: "N5",
@@ -78,8 +90,8 @@ export const DEMO_STUDENTS: DemoStudent[] = [
 		studyGroup: "experiment",
 	},
 	{
-		email: "yamamoto@demo.local",
-		name: "Yamamoto Kenji",
+		email: "yamamoto@kitbuild.mail",
+		name: "Kenji",
 		studentId: "STD-003",
 		age: 21,
 		jlptLevel: "N5",
@@ -90,8 +102,8 @@ export const DEMO_STUDENTS: DemoStudent[] = [
 		studyGroup: "experiment",
 	},
 	{
-		email: "watanabe@demo.local",
-		name: "Watanabe Mei",
+		email: "watanabe@kitbuild.mail",
+		name: "Mei",
 		studentId: "STD-004",
 		age: 20,
 		jlptLevel: "N5",
@@ -102,8 +114,8 @@ export const DEMO_STUDENTS: DemoStudent[] = [
 		studyGroup: "experiment",
 	},
 	{
-		email: "takahashi@demo.local",
-		name: "Takahashi Ryo",
+		email: "takahashi@kitbuild.mail",
+		name: "Ryo",
 		studentId: "STD-005",
 		age: 19,
 		jlptLevel: "N5",

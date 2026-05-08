@@ -8,7 +8,7 @@ export interface LearnerMapConfig {
 
 export const LEARNER_MAP_CONFIGS: LearnerMapConfig[] = [
 	{
-		studentEmail: "tanaka@demo.local",
+		studentEmail: "tanaka@kitbuild.mail",
 		attempt: 1,
 		correctEdgeIds: [
 			"e1",
@@ -30,7 +30,7 @@ export const LEARNER_MAP_CONFIGS: LearnerMapConfig[] = [
 		expectedScore: 1.0,
 	},
 	{
-		studentEmail: "suzuki@demo.local",
+		studentEmail: "suzuki@kitbuild.mail",
 		attempt: 1,
 		correctEdgeIds: [
 			"e1",
@@ -51,28 +51,28 @@ export const LEARNER_MAP_CONFIGS: LearnerMapConfig[] = [
 		expectedScore: 0.93,
 	},
 	{
-		studentEmail: "yamamoto@demo.local",
+		studentEmail: "yamamoto@kitbuild.mail",
 		attempt: 1,
 		correctEdgeIds: ["e1", "e2", "e3", "e4", "e5", "e6", "e7", "e8", "e9", "e10", "e11"],
 		excessiveEdges: [],
 		expectedScore: 0.79,
 	},
 	{
-		studentEmail: "watanabe@demo.local",
+		studentEmail: "watanabe@kitbuild.mail",
 		attempt: 1,
 		correctEdgeIds: ["e1", "e2", "e3", "e4", "e5", "e6", "e7", "e8", "e9", "e10"],
 		excessiveEdges: [{ source: "uchi", target: "suupaa" }],
 		expectedScore: 0.71,
 	},
 	{
-		studentEmail: "takahashi@demo.local",
+		studentEmail: "takahashi@kitbuild.mail",
 		attempt: 1,
 		correctEdgeIds: ["e1", "e2", "e3", "e4", "e5", "e6", "e7", "e8"],
 		excessiveEdges: [{ source: "yuubinkyoku", target: "hanaya" }],
 		expectedScore: 0.57,
 	},
 	{
-		studentEmail: "takahashi@demo.local",
+		studentEmail: "takahashi@kitbuild.mail",
 		attempt: 2,
 		correctEdgeIds: ["e1", "e2", "e3", "e4", "e5", "e6", "e7", "e8", "e9", "e10", "e11", "e12"],
 		excessiveEdges: [],

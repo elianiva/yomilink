@@ -42,32 +42,32 @@ interface LearnerMapConfig {
 }
 
 const DEMO_PRETEST_SCORES: ScoresByEmail = {
-	"tanaka@demo.local": [1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1],
-	"suzuki@demo.local": [1, 1, 1, 0, 1, 1, 1, 1, 1, 1, 0, 1, 1, 1, 1, 0, 1, 0, 1, 1],
-	"yamamoto@demo.local": [1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1],
-	"watanabe@demo.local": [1, 1, 0, 1, 1, 1, 0, 1, 1, 0, 1, 1, 0, 1, 1, 0, 1, 0, 1, 0],
-	"takahashi@demo.local": [1, 0, 1, 0, 1, 1, 0, 1, 0, 1, 0, 1, 1, 0, 0, 1, 0, 1, 0, 1],
+	"tanaka@kitbuild.mail": [1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1],
+	"suzuki@kitbuild.mail": [1, 1, 1, 0, 1, 1, 1, 1, 1, 1, 0, 1, 1, 1, 1, 0, 1, 0, 1, 1],
+	"yamamoto@kitbuild.mail": [1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1],
+	"watanabe@kitbuild.mail": [1, 1, 0, 1, 1, 1, 0, 1, 1, 0, 1, 1, 0, 1, 1, 0, 1, 0, 1, 0],
+	"takahashi@kitbuild.mail": [1, 0, 1, 0, 1, 1, 0, 1, 0, 1, 0, 1, 1, 0, 0, 1, 0, 1, 0, 1],
 };
 
 const DEMO_POSTTEST_SCORES: ScoresByEmail = {
-	"tanaka@demo.local": [1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1],
-	"suzuki@demo.local": [1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 0, 1, 1, 1, 1],
-	"yamamoto@demo.local": [1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1],
-	"watanabe@demo.local": [1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 0, 1, 1, 1, 1, 1, 1, 1],
-	"takahashi@demo.local": [1, 1, 1, 1, 1, 1, 1, 0, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 0],
+	"tanaka@kitbuild.mail": [1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1],
+	"suzuki@kitbuild.mail": [1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 0, 1, 1, 1, 1],
+	"yamamoto@kitbuild.mail": [1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1],
+	"watanabe@kitbuild.mail": [1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 0, 1, 1, 1, 1, 1, 1, 1],
+	"takahashi@kitbuild.mail": [1, 1, 1, 1, 1, 1, 1, 0, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 0],
 };
 
 const DEMO_DELAYEDTEST_SCORES: ScoresByEmail = {
-	"tanaka@demo.local": [1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 0],
-	"suzuki@demo.local": [1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 0, 1, 1, 1, 1, 1, 1, 1, 1],
-	"yamamoto@demo.local": [1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1],
-	"watanabe@demo.local": [1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 0, 1, 1, 1, 1, 1, 1, 1, 1, 0],
-	"takahashi@demo.local": [1, 1, 1, 1, 0, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 0, 1, 1],
+	"tanaka@kitbuild.mail": [1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 0],
+	"suzuki@kitbuild.mail": [1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 0, 1, 1, 1, 1, 1, 1, 1, 1],
+	"yamamoto@kitbuild.mail": [1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1],
+	"watanabe@kitbuild.mail": [1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 0, 1, 1, 1, 1, 1, 1, 1, 1, 0],
+	"takahashi@kitbuild.mail": [1, 1, 1, 1, 0, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 0, 1, 1],
 };
 
 const DEMO_LEARNER_MAP_CONFIGS: LearnerMapConfig[] = [
 	{
-		studentEmail: "tanaka@demo.local",
+		studentEmail: "tanaka@kitbuild.mail",
 		attempt: 1,
 		correctEdgeIds: [
 			"e1",
@@ -89,7 +89,7 @@ const DEMO_LEARNER_MAP_CONFIGS: LearnerMapConfig[] = [
 		expectedScore: 1.0,
 	},
 	{
-		studentEmail: "suzuki@demo.local",
+		studentEmail: "suzuki@kitbuild.mail",
 		attempt: 1,
 		correctEdgeIds: [
 			"e1",
@@ -110,21 +110,21 @@ const DEMO_LEARNER_MAP_CONFIGS: LearnerMapConfig[] = [
 		expectedScore: 0.93,
 	},
 	{
-		studentEmail: "yamamoto@demo.local",
+		studentEmail: "yamamoto@kitbuild.mail",
 		attempt: 1,
 		correctEdgeIds: ["e1", "e2", "e3", "e4", "e5", "e6", "e7", "e8", "e9", "e10", "e11"],
 		excessiveEdges: [{ source: "uchi", target: "suupaa" }],
 		expectedScore: 0.79,
 	},
 	{
-		studentEmail: "watanabe@demo.local",
+		studentEmail: "watanabe@kitbuild.mail",
 		attempt: 1,
 		correctEdgeIds: ["e1", "e2", "e3", "e4", "e5", "e6", "e7", "e8", "e9", "e10"],
 		excessiveEdges: [{ source: "kouen", target: "yuubinkyoku" }],
 		expectedScore: 0.71,
 	},
 	{
-		studentEmail: "takahashi@demo.local",
+		studentEmail: "takahashi@kitbuild.mail",
 		attempt: 1,
 		correctEdgeIds: ["e1", "e2", "e3", "e4", "e5", "e6", "e7", "e8"],
 		excessiveEdges: [{ source: "yuubinkyoku", target: "hanaya" }],

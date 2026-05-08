@@ -38,8 +38,8 @@ test.describe("Login - Basic Flows", () => {
 
 	test("should login as teacher with email and redirect to dashboard", async ({ page }) => {
 		await page.goto("/login");
-		await page.locator("#studentId").fill("teacher@demo.local");
-		await page.locator("#password").fill("teacher123");
+		await page.locator("#studentId").fill("banni@kitbuild.mail");
+		await page.locator("#password").fill("banni12345");
 		await page.locator('button[type="submit"]').click();
 
 		await expect(page).toHaveURL("/dashboard");

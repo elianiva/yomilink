@@ -51,7 +51,7 @@ setup("seed database", async () => {
 setup("authenticate student", async ({ page }) => {
 	await signInAndSaveState(
 		page,
-		"tanaka@demo.local",
+		"tanaka@kitbuild.mail",
 		"demo12345",
 		"/dashboard/assignments",
 		authDir + "/student.json",
@@ -62,8 +62,8 @@ setup("authenticate student", async ({ page }) => {
 setup("authenticate teacher", async ({ page }) => {
 	await signInAndSaveState(
 		page,
-		"teacher@demo.local",
-		"teacher123",
+		"banni@kitbuild.mail",
+		"banni12345",
 		"/dashboard",
 		authDir + "/teacher.json",
 	);
