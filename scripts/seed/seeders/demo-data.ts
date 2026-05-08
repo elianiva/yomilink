@@ -147,8 +147,7 @@ export function seedDemoData(
 
 		yield* Effect.log("Creating assignment...");
 		const assignmentTitle = "わたしのうち Demo Assignment";
-		const readingMaterialContent =
-			GOAL_MAP_TO_MATERIAL["わたしのうち"]?.content || "";
+		const readingMaterialContent = GOAL_MAP_TO_MATERIAL["わたしのうち"]?.content || "";
 		const existingAssignment = yield* db
 			.select()
 			.from(assignments)

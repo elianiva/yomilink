@@ -148,7 +148,12 @@ export const READING_COMPREHENSION_QUESTIONS: ReadingQuestion[] = [
 	},
 	{
 		questionText: "わたしは図書館で何をしますか？",
-		options: createMcqOptions(3, ["本を借ります", "コーヒーを飲みます", "パンを買います", "花を見ます"]),
+		options: createMcqOptions(3, [
+			"本を借ります",
+			"コーヒーを飲みます",
+			"パンを買います",
+			"花を見ます",
+		]),
 		correctOptionId: generateOptionId(3, 0),
 		bloomLevel: "L1-Remembering",
 		targetInfo: "Recall the activity at the library",
@@ -293,18 +298,14 @@ export const READING_COMPREHENSION_QUESTIONS: ReadingQuestion[] = [
 	},
 	{
 		questionText: "この文章をもとに、地図を作るなら、中心になるのはどれですか？",
-		options: createMcqOptions(18, [
-			"わたしのうち",
-			"公園",
-			"図書館",
-			"スーパー",
-		]),
+		options: createMcqOptions(18, ["わたしのうち", "公園", "図書館", "スーパー"]),
 		correctOptionId: generateOptionId(18, 0),
 		bloomLevel: "L6-Creating",
 		targetInfo: "Create a map centered on the main reference point",
 	},
 	{
-		questionText: "週末に本を読んで、コーヒーを飲みたいときの計画として最も良いのはどれですか？",
+		questionText:
+			"週末に本を読んで、コーヒーを飲みたいときの計画として最も良いのはどれですか？",
 		options: createMcqOptions(19, [
 			"図書館で本を借りて、喫茶店で読む",
 			"スーパーで本を借りて、公園で読む",

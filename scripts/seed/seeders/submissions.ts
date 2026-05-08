@@ -42,57 +42,27 @@ interface LearnerMapConfig {
 }
 
 const DEMO_PRETEST_SCORES: ScoresByEmail = {
-	"tanaka@demo.local": [
-		1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1,
-	],
-	"suzuki@demo.local": [
-		1, 1, 1, 0, 1, 1, 1, 1, 1, 1, 0, 1, 1, 1, 1, 0, 1, 0, 1, 1,
-	],
-	"yamamoto@demo.local": [
-		1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1,
-	],
-	"watanabe@demo.local": [
-		1, 1, 0, 1, 1, 1, 0, 1, 1, 0, 1, 1, 0, 1, 1, 0, 1, 0, 1, 0,
-	],
-	"takahashi@demo.local": [
-		1, 0, 1, 0, 1, 1, 0, 1, 0, 1, 0, 1, 1, 0, 0, 1, 0, 1, 0, 1,
-	],
+	"tanaka@demo.local": [1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1],
+	"suzuki@demo.local": [1, 1, 1, 0, 1, 1, 1, 1, 1, 1, 0, 1, 1, 1, 1, 0, 1, 0, 1, 1],
+	"yamamoto@demo.local": [1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1],
+	"watanabe@demo.local": [1, 1, 0, 1, 1, 1, 0, 1, 1, 0, 1, 1, 0, 1, 1, 0, 1, 0, 1, 0],
+	"takahashi@demo.local": [1, 0, 1, 0, 1, 1, 0, 1, 0, 1, 0, 1, 1, 0, 0, 1, 0, 1, 0, 1],
 };
 
 const DEMO_POSTTEST_SCORES: ScoresByEmail = {
-	"tanaka@demo.local": [
-		1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1,
-	],
-	"suzuki@demo.local": [
-		1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 0, 1, 1, 1, 1,
-	],
-	"yamamoto@demo.local": [
-		1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1,
-	],
-	"watanabe@demo.local": [
-		1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 0, 1, 1, 1, 1, 1, 1, 1,
-	],
-	"takahashi@demo.local": [
-		1, 1, 1, 1, 1, 1, 1, 0, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 0,
-	],
+	"tanaka@demo.local": [1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1],
+	"suzuki@demo.local": [1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 0, 1, 1, 1, 1],
+	"yamamoto@demo.local": [1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1],
+	"watanabe@demo.local": [1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 0, 1, 1, 1, 1, 1, 1, 1],
+	"takahashi@demo.local": [1, 1, 1, 1, 1, 1, 1, 0, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 0],
 };
 
 const DEMO_DELAYEDTEST_SCORES: ScoresByEmail = {
-	"tanaka@demo.local": [
-		1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 0,
-	],
-	"suzuki@demo.local": [
-		1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 0, 1, 1, 1, 1, 1, 1, 1, 1,
-	],
-	"yamamoto@demo.local": [
-		1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1,
-	],
-	"watanabe@demo.local": [
-		1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 0, 1, 1, 1, 1, 1, 1, 1, 1, 0,
-	],
-	"takahashi@demo.local": [
-		1, 1, 1, 1, 0, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 0, 1, 1,
-	],
+	"tanaka@demo.local": [1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 0],
+	"suzuki@demo.local": [1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 0, 1, 1, 1, 1, 1, 1, 1, 1],
+	"yamamoto@demo.local": [1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1],
+	"watanabe@demo.local": [1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 0, 1, 1, 1, 1, 1, 1, 1, 1, 0],
+	"takahashi@demo.local": [1, 1, 1, 1, 0, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 0, 1, 1],
 };
 
 const DEMO_LEARNER_MAP_CONFIGS: LearnerMapConfig[] = [
@@ -100,8 +70,20 @@ const DEMO_LEARNER_MAP_CONFIGS: LearnerMapConfig[] = [
 		studentEmail: "tanaka@demo.local",
 		attempt: 1,
 		correctEdgeIds: [
-			"e1", "e2", "e3", "e4", "e5", "e6",
-			"e7", "e8", "e9", "e10", "e11", "e12", "e13", "e14",
+			"e1",
+			"e2",
+			"e3",
+			"e4",
+			"e5",
+			"e6",
+			"e7",
+			"e8",
+			"e9",
+			"e10",
+			"e11",
+			"e12",
+			"e13",
+			"e14",
 		],
 		excessiveEdges: [],
 		expectedScore: 1.0,
@@ -110,8 +92,19 @@ const DEMO_LEARNER_MAP_CONFIGS: LearnerMapConfig[] = [
 		studentEmail: "suzuki@demo.local",
 		attempt: 1,
 		correctEdgeIds: [
-			"e1", "e2", "e3", "e4", "e5", "e6",
-			"e7", "e8", "e9", "e10", "e11", "e12", "e13",
+			"e1",
+			"e2",
+			"e3",
+			"e4",
+			"e5",
+			"e6",
+			"e7",
+			"e8",
+			"e9",
+			"e10",
+			"e11",
+			"e12",
+			"e13",
 		],
 		excessiveEdges: [],
 		expectedScore: 0.93,

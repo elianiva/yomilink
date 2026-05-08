@@ -46,8 +46,7 @@ function getQuestionOptions(question: SeedQuestion): string {
 function buildReadingMaterialSections(
 	totalQuestions: number,
 ): ReadonlyArray<ReadingMaterialSection> {
-	const readingMaterialContent =
-		GOAL_MAP_TO_MATERIAL["わたしのうち"]?.content.trim() ?? "";
+	const readingMaterialContent = GOAL_MAP_TO_MATERIAL["わたしのうち"]?.content.trim() ?? "";
 	const content =
 		readingMaterialContent.length > 0
 			? readingMaterialContent
