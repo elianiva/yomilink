@@ -13,10 +13,7 @@ interface QuestionRendererProps {
 		questionText: string;
 		type: QuestionType;
 		required: boolean;
-		options:
-			| McqQuestionData["options"]
-			| LikertQuestionData["options"]
-			| TextQuestionData["options"];
+		options: unknown;
 		shuffle?: boolean;
 	};
 	value?: string | number;
@@ -43,15 +40,15 @@ export function QuestionRenderer({
 	};
 
 	switch (question.type) {
-		case "mcq":
+		case "mcq": {
+			const mcqOptions = question.options as McqQuestionData["options"];
 			return (
 				<McqRenderer
 					question={{
 						id: question.id,
 						questionText: question.questionText,
 						type: "mcq",
-						options: question.options as McqQuestionData["options"],
-						shuffle: question.shuffle ?? false,
+						options: mcqOptions,
 						required: question.required,
 					}}
 					value={value as string | undefined}
@@ -59,6 +56,7 @@ export function QuestionRenderer({
 					disabled={disabled}
 				/>
 			);
+		}
 
 		case "likert":
 			return (

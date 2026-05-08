@@ -13,11 +13,7 @@ interface AccountStepProps {
 	onLastFieldSubmit?: () => void;
 }
 
-export function AccountStep({
-	whitelistOptions,
-	isLoading,
-	onLastFieldSubmit,
-}: AccountStepProps) {
+export function AccountStep({ whitelistOptions, isLoading, onLastFieldSubmit }: AccountStepProps) {
 	const form = useSignUpForm();
 	return (
 		<fieldset className="space-y-5">

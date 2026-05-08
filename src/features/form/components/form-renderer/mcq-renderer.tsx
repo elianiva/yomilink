@@ -1,15 +1,14 @@
 import { Check } from "lucide-react";
 import { useMemo } from "react";
 
-import type { McqOptions } from "@/features/form/lib/form-service.shared";
+import type { StudentMcqOptions } from "@/features/form/lib/form-service.shared";
 import { cn } from "@/lib/utils";
 
 export interface McqQuestionData {
 	id: string;
 	questionText: string;
 	type: "mcq";
-	options: McqOptions["options"];
-	shuffle: boolean;
+	options: StudentMcqOptions;
 	required: boolean;
 }
 
@@ -31,11 +30,11 @@ function shuffleArray<T>(array: readonly T[]): T[] {
 
 export function McqRenderer({ question, value, onChange, disabled = false }: McqRendererProps) {
 	const displayOptions = useMemo(() => {
-		if (question.shuffle) {
-			return shuffleArray(question.options);
+		if (question.options.shuffle) {
+			return shuffleArray(question.options.options);
 		}
-		return [...question.options];
-	}, [question.options, question.shuffle]);
+		return [...question.options.options];
+	}, [question.options.options, question.options.shuffle]);
 
 	const handleSelect = (optionId: string) => {
 		if (!disabled) {
