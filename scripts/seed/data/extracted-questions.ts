@@ -1,89 +1,3 @@
-const LIKERT_SCALE_5 = {
-	type: "likert" as const,
-	scaleSize: 5,
-	labels: {
-		"1": "Strongly Disagree",
-		"2": "Disagree",
-		"3": "Neutral",
-		"4": "Agree",
-		"5": "Strongly Agree",
-	},
-};
-
-export const TAM_QUESTIONS = [
-	{
-		questionText: "Using Kit-Build improves my reading comprehension skills.",
-		type: "likert" as const,
-		options: LIKERT_SCALE_5,
-	},
-	{
-		questionText:
-			"Kit-Build is helpful for understanding the structure and relationships within a text.",
-		type: "likert" as const,
-		options: LIKERT_SCALE_5,
-	},
-	{
-		questionText:
-			"Using Kit-Build makes it easier to organize information from what I have read.",
-		type: "likert" as const,
-		options: LIKERT_SCALE_5,
-	},
-	{
-		questionText:
-			"I think using Kit-Build is more effective for learning Japanese reading than traditional methods.",
-		type: "likert" as const,
-		options: LIKERT_SCALE_5,
-	},
-	{
-		questionText: "Kit-Build is useful for my Japanese language learning.",
-		type: "likert" as const,
-		options: LIKERT_SCALE_5,
-	},
-	{
-		questionText: "I found Kit-Build easy to use.",
-		type: "likert" as const,
-		options: LIKERT_SCALE_5,
-	},
-	{
-		questionText: "The Kit-Build interface is clear and easy to understand.",
-		type: "likert" as const,
-		options: LIKERT_SCALE_5,
-	},
-	{
-		questionText: "I was able to learn how to use Kit-Build quickly.",
-		type: "likert" as const,
-		options: LIKERT_SCALE_5,
-	},
-	{
-		questionText: "Connecting concepts in Kit-Build is intuitive.",
-		type: "likert" as const,
-		options: LIKERT_SCALE_5,
-	},
-	{
-		questionText: "Using Kit-Build did not require much mental effort.",
-		type: "likert" as const,
-		options: LIKERT_SCALE_5,
-	},
-];
-
-export const FEEDBACK_QUESTIONS = [
-	{
-		questionText: "What was the most helpful part of using Kit-Build?",
-		type: "text" as const,
-		options: [],
-	},
-	{
-		questionText: "What difficulties did you experience while using Kit-Build?",
-		type: "text" as const,
-		options: [],
-	},
-	{
-		questionText: "Do you have any suggestions to improve this application?",
-		type: "text" as const,
-		options: [],
-	},
-];
-
 export type BloomLevel =
 	| "L1-Remembering"
 	| "L2-Understanding"
@@ -119,7 +33,10 @@ function createMcqOptions(
 	}));
 }
 
+// 20 MCQs for "わたしのうち" passage
+// L1×5 | L2×4 | L3×3 | L4×3 | L5×2 | L6×3
 export const READING_COMPREHENSION_QUESTIONS: ReadingQuestion[] = [
+	// === L1 - Remembering (5) ===
 	{
 		questionText: "わたしの新しいうちはどんな所にありますか？",
 		options: createMcqOptions(0, ["静かな所", "にぎやかな所", "大きな所", "古い所"]),
@@ -148,7 +65,12 @@ export const READING_COMPREHENSION_QUESTIONS: ReadingQuestion[] = [
 	},
 	{
 		questionText: "わたしは図書館で何をしますか？",
-		options: createMcqOptions(3, ["本を借ります", "コーヒーを飲みます", "パンを買います", "花を見ます"]),
+		options: createMcqOptions(3, [
+			"本を借ります",
+			"コーヒーを飲みます",
+			"パンを買います",
+			"花を見ます",
+		]),
 		correctOptionId: generateOptionId(3, 0),
 		bloomLevel: "L1-Remembering",
 		targetInfo: "Recall the activity at the library",
@@ -161,6 +83,7 @@ export const READING_COMPREHENSION_QUESTIONS: ReadingQuestion[] = [
 		targetInfo: "Recall the description of the coffee",
 	},
 
+	// === L2 - Understanding (4) ===
 	{
 		questionText: "わたしはいつもどこで本を読みますか？",
 		options: createMcqOptions(5, ["公園で", "図書館で", "うちで", "郵便局で"]),
@@ -200,6 +123,7 @@ export const READING_COMPREHENSION_QUESTIONS: ReadingQuestion[] = [
 		targetInfo: "Understand the supermarket location",
 	},
 
+	// === L3 - Applying (3) ===
 	{
 		questionText: "本を借りたいとき、わたしはまずどこへ行きますか？",
 		options: createMcqOptions(9, ["図書館へ", "喫茶店へ", "公園へ", "スーパーへ"]),
@@ -222,6 +146,7 @@ export const READING_COMPREHENSION_QUESTIONS: ReadingQuestion[] = [
 		targetInfo: "Apply knowledge to buying bread",
 	},
 
+	// === L4 - Analyzing (3) ===
 	{
 		questionText: "公園の前にあるものは全部でいくつですか？",
 		options: createMcqOptions(12, ["2つ", "1つ", "3つ", "4つ"]),
@@ -254,6 +179,7 @@ export const READING_COMPREHENSION_QUESTIONS: ReadingQuestion[] = [
 		targetInfo: "Analyze what is inside the supermarket",
 	},
 
+	// === L5 - Evaluating (2) ===
 	{
 		questionText: "この文章から、わたしの住んでいる所の特徴はどれですか？",
 		options: createMcqOptions(15, [
@@ -279,6 +205,7 @@ export const READING_COMPREHENSION_QUESTIONS: ReadingQuestion[] = [
 		targetInfo: "Evaluate the best description of the lifestyle",
 	},
 
+	// === L6 - Creating (3) ===
 	{
 		questionText: "新しい家を探すとき、この文章を参考にするなら、どれが大切ですか？",
 		options: createMcqOptions(17, [

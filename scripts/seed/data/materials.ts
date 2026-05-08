@@ -69,9 +69,9 @@ for (const material of MATERIALS) {
 
 export const TOPICS = [
 	{
-		title: "Daily Life & Culture",
+		title: "Places & Neighborhood",
 		description:
-			"Single N5 demo reading about Japan's three main islands and their major cities",
-		goalMapTitles: ["Japan: Main Islands and Cities"],
+			"N5 reading about a quiet neighborhood with parks, libraries, and nearby shops",
+		goalMapTitles: ["わたしのうち"],
 	},
 ];

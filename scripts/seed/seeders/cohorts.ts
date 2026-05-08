@@ -6,7 +6,8 @@ import { Database } from "@/server/db/client";
 import { cohorts } from "@/server/db/schema/auth-schema";
 
 export const COHORTS = [
-	{ name: "Demo Class 2025", description: "Single demo class for the simplified seed" },
+	{ name: "2A Business Administration", description: "2A Business Administration cohort" },
+	{ name: "2B Business Administration", description: "2B Business Administration cohort" },
 ];
 
 export function seedCohorts() {
