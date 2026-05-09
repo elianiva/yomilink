@@ -258,13 +258,9 @@ export const getStudentFormById = Effect.fn("getStudentFormById")(function* (
 	});
 });
 
-export const listForms = Effect.fn("listForms")(function* (userId: string) {
+export const listForms = Effect.fn("listForms")(function* () {
 	const db = yield* Database;
-	const formRows = yield* db
-		.select()
-		.from(forms)
-		.where(eq(forms.createdBy, userId))
-		.orderBy(forms.createdAt);
+	const formRows = yield* db.select().from(forms).orderBy(forms.createdAt);
 
 	const formIds = formRows.map((f) => f.id);
 

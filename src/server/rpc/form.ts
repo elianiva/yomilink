@@ -77,9 +77,9 @@ export const getFormByIdRpc = createServerFn()
 
 export const listFormsRpc = createServerFn()
 	.middleware([requireRoleMiddleware("teacher", "admin")])
-	.handler(({ context }) =>
+	.handler(() =>
 		AppRuntime.runPromise(
-			listForms(context.user.id).pipe(
+			listForms().pipe(
 				Effect.map(Rpc.ok),
 				Effect.withSpan("listForms"),
 				Effect.tapError(logRpcError("listForms")),

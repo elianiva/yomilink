@@ -14,9 +14,7 @@ import { cohortMembers, cohorts, user } from "@/server/db/schema/auth-schema";
 
 import { AssignmentNotFoundError } from "./assignment-service.shared";
 
-export const listTeacherAssignments = Effect.fn("listTeacherAssignments")(function* (
-	userId: string,
-) {
+export const listTeacherAssignments = Effect.fn("listTeacherAssignments")(function* () {
 	const db = yield* Database;
 	const rows = yield* db
 		.select({
@@ -39,7 +37,6 @@ export const listTeacherAssignments = Effect.fn("listTeacherAssignments")(functi
 		})
 		.from(assignments)
 		.leftJoin(goalMaps, eq(assignments.goalMapId, goalMaps.id))
-		.where(eq(assignments.createdBy, userId))
 		.orderBy(desc(assignments.createdAt));
 
 	if (rows.length === 0) {

@@ -43,9 +43,9 @@ export const createAssignmentRpc = createServerFn({ method: "POST" })
 
 export const listTeacherAssignmentsRpc = createServerFn()
 	.middleware([requireRoleMiddleware("teacher", "admin")])
-	.handler(({ context }) =>
+	.handler(() =>
 		AppRuntime.runPromise(
-			listTeacherAssignments(context.user.id).pipe(
+			listTeacherAssignments().pipe(
 				Effect.map(Rpc.ok),
 				Effect.withSpan("listTeacherAssignments"),
 				Effect.tapError(logRpcError("listTeacherAssignments")),
