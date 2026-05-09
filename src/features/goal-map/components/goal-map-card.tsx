@@ -15,7 +15,6 @@ import {
 import { Button } from "@/components/ui/button";
 import type { GoalMap } from "@/features/goal-map/lib/goal-map-service.shared";
 import { formatRelativeTime } from "@/lib/date-utils";
-import { safeParseJson } from "@/lib/utils";
 
 interface GoalMapCardProps {
 	goalMap: GoalMap;
@@ -25,28 +24,11 @@ interface GoalMapCardProps {
 	onConfirmDelete: () => void;
 }
 
-/**
- * Parse nodes/edges JSON and return counts
- */
-function parseGoalMapStats(nodes: unknown, edges: unknown) {
-	let nodeCount = 0;
-	let edgeCount = 0;
-
-	try {
-		const parsedNodes = typeof nodes === "string" ? safeParseJson(nodes, []) : nodes;
-		const parsedEdges = typeof edges === "string" ? safeParseJson(edges, []) : edges;
-
-		if (Array.isArray(parsedNodes)) {
-			nodeCount = parsedNodes.length;
-		}
-		if (Array.isArray(parsedEdges)) {
-			edgeCount = parsedEdges.length;
-		}
-	} catch {
-		// Ignore parse errors
-	}
-
-	return { nodeCount, edgeCount };
+function parseGoalMapStats(nodes: readonly unknown[], edges: readonly unknown[]) {
+	return {
+		nodeCount: Array.isArray(nodes) ? nodes.length : 0,
+		edgeCount: Array.isArray(edges) ? edges.length : 0,
+	};
 }
 
 export function GoalMapCard({
