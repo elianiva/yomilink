@@ -224,4 +224,3 @@ export const bulkAssignCohort = Effect.fn("bulkAssignCohort")((input: BulkCohort
 		return { successCount: 0, failedCount: 0 };
 	}),
 );
-

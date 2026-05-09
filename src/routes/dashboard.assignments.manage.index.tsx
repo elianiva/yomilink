@@ -115,7 +115,6 @@ function ManageAssignmentsPage() {
 					viewMode="teacher"
 					onViewDetails={handleViewDetails}
 					onDelete={handleDelete}
-					onClick={handleViewDetails}
 				/>
 			)}
 

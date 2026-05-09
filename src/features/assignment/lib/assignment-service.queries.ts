@@ -113,7 +113,12 @@ export const listTeacherAssignments = Effect.fn("listTeacherAssignments")(functi
 	const formIds = Array.from(
 		new Set(
 			rows.reduce<string[]>((acc, row) => {
-				const ids = [row.preTestFormId, row.postTestFormId, row.delayedPostTestFormId, row.tamFormId];
+				const ids = [
+					row.preTestFormId,
+					row.postTestFormId,
+					row.delayedPostTestFormId,
+					row.tamFormId,
+				];
 				for (const id of ids) {
 					if (id !== null) acc.push(id);
 				}
@@ -394,6 +399,127 @@ export const getAssignmentById = Effect.fn("getAssignmentById")(function* (assig
 
 	const formMap = new Map(formDetails.map((f) => [f.id, f]));
 
+	// Fetch assignment targets (cohorts + direct users)
+	const targets = yield* db
+		.select({
+			cohortId: assignmentTargets.cohortId,
+			userId: assignmentTargets.userId,
+		})
+		.from(assignmentTargets)
+		.where(eq(assignmentTargets.assignmentId, assignmentId));
+
+	const targetCohortIds = targets
+		.map((t) => t.cohortId)
+		.filter((id): id is string => id !== null);
+	const targetUserIds = targets.map((t) => t.userId).filter((id): id is string => id !== null);
+
+	const cohortRows =
+		targetCohortIds.length > 0
+			? yield* db
+					.select({ id: cohorts.id, name: cohorts.name })
+					.from(cohorts)
+					.where(inArray(cohorts.id, targetCohortIds))
+			: [];
+
+	const cohortMemberRows =
+		targetCohortIds.length > 0
+			? yield* db
+					.select({ cohortId: cohortMembers.cohortId, userId: cohortMembers.userId })
+					.from(cohortMembers)
+					.where(inArray(cohortMembers.cohortId, targetCohortIds))
+			: [];
+
+	const directUserRows =
+		targetUserIds.length > 0
+			? yield* db
+					.select({ id: user.id, name: user.name, email: user.email })
+					.from(user)
+					.where(inArray(user.id, targetUserIds))
+			: [];
+
+	// Build assigned user set
+	const assignedUserIds = new Set<string>();
+	const membersByCohort = new Map<string, Set<string>>();
+	for (const member of cohortMemberRows) {
+		const existing = membersByCohort.get(member.cohortId);
+		if (existing) {
+			existing.add(member.userId);
+		} else {
+			membersByCohort.set(member.cohortId, new Set([member.userId]));
+		}
+	}
+
+	const assignedCohorts: Array<{ id: string; name: string; memberCount: number }> = [];
+	for (const target of targets) {
+		if (target.cohortId) {
+			const members = membersByCohort.get(target.cohortId);
+			if (members) {
+				for (const memberId of members) {
+					assignedUserIds.add(memberId);
+				}
+			}
+			const cohort = cohortRows.find((c) => c.id === target.cohortId);
+			if (cohort && !assignedCohorts.some((ac) => ac.id === cohort.id)) {
+				assignedCohorts.push({
+					id: cohort.id,
+					name: cohort.name,
+					memberCount: members?.size ?? 0,
+				});
+			}
+		}
+		if (target.userId) {
+			assignedUserIds.add(target.userId);
+		}
+	}
+
+	const assignedUsers = directUserRows;
+
+	// Fetch learner maps (submissions)
+	const learnerMapRows = yield* db
+		.select({
+			userId: learnerMaps.userId,
+			status: learnerMaps.status,
+			submittedAt: learnerMaps.submittedAt,
+		})
+		.from(learnerMaps)
+		.where(eq(learnerMaps.assignmentId, assignmentId));
+
+	const submittedUserIds = new Set(
+		learnerMapRows
+			.filter((lm) => lm.status === "submitted" && lm.submittedAt !== null)
+			.map((lm) => lm.userId),
+	);
+	const totalStudents = assignedUserIds.size;
+	const submittedStudents = Array.from(assignedUserIds).filter((id) =>
+		submittedUserIds.has(id),
+	).length;
+
+	// Fetch form response counts
+	const formResponseRows =
+		formIds.length > 0
+			? yield* db
+					.select({ formId: formResponses.formId, userId: formResponses.userId })
+					.from(formResponses)
+					.where(inArray(formResponses.formId, formIds))
+			: [];
+
+	const responsesByFormId = new Map<string, Set<string>>();
+	for (const response of formResponseRows) {
+		const existing = responsesByFormId.get(response.formId);
+		if (existing) {
+			existing.add(response.userId);
+		} else {
+			responsesByFormId.set(response.formId, new Set([response.userId]));
+		}
+	}
+
+	const countFormResponses = (formId: string | null) =>
+		formId
+			? Array.from(assignedUserIds).filter((uid) =>
+					(responsesByFormId.get(formId) ?? new Set<string>()).has(uid),
+				).length
+			: null;
+
 	return {
 		...assignment,
 		preTestForm: assignment.preTestFormId
@@ -406,5 +532,18 @@ export const getAssignmentById = Effect.fn("getAssignmentById")(function* (assig
 			? (formMap.get(assignment.delayedPostTestFormId) ?? null)
 			: null,
 		tamForm: assignment.tamFormId ? (formMap.get(assignment.tamFormId) ?? null) : null,
+		totalStudents,
+		submittedStudents,
+		assignedCohorts,
+		assignedUsers,
+		learnerMaps: learnerMapRows.map((lm) => ({
+			userId: lm.userId,
+			status: lm.status,
+			submittedAt: lm.submittedAt?.getTime() ?? null,
+		})),
+		preTestSubmitted: countFormResponses(assignment.preTestFormId),
+		postTestSubmitted: countFormResponses(assignment.postTestFormId),
+		delayedPostTestSubmitted: countFormResponses(assignment.delayedPostTestFormId),
+		tamSubmitted: countFormResponses(assignment.tamFormId),
 	};
 });

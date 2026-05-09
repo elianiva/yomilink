@@ -121,9 +121,7 @@ export function classifyEdges(
 
 	const learnerClassifications: EdgeClassification[] = learnerEdges.map((edge) => ({
 		edge,
-		type: excessiveMap.has(`${edge.source}-${edge.target}`)
-			? "excessive"
-			: "correct",
+		type: excessiveMap.has(`${edge.source}-${edge.target}`) ? "excessive" : "correct",
 	}));
 
 	const missingClassifications: EdgeClassification[] = diagnosis.missing.map((missing) => ({
@@ -140,9 +138,7 @@ export function classifyEdges(
 	return [...learnerClassifications, ...missingClassifications];
 }
 
-export function getEdgeStyleByType(
-	type: "correct" | "missing" | "excessive",
-) {
+export function getEdgeStyleByType(type: "correct" | "missing" | "excessive") {
 	return Match.value(type).pipe(
 		Match.when("correct", () => ({
 			stroke: "#22c55e",

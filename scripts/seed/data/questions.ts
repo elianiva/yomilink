@@ -27,7 +27,8 @@ export const TAM_QUESTIONS = [
 		options: LIKERT_SCALE_5,
 	},
 	{
-		questionText: "Using Kit-Build helps me learn Japanese reading better than traditional methods",
+		questionText:
+			"Using Kit-Build helps me learn Japanese reading better than traditional methods",
 		type: "likert" as const,
 		options: LIKERT_SCALE_5,
 	},

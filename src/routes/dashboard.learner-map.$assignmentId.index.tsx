@@ -40,9 +40,7 @@ function LearnerMapSkeleton() {
 function LearnerMapPage() {
 	const { assignmentId } = useParams({ from: "/dashboard/learner-map/$assignmentId/" });
 
-	const { isLoading } = useRpcQuery(
-		LearnerMapRpc.getAssignmentForStudent({ assignmentId }),
-	);
+	const { isLoading } = useRpcQuery(LearnerMapRpc.getAssignmentForStudent({ assignmentId }));
 
 	if (isLoading) {
 		return (

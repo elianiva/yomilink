@@ -3,7 +3,6 @@ import {
 	ClipboardListIcon,
 	FileTextIcon,
 	MapIcon,
-	MoreVertical,
 	Pencil,
 	PlayIcon,
 	TimerIcon,
@@ -14,12 +13,6 @@ import type * as React from "react";
 
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
-import {
-	DropdownMenu,
-	DropdownMenuContent,
-	DropdownMenuItem,
-	DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu";
 import { cn } from "@/lib/utils";
 
 export interface AssignmentListItem {
@@ -224,8 +217,7 @@ function TeacherCard({
 	onClick?: (a: AssignmentListItem) => void;
 }) {
 	const handleClick = () => {
-		if (onClick) onClick(assignment);
-		else if (onViewDetails) onViewDetails(assignment);
+		onClick?.(assignment);
 	};
 
 	const status = getTeacherStatus(assignment);
@@ -236,11 +228,12 @@ function TeacherCard({
 	return (
 		<Card
 			className={cn(
-				"group relative overflow-hidden border border-stone-200 shadow-none transition-all duration-200 py-2 interactive",
-				"hover:border-primary/40 hover:shadow-sm hover:bg-stone-50/50",
+				"group relative overflow-hidden border border-stone-200 shadow-none transition-all duration-200 py-0",
+				onClick &&
+					"interactive hover:border-primary/40 hover:shadow-sm hover:bg-stone-50/50",
 				"bg-white",
 			)}
-			onClick={handleClick}
+			onClick={onClick ? handleClick : undefined}
 		>
 			<CardContent className="p-3">
 				<div className="flex items-start gap-3">
@@ -337,43 +330,33 @@ function TeacherCard({
 					</div>
 
 					{(onViewDetails || onDelete) && (
-						<div className="flex items-center gap-1">
-							<DropdownMenu>
-								<DropdownMenuTrigger asChild onClick={(e) => e.stopPropagation()}>
-									<Button
-										variant="ghost"
-										size="icon"
-										className="size-7 shrink-0 opacity-0 transition-opacity group-hover:opacity-100 text-stone-400 hover:text-stone-600"
-									>
-										<MoreVertical className="size-4" />
-									</Button>
-								</DropdownMenuTrigger>
-								<DropdownMenuContent align="end" className="border-stone-200">
-									{onViewDetails && (
-										<DropdownMenuItem
-											onClick={(e) => {
-												e.stopPropagation();
-												onViewDetails(assignment);
-											}}
-										>
-											<Pencil className="mr-2 size-4" />
-											View Details
-										</DropdownMenuItem>
-									)}
-									{onDelete && (
-										<DropdownMenuItem
-											onClick={(e) => {
-												e.stopPropagation();
-												onDelete(assignment.id);
-											}}
-											className="text-stone-700"
-										>
-											<Trash2 className="mr-2 size-4" />
-											Delete
-										</DropdownMenuItem>
-									)}
-								</DropdownMenuContent>
-							</DropdownMenu>
+						<div className="flex items-center gap-1.5 shrink-0">
+							{onViewDetails && (
+								<Button
+									variant="outline"
+									size="sm"
+									onClick={(e) => {
+										e.stopPropagation();
+										onViewDetails(assignment);
+									}}
+								>
+									<Pencil className="size-3.5 mr-1" />
+									Edit
+								</Button>
+							)}
+							{onDelete && (
+								<Button
+									variant="destructive"
+									size="sm"
+									onClick={(e) => {
+										e.stopPropagation();
+										onDelete(assignment.id);
+									}}
+								>
+									<Trash2 className="size-3.5 mr-1" />
+									Delete
+								</Button>
+							)}
 						</div>
 					)}
 				</div>

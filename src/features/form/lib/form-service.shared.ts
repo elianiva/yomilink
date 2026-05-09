@@ -223,8 +223,7 @@ export const normalizeAndValidateReadingMaterialSections = Effect.fn(
 
 		if (!section.content.trim()) {
 			return yield* new InvalidReadingMaterialSectionsError({
-				reason:
-					"Reading material range " + String(i + 1) + " has empty content",
+				reason: "Reading material range " + String(i + 1) + " has empty content",
 			});
 		}
 

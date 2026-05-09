@@ -17,9 +17,7 @@ const SqlRemote = Layer.unwrapEffect(
 const SqlLocal = Layer.unwrapEffect(
 	Effect.gen(function* () {
 		const databaseUrl = yield* Config.string("TURSO_DATABASE_URL");
-		const dbPath = databaseUrl.startsWith("file:")
-			? databaseUrl.slice(5)
-			: databaseUrl;
+		const dbPath = databaseUrl.startsWith("file:") ? databaseUrl.slice(5) : databaseUrl;
 		return LibsqlClient.layer({ url: dbPath });
 	}).pipe(Effect.withConfigProvider(ConfigProvider.fromEnv())),
 );

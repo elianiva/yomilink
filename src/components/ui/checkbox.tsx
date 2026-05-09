@@ -26,7 +26,7 @@ function Checkbox({
 				data-slot="checkbox-indicator"
 				className="grid place-content-center text-current transition-none"
 			>
-			{indeterminate ? (
+				{indeterminate ? (
 					<MinusIcon className="size-3.5" />
 				) : (
 					<CheckIcon className="size-3.5" />

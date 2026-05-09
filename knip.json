@@ -7,18 +7,12 @@
 		"e2e/**/*.ts",
 		"scripts/**/*.ts"
 	],
-	"project": [
-		"src/**/*.{ts,tsx}",
-		"e2e/**/*.ts",
-		"scripts/**/*.ts"
-	],
+	"project": ["src/**/*.{ts,tsx}", "e2e/**/*.ts", "scripts/**/*.ts"],
 	"ignore": [
 		"src/__tests__/**",
 		"src/components/ui/**",
 		"vitest*.config.ts",
 		"src/features/**/*.test.*"
 	],
-	"ignoreDependencies": [
-		"@effect/vitest"
-	]
+	"ignoreDependencies": ["@effect/vitest"]
 }

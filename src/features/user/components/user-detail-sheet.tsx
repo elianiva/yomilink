@@ -123,7 +123,10 @@ export function UserDetailSheet({
 									id="studentId"
 									value={formData.studentId ?? ""}
 									onChange={(e) =>
-										setFormData((prev) => ({ ...prev, studentId: e.target.value }))
+										setFormData((prev) => ({
+											...prev,
+											studentId: e.target.value,
+										}))
 									}
 								/>
 							</div>
@@ -229,7 +232,10 @@ export function UserDetailSheet({
 									id="motivation"
 									value={formData.motivation ?? ""}
 									onChange={(e) =>
-										setFormData((prev) => ({ ...prev, motivation: e.target.value }))
+										setFormData((prev) => ({
+											...prev,
+											motivation: e.target.value,
+										}))
 									}
 								/>
 							</div>

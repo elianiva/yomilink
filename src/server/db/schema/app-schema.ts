@@ -120,9 +120,15 @@ export const assignments = sqliteTable(
 		timeLimitMinutes: integer("time_limit_minutes"),
 		startDate: integer("start_date", { mode: "timestamp_ms" }),
 		dueAt: integer("due_at", { mode: "timestamp_ms" }),
-		preTestFormId: text("pre_test_form_id").references(() => forms.id, { onDelete: "set null" }),
-		postTestFormId: text("post_test_form_id").references(() => forms.id, { onDelete: "set null" }),
-		delayedPostTestFormId: text("delayed_post_test_form_id").references(() => forms.id, { onDelete: "set null" }),
+		preTestFormId: text("pre_test_form_id").references(() => forms.id, {
+			onDelete: "set null",
+		}),
+		postTestFormId: text("post_test_form_id").references(() => forms.id, {
+			onDelete: "set null",
+		}),
+		delayedPostTestFormId: text("delayed_post_test_form_id").references(() => forms.id, {
+			onDelete: "set null",
+		}),
 		tamFormId: text("tam_form_id").references(() => forms.id, { onDelete: "set null" }),
 		delayedPostTestDelayDays: integer("delayed_post_test_delay_days").default(7),
 		createdBy: text("created_by").notNull(),
@@ -185,7 +191,11 @@ export const learnerMaps = sqliteTable(
 		index("learner_maps_goalMapId_idx").on(table.goalMapId),
 		index("learner_maps_kitId_idx").on(table.kitId),
 		index("learner_maps_userId_idx").on(table.userId),
-		unique("learner_maps_assignment_user_attempt_unique").on(table.assignmentId, table.userId, table.attempt),
+		unique("learner_maps_assignment_user_attempt_unique").on(
+			table.assignmentId,
+			table.userId,
+			table.attempt,
+		),
 	],
 );
 

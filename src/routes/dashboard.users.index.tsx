@@ -220,7 +220,6 @@ function UsersPage() {
 						onBan={handleBan}
 						onUnban={handleUnban}
 						onRoleChange={handleRoleChange}
-
 						isAdmin={isAdmin}
 						currentUserId={currentUserId}
 						isSaving={updateMutation.isPending}

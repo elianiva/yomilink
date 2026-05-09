@@ -146,6 +146,7 @@ src/server/
 ## 3. package.json Scripts & Dependencies
 
 **Scripts:**
+
 - `vp dev` — Dev server
 - `vp build` — Production build
 - `vp preview` — Preview build
@@ -161,6 +162,7 @@ src/server/
 - `vpx shadcn@canary` — shadcn/ui add
 
 **Key Dependencies:**
+
 - **Framework:** TanStack Start (react-router, react-query, react-form), React 19
 - **Effect:** Effect 3.21, @effect/sql, @effect/sql-drizzle, @effect/sql-libsql, @effect/opentelemetry, @effect/vitest
 - **DB:** drizzle-orm 0.45, @libsql/client 0.17, drizzle-kit 0.31
@@ -172,35 +174,38 @@ src/server/
 ## 4. Database Schema (Drizzle + SQLite/LibSQL)
 
 ### Auth Schema (better-auth managed)
-| Table | Purpose |
-|---|---|
-| `user` | Users (role, studentId, jlptLevel, studyGroup, consentGiven, etc.) |
-| `session` | Auth sessions |
-| `account` | OAuth accounts (email+password too) |
-| `verification` | Email verification tokens |
-| `cohorts` | Study cohorts (experiment/control groups) |
-| `cohort_members` | User-cohort membership (role: member/admin) |
-| `whitelist_entries` | Pre-registered students (studentId → claimedUserId) |
+
+| Table               | Purpose                                                            |
+| ------------------- | ------------------------------------------------------------------ |
+| `user`              | Users (role, studentId, jlptLevel, studyGroup, consentGiven, etc.) |
+| `session`           | Auth sessions                                                      |
+| `account`           | OAuth accounts (email+password too)                                |
+| `verification`      | Email verification tokens                                          |
+| `cohorts`           | Study cohorts (experiment/control groups)                          |
+| `cohort_members`    | User-cohort membership (role: member/admin)                        |
+| `whitelist_entries` | Pre-registered students (studentId → claimedUserId)                |
 
 ### App Schema (domain tables)
-| Table | Purpose | Key FK References |
-|---|---|---|
-| `texts` | Reading materials (rich text content, metadata, images) | — |
-| `topics` | Topics/themes | — |
-| `goal_maps` | Teacher-created concept maps (nodes, edges as JSON). Type: teacher/scratch | teacherId→user, textId→texts, topicId→topics |
-| `kits` | Subsets of goal maps assigned to students (layout, nodes, edges) | goalMapId→goal_maps, teacherId→user, textId→texts |
-| `kit_sets` | Ordered sets within a kit | kitId→kits, textId→texts |
-| `assignments` | Assignment wrapper (time limit, dates, pre/post test forms) | goalMapId→goal_maps, kitId→kits, pre/postTestFormId→forms |
-| `assignment_targets` | Links assignments to cohorts or individual users | assignmentId→assignments (cascade), cohortId→cohorts, userId→user |
-| `learner_maps` | Student submissions (nodes, edges, control_text, status: draft/submitted/graded) | assignmentId→assignments, goalMapId→goal_maps, kitId→kits, userId→user |
-| `diagnoses` | Auto-generated diagnosis of learner maps (score, per-link analysis) | goalMapId→goal_maps, learnerMapId→learner_maps |
-| `feedback` | Teacher feedback on learner maps (JSON items, visibility) | learnerMapId→learner_maps, goalMapId→goal_maps |
-| `forms` | Quizzes/tests (type: pre/post/delayed/registration/tam/questionnaire, audience: all/experiment/control) | createdBy→user |
-| `questions` | Form questions (mcq/likert/text, options JSON) | formId→forms (cascade) |
-| `form_responses` | User form submissions (answers JSON, time spent). Unique per form+user | formId→forms, userId→user |
-| `form_progress` | Tracks form availability (locked/available/completed) | formId→forms, userId→user |
+
+| Table                | Purpose                                                                                                 | Key FK References                                                      |
+| -------------------- | ------------------------------------------------------------------------------------------------------- | ---------------------------------------------------------------------- |
+| `texts`              | Reading materials (rich text content, metadata, images)                                                 | —                                                                      |
+| `topics`             | Topics/themes                                                                                           | —                                                                      |
+| `goal_maps`          | Teacher-created concept maps (nodes, edges as JSON). Type: teacher/scratch                              | teacherId→user, textId→texts, topicId→topics                           |
+| `kits`               | Subsets of goal maps assigned to students (layout, nodes, edges)                                        | goalMapId→goal_maps, teacherId→user, textId→texts                      |
+| `kit_sets`           | Ordered sets within a kit                                                                               | kitId→kits, textId→texts                                               |
+| `assignments`        | Assignment wrapper (time limit, dates, pre/post test forms)                                             | goalMapId→goal_maps, kitId→kits, pre/postTestFormId→forms              |
+| `assignment_targets` | Links assignments to cohorts or individual users                                                        | assignmentId→assignments (cascade), cohortId→cohorts, userId→user      |
+| `learner_maps`       | Student submissions (nodes, edges, control_text, status: draft/submitted/graded)                        | assignmentId→assignments, goalMapId→goal_maps, kitId→kits, userId→user |
+| `diagnoses`          | Auto-generated diagnosis of learner maps (score, per-link analysis)                                     | goalMapId→goal_maps, learnerMapId→learner_maps                         |
+| `feedback`           | Teacher feedback on learner maps (JSON items, visibility)                                               | learnerMapId→learner_maps, goalMapId→goal_maps                         |
+| `forms`              | Quizzes/tests (type: pre/post/delayed/registration/tam/questionnaire, audience: all/experiment/control) | createdBy→user                                                         |
+| `questions`          | Form questions (mcq/likert/text, options JSON)                                                          | formId→forms (cascade)                                                 |
+| `form_responses`     | User form submissions (answers JSON, time spent). Unique per form+user                                  | formId→forms, userId→user                                              |
+| `form_progress`      | Tracks form availability (locked/available/completed)                                                   | formId→forms, userId→user                                              |
 
 ### Key Relationships
+
 - **goal_maps → kits → assignments → learner_maps** (main content pipeline)
 - **assignments → assignment_targets → (cohorts | user)** (targeting)
 - **forms → questions → form_responses** (quiz system)
@@ -214,38 +219,40 @@ src/server/
 All dashboard routes are children of `dashboard.tsx` (sidebar layout). Non-dashboard routes: root, login, signup.
 
 ### Non-Dashboard
-| Route | Description |
-|---|---|
-| `/` | Home page |
-| `/login` | Login |
-| `/signup` | Multi-step signup (student ID, personal info, consent) |
-| `/api/health` | Health check endpoint |
-| `/api/auth/*` | better-auth API routes |
-| `/api/analytics/*` | Analytics API |
-| `/api/materials/*` | Materials API |
+
+| Route              | Description                                            |
+| ------------------ | ------------------------------------------------------ |
+| `/`                | Home page                                              |
+| `/login`           | Login                                                  |
+| `/signup`          | Multi-step signup (student ID, personal info, consent) |
+| `/api/health`      | Health check endpoint                                  |
+| `/api/auth/*`      | better-auth API routes                                 |
+| `/api/analytics/*` | Analytics API                                          |
+| `/api/materials/*` | Materials API                                          |
 
 ### Dashboard (protected)
-| Route | Description |
-|---|---|
-| `/dashboard` | Dashboard home |
-| `/dashboard/profile` | User profile |
-| `/dashboard/analytics` | Analytics overview |
-| `/dashboard/analytics/$assignmentId` | Analytics detail for assignment |
-| `/dashboard/analytics/$assignmentId/metrics` | Analytics metrics for assignment |
-| `/dashboard/assignments` | Assignments list |
-| `/dashboard/assignments/manage` | Assignment management |
-| `/dashboard/assignments/manage/$assignmentId` | Manage single assignment |
-| `/dashboard/forms` | Forms list |
-| `/dashboard/forms/$formId` | Form detail |
-| `/dashboard/forms/$formId/results` | Form results |
-| `/dashboard/forms/builder` | Form builder (create/edit) |
-| `/dashboard/forms/student` | Student forms view |
-| `/dashboard/forms/take` | Take a form |
-| `/dashboard/goal-map` | Goal maps list |
-| `/dashboard/goal-map/$goalMapId` | Goal map editor/detail |
-| `/dashboard/learner-map/$assignmentId` | Learner maps for assignment |
-| `/dashboard/learner-map/$assignmentId/result` | Learner map result |
-| `/dashboard/users` | User management (admin) |
+
+| Route                                         | Description                      |
+| --------------------------------------------- | -------------------------------- |
+| `/dashboard`                                  | Dashboard home                   |
+| `/dashboard/profile`                          | User profile                     |
+| `/dashboard/analytics`                        | Analytics overview               |
+| `/dashboard/analytics/$assignmentId`          | Analytics detail for assignment  |
+| `/dashboard/analytics/$assignmentId/metrics`  | Analytics metrics for assignment |
+| `/dashboard/assignments`                      | Assignments list                 |
+| `/dashboard/assignments/manage`               | Assignment management            |
+| `/dashboard/assignments/manage/$assignmentId` | Manage single assignment         |
+| `/dashboard/forms`                            | Forms list                       |
+| `/dashboard/forms/$formId`                    | Form detail                      |
+| `/dashboard/forms/$formId/results`            | Form results                     |
+| `/dashboard/forms/builder`                    | Form builder (create/edit)       |
+| `/dashboard/forms/student`                    | Student forms view               |
+| `/dashboard/forms/take`                       | Take a form                      |
+| `/dashboard/goal-map`                         | Goal maps list                   |
+| `/dashboard/goal-map/$goalMapId`              | Goal map editor/detail           |
+| `/dashboard/learner-map/$assignmentId`        | Learner maps for assignment      |
+| `/dashboard/learner-map/$assignmentId/result` | Learner map result               |
+| `/dashboard/users`                            | User management (admin)          |
 
 ## Start Here
 

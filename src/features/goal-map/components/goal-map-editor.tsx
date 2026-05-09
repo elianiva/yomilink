@@ -382,7 +382,7 @@ export function GoalMapEditor() {
 				) : null}
 			</div>
 
-			<div className="rounded-xl border bg-card relative h-full overflow-hidden">
+			<div className="border-t-[0.5px] -mx-6 bg-card relative h-full overflow-hidden">
 				<ConceptMapCanvas
 					nodes={graphNodes}
 					edges={graphEdges}

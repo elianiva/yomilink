@@ -70,7 +70,7 @@ function DashboardHome() {
 	};
 
 	return (
-		<div className="grid grid-cols-1 lg:grid-cols-[280px_1fr] gap-0 h-full overflow-hidden rounded-lg border border-border/50 bg-card">
+		<div className="grid grid-cols-1 lg:grid-cols-[280px_1fr] gap-0 h-full overflow-hidden border-t-[0.5px] bg-card -mx-6">
 			{/* Topic sidebar */}
 			<div className="overflow-y-auto p-4 border-r border-border/50">
 				<div className="flex items-center justify-between mb-3">

@@ -10,9 +10,7 @@ export function NotFound() {
 					404 – Page not found
 				</div>
 				<h1 className="text-5xl sm:text-6xl font-semibold tracking-tight">
-					<span className="text-primary">
-						Lost in the links?
-					</span>
+					<span className="text-primary">Lost in the links?</span>
 				</h1>
 				<p className="text-muted-foreground">
 					The page you’re looking for doesn’t exist or has been moved.

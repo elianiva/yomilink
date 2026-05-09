@@ -20,9 +20,7 @@ export function LearnerList({
 	const learners = conceptMap ?? summary ?? [];
 
 	if (isLoading) {
-		return (
-			<div className="px-3 py-6 text-center text-xs text-muted-foreground">Loading…</div>
-		);
+		return <div className="px-3 py-6 text-center text-xs text-muted-foreground">Loading…</div>;
 	}
 
 	if (learners.length === 0) {

@@ -37,16 +37,16 @@ export const getWhitelistEntryRpc = createServerFn()
 export const listUnregisteredWhitelistRpc = createServerFn()
 	.middleware([authMiddleware])
 	.handler(() =>
-	AppRuntime.runPromise(
-		listUnregisteredWhitelist().pipe(
-			Effect.map(Rpc.ok),
-			Effect.withSpan("listUnregisteredWhitelist"),
-			Effect.tapError(logRpcError("listUnregisteredWhitelist")),
-			Effect.catchAll(logAndReturnError("listUnregisteredWhitelist")),
-			Effect.catchAllDefect(logAndReturnDefect("listUnregisteredWhitelist")),
+		AppRuntime.runPromise(
+			listUnregisteredWhitelist().pipe(
+				Effect.map(Rpc.ok),
+				Effect.withSpan("listUnregisteredWhitelist"),
+				Effect.tapError(logRpcError("listUnregisteredWhitelist")),
+				Effect.catchAll(logAndReturnError("listUnregisteredWhitelist")),
+				Effect.catchAllDefect(logAndReturnDefect("listUnregisteredWhitelist")),
+			),
 		),
-	),
-);
+	);
 
 export const importWhitelistCsvRpc = createServerFn({ method: "POST" })
 	.middleware([requireRoleMiddleware("admin")])
