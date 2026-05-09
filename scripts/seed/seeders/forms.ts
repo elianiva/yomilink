@@ -36,7 +36,7 @@ function getQuestionOptions(question: SeedQuestion): string {
 			type: "mcq",
 			options: question.options,
 			correctOptionIds: correctOptionId ? [correctOptionId] : [],
-			shuffle: false,
+			shuffle: true,
 		});
 	}
 
