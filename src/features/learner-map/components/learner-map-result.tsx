@@ -163,7 +163,7 @@ export function LearnerMapResult() {
 
 	return (
 		<TooltipProvider delay={300}>
-			<section className="relative h-full overflow-hidden">
+			<section className="relative h-full overflow-hidden -mx-6 border-t-[0.5px]">
 				{/* Canvas layer — fills everything */}
 				<div className="absolute inset-0 bg-[radial-gradient(circle_at_top,rgba(0,0,0,0.03),transparent_55%)]">
 					<AnalyticsCanvas

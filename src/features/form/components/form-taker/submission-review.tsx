@@ -64,7 +64,7 @@ export function SubmissionReview({
 						You&apos;ve completed this form. Retakes are disabled.
 					</CardDescription>
 				</CardHeader>
-				<CardContent className="pb-6">
+				<CardContent className="p-3">
 					<div className="grid sm:grid-cols-2">
 						<div className="rounded-tl-xl border border-r-0 bg-muted/20 p-3">
 							<p className="text-sm text-muted-foreground">Score</p>
