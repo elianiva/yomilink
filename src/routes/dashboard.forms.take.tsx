@@ -39,15 +39,9 @@ function FormTakerPage() {
 
 	const submitMutation = useRpcMutation(FormRpc.submitFormResponse(), {
 		operation: "submit form",
-		showSuccess: true,
-		successMessage: "Form submitted successfully!",
 		onSuccess: async () => {
 			await queryClient.invalidateQueries({ queryKey: FormRpc.forms() });
-			if (data?.form.type === "post_test") {
-				void navigate({ to: "/dashboard/assignments" });
-			} else {
-				void navigate({ to: "/dashboard/forms/student" });
-			}
+			void navigate({ to: "/dashboard/forms/take", search: { formId } });
 		},
 	});
 
@@ -139,6 +133,7 @@ function FormTakerPage() {
 					answeredRequired={answeredRequired}
 					isPending={submitMutation.isPending}
 					onSubmit={handleSubmit}
+					centered={!hasReadingMaterial}
 				/>
 			</div>
 		</div>

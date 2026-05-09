@@ -68,9 +68,20 @@ function StudentFormsPage() {
 					</div>
 
 					{isCompleted ? (
-						<div className="flex items-center gap-2 text-sm text-green-600 shrink-0">
-							<CheckCircle2Icon className="size-4" />
-							Completed
+						<div className="flex items-center gap-2 shrink-0">
+							<CheckCircle2Icon className="size-4 text-green-600" />
+							<Button
+								variant="outline"
+								size="sm"
+								onClick={() =>
+									navigate({
+										to: "/dashboard/forms/take",
+										search: { formId: form.id },
+									})
+								}
+							>
+								View Result
+							</Button>
 						</div>
 					) : (
 						<Button

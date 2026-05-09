@@ -15,6 +15,7 @@ interface QuestionListProps {
 	answeredRequired: boolean;
 	isPending: boolean;
 	onSubmit: () => void;
+	centered?: boolean;
 }
 
 export function QuestionList({
@@ -25,6 +26,7 @@ export function QuestionList({
 	answeredRequired,
 	isPending,
 	onSubmit,
+	centered,
 }: QuestionListProps) {
 	const remaining = requiredQuestions.filter(
 		(q) => answers[q.id] === undefined || answers[q.id] === "",
@@ -34,7 +36,7 @@ export function QuestionList({
 		<div className="flex-1 relative min-w-0">
 			<div className="absolute inset-0">
 				<ScrollArea className="h-full w-full">
-					<div className="p-6 pb-32">
+					<div className={`${centered ? "mx-auto max-w-2xl" : ""} p-6 pb-32`}>
 						{questions.map((question, index) => (
 							<div key={question.id} className="py-6">
 								<div className="mb-4 flex items-start gap-3">

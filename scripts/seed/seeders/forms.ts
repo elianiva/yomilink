@@ -138,8 +138,6 @@ export function seedForms(teacherId: string) {
 			.where(eq(forms.title, tamFormTitle))
 			.limit(1);
 
-		const tamReadingMaterialSections = buildReadingMaterialSections(TAM_QUESTIONS.length);
-
 		let tamFormId: string;
 		if (existingTamForm[0]) {
 			tamFormId = existingTamForm[0].id;
@@ -151,7 +149,7 @@ export function seedForms(teacherId: string) {
 					type: "tam",
 					audience: "experiment",
 					status: "published",
-					readingMaterialSections: tamReadingMaterialSections,
+					readingMaterialSections: null,
 					createdBy: teacherId,
 				})
 				.where(eq(forms.id, tamFormId));
@@ -166,7 +164,7 @@ export function seedForms(teacherId: string) {
 				type: "tam",
 				audience: "experiment",
 				status: "published",
-				readingMaterialSections: tamReadingMaterialSections,
+				readingMaterialSections: null,
 				createdBy: teacherId,
 			});
 			yield* Effect.log("  Created TAM form: " + tamFormTitle);
@@ -181,10 +179,6 @@ export function seedForms(teacherId: string) {
 			.where(eq(forms.title, feedbackFormTitle))
 			.limit(1);
 
-		const feedbackReadingMaterialSections = buildReadingMaterialSections(
-			FEEDBACK_QUESTIONS.length,
-		);
-
 		let feedbackFormId: string;
 		if (existingFeedbackForm[0]) {
 			feedbackFormId = existingFeedbackForm[0].id;
@@ -195,7 +189,7 @@ export function seedForms(teacherId: string) {
 					type: "questionnaire",
 					audience: "all",
 					status: "published",
-					readingMaterialSections: feedbackReadingMaterialSections,
+					readingMaterialSections: null,
 					createdBy: teacherId,
 				})
 				.where(eq(forms.id, feedbackFormId));
@@ -209,7 +203,7 @@ export function seedForms(teacherId: string) {
 				type: "questionnaire",
 				audience: "all",
 				status: "published",
-				readingMaterialSections: feedbackReadingMaterialSections,
+				readingMaterialSections: null,
 				createdBy: teacherId,
 			});
 			yield* Effect.log("  Created feedback form: " + feedbackFormTitle);
