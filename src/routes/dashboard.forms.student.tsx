@@ -6,7 +6,6 @@ import { PageHeader } from "@/components/page-header";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { useRpcQuery } from "@/hooks/use-rpc-query";
-import { cn } from "@/lib/utils";
 import { FormRpc } from "@/server/rpc/form";
 
 export const Route = createFileRoute("/dashboard/forms/student")({
@@ -29,18 +28,11 @@ type StudentForm = {
 };
 
 function StudentFormsPage() {
-	const navigate = useNavigate({ from: "/dashboard/forms/student" });
-
+	const navigate = useNavigate();
 	const { data: forms = [], isLoading: isLoadingForms } = useRpcQuery(FormRpc.getStudentForms());
 
 	const availableForms = forms.filter((f) => f.unlockStatus === "available");
 	const completedForms = forms.filter((f) => f.unlockStatus === "completed");
-
-	const handleFormClick = (form: StudentForm) => {
-		if (form.isUnlocked && form.unlockStatus === "available") {
-			void navigate({ to: "/dashboard/forms/take", search: { formId: form.id } });
-		}
-	};
 
 	const getTypeLabel = (type: string) => {
 		switch (type) {
@@ -65,15 +57,8 @@ function StudentFormsPage() {
 		const isCompleted = form.unlockStatus === "completed";
 
 		return (
-			<Card
-				key={form.id}
-				className={cn(
-					isCompleted ? "" : "cursor-pointer interactive",
-					"hover:shadow-sm transition-shadow",
-				)}
-				onClick={() => handleFormClick(form)}
-			>
-				<CardContent className="p-4 flex items-start justify-between gap-4">
+			<Card key={form.id} className="py-4">
+				<CardContent className="px-4 flex items-start justify-between gap-4">
 					<div className="min-w-0 space-y-1">
 						<p className="font-medium leading-tight">{form.title}</p>
 						{form.description && (
@@ -88,8 +73,16 @@ function StudentFormsPage() {
 							Completed
 						</div>
 					) : (
-						<Button className="shrink-0">
-							<BookOpenIcon className="h-4 w-4" />
+						<Button
+							className="shrink-0"
+							onClick={() =>
+								navigate({
+									to: "/dashboard/forms/take",
+									search: { formId: form.id },
+								})
+							}
+						>
+							<BookOpenIcon className="size-4" />
 							Start Form
 						</Button>
 					)}

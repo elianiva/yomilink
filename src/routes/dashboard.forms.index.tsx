@@ -123,7 +123,6 @@ function AdminFormsPage() {
 					onDelete={handleDelete}
 					onDuplicate={handleDuplicate}
 					onViewResults={handleViewResults}
-					onClick={handleViewResults}
 				/>
 			)}
 

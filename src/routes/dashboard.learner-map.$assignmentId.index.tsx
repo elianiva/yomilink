@@ -6,7 +6,6 @@ import { Guard } from "@/features/auth/components/Guard";
 import { useRpcQuery } from "@/hooks/use-rpc-query";
 import { LearnerMapRpc } from "@/server/rpc/learner-map";
 
-// Lazy load the heavy Learner Map Editor with React Flow
 const LearnerMapEditorWrapper = lazy(() =>
 	import("@/features/learner-map/components/learner-map-editor").then((m) => ({
 		default: m.LearnerMapEditorWrapper,

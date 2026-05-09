@@ -1,4 +1,4 @@
-const AUTH_EMAIL_DOMAIN = "yomilink.local";
+const AUTH_EMAIL_DOMAIN = "kitbuild.mail";
 
 export function normalizeStudentId(studentId: string) {
 	return studentId.trim().toLowerCase();

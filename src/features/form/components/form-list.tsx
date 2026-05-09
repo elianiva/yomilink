@@ -59,7 +59,6 @@ interface FormListProps {
 	onDuplicate?: (form: FormListItem) => void;
 	onDelete?: (formId: string) => void;
 	onViewResults?: (form: FormListItem) => void;
-	onClick?: (form: FormListItem) => void;
 	className?: string;
 }
 
@@ -113,7 +112,6 @@ export function FormList({
 	onDuplicate,
 	onDelete,
 	onViewResults,
-	onClick,
 	className,
 }: FormListProps) {
 	if (forms.length === 0) {
@@ -141,23 +139,10 @@ export function FormList({
 					total: 0,
 				};
 
-				const handleClick = () => {
-					if (onClick) {
-						onClick(form);
-					} else if (onViewResults) {
-						onViewResults(form);
-					}
-				};
-
 				return (
 					<Card
 						key={form.id}
-						className={cn(
-							"group relative overflow-hidden border border-stone-200 shadow-none transition-all duration-200 py-2",
-							"hover:border-primary/40 hover:shadow-sm hover:bg-stone-50/50",
-							"cursor-pointer bg-white",
-						)}
-						onClick={handleClick}
+						className="relative border border-stone-200 bg-white py-1.5"
 					>
 						<CardContent className="p-3">
 							<div className="flex items-start gap-3">

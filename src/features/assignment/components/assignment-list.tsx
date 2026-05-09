@@ -5,6 +5,7 @@ import {
 	MapIcon,
 	MoreVertical,
 	Pencil,
+	PlayIcon,
 	TimerIcon,
 	Trash2,
 	UsersIcon,
@@ -392,14 +393,7 @@ function StudentCard({
 	const statusCfg = studentStatusConfig[status];
 
 	return (
-		<Card
-			className={cn(
-				"group relative overflow-hidden border border-stone-200 shadow-none transition-all duration-200 py-2 interactive",
-				"hover:border-primary/40 hover:shadow-sm hover:bg-stone-50/50",
-				"bg-white",
-			)}
-			onClick={() => onClick?.(assignment)}
-		>
+		<Card className="relative border border-stone-200 bg-white py-2">
 			<CardContent className="p-3">
 				<div className="flex items-start gap-3">
 					<div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-md border border-stone-200 bg-stone-50 text-stone-500">
@@ -446,6 +440,13 @@ function StudentCard({
 								</>
 							)}
 						</div>
+					</div>
+
+					<div className="flex items-center">
+						<Button variant="default" size="sm" onClick={() => onClick?.(assignment)}>
+							<PlayIcon className="size-3.5 mr-1" />
+							Start
+						</Button>
 					</div>
 				</div>
 			</CardContent>

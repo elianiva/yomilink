@@ -1,5 +1,6 @@
 import { BookOpen, Eye, EyeOff } from "lucide-react";
 
+import { ReadingMaterialRenderer } from "@/components/reading-material-renderer";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Separator } from "@/components/ui/separator";
@@ -151,8 +152,8 @@ export function FormPreview({
 										</p>
 
 										{readingMaterial && (
-											<div className="rounded-md border bg-muted/50 p-3 text-sm">
-												<p className="flex items-center gap-2 font-medium">
+											<div className="rounded-md border bg-muted/50 p-3">
+												<p className="flex items-center gap-2 font-medium text-sm">
 													<BookOpen className="h-4 w-4 text-primary" />
 													{readingMaterial.title ??
 														"Reading Material (Questions " +
@@ -161,9 +162,9 @@ export function FormPreview({
 															String(readingMaterial.endQuestion) +
 															")"}
 												</p>
-												<p className="mt-2 whitespace-pre-wrap text-muted-foreground">
-													{readingMaterial.content}
-												</p>
+												<div className="mt-2">
+													<ReadingMaterialRenderer content={readingMaterial.content} />
+												</div>
 											</div>
 										)}
 

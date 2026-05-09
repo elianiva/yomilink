@@ -43,7 +43,6 @@ import { useHistory } from "@/hooks/use-history";
 import { useRpcMutation, useRpcQuery } from "@/hooks/use-rpc-query";
 import { toast } from "@/lib/error-toast";
 import { areNodesConnected, isValidConnection } from "@/lib/react-flow-types";
-import { cn } from "@/lib/utils";
 import { LearnerMapRpc } from "@/server/rpc/learner-map";
 
 const routeApi = getRouteApi("/dashboard/learner-map/$assignmentId/");
@@ -54,7 +53,6 @@ export function LearnerMapEditor() {
 	const queryClient = useQueryClient();
 	const { zoomIn: rfZoomIn, zoomOut: rfZoomOut, fitView } = useReactFlow();
 
-	// Atom state
 	const [nodes, setNodes] = useAtom(learnerNodesAtom);
 	const [edges, setEdges] = useAtom(learnerEdgesAtom);
 	const [searchOpen, setSearchOpen] = useAtom(searchOpenAtom);
@@ -66,7 +64,6 @@ export function LearnerMapEditor() {
 	const [status, setStatus] = useAtom(submissionStatusAtom);
 	const [attempt, setAttempt] = useAtom(attemptAtom);
 
-	// Local state
 	const [submitDialogOpen, setSubmitDialogOpen] = useState(false);
 
 	const isSubmitted = status === "submitted";
@@ -117,9 +114,9 @@ export function LearnerMapEditor() {
 				condition === "summarizing"
 					? assignmentData.learnerMap.controlText || ""
 					: JSON.stringify({
-							nodes: assignmentData.learnerMap.nodes,
-							edges: assignmentData.learnerMap.edges,
-						}),
+						nodes: assignmentData.learnerMap.nodes,
+						edges: assignmentData.learnerMap.edges,
+					}),
 			);
 		} else {
 			const arrangedNodes = arrangeNodesByType([...assignmentData.kit.nodes]);
@@ -133,9 +130,8 @@ export function LearnerMapEditor() {
 					: JSON.stringify({ nodes: arrangedNodes, edges: [] }),
 			);
 		}
-	}, [assignmentData, condition]); // eslint-disable-line react-hooks/exhaustive-deps
+	}, [assignmentData, condition]);
 
-	// Auto-save effect
 	useEffect(() => {
 		if (isSubmitted) return;
 
@@ -325,7 +321,7 @@ export function LearnerMapEditor() {
 
 	return (
 		<div className="h-full relative">
-			<div className="absolute top-4 left-4 z-10 bg-background/80 backdrop-blur-sm border rounded-lg px-4 py-2">
+			<div className="absolute top-3 -left-2 z-10 bg-card/70 backdrop-blur-lg border rounded-md px-4 py-2">
 				<h2 className="font-medium">{assignmentData.assignment.title}</h2>
 				{assignmentData.assignment.description && (
 					<p className="text-sm text-muted-foreground">
@@ -337,7 +333,7 @@ export function LearnerMapEditor() {
 				)}
 			</div>
 			{!isSubmitted && (
-				<div className="absolute top-4 right-4 z-10 bg-background/80 backdrop-blur-sm border rounded-lg px-4 py-2 w-48">
+				<div className="absolute top-3 -right-3 z-10 bg-card/70 backdrop-blur-lg border rounded-md px-4 py-2 w-48">
 					<div className="flex items-center justify-between text-xs mb-1">
 						<span className="text-muted-foreground">Progress</span>
 						<span className="font-medium">{edges.length} connections</span>
@@ -378,7 +374,7 @@ export function LearnerMapEditor() {
 					</AlertDialogFooter>
 				</AlertDialogContent>
 			</AlertDialog>
-			<div className="rounded-xl border bg-card relative h-full overflow-hidden">
+			<div className="bg-card relative h-full overflow-hidden -mx-6 border-t-[0.5px]">
 				<ConceptMapCanvas
 					nodes={nodes}
 					edges={edges}
@@ -469,10 +465,7 @@ function SummarizingEditor({
 		if (isSubmitted) return;
 		if (controlText !== lastSavedSnapshot) {
 			const timer = setTimeout(() => {
-				saveMutation.mutate({
-					assignmentId,
-					controlText: controlText,
-				});
+				saveMutation.mutate({ assignmentId, controlText: controlText });
 				setLastSavedSnapshot(controlText);
 			}, 3000);
 			return () => clearTimeout(timer);
