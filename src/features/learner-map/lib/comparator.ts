@@ -108,7 +108,7 @@ export interface EdgeClassification {
 
 export const EdgeClassificationSchema = Schema.Struct({
 	edge: EdgeSchema,
-	type: Schema.Literal("correct", "missing", "excessive", "neutral"),
+	type: Schema.Literal("correct", "missing", "excessive"),
 });
 
 export function classifyEdges(
@@ -117,16 +117,13 @@ export function classifyEdges(
 ): EdgeClassification[] {
 	const diagnosis = compareMaps(goalMapEdges, learnerEdges);
 
-	const correctMap = new Set(diagnosis.correct.map((e) => `${e.source}-${e.target}`));
 	const excessiveMap = new Set(diagnosis.excessive.map((e) => `${e.source}-${e.target}`));
 
 	const learnerClassifications: EdgeClassification[] = learnerEdges.map((edge) => ({
 		edge,
 		type: excessiveMap.has(`${edge.source}-${edge.target}`)
 			? "excessive"
-			: correctMap.has(`${edge.source}-${edge.target}`)
-				? "correct"
-				: "neutral",
+			: "correct",
 	}));
 
 	const missingClassifications: EdgeClassification[] = diagnosis.missing.map((missing) => ({
@@ -144,8 +141,7 @@ export function classifyEdges(
 }
 
 export function getEdgeStyleByType(
-	type: "correct" | "missing" | "excessive" | "neutral",
-	useAnalyticsColors = false,
+	type: "correct" | "missing" | "excessive",
 ) {
 	return Match.value(type).pipe(
 		Match.when("correct", () => ({
@@ -153,18 +149,14 @@ export function getEdgeStyleByType(
 			strokeWidth: 3,
 		})),
 		Match.when("excessive", () => ({
-			stroke: useAnalyticsColors ? "#3b82f6" : "#ef4444",
+			stroke: "#ef4444",
 			strokeWidth: 3,
 		})),
 		Match.when("missing", () => ({
-			stroke: useAnalyticsColors ? "#ef4444" : "#f59e0b",
+			stroke: "#f59e0b",
 			strokeWidth: 2,
 			strokeDasharray: "5,5",
-			opacity: useAnalyticsColors ? 0.8 : 0.7,
-		})),
-		Match.when("neutral", () => ({
-			stroke: useAnalyticsColors ? "#64748b" : "#6b7280",
-			strokeWidth: 2,
+			opacity: 0.7,
 		})),
 		Match.exhaustive,
 	);

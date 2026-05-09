@@ -28,5 +28,5 @@ export function isCorrectMcqAnswer(
 		return false;
 	}
 
-	return selectedAnswerIds.some((selected) => options.correctOptionIds.includes(selected));
+	return selectedAnswerIds.every((selected) => options.correctOptionIds.includes(selected));
 }

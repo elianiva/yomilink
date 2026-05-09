@@ -17,13 +17,13 @@ import {
 	GetLearnerSummaryTextInput,
 	GetMultipleLearnerMapsInput,
 } from "@/features/analyzer/lib/analytics-service.shared";
-import { authMiddleware } from "@/middlewares/auth";
+import { requireRoleMiddleware } from "@/middlewares/auth";
 
 import { AppRuntime } from "../app-runtime";
 import { Rpc, logRpcError, logAndReturnError, logAndReturnDefect } from "../rpc-helper";
 
 export const getTeacherAssignmentsRpc = createServerFn()
-	.middleware([authMiddleware])
+	.middleware([requireRoleMiddleware("teacher", "admin")])
 	.handler(({ context }) =>
 		AppRuntime.runPromise(
 			getTeacherAssignments(context.user.id).pipe(
@@ -37,7 +37,7 @@ export const getTeacherAssignmentsRpc = createServerFn()
 	);
 
 export const getAnalyticsForAssignmentRpc = createServerFn()
-	.middleware([authMiddleware])
+	.middleware([requireRoleMiddleware("teacher", "admin")])
 	.inputValidator((raw) => Schema.decodeUnknownSync(GetAnalyticsForAssignmentInput)(raw))
 	.handler(({ data, context }) =>
 		AppRuntime.runPromise(
@@ -56,7 +56,7 @@ export const getAnalyticsForAssignmentRpc = createServerFn()
 	);
 
 export const getLearnerMapForAnalyticsRpc = createServerFn()
-	.middleware([authMiddleware])
+	.middleware([requireRoleMiddleware("teacher", "admin")])
 	.inputValidator((raw) => Schema.decodeUnknownSync(GetLearnerMapForAnalyticsInput)(raw))
 	.handler(({ data }) =>
 		AppRuntime.runPromise(
@@ -75,7 +75,7 @@ export const getLearnerMapForAnalyticsRpc = createServerFn()
 	);
 
 export const getMultipleLearnerMapsRpc = createServerFn()
-	.middleware([authMiddleware])
+	.middleware([requireRoleMiddleware("teacher", "admin")])
 	.inputValidator((raw) => Schema.decodeUnknownSync(GetMultipleLearnerMapsInput)(raw))
 	.handler(({ data }) =>
 		AppRuntime.runPromise(
@@ -90,7 +90,7 @@ export const getMultipleLearnerMapsRpc = createServerFn()
 	);
 
 export const getLearnerSummaryTextRpc = createServerFn()
-	.middleware([authMiddleware])
+	.middleware([requireRoleMiddleware("teacher", "admin")])
 	.inputValidator((raw) => Schema.decodeUnknownSync(GetLearnerSummaryTextInput)(raw))
 	.handler(({ data }) =>
 		AppRuntime.runPromise(
@@ -108,7 +108,7 @@ export const getLearnerSummaryTextRpc = createServerFn()
 	);
 
 export const exportAnalyticsDataRpc = createServerFn({ method: "POST" })
-	.middleware([authMiddleware])
+	.middleware([requireRoleMiddleware("teacher", "admin")])
 	.inputValidator((raw) => Schema.decodeUnknownSync(ExportAnalyticsDataInput)(raw))
 	.handler(({ data }) =>
 		AppRuntime.runPromise(

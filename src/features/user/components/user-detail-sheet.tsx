@@ -29,7 +29,6 @@ type UserDetailSheetProps = {
 	onBan: (userId: string, reason: string) => void;
 	onUnban: (userId: string) => void;
 	onRoleChange: (userId: string, role: string) => void;
-	onPasswordReset: (userId: string) => void;
 	isAdmin: boolean;
 	currentUserId: string;
 	isSaving?: boolean;
@@ -43,7 +42,6 @@ export function UserDetailSheet({
 	onBan,
 	onUnban,
 	onRoleChange,
-	onPasswordReset,
 	isAdmin,
 	currentUserId,
 	isSaving,
@@ -292,12 +290,6 @@ export function UserDetailSheet({
 										onClick={() => setShowBanInput(true)}
 									>
 										Ban User
-									</Button>
-									<Button
-										variant="outline"
-										onClick={() => onPasswordReset(user.id)}
-									>
-										Reset Password
 									</Button>
 								</div>
 							)}

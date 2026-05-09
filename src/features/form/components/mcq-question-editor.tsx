@@ -56,10 +56,11 @@ export function McqQuestionEditor({ data, onChange, disabled = false }: McqQuest
 	};
 
 	const handleCorrectAnswerToggle = (optionId: string) => {
-		// Only allow one correct answer - radio button behavior
 		onChange({
 			...data,
-			correctOptionIds: data.correctOptionIds.includes(optionId) ? [] : [optionId],
+			correctOptionIds: data.correctOptionIds.includes(optionId)
+				? data.correctOptionIds.filter((id) => id !== optionId)
+				: [...data.correctOptionIds, optionId],
 		});
 	};
 

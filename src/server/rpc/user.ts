@@ -8,7 +8,6 @@ import {
 	banUser,
 	unbanUser,
 	bulkAssignCohort,
-	triggerPasswordReset,
 } from "@/features/user/lib/user-service.mutations";
 import { listUsers, getUserById } from "@/features/user/lib/user-service.queries";
 import {
@@ -159,26 +158,6 @@ export const bulkAssignCohortRpc = createServerFn({ method: "POST" })
 		),
 	);
 
-export const triggerPasswordResetRpc = createServerFn({ method: "POST" })
-	.middleware([requireRoleMiddleware("admin")])
-	.inputValidator((raw) =>
-		Schema.decodeUnknownSync(Schema.Struct({ userId: Schema.String }))(raw),
-	)
-	.handler(({ data }) =>
-		AppRuntime.runPromise(
-			triggerPasswordReset(data.userId).pipe(
-				Effect.map(Rpc.ok),
-				Effect.withSpan("triggerPasswordReset"),
-				Effect.tapError(logRpcError("triggerPasswordReset")),
-				Effect.catchTags({
-					UserNotFoundError: () => Rpc.notFound("User"),
-				}),
-				Effect.catchAll(logAndReturnError("triggerPasswordReset")),
-				Effect.catchAllDefect(logAndReturnDefect("triggerPasswordReset")),
-			),
-		),
-	);
-
 export const UserRpc = {
 	users: () => ["users"],
 	listUsers: (filters: Partial<UserFilterInput> = {}) =>
@@ -216,10 +195,5 @@ export const UserRpc = {
 		mutationOptions({
 			mutationKey: [...UserRpc.users(), "bulkCohort"],
 			mutationFn: (data: BulkCohortAssignInput) => bulkAssignCohortRpc({ data }),
-		}),
-	triggerPasswordReset: () =>
-		mutationOptions({
-			mutationKey: [...UserRpc.users(), "passwordReset"],
-			mutationFn: (data: { userId: string }) => triggerPasswordResetRpc({ data }),
 		}),
 };

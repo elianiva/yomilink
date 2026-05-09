@@ -9,23 +9,23 @@ import {
 	generateKit,
 	getKit,
 	getKitStatus,
-	listStudentKits,
+	listGoalMapsWithKits,
 } from "@/features/kit/lib/kit-service";
 import { requireRoleMiddleware } from "@/middlewares/auth";
 
 import { AppRuntime } from "../app-runtime";
 import { Rpc, logRpcError, logAndReturnError, logAndReturnDefect } from "../rpc-helper";
 
-export const listStudentKitsRpc = createServerFn()
+export const listGoalMapsWithKitsRpc = createServerFn()
 	.middleware([requireRoleMiddleware("teacher", "admin")])
 	.handler(() =>
 		AppRuntime.runPromise(
-			listStudentKits().pipe(
+			listGoalMapsWithKits().pipe(
 				Effect.map(Rpc.ok),
-				Effect.withSpan("listStudentKits"),
-				Effect.tapError(logRpcError("listStudentKits")),
-				Effect.catchAll(logAndReturnError("listStudentKits")),
-				Effect.catchAllDefect(logAndReturnDefect("listStudentKits")),
+				Effect.withSpan("listGoalMapsWithKits"),
+				Effect.tapError(logRpcError("listGoalMapsWithKits")),
+				Effect.catchAll(logAndReturnError("listGoalMapsWithKits")),
+				Effect.catchAllDefect(logAndReturnDefect("listGoalMapsWithKits")),
 			),
 		),
 	);
@@ -80,10 +80,10 @@ export const generateKitRpc = createServerFn({ method: "POST" })
 
 export const KitRpc = {
 	studentKits: () => ["student-kits"],
-	listStudentKits: () =>
+	listGoalMapsWithKits: () =>
 		queryOptions({
 			queryKey: [...KitRpc.studentKits()],
-			queryFn: () => listStudentKitsRpc(),
+			queryFn: () => listGoalMapsWithKitsRpc(),
 		}),
 	getKit: () =>
 		queryOptions({

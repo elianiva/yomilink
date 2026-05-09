@@ -11,12 +11,13 @@ import {
 	WhitelistImportInput,
 	WhitelistLookupInput,
 } from "@/features/whitelist/lib/whitelist-service.shared";
-import { requireRoleMiddleware } from "@/middlewares/auth";
+import { authMiddleware, requireRoleMiddleware } from "@/middlewares/auth";
 
 import { AppRuntime } from "../app-runtime";
 import { Rpc, logRpcError, logAndReturnError, logAndReturnDefect } from "../rpc-helper";
 
 export const getWhitelistEntryRpc = createServerFn()
+	.middleware([authMiddleware])
 	.inputValidator((raw) => Schema.decodeUnknownSync(WhitelistLookupInput)(raw))
 	.handler(({ data }) =>
 		AppRuntime.runPromise(
@@ -33,7 +34,9 @@ export const getWhitelistEntryRpc = createServerFn()
 		),
 	);
 
-export const listUnregisteredWhitelistRpc = createServerFn().handler(() =>
+export const listUnregisteredWhitelistRpc = createServerFn()
+	.middleware([authMiddleware])
+	.handler(() =>
 	AppRuntime.runPromise(
 		listUnregisteredWhitelist().pipe(
 			Effect.map(Rpc.ok),

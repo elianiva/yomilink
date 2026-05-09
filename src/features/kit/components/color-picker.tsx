@@ -68,7 +68,7 @@ export const TAILWIND_COLORS: TailwindColor[] = [
 	},
 	{
 		name: "teal",
-		value: "teal-500",
+		value: "teal",
 		bg: "bg-teal-500",
 		ring: "ring-teal-500",
 		text: "text-teal-800",
@@ -82,7 +82,7 @@ export const TAILWIND_COLORS: TailwindColor[] = [
 	},
 	{
 		name: "sky",
-		value: "sky-500",
+		value: "sky",
 		bg: "bg-sky-500",
 		ring: "ring-sky-500",
 		text: "text-sky-800",

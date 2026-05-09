@@ -98,7 +98,7 @@ describe("classifyEdges", () => {
 		});
 	});
 
-	it("should classify neutral edges correctly", () => {
+	it("should not have neutral edges in classification", () => {
 		const goalEdges = [
 			{ id: "e1", source: "c1", target: "l1" },
 			{ id: "e2", source: "l1", target: "c2" },
@@ -111,12 +111,10 @@ describe("classifyEdges", () => {
 		const correct = result.filter((e) => e.type === "correct");
 		const excessive = result.filter((e) => e.type === "excessive");
 		const missing = result.filter((e) => e.type === "missing");
-		const neutral = result.filter((e) => e.type === "neutral");
 
 		expect(correct).toHaveLength(1);
 		expect(excessive).toHaveLength(1);
 		expect(missing).toHaveLength(1);
-		expect(neutral).toHaveLength(0);
 	});
 
 	it("should handle multiple edges between same nodes", () => {
@@ -155,12 +153,10 @@ describe("classifyEdges", () => {
 		const correct = result.filter((e) => e.type === "correct");
 		const excessive = result.filter((e) => e.type === "excessive");
 		const missing = result.filter((e) => e.type === "missing");
-		const neutral = result.filter((e) => e.type === "neutral");
 
 		expect(correct).toHaveLength(1);
 		expect(excessive).toHaveLength(2);
 		expect(missing).toHaveLength(2);
-		expect(neutral).toHaveLength(0);
 	});
 
 	it("should handle perfect match", () => {
@@ -181,17 +177,17 @@ describe("getEdgeStyleByType", () => {
 	});
 
 	it("should return correct style for excessive edge", () => {
-		const style = getEdgeStyleByType("excessive", false);
+		const style = getEdgeStyleByType("excessive");
 		expect(style).toEqual({ stroke: "#ef4444", strokeWidth: 3 });
 	});
 
-	it("should return correct style for excessive edge with analytics colors", () => {
-		const style = getEdgeStyleByType("excessive", true);
-		expect(style).toEqual({ stroke: "#3b82f6", strokeWidth: 3 });
+	it("should return correct style for excessive edge", () => {
+		const style = getEdgeStyleByType("excessive");
+		expect(style).toEqual({ stroke: "#ef4444", strokeWidth: 3 });
 	});
 
 	it("should return correct style for missing edge", () => {
-		const style = getEdgeStyleByType("missing", false);
+		const style = getEdgeStyleByType("missing");
 		expect(style).toEqual({
 			stroke: "#f59e0b",
 			strokeWidth: 2,
@@ -200,21 +196,23 @@ describe("getEdgeStyleByType", () => {
 		});
 	});
 
-	it("should return correct style for missing edge with analytics colors", () => {
-		const style = getEdgeStyleByType("missing", true);
+	it("should return correct style for missing edge", () => {
+		const style = getEdgeStyleByType("missing");
 		expect(style).toEqual({
-			stroke: "#ef4444",
+			stroke: "#f59e0b",
 			strokeWidth: 2,
 			strokeDasharray: "5,5",
-			opacity: 0.8,
+			opacity: 0.7,
 		});
 	});
 
-	it("should return correct style for neutral edge", () => {
-		const style = getEdgeStyleByType("neutral");
-		expect(style).toEqual({
-			stroke: "#6b7280",
-			strokeWidth: 2,
-		});
+	expect(getEdgeStyleByType("correct")).toEqual({
+		stroke: "#22c55e",
+		strokeWidth: 3,
+	});
+
+	expect(getEdgeStyleByType("excessive")).toEqual({
+		stroke: "#ef4444",
+		strokeWidth: 3,
 	});
 });

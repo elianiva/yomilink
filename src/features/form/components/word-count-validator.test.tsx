@@ -100,7 +100,7 @@ describe("WordCountValidator", () => {
 	describe("edge cases", () => {
 		it("handles single word", () => {
 			render(<WordCountValidator wordCount={1} />);
-			expect(screen.getByTestId("word-count-message")).toHaveTextContent("1 words");
+			expect(screen.getByTestId("word-count-message")).toHaveTextContent("1 word");
 		});
 
 		it("handles large word counts", () => {

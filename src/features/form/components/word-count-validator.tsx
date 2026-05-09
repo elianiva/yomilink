@@ -21,6 +21,8 @@ export function WordCountValidator({
 		minWordCount !== undefined && minWordCount > 0 && wordCount < minWordCount;
 	const isAboveMaximum = maxWordCount !== undefined && wordCount > maxWordCount;
 
+	const wordLabel = wordCount !== 1 ? "words" : "word";
+
 	const getStatus = () => {
 		if (isAboveMaximum) {
 			return {
@@ -28,8 +30,8 @@ export function WordCountValidator({
 				iconClassName: "text-destructive",
 				textClassName: "text-destructive",
 				message: maxWordCount
-					? `${wordCount} / ${maxWordCount} words (exceeds maximum)`
-					: `${wordCount} words (exceeds maximum)`,
+					? `${wordCount} / ${maxWordCount} ${wordLabel} (exceeds maximum)`
+					: `${wordCount} ${wordLabel} (exceeds maximum)`,
 			};
 		}
 		if (isBelowMinimum) {
@@ -38,15 +40,15 @@ export function WordCountValidator({
 				iconClassName: "text-amber-500",
 				textClassName: "text-amber-500",
 				message: minWordCount
-					? `${wordCount} / ${minWordCount} words minimum`
-					: `${wordCount} words`,
+					? `${wordCount} / ${minWordCount} ${wordLabel} minimum`
+					: `${wordCount} ${wordLabel}`,
 			};
 		}
 		return {
 			icon: CheckCircle2,
 			iconClassName: "text-green-500",
 			textClassName: "text-green-500",
-			message: `${wordCount} words`,
+			message: `${wordCount} ${wordLabel}`,
 		};
 	};
 

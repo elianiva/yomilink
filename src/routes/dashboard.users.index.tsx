@@ -2,7 +2,6 @@ import { useQueryClient } from "@tanstack/react-query";
 import { createFileRoute } from "@tanstack/react-router";
 import { UsersIcon } from "lucide-react";
 import { useState } from "react";
-import { toast } from "sonner";
 
 import { PageHeader } from "@/components/page-header";
 import { Button } from "@/components/ui/button";
@@ -87,11 +86,6 @@ function UsersPage() {
 		successMessage: "Cohort assignment updated",
 	});
 
-	const passwordResetMutation = useRpcMutation(UserRpc.triggerPasswordReset(), {
-		operation: "password reset",
-		showSuccess: true,
-	});
-
 	const invalidateUsers = () => {
 		void queryClient.invalidateQueries({ queryKey: UserRpc.users() });
 	};
@@ -129,21 +123,6 @@ function UsersPage() {
 
 	const handleUnban = (userId: string) => {
 		unbanMutation.mutate({ userId }, { onSuccess: invalidateUsers });
-	};
-
-	const handlePasswordReset = (userId: string) => {
-		passwordResetMutation.mutate(
-			{ userId },
-			{
-				onSuccess: (result) => {
-					if (result.success && result.data) {
-						toast.success("Password reset link generated", {
-							description: `Reset token: ${result.data.resetToken}`,
-						});
-					}
-				},
-			},
-		);
 	};
 
 	const handleBulkAction = (action: "assign" | "ban") => {
@@ -241,7 +220,7 @@ function UsersPage() {
 						onBan={handleBan}
 						onUnban={handleUnban}
 						onRoleChange={handleRoleChange}
-						onPasswordReset={handlePasswordReset}
+
 						isAdmin={isAdmin}
 						currentUserId={currentUserId}
 						isSaving={updateMutation.isPending}

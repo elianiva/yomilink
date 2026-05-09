@@ -20,7 +20,7 @@ const KitEdgeSchema = Schema.Record({ key: Schema.String, value: Schema.Any }).p
 );
 
 export const GetKitInput = Schema.Struct({
-	kitId: NonEmpty("Kit ID"),
+	goalMapId: NonEmpty("Goal map ID"),
 });
 
 export type GetKitInput = typeof GetKitInput.Type;
@@ -40,7 +40,7 @@ export const GenerateKitInput = Schema.Struct({
 
 export type GenerateKitInput = typeof GenerateKitInput.Type;
 
-export const listStudentKits = Effect.fn("listStudentKits")(function* () {
+export const listGoalMapsWithKits = Effect.fn("listGoalMapsWithKits")(function* () {
 	const db = yield* Database;
 	const rows = yield* db
 		.select({
@@ -73,7 +73,7 @@ export const getKit = Effect.fn("getKit")(function* (input: GetKitInput) {
 		})
 		.from(kits)
 		.leftJoin(goalMaps, eq(kits.goalMapId, goalMaps.id))
-		.where(eq(kits.goalMapId, input.kitId))
+		.where(eq(kits.goalMapId, input.goalMapId))
 		.limit(1);
 
 	const row = rows[0];
@@ -152,7 +152,7 @@ export const generateKit = Effect.fn("generateKit")(function* (
 	const nodes = Array.isArray(gm.nodes)
 		? gm.nodes
 		: typeof gm.nodes === "string"
-			? JSON.parse(gm.nodes)
+			? yield* safeParseJson(gm.nodes, [], Schema.Array(Schema.Any))
 			: [];
 
 	const kitNodes = nodes.filter((n: any) => n?.type === "text" || n?.type === "connector");

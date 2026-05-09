@@ -95,7 +95,10 @@ function FormTakerPage() {
 	const handleSubmit = () => {
 		if (!answeredRequired) return;
 		clearDraft();
-		submitMutation.mutate({ formId: formId!, answers });
+		const stringAnswers: Record<string, string> = Object.fromEntries(
+			Object.entries(answers).map(([k, v]) => [k, String(v)]),
+		);
+		submitMutation.mutate({ formId: formId!, answers: stringAnswers });
 	};
 
 	if (submitMutation.isPending) return <FormSubmittedSuccess />;

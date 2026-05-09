@@ -2,7 +2,7 @@ import { and, count, eq, inArray } from "drizzle-orm";
 import { Effect } from "effect";
 
 import { Database } from "@/server/db/client";
-import { cohortMembers, user, verification } from "@/server/db/schema/auth-schema";
+import { cohortMembers, user } from "@/server/db/schema/auth-schema";
 
 import { getUserById } from "./user-service.queries";
 import {
@@ -225,27 +225,3 @@ export const bulkAssignCohort = Effect.fn("bulkAssignCohort")((input: BulkCohort
 	}),
 );
 
-export const triggerPasswordReset = Effect.fn("triggerPasswordReset")((userId: string) =>
-	Effect.gen(function* () {
-		const db = yield* Database;
-
-		const existingRows = yield* db.select().from(user).where(eq(user.id, userId)).limit(1);
-
-		if (existingRows.length === 0) {
-			return yield* new UserNotFoundError({ userId });
-		}
-
-		const existing = existingRows[0];
-		const resetToken = crypto.randomUUID();
-		const expiresAt = new Date(Date.now() + 1000 * 60 * 60);
-
-		yield* db.insert(verification).values({
-			id: crypto.randomUUID(),
-			identifier: existing.email,
-			value: resetToken,
-			expiresAt,
-		});
-
-		return { resetToken, expiresAt };
-	}),
-);

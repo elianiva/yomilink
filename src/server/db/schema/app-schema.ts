@@ -44,7 +44,7 @@ export const goalMaps = sqliteTable(
 		type: text("type", { enum: ["teacher", "scratch"] })
 			.notNull()
 			.default("teacher"),
-		textId: text("text_id").references(() => texts.id),
+		textId: text("text_id").references(() => texts.id, { onDelete: "set null" }),
 		topicId: text("topic_id").references(() => topics.id),
 		...timestamps,
 	},
@@ -68,9 +68,9 @@ export const kits = sqliteTable(
 		enabled: integer("enabled", { mode: "boolean" }).notNull().default(true),
 		goalMapId: text("goal_map_id")
 			.notNull()
-			.references(() => goalMaps.id),
+			.references(() => goalMaps.id, { onDelete: "cascade" }),
 		teacherId: text("teacher_id").notNull(),
-		textId: text("text_id").references(() => texts.id),
+		textId: text("text_id").references(() => texts.id, { onDelete: "set null" }),
 		// Kit nodes (concepts + connectors from goal map)
 		nodes: text("nodes", { mode: "json" }).notNull().default("[]"),
 		// Kit edges - empty for students to build
@@ -90,10 +90,10 @@ export const kitSets = sqliteTable(
 		id: text("id").primaryKey(),
 		kitId: text("kit_id")
 			.notNull()
-			.references(() => kits.id),
+			.references(() => kits.id, { onDelete: "cascade" }),
 		setId: text("set_id").notNull(),
 		order: integer("order").notNull(),
-		textId: text("text_id").references(() => texts.id),
+		textId: text("text_id").references(() => texts.id, { onDelete: "set null" }),
 		instructions: text("instructions"),
 		...timestamps,
 	},
@@ -110,20 +110,20 @@ export const assignments = sqliteTable(
 		id: text("id").primaryKey(),
 		goalMapId: text("goal_map_id")
 			.notNull()
-			.references(() => goalMaps.id),
+			.references(() => goalMaps.id, { onDelete: "cascade" }),
 		kitId: text("kit_id")
 			.notNull()
-			.references(() => kits.id),
+			.references(() => kits.id, { onDelete: "cascade" }),
 		title: text("title").notNull(),
 		description: text("description"),
 		readingMaterial: text("reading_material", { length: 1_000_000 }),
 		timeLimitMinutes: integer("time_limit_minutes"),
 		startDate: integer("start_date", { mode: "timestamp_ms" }),
 		dueAt: integer("due_at", { mode: "timestamp_ms" }),
-		preTestFormId: text("pre_test_form_id").references(() => forms.id),
-		postTestFormId: text("post_test_form_id").references(() => forms.id),
-		delayedPostTestFormId: text("delayed_post_test_form_id").references(() => forms.id),
-		tamFormId: text("tam_form_id").references(() => forms.id),
+		preTestFormId: text("pre_test_form_id").references(() => forms.id, { onDelete: "set null" }),
+		postTestFormId: text("post_test_form_id").references(() => forms.id, { onDelete: "set null" }),
+		delayedPostTestFormId: text("delayed_post_test_form_id").references(() => forms.id, { onDelete: "set null" }),
+		tamFormId: text("tam_form_id").references(() => forms.id, { onDelete: "set null" }),
 		delayedPostTestDelayDays: integer("delayed_post_test_delay_days").default(7),
 		createdBy: text("created_by").notNull(),
 		...timestamps,
@@ -162,13 +162,13 @@ export const learnerMaps = sqliteTable(
 		id: text("id").primaryKey(),
 		assignmentId: text("assignment_id")
 			.notNull()
-			.references(() => assignments.id),
+			.references(() => assignments.id, { onDelete: "cascade" }),
 		goalMapId: text("goal_map_id")
 			.notNull()
-			.references(() => goalMaps.id),
+			.references(() => goalMaps.id, { onDelete: "cascade" }),
 		kitId: text("kit_id")
 			.notNull()
-			.references(() => kits.id),
+			.references(() => kits.id, { onDelete: "cascade" }),
 		userId: text("user_id").notNull(),
 		nodes: text("nodes", { mode: "json" }),
 		edges: text("edges", { mode: "json" }),
@@ -185,6 +185,7 @@ export const learnerMaps = sqliteTable(
 		index("learner_maps_goalMapId_idx").on(table.goalMapId),
 		index("learner_maps_kitId_idx").on(table.kitId),
 		index("learner_maps_userId_idx").on(table.userId),
+		unique("learner_maps_assignment_user_attempt_unique").on(table.assignmentId, table.userId, table.attempt),
 	],
 );
 
@@ -194,10 +195,10 @@ export const diagnoses = sqliteTable(
 		id: text("id").primaryKey(),
 		goalMapId: text("goal_map_id")
 			.notNull()
-			.references(() => goalMaps.id),
+			.references(() => goalMaps.id, { onDelete: "cascade" }),
 		learnerMapId: text("learner_map_id")
 			.notNull()
-			.references(() => learnerMaps.id),
+			.references(() => learnerMaps.id, { onDelete: "cascade" }),
 		summary: text("summary"),
 		perLink: text("per_link", { mode: "json" }),
 		score: real("score"),
@@ -216,10 +217,10 @@ export const feedback = sqliteTable(
 		id: text("id").primaryKey(),
 		learnerMapId: text("learner_map_id")
 			.notNull()
-			.references(() => learnerMaps.id),
+			.references(() => learnerMaps.id, { onDelete: "cascade" }),
 		goalMapId: text("goal_map_id")
 			.notNull()
-			.references(() => goalMaps.id),
+			.references(() => goalMaps.id, { onDelete: "cascade" }),
 		items: text("items", { mode: "json" }).notNull(),
 		visibility: text("visibility", { enum: ["private", "public"] })
 			.notNull()
@@ -414,10 +415,10 @@ export const formResponses = sqliteTable(
 		id: text("id").primaryKey(),
 		formId: text("form_id")
 			.notNull()
-			.references(() => forms.id),
+			.references(() => forms.id, { onDelete: "cascade" }),
 		userId: text("user_id")
 			.notNull()
-			.references(() => user.id),
+			.references(() => user.id, { onDelete: "cascade" }),
 		answers: text("answers", { mode: "json" }).notNull(),
 		submittedAt: integer("submitted_at", { mode: "timestamp_ms" }),
 		timeSpentSeconds: integer("time_spent_seconds"),
@@ -436,10 +437,10 @@ export const formProgress = sqliteTable(
 		id: text("id").primaryKey(),
 		formId: text("form_id")
 			.notNull()
-			.references(() => forms.id),
+			.references(() => forms.id, { onDelete: "cascade" }),
 		userId: text("user_id")
 			.notNull()
-			.references(() => user.id),
+			.references(() => user.id, { onDelete: "cascade" }),
 		status: text("status", { enum: ["locked", "available", "completed"] })
 			.notNull()
 			.default("locked"),

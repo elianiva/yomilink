@@ -250,7 +250,7 @@ export const getFormResponsesRpc = createServerFn()
 
 export const SubmitFormResponseInput = Schema.Struct({
 	formId: Schema.String,
-	answers: Schema.Record({ key: Schema.String, value: Schema.Unknown }),
+	answers: Schema.Record({ key: Schema.String, value: Schema.String }),
 	timeSpentSeconds: Schema.optionalWith(Schema.Int, { nullable: true }),
 });
 

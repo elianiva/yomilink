@@ -142,7 +142,7 @@ export function FormList({
 				return (
 					<Card
 						key={form.id}
-						className="relative border border-stone-200 bg-white py-1.5"
+						className="group relative border border-stone-200 bg-white py-1.5"
 					>
 						<CardContent className="p-3">
 							<div className="flex items-start gap-3">

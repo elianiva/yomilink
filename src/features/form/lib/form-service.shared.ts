@@ -221,6 +221,13 @@ export const normalizeAndValidateReadingMaterialSections = Effect.fn(
 			});
 		}
 
+		if (!section.content.trim()) {
+			return yield* new InvalidReadingMaterialSectionsError({
+				reason:
+					"Reading material range " + String(i + 1) + " has empty content",
+			});
+		}
+
 		if (section.endQuestion < section.startQuestion) {
 			return yield* new InvalidReadingMaterialSectionsError({
 				reason: "Reading material range " + String(i + 1) + " has invalid bounds",
@@ -289,7 +296,7 @@ export type CreateFormInput = typeof CreateFormInput.Type;
 export const SubmitFormResponseInput = Schema.Struct({
 	formId: NonEmpty("Form ID"),
 	userId: NonEmpty("User ID"),
-	answers: Schema.Record({ key: Schema.String, value: Schema.Unknown }),
+	answers: Schema.Record({ key: Schema.String, value: Schema.String }),
 	timeSpentSeconds: Schema.optionalWith(Schema.Int, { nullable: true }),
 });
 
