@@ -63,6 +63,7 @@ export default defineConfig({
 		},
 	},
 	build: {
+		target: "es2023",
 		cssCodeSplit: true,
 		assetsInlineLimit: 4096,
 		rolldownOptions: {
