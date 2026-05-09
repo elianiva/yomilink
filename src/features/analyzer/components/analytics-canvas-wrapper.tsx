@@ -30,7 +30,7 @@ interface AnalyticsCanvasWrapperProps {
 
 function CanvasSkeleton() {
 	return (
-		<div className="w-full h-full flex items-center justify-center">
+		<div className="flex-1 h-full flex items-center justify-center">
 			<div className="flex flex-col items-center gap-4">
 				<Skeleton className="h-32 w-48 rounded-lg" />
 				<Skeleton className="h-4 w-32" />

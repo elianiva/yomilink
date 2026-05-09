@@ -2,17 +2,17 @@
 
 ## Stack
 
-| Layer | Technology |
-|---|---|
-| **Framework** | TanStack Start (React + SSR + RPC) |
-| **Routing** | TanStack Router (file-based, SPA) |
-| **State** | TanStack React Query + React Form |
-| **Backend** | Effect-TS (functional effects, schema validation, error handling) |
-| **Database** | LibSQL (Turso) via Drizzle ORM |
-| **Auth** | Better Auth (email/password) |
-| **Concept Maps** | React Flow (interactive node-edge graph) |
-| **Styling** | Tailwind CSS v4 + shadcn/ui |
-| **Deployment** | Cloudflare Workers |
+| Layer            | Technology                                                        |
+| ---------------- | ----------------------------------------------------------------- |
+| **Framework**    | TanStack Start (React + SSR + RPC)                                |
+| **Routing**      | TanStack Router (file-based, SPA)                                 |
+| **State**        | TanStack React Query + React Form                                 |
+| **Backend**      | Effect-TS (functional effects, schema validation, error handling) |
+| **Database**     | LibSQL (Turso) via Drizzle ORM                                    |
+| **Auth**         | Better Auth (email/password)                                      |
+| **Concept Maps** | React Flow (interactive node-edge graph)                          |
+| **Styling**      | Tailwind CSS v4 + shadcn/ui                                       |
+| **Deployment**   | Cloudflare Workers                                                |
 
 ## Project Structure
 
@@ -100,37 +100,35 @@ export const getUserRpc = createServerFn()
 ### React Query Wrapper
 
 ```typescript
-const { data, isLoading, rpcError, refetch } = useRpcQuery(
-	FormRpc.getStudentFormById(formId),
-);
+const { data, isLoading, rpcError, refetch } = useRpcQuery(FormRpc.getStudentFormById(formId));
 ```
 
 ## Route Structure
 
 ### Public Routes
 
-| Route | Title | Auth | Description |
-|---|---|---|---|
-| `/` | — | No | Redirects to `/login` |
-| `/login` | Sign In - KitBuild | No | Login form |
-| `/signup` | Sign Up - KitBuild | No | Multi-step registration |
+| Route     | Title              | Auth | Description             |
+| --------- | ------------------ | ---- | ----------------------- |
+| `/`       | —                  | No   | Redirects to `/login`   |
+| `/login`  | Sign In - KitBuild | No   | Login form              |
+| `/signup` | Sign Up - KitBuild | No   | Multi-step registration |
 
 ### Dashboard Routes (Authenticated)
 
-| Route | Title | Role | Description |
-|---|---|---|---|
-| `/dashboard` | Dashboard - KitBuild | teacher/admin | Topics & goal maps |
-| `/dashboard/assignments` | Dashboard - KitBuild | student | My Assignments |
-| `/dashboard/profile` | Dashboard - KitBuild | any | Edit profile |
-| `/dashboard/forms/student` | Dashboard - KitBuild | student | My Forms |
-| `/dashboard/forms/take` | Dashboard - KitBuild | student | Take/view form |
-| `/dashboard/learner-map/{id}` | Dashboard - KitBuild | student | Kit-Build editor |
-| `/dashboard/learner-map/{id}/result` | Dashboard - KitBuild | student | Diagnosis result |
-| `/dashboard/assignments/manage` | Dashboard - KitBuild | teacher/admin | Assignment CRUD |
-| `/dashboard/forms` | Dashboard - KitBuild | teacher/admin | Form management |
-| `/dashboard/forms/builder` | Dashboard - KitBuild | teacher/admin | Form editor |
-| `/dashboard/forms/{id}/results` | Dashboard - KitBuild | teacher/admin | Response aggregation |
-| `/dashboard/users` | Dashboard - KitBuild | teacher/admin | User management |
-| `/dashboard/analytics` | Dashboard - KitBuild | teacher/admin | Static Analyzer |
-| `/dashboard/goal-map` | Dashboard - KitBuild | teacher/admin | Goal map list |
-| `/dashboard/goal-map/{id}` | Dashboard - KitBuild | teacher/admin | Goal map editor |
+| Route                                | Title                | Role          | Description          |
+| ------------------------------------ | -------------------- | ------------- | -------------------- |
+| `/dashboard`                         | Dashboard - KitBuild | teacher/admin | Topics & goal maps   |
+| `/dashboard/assignments`             | Dashboard - KitBuild | student       | My Assignments       |
+| `/dashboard/profile`                 | Dashboard - KitBuild | any           | Edit profile         |
+| `/dashboard/forms/student`           | Dashboard - KitBuild | student       | My Forms             |
+| `/dashboard/forms/take`              | Dashboard - KitBuild | student       | Take/view form       |
+| `/dashboard/learner-map/{id}`        | Dashboard - KitBuild | student       | Kit-Build editor     |
+| `/dashboard/learner-map/{id}/result` | Dashboard - KitBuild | student       | Diagnosis result     |
+| `/dashboard/assignments/manage`      | Dashboard - KitBuild | teacher/admin | Assignment CRUD      |
+| `/dashboard/forms`                   | Dashboard - KitBuild | teacher/admin | Form management      |
+| `/dashboard/forms/builder`           | Dashboard - KitBuild | teacher/admin | Form editor          |
+| `/dashboard/forms/{id}/results`      | Dashboard - KitBuild | teacher/admin | Response aggregation |
+| `/dashboard/users`                   | Dashboard - KitBuild | teacher/admin | User management      |
+| `/dashboard/analytics`               | Dashboard - KitBuild | teacher/admin | Static Analyzer      |
+| `/dashboard/goal-map`                | Dashboard - KitBuild | teacher/admin | Goal map list        |
+| `/dashboard/goal-map/{id}`           | Dashboard - KitBuild | teacher/admin | Goal map editor      |

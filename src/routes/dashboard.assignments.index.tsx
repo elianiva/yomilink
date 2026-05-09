@@ -59,7 +59,7 @@ function AssignmentsPage() {
 
 			{isLoading ? (
 				<div className="flex items-center justify-center">
-					<Skeleton className="h-24 w-full rounded-lg" />
+					<Skeleton className="h-24 rounded-lg" />
 				</div>
 			) : (
 				<AssignmentList

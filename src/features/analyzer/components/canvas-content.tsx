@@ -11,7 +11,7 @@ const AnalyticsCanvas = lazy(() =>
 
 function CanvasSkeleton() {
 	return (
-		<div className="w-full h-full flex items-center justify-center">
+		<div className="flex-1 h-full flex items-center justify-center">
 			<Loader2Icon className="animate-spin size-8" />
 		</div>
 	);
@@ -59,7 +59,7 @@ export function CanvasContent({
 
 	if (!selectedAssignmentId) {
 		return (
-			<div className="w-full h-full flex items-center justify-center">
+			<div className="flex-1 h-full flex items-center justify-center">
 				<div className="text-sm text-muted-foreground px-4 text-center">
 					Select an assignment to view analytics
 				</div>
@@ -69,7 +69,7 @@ export function CanvasContent({
 
 	if (selectedLearnerMapIds.size === 0 || !analyticsData || !("goalMap" in analyticsData)) {
 		return (
-			<div className="w-full h-full flex items-center justify-center">
+			<div className="flex-1 h-full flex items-center justify-center">
 				<div className="text-sm text-muted-foreground px-4 text-center">
 					Select learners to view their maps
 				</div>
@@ -79,7 +79,7 @@ export function CanvasContent({
 
 	if (isLoadingLearnerMaps || !multipleLearnerMapDetails) {
 		return (
-			<div className="w-full h-full flex items-center justify-center">
+			<div className="flex-1 h-full flex items-center justify-center">
 				<div className="text-sm text-muted-foreground px-4 text-center">
 					Loading learner maps…
 				</div>

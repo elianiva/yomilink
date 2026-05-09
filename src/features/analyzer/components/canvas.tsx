@@ -106,7 +106,7 @@ function AnalyticsCanvasInner({
 	const noop = useCallback(() => {}, []);
 
 	return (
-		<div className="w-full h-full relative">
+		<div className="flex-1 h-full relative">
 			<div className="absolute bottom-4 right-4 z-10 flex flex-col gap-2">
 				<button
 					type="button"

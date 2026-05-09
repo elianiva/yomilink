@@ -17,11 +17,11 @@ Sign Up → Pre-Test → Reading Phase → Kit-Build → Post-Test → Delayed T
 
 ## User Roles
 
-| Role | Sidebar | Capabilities |
-|---|---|---|
-| **student** | My Assignments, My Forms | Take tests, build concept maps, view results, edit profile |
+| Role        | Sidebar                                               | Capabilities                                                              |
+| ----------- | ----------------------------------------------------- | ------------------------------------------------------------------------- |
+| **student** | My Assignments, My Forms                              | Take tests, build concept maps, view results, edit profile                |
 | **teacher** | Dashboard, Assignments, Static Analyzer, Forms, Users | Create/manage goal maps, assignments, forms; view analytics; manage users |
-| **admin** | Same as teacher + whitelist import | All teacher capabilities + CSV whitelist import |
+| **admin**   | Same as teacher + whitelist import                    | All teacher capabilities + CSV whitelist import                           |
 
 ## Key Concepts
 
@@ -33,10 +33,10 @@ Sign Up → Pre-Test → Reading Phase → Kit-Build → Post-Test → Delayed T
 
 ## Documentation
 
-| File | Description |
-|---|---|
-| [Getting Started](getting-started.md) | Setup, installation, demo credentials, commands |
-| [Architecture](architecture.md) | Stack, patterns, routing, auth, database |
-| [Student Guide](student-guide.md) | Full student flow: login, signup, assignments, forms, kit-build, profile |
-| [Teacher Guide](teacher-guide.md) | Full teacher flow: dashboard, topics, assignments, forms, users, analytics |
-| [Methodology](methodology.md) | Scoring formulas, Bloom's taxonomy, TAM, retention decay |
+| File                                  | Description                                                                |
+| ------------------------------------- | -------------------------------------------------------------------------- |
+| [Getting Started](getting-started.md) | Setup, installation, demo credentials, commands                            |
+| [Architecture](architecture.md)       | Stack, patterns, routing, auth, database                                   |
+| [Student Guide](student-guide.md)     | Full student flow: login, signup, assignments, forms, kit-build, profile   |
+| [Teacher Guide](teacher-guide.md)     | Full teacher flow: dashboard, topics, assignments, forms, users, analytics |
+| [Methodology](methodology.md)         | Scoring formulas, Bloom's taxonomy, TAM, retention decay                   |

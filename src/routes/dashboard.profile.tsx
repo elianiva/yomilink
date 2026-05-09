@@ -64,7 +64,7 @@ function ProfilePage() {
 
 	return (
 		<div className="flex flex-1 p-4 lg:p-6">
-			<div className="w-full max-w-6xl mx-auto">
+			<div className="max-w-6xl mx-auto">
 				<div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
 					<div className="lg:col-span-4 space-y-6">
 						<div className="rounded-2xl border border-border/60 bg-white shadow-sm p-6">

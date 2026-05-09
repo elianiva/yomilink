@@ -111,7 +111,7 @@ function FormTakerPage() {
 		);
 
 	return (
-		<div className="flex flex-1 flex-col -mx-6 h-[calc(100%+3rem)]">
+		<div className="flex flex-1 flex-col -mx-6 h-[calc(100%+3rem)] overflow-hidden">
 			<FormHeaderBar
 				title={data.form.title}
 				description={data.form.description ?? undefined}

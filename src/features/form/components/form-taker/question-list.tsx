@@ -35,7 +35,7 @@ export function QuestionList({
 	return (
 		<div className="flex-1 relative min-w-0">
 			<div className="absolute inset-0">
-				<ScrollArea className="h-full w-full">
+				<ScrollArea className="flex-1 h-full">
 					<div className={`${centered ? "mx-auto max-w-2xl" : ""} p-6 pb-32`}>
 						{questions.map((question, index) => (
 							<div key={question.id} className="py-6">
