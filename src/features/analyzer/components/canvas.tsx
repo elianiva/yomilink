@@ -133,13 +133,10 @@ function AnalyticsCanvasInner({
 }: AnalyticsCanvasProps) {
 	const { zoomIn, zoomOut, fitView } = useReactFlow();
 
-	// Local state for nodes to enable dragging (session-only, resets on refresh)
 	const [nodes, setNodes] = useState<Node[]>([]);
 
-	// Use the shared graph change handlers
 	const { onNodesChange } = useGraphChangeHandlers(setNodes, () => {});
 
-	// Use single learner map or multiple learner maps
 	const currentLearnerMaps = useMemo(
 		() => (isMultiView ? learnerMaps || [] : learnerMap ? [learnerMap] : []),
 		[isMultiView, learnerMaps, learnerMap],

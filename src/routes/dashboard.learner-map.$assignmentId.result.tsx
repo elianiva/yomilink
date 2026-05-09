@@ -4,7 +4,6 @@ import { lazy, Suspense } from "react";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Guard } from "@/features/auth/components/Guard";
 
-// Lazy load the Learner Map Result page with React Flow
 const LearnerMapResult = lazy(() =>
 	import("@/features/learner-map/components/learner-map-result").then((m) => ({
 		default: m.LearnerMapResult,
@@ -13,36 +12,23 @@ const LearnerMapResult = lazy(() =>
 
 function ResultSkeleton() {
 	return (
-		<div className="h-full flex flex-col">
-			{/* Header skeleton */}
-			<div className="border-b bg-background p-4 flex items-center justify-between">
-				<div className="flex items-center gap-4">
-					<Skeleton className="h-10 w-10" />
-					<div>
-						<Skeleton className="h-5 w-24" />
-						<Skeleton className="h-4 w-16 mt-1" />
-					</div>
+		<div className="relative h-full overflow-hidden -mx-6">
+			{/* Toolbar skeleton */}
+			<div className="border-b-[0.5px] bg-background/70 backdrop-blur h-12 px-3 flex items-center gap-2">
+				<Skeleton className="h-4 w-32" />
+				<Skeleton className="h-5 w-14 rounded-full" />
+				<Skeleton className="h-5 w-18 rounded-full" />
+				<div className="ml-auto flex items-center gap-1.5">
+					<Skeleton className="size-8 rounded-md" />
+					<Skeleton className="h-8 w-24 rounded-md" />
 				</div>
-				<Skeleton className="h-10 w-28" />
 			</div>
 
-			{/* Content skeleton */}
-			<div className="flex-1 flex overflow-hidden">
-				{/* Sidebar skeleton */}
-				<div className="w-80 border-r p-4 space-y-4">
-					<Skeleton className="h-48 w-full" />
-					<Skeleton className="h-32 w-full" />
-					<Skeleton className="h-40 w-full" />
-				</div>
-
-				{/* Map skeleton */}
-				<div className="flex-1 relative bg-muted/50">
-					<div className="absolute inset-0 flex items-center justify-center">
-						<div className="flex flex-col items-center gap-4">
-							<Skeleton className="h-8 w-48" />
-							<Skeleton className="h-4 w-32" />
-						</div>
-					</div>
+			{/* Canvas skeleton */}
+			<div className="absolute inset-0 top-12 flex items-center justify-center bg-muted/30">
+				<div className="flex flex-col items-center gap-4">
+					<Skeleton className="h-8 w-48" />
+					<Skeleton className="h-4 w-32" />
 				</div>
 			</div>
 		</div>

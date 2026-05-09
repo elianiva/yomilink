@@ -30,8 +30,6 @@ export function ReadingMaterialRenderer({ content, isHtml = false }: ReadingMate
 	}
 
 	return (
-		<div className="text-xl leading-loose text-foreground/90">
-			{highlightParens(content)}
-		</div>
+		<div className="text-xl leading-loose text-foreground/90">{highlightParens(content)}</div>
 	);
 }

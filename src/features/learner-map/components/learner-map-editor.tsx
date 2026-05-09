@@ -114,9 +114,9 @@ export function LearnerMapEditor() {
 				condition === "summarizing"
 					? assignmentData.learnerMap.controlText || ""
 					: JSON.stringify({
-						nodes: assignmentData.learnerMap.nodes,
-						edges: assignmentData.learnerMap.edges,
-					}),
+							nodes: assignmentData.learnerMap.nodes,
+							edges: assignmentData.learnerMap.edges,
+						}),
 			);
 		} else {
 			const arrangedNodes = arrangeNodesByType([...assignmentData.kit.nodes]);

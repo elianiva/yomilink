@@ -443,10 +443,25 @@ function StudentCard({
 					</div>
 
 					<div className="flex items-center">
-						<Button variant="default" size="sm" onClick={() => onClick?.(assignment)}>
-							<PlayIcon className="size-3.5 mr-1" />
-							Start
-						</Button>
+						{status === "submitted" ? (
+							<Button
+								variant="outline"
+								size="sm"
+								onClick={() => onClick?.(assignment)}
+							>
+								<FileTextIcon className="size-3.5 mr-1" />
+								Show Result
+							</Button>
+						) : (
+							<Button
+								variant="default"
+								size="sm"
+								onClick={() => onClick?.(assignment)}
+							>
+								<PlayIcon className="size-3.5 mr-1" />
+								Start
+							</Button>
+						)}
 					</div>
 				</div>
 			</CardContent>

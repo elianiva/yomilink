@@ -163,7 +163,9 @@ export function FormPreview({
 															")"}
 												</p>
 												<div className="mt-2">
-													<ReadingMaterialRenderer content={readingMaterial.content} />
+													<ReadingMaterialRenderer
+														content={readingMaterial.content}
+													/>
 												</div>
 											</div>
 										)}
