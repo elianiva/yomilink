@@ -17,7 +17,6 @@ import { FormRpc } from "@/server/rpc/form";
 
 import { ResponseDetailModal } from "./response-detail-modal";
 
-// Local aliases for internal use
 type FormResponse = FormResponseOutput;
 type ResponseQuestion = QuestionOutput;
 
@@ -45,7 +44,6 @@ export function IndividualResponsesTable({
 }: IndividualResponsesTableProps) {
 	const [selectedResponse, setSelectedResponse] = useState<FormResponse | null>(null);
 
-	// For pagination, we'd fetch more data. For now, show what we have.
 	const { data: moreResponses } = useRpcQuery({
 		...FormRpc.getFormResponses({
 			formId,
@@ -120,7 +118,6 @@ export function IndividualResponsesTable({
 				</TableBody>
 			</Table>
 
-			{/* Pagination controls */}
 			{pagination.totalPages > 1 && (
 				<div className="flex items-center justify-between mt-4">
 					<div className="text-sm text-muted-foreground">
@@ -128,24 +125,10 @@ export function IndividualResponsesTable({
 						responses)
 					</div>
 					<div className="flex gap-2">
-						<Button
-							variant="outline"
-							size="sm"
-							disabled={!pagination.hasPrevPage}
-							onClick={() => {
-								// In a full implementation, this would navigate to the previous page
-							}}
-						>
+						<Button variant="outline" size="sm" disabled={!pagination.hasPrevPage}>
 							Previous
 						</Button>
-						<Button
-							variant="outline"
-							size="sm"
-							disabled={!pagination.hasNextPage}
-							onClick={() => {
-								// In a full implementation, this would navigate to the next page
-							}}
-						>
+						<Button variant="outline" size="sm" disabled={!pagination.hasNextPage}>
 							Next
 						</Button>
 					</div>

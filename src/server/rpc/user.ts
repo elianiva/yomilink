@@ -23,8 +23,6 @@ import { requireRoleMiddleware } from "@/middlewares/auth";
 import { AppRuntime } from "../app-runtime";
 import { Rpc, logRpcError, logAndReturnError, logAndReturnDefect } from "../rpc-helper";
 
-// === List Users ===
-
 export const listUsersRpc = createServerFn()
 	.middleware([requireRoleMiddleware("teacher", "admin")])
 	.inputValidator((raw) => Schema.decodeUnknownSync(UserFilterInput)(raw))
@@ -39,8 +37,6 @@ export const listUsersRpc = createServerFn()
 			),
 		),
 	);
-
-// === Get User By ID ===
 
 export const getUserByIdRpc = createServerFn()
 	.middleware([requireRoleMiddleware("teacher", "admin")])
@@ -61,8 +57,6 @@ export const getUserByIdRpc = createServerFn()
 			),
 		),
 	);
-
-// === Update User ===
 
 export const updateUserRpc = createServerFn({ method: "POST" })
 	.middleware([requireRoleMiddleware("teacher", "admin")])
@@ -89,8 +83,6 @@ export const updateUserRpc = createServerFn({ method: "POST" })
 		),
 	);
 
-// === Update User Role (Admin only) ===
-
 export const updateUserRoleRpc = createServerFn({ method: "POST" })
 	.middleware([requireRoleMiddleware("admin")])
 	.inputValidator((raw) => Schema.decodeUnknownSync(UpdateRoleInput)(raw))
@@ -111,8 +103,6 @@ export const updateUserRoleRpc = createServerFn({ method: "POST" })
 		),
 	);
 
-// === Ban User (Admin only) ===
-
 export const banUserRpc = createServerFn({ method: "POST" })
 	.middleware([requireRoleMiddleware("admin")])
 	.inputValidator((raw) => Schema.decodeUnknownSync(BanUserInput)(raw))
@@ -132,8 +122,6 @@ export const banUserRpc = createServerFn({ method: "POST" })
 			),
 		),
 	);
-
-// === Unban User (Admin only) ===
 
 export const unbanUserRpc = createServerFn({ method: "POST" })
 	.middleware([requireRoleMiddleware("admin")])
@@ -156,8 +144,6 @@ export const unbanUserRpc = createServerFn({ method: "POST" })
 		),
 	);
 
-// === Bulk Assign Cohort ===
-
 export const bulkAssignCohortRpc = createServerFn({ method: "POST" })
 	.middleware([requireRoleMiddleware("teacher", "admin")])
 	.inputValidator((raw) => Schema.decodeUnknownSync(BulkCohortAssignInput)(raw))
@@ -172,8 +158,6 @@ export const bulkAssignCohortRpc = createServerFn({ method: "POST" })
 			),
 		),
 	);
-
-// === Trigger Password Reset (Admin only) ===
 
 export const triggerPasswordResetRpc = createServerFn({ method: "POST" })
 	.middleware([requireRoleMiddleware("admin")])
@@ -194,8 +178,6 @@ export const triggerPasswordResetRpc = createServerFn({ method: "POST" })
 			),
 		),
 	);
-
-// === RPC Query Options ===
 
 export const UserRpc = {
 	users: () => ["users"],

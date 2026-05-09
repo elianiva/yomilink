@@ -28,11 +28,10 @@ type NavItemWithRoles = {
 	url: string;
 	icon: LucideIcon;
 	isActive?: boolean;
-	roles?: Role[]; // If undefined, visible to all roles
+	roles?: Role[];
 };
 
 const NAVBAR_ITEMS: NavItemWithRoles[] = [
-	// Teacher/Admin items
 	{
 		title: "Dashboard",
 		url: "/dashboard",
@@ -63,7 +62,6 @@ const NAVBAR_ITEMS: NavItemWithRoles[] = [
 		icon: UsersIcon,
 		roles: ["teacher", "admin"],
 	},
-	// Student items
 	{
 		title: "My Assignments",
 		url: "/dashboard/assignments",
@@ -84,7 +82,6 @@ export function AppSidebar(props: AppSidebarProps) {
 	const { data: me } = useRpcQuery(ProfileRpc.getMe());
 
 	const filteredItems = useMemo(() => {
-		// If no user data yet, show items visible to all (no roles restriction)
 		if (!me) {
 			return NAVBAR_ITEMS.filter((item) => !item.roles);
 		}

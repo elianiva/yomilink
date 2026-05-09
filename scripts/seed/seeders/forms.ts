@@ -187,7 +187,7 @@ export function seedForms(teacherId: string) {
 				.set({
 					description: "Open-ended feedback about the Kit-Build learning experience",
 					type: "questionnaire",
-					audience: "all",
+					audience: "experiment",
 					status: "published",
 					readingMaterialSections: null,
 					createdBy: teacherId,
@@ -201,7 +201,7 @@ export function seedForms(teacherId: string) {
 				title: feedbackFormTitle,
 				description: "Open-ended feedback about the Kit-Build learning experience",
 				type: "questionnaire",
-				audience: "all",
+				audience: "experiment",
 				status: "published",
 				readingMaterialSections: null,
 				createdBy: teacherId,

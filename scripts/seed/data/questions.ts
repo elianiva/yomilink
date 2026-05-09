@@ -12,55 +12,52 @@ const LIKERT_SCALE_5 = {
 
 export const TAM_QUESTIONS = [
 	{
-		questionText: "Using Kit-Build improves my reading comprehension skills.",
+		questionText: "Using Kit-Build improves my reading comprehension",
 		type: "likert" as const,
 		options: LIKERT_SCALE_5,
 	},
 	{
-		questionText:
-			"Kit-Build is helpful for understanding the structure and relationships within a text.",
+		questionText: "Kit-Build helps me understand the structure and relationships in the text",
 		type: "likert" as const,
 		options: LIKERT_SCALE_5,
 	},
 	{
-		questionText:
-			"Using Kit-Build makes it easier to organize information from what I have read.",
+		questionText: "Kit-Build makes it easier for me to organize information from the reading",
 		type: "likert" as const,
 		options: LIKERT_SCALE_5,
 	},
 	{
-		questionText:
-			"I think using Kit-Build is more effective for learning Japanese reading than traditional methods.",
+		questionText: "Using Kit-Build helps me learn Japanese reading better than traditional methods",
 		type: "likert" as const,
 		options: LIKERT_SCALE_5,
 	},
 	{
-		questionText: "Kit-Build is useful for my Japanese language learning.",
+		questionText: "I find Kit-Build useful for my Japanese language learning",
 		type: "likert" as const,
 		options: LIKERT_SCALE_5,
 	},
 	{
-		questionText: "I found Kit-Build easy to use.",
+		questionText: "I found Kit-Build easy to use",
 		type: "likert" as const,
 		options: LIKERT_SCALE_5,
 	},
 	{
-		questionText: "The Kit-Build interface is clear and easy to understand.",
+		questionText: "The interface of Kit-Build is clear and understandable",
 		type: "likert" as const,
 		options: LIKERT_SCALE_5,
 	},
 	{
-		questionText: "I was able to learn how to use Kit-Build quickly.",
+		questionText: "Learning to use Kit-Build was quick and easy",
 		type: "likert" as const,
 		options: LIKERT_SCALE_5,
 	},
 	{
-		questionText: "Connecting concepts in Kit-Build is intuitive.",
+		questionText: "Connecting concepts in Kit-Build is intuitive",
 		type: "likert" as const,
 		options: LIKERT_SCALE_5,
 	},
 	{
-		questionText: "Using Kit-Build did not require much mental effort.",
+		questionText: "My interaction with Kit-Build does not require a lot of mental effort.",
 		type: "likert" as const,
 		options: LIKERT_SCALE_5,
 	},
@@ -68,17 +65,17 @@ export const TAM_QUESTIONS = [
 
 export const FEEDBACK_QUESTIONS = [
 	{
-		questionText: "What was the most helpful part of using Kit-Build?",
+		questionText: "What did you like most about using Kit-Build?",
 		type: "text" as const,
 		options: [],
 	},
 	{
-		questionText: "What difficulties did you experience while using Kit-Build?",
+		questionText: "What difficulties did you encounter while using Kit-Build?",
 		type: "text" as const,
 		options: [],
 	},
 	{
-		questionText: "Do you have any suggestions to improve this application?",
+		questionText: "What improvements would you suggest for the application?",
 		type: "text" as const,
 		options: [],
 	},
@@ -159,11 +156,16 @@ export const READING_COMPREHENSION_QUESTIONS: ReadingQuestion[] = [
 		targetInfo: "Recall the activity at the library",
 	},
 	{
-		questionText: "喫茶店のコーヒーはどうですか？",
-		options: createMcqOptions(4, ["おいしいです", "高いです", "苦いです", "冷たいです"]),
+		questionText: "この町で一番おすすめの過ごし方はどれですか。",
+		options: createMcqOptions(4, [
+			"公園で本を読み、喫茶店でコーヒーを飲む",
+			"図書館で本を借りて、家で読む",
+			"スーパーで買い物をして、花屋で花を買う",
+			"郵便局で手紙を出して、銀行でお金をおろす",
+		]),
 		correctOptionId: generateOptionId(4, 0),
-		bloomLevel: "L1-Remembering",
-		targetInfo: "Recall the description of the coffee",
+		bloomLevel: "L5-Evaluating",
+		targetInfo: "Evaluate the best way to spend time based on the passage",
 	},
 
 	{
@@ -260,16 +262,16 @@ export const READING_COMPREHENSION_QUESTIONS: ReadingQuestion[] = [
 	},
 
 	{
-		questionText: "この文章から、わたしの住んでいる所の特徴はどれですか？",
+		questionText: "この町の住みやすさについて、最も適切な評価はどれですか？",
 		options: createMcqOptions(15, [
-			"とても便利な所",
-			"とても静かな所だけ",
-			"とてもにぎやかな所",
-			"不便な所",
+			"静かで買い物にも便利なので、住みやすい",
+			"店の種類が少ないので、住みにくい",
+			"にぎやかではないので、若い人には向かない",
+			"公園が一つしかないので、つまらない",
 		]),
 		correctOptionId: generateOptionId(15, 0),
 		bloomLevel: "L5-Evaluating",
-		targetInfo: "Evaluate the overall characteristic of the neighborhood",
+		targetInfo: "Evaluate the livability of the town based on the passage",
 	},
 	{
 		questionText: "わたしの生活について、最も近い説明はどれですか？",

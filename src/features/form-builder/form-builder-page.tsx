@@ -76,7 +76,6 @@ export function FormBuilderPage() {
 		if (saved) {
 			try {
 				const parsed = JSON.parse(saved) as DraftData;
-				// Only restore if draft is less than 7 days old
 				const draftAge = Date.now() - new Date(parsed.lastSaved).getTime();
 				if (draftAge < 7 * 24 * 60 * 60 * 1000) {
 					setShowDraftDialog(true);
@@ -108,7 +107,6 @@ export function FormBuilderPage() {
 		}
 	}, [isEditing, existingForm]);
 
-	// Auto-save draft to localStorage (only for new forms)
 	useEffect(() => {
 		if (isEditing || !isDraftLoaded) return;
 
@@ -125,7 +123,6 @@ export function FormBuilderPage() {
 		operation: "create form",
 		showSuccess: false,
 		onSuccess: async (result) => {
-			// After form is created, create all draft questions
 			if (questions.length > 0) {
 				await Promise.all(
 					questions.map((q) =>
@@ -380,7 +377,6 @@ export function FormBuilderPage() {
 				};
 				await createQuestionMutation.mutateAsync(input);
 			} else {
-				// Add to local state for new forms (draft)
 				setQuestions((prev) => [...prev, newQuestion]);
 			}
 		}
@@ -391,11 +387,9 @@ export function FormBuilderPage() {
 
 	const handleDeleteQuestion = async (questionId: string) => {
 		if (isDraftId(questionId)) {
-			// Delete from local state for draft questions
 			setQuestions((prev) => prev.filter((q) => q.id !== questionId));
 			setHasUnsavedChanges(true);
 		} else {
-			// Delete from database for saved questions
 			await deleteQuestionMutation.mutateAsync({ id: questionId });
 		}
 	};
@@ -407,7 +401,6 @@ export function FormBuilderPage() {
 		}));
 		setQuestions(updatedQuestions);
 
-		// Only trigger server reorder if form is saved
 		if (formId && !isDraftId(formId)) {
 			await reorderQuestionsMutation.mutateAsync({
 				formId,

@@ -40,7 +40,7 @@ export const getGoalMapRpc = createServerFn()
 	);
 
 export const saveGoalMapRpc = createServerFn({ method: "POST" })
-	.middleware([authMiddleware]) // Only check authentication, not authorization
+	.middleware([authMiddleware])
 	.inputValidator((raw) => Schema.decodeUnknownSync(SaveGoalMapInput)(raw))
 	.handler(({ data, context }) =>
 		AppRuntime.runPromise(

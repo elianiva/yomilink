@@ -1,12 +1,11 @@
 import { useQueryClient } from "@tanstack/react-query";
 import { Link, getRouteApi, useNavigate } from "@tanstack/react-router";
-import { ArrowLeftIcon, FileTextIcon, RefreshCwIcon, XIcon } from "lucide-react";
+import { ArrowLeftIcon, FileTextIcon, RefreshCwIcon } from "lucide-react";
 import { useCallback, useMemo, useState } from "react";
 
 import { ToolbarButton } from "@/components/toolbar/toolbar-button";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { ScrollArea } from "@/components/ui/scroll-area";
 import { Separator } from "@/components/ui/separator";
 import { createTooltipHandle, TooltipContent, TooltipProvider } from "@/components/ui/tooltip";
 import { AnalyticsControls } from "@/features/analyzer/components/analytics-controls";
@@ -53,7 +52,6 @@ export function LearnerMapResult() {
 	}, []);
 
 	const { data, isLoading, rpcError } = useRpcQuery(LearnerMapRpc.getDiagnosis({ assignmentId }));
-	// const { data: peerStats } = useRpcQuery(LearnerMapRpc.getPeerStats({ assignmentId }));
 	const { data: studentForms } = useRpcQuery(FormRpc.getStudentForms());
 	const learnerMapId = data?.learnerMap.id ?? null;
 	const { data: analyticsData } = useRpcQuery({
@@ -164,7 +162,6 @@ export function LearnerMapResult() {
 	return (
 		<TooltipProvider delay={300}>
 			<section className="relative h-full overflow-hidden -mx-6 border-t-[0.5px]">
-				{/* Canvas layer — fills everything */}
 				<div className="absolute inset-0 bg-[radial-gradient(circle_at_top,rgba(0,0,0,0.03),transparent_55%)]">
 					<AnalyticsCanvas
 						goalMap={{
@@ -185,9 +182,7 @@ export function LearnerMapResult() {
 					/>
 				</div>
 
-				{/* Floating UI layer */}
 				<div className="absolute inset-0 z-10 pointer-events-none">
-					{/* Top toolbar bar */}
 					<div className="border-b-[0.5px] pointer-events-auto bg-background/70 backdrop-blur supports-[backdrop-filter]:bg-background/50">
 						<div className="h-12 px-3 flex items-center gap-2">
 							<h1 className="text-sm font-medium">
@@ -219,7 +214,6 @@ export function LearnerMapResult() {
 						</div>
 					</div>
 
-					{/* Controls floating bottom-left */}
 					<div className="absolute bottom-3 left-3 pointer-events-auto bg-card/30 backdrop-blur-lg border rounded-lg shadow-lg max-w-64">
 						<AnalyticsControls
 							visibility={visibility}
@@ -228,7 +222,6 @@ export function LearnerMapResult() {
 						/>
 					</div>
 
-					{/* Floating sidebar — always visible */}
 					<div className="absolute top-14 right-3 w-80 bg-card/30 backdrop-blur-lg border rounded-lg shadow-sm pointer-events-auto max-h-[calc(100vh-8rem)] overflow-y-auto">
 						<div className="border-b-[0.5px] px-3 py-2.5 flex items-center gap-2 sticky top-0 bg-inherit">
 							<div className="flex items-center gap-1.5 text-sm">
@@ -280,32 +273,6 @@ export function LearnerMapResult() {
 								</div>
 							</>
 						)}
-						{/* {peerStats && peerStats.count > 0 && ( */}
-						{/* 	<> */}
-						{/* 		<Separator /> */}
-						{/* 		<div className="p-3 space-y-2 text-sm"> */}
-						{/* 			<p className="text-sm font-medium">Peer comparison</p> */}
-						{/* 			<div className="flex items-center justify-between gap-3"> */}
-						{/* 				<span className="text-muted-foreground"> */}
-						{/* 					Students submitted */}
-						{/* 				</span> */}
-						{/* 				<span className="font-medium">{peerStats.count}</span> */}
-						{/* 			</div> */}
-						{/* 			<div className="flex items-center justify-between gap-3"> */}
-						{/* 				<span className="text-muted-foreground">Average score</span> */}
-						{/* 				<span className="font-medium"> */}
-						{/* 					{Math.round((peerStats.avgScore ?? 0) * 100)}% */}
-						{/* 				</span> */}
-						{/* 			</div> */}
-						{/* 			<div className="flex items-center justify-between gap-3"> */}
-						{/* 				<span className="text-muted-foreground">Median score</span> */}
-						{/* 				<span className="font-medium"> */}
-						{/* 					{Math.round((peerStats.medianScore ?? 0) * 100)}% */}
-						{/* 				</span> */}
-						{/* 			</div> */}
-						{/* 		</div> */}
-						{/* 	</> */}
-						{/* )} */}
 						{assignment.postTestFormId && (
 							<>
 								<Separator />

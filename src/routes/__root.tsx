@@ -18,7 +18,6 @@ interface MyRouterContext {
 const isDev = import.meta.env.DEV;
 const disableReactScan = import.meta.env.VITE_DISABLE_REACT_SCAN === "true";
 
-// Lazy load dev tools only in development
 const DevTools = lazy(() =>
 	import("../components/devtools.tsx").then((m) => ({ default: m.DevTools })),
 );

@@ -29,11 +29,9 @@ export function NavMain({ items }: NavMainProps) {
 	const location = useLocation();
 
 	const isItemActive = (itemUrl: string) => {
-		// Exact match for dashboard root
 		if (itemUrl === "/dashboard") {
 			return location.pathname === "/dashboard";
 		}
-		// For other items, check if pathname starts with the item URL
 		return location.pathname.startsWith(itemUrl);
 	};
 

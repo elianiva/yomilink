@@ -68,7 +68,6 @@ function FormTakerPage() {
 	);
 	const progress = totalQuestions > 0 ? (answeredCount / totalQuestions) * 100 : 0;
 
-	// Empty / loading / error states
 	if (!formId) return <FormNoFormSpecified backTo="/dashboard/forms/student" />;
 	if (isLoading) {
 		return (
@@ -79,7 +78,6 @@ function FormTakerPage() {
 	}
 	if (error || !data) return <FormLoadingError backTo="/dashboard/forms/student" />;
 
-	// Already submitted view
 	if (data.submission) {
 		const backTo =
 			data.form.type === "post_test" ? "/dashboard/assignments" : "/dashboard/forms/student";

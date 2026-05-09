@@ -1,5 +1,3 @@
-// Assignment Detail Page - Presentational Component
-
 import { formatDistanceToNow } from "date-fns";
 import {
 	CalendarIcon,
@@ -61,7 +59,6 @@ export function AssignmentDetailPage({ assignment }: AssignmentDetailPageProps) 
 
 	return (
 		<div className="space-y-6">
-			{/* Header */}
 			<div className="flex items-start justify-between">
 				<div className="space-y-1">
 					<div className="flex items-center gap-2">
@@ -79,7 +76,6 @@ export function AssignmentDetailPage({ assignment }: AssignmentDetailPageProps) 
 				</div>
 			</div>
 
-			{/* Overview Cards */}
 			<div className="grid gap-4 md:grid-cols-3">
 				<Card>
 					<CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
@@ -123,7 +119,6 @@ export function AssignmentDetailPage({ assignment }: AssignmentDetailPageProps) 
 				</Card>
 			</div>
 
-			{/* Tabs */}
 			<Tabs defaultValue="overview" className="space-y-4">
 				<TabsList>
 					<TabsTrigger value="overview">Overview</TabsTrigger>

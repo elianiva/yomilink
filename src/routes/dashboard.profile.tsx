@@ -18,7 +18,6 @@ export const Route = createFileRoute("/dashboard/profile")({
 	loader: async ({ context }) => {
 		const me = await getMe();
 		if (!me.success) {
-			// TODO: handle error
 			return null;
 		}
 		context.queryClient.setQueryData(ProfileRpc.me(), me.data);
@@ -67,9 +66,7 @@ function ProfilePage() {
 		<div className="flex flex-1 p-4 lg:p-6">
 			<div className="w-full max-w-6xl mx-auto">
 				<div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
-					{/* Left sidebar - Profile summary */}
 					<div className="lg:col-span-4 space-y-6">
-						{/* Profile Card */}
 						<div className="rounded-2xl border border-border/60 bg-white shadow-sm p-6">
 							<div className="flex items-center gap-4">
 								<Avatar className="h-16 w-16 rounded-2xl ring-4 ring-primary/10">
@@ -115,7 +112,6 @@ function ProfilePage() {
 							</div>
 						</div>
 
-						{/* Sign Out Card */}
 						<div className="rounded-2xl border border-border/60 bg-white shadow-sm p-6">
 							<Button
 								variant="destructive"
@@ -126,7 +122,6 @@ function ProfilePage() {
 							</Button>
 						</div>
 
-						{/* Back Button */}
 						<Button asChild variant="outline" className="w-full">
 							<Link to="/dashboard" preload="intent">
 								Back to Dashboard
@@ -134,7 +129,6 @@ function ProfilePage() {
 						</Button>
 					</div>
 
-					{/* Right content - Edit form */}
 					<div className="lg:col-span-8">
 						<div className="rounded-2xl border border-border/60 bg-white shadow-sm">
 							<div className="p-6 border-b">
@@ -152,7 +146,6 @@ function ProfilePage() {
 								}}
 								className="p-6 space-y-6"
 							>
-								{/* Personal Information Section */}
 								<div>
 									<h3 className="text-sm font-medium text-muted-foreground uppercase tracking-wide mb-4">
 										Personal Information
@@ -199,7 +192,6 @@ function ProfilePage() {
 									</div>
 								</div>
 
-								{/* Learning Profile Section */}
 								<div className="pt-4 border-t">
 									<h3 className="text-sm font-medium text-muted-foreground uppercase tracking-wide mb-4">
 										Learning Profile
@@ -327,7 +319,6 @@ function ProfilePage() {
 									</div>
 								</div>
 
-								{/* Action Buttons */}
 								<div className="flex gap-3 pt-4 border-t">
 									<Button asChild variant="outline">
 										<Link to="/dashboard" preload="intent">

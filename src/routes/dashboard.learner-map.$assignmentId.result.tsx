@@ -13,7 +13,6 @@ const LearnerMapResult = lazy(() =>
 function ResultSkeleton() {
 	return (
 		<div className="relative h-full overflow-hidden -mx-6">
-			{/* Toolbar skeleton */}
 			<div className="border-b-[0.5px] bg-background/70 backdrop-blur h-12 px-3 flex items-center gap-2">
 				<Skeleton className="h-4 w-32" />
 				<Skeleton className="h-5 w-14 rounded-full" />
@@ -24,7 +23,6 @@ function ResultSkeleton() {
 				</div>
 			</div>
 
-			{/* Canvas skeleton */}
 			<div className="absolute inset-0 top-12 flex items-center justify-center bg-muted/30">
 				<div className="flex flex-col items-center gap-4">
 					<Skeleton className="h-8 w-48" />
