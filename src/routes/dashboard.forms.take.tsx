@@ -23,8 +23,6 @@ export const Route = createFileRoute("/dashboard/forms/take")({
 	component: FormTakerPage,
 });
 
-// No additional exports — import components from @/features/form/components/form-taker
-
 type FormTakeSearch = {
 	formId?: string;
 	returnTo?: string;
@@ -59,14 +57,28 @@ function FormTakerPage() {
 		},
 	});
 
-	const handleBack = () => {
-		void navigate({
-			to:
-				data?.form.type === "post_test" && data.submission
-					? "/dashboard/assignments"
-					: "/dashboard/forms/student",
-		});
-	};
+	const sortedQuestions = useMemo(
+		() => [...(data?.questions ?? [])].sort((a, b) => a.orderIndex - b.orderIndex),
+		[data?.questions],
+	);
+	const sortedReadingMaterialSections = useMemo(
+		() =>
+			[...(data?.form.readingMaterialSections ?? [])].sort(
+				(a, b) => a.startQuestion - b.startQuestion || a.endQuestion - b.endQuestion,
+			),
+		[data?.form.readingMaterialSections],
+	);
+
+	const totalQuestions = sortedQuestions.length;
+	const hasReadingMaterial = sortedReadingMaterialSections.length > 0;
+	const answeredCount = sortedQuestions.filter(
+		(q) => answers[q.id] !== undefined && answers[q.id] !== "",
+	).length;
+	const requiredQuestions = sortedQuestions.filter((q) => q.required);
+	const answeredRequired = requiredQuestions.every(
+		(q) => answers[q.id] !== undefined && answers[q.id] !== "",
+	);
+	const progress = totalQuestions > 0 ? (answeredCount / totalQuestions) * 100 : 0;
 
 	// Empty / loading / error states
 	if (!formId) return <FormNoFormSpecified backTo="/dashboard/forms/student" />;
@@ -94,32 +106,6 @@ function FormTakerPage() {
 		);
 	}
 
-	// Active form
-	const sortedQuestions = useMemo(
-		() => [...data.questions].sort((a, b) => a.orderIndex - b.orderIndex),
-		[data.questions],
-	);
-	const sortedReadingMaterialSections = useMemo(
-		() =>
-			(
-				[...(data.form.readingMaterialSections ?? [])] as Array<
-					NonNullable<NonNullable<typeof data.form>["readingMaterialSections"]>[number]
-				>
-			).sort((a, b) => a.startQuestion - b.startQuestion || a.endQuestion - b.endQuestion),
-		[data.form.readingMaterialSections],
-	);
-
-	const totalQuestions = sortedQuestions.length;
-	const hasReadingMaterial = sortedReadingMaterialSections.length > 0;
-	const answeredCount = sortedQuestions.filter(
-		(q) => answers[q.id] !== undefined && answers[q.id] !== "",
-	).length;
-	const requiredQuestions = sortedQuestions.filter((q) => q.required);
-	const answeredRequired = requiredQuestions.every(
-		(q) => answers[q.id] !== undefined && answers[q.id] !== "",
-	);
-	const progress = totalQuestions > 0 ? (answeredCount / totalQuestions) * 100 : 0;
-
 	const handleSubmit = () => {
 		if (!answeredRequired) return;
 		clearDraft();
@@ -136,14 +122,13 @@ function FormTakerPage() {
 		);
 
 	return (
-		<div className="flex h-full flex-1 flex-col">
+		<div className="flex flex-1 flex-col -mx-6 h-[calc(100%+3rem)]">
 			<FormHeaderBar
 				title={data.form.title}
 				description={data.form.description ?? undefined}
 				answeredCount={answeredCount}
 				totalQuestions={totalQuestions}
 				lastSaved={lastSaved}
-				onBack={handleBack}
 			/>
 			<FormProgressBar progress={progress} />
 
@@ -152,17 +137,15 @@ function FormTakerPage() {
 					<ReadingMaterialSidebar sections={sortedReadingMaterialSections} />
 				)}
 
-				<div className={cn("flex-1", !hasReadingMaterial && "mx-auto max-w-3xl")}>
-					<QuestionList
-						questions={sortedQuestions}
-						answers={answers}
-						onAnswerChange={updateAnswer}
-						requiredQuestions={requiredQuestions}
-						answeredRequired={answeredRequired}
-						isPending={submitMutation.isPending}
-						onSubmit={handleSubmit}
-					/>
-				</div>
+				<QuestionList
+					questions={sortedQuestions}
+					answers={answers}
+					onAnswerChange={updateAnswer}
+					requiredQuestions={requiredQuestions}
+					answeredRequired={answeredRequired}
+					isPending={submitMutation.isPending}
+					onSubmit={handleSubmit}
+				/>
 			</div>
 		</div>
 	);

@@ -1,8 +1,10 @@
 import { useQueryClient } from "@tanstack/react-query";
 import { createFileRoute } from "@tanstack/react-router";
+import { UsersIcon } from "lucide-react";
 import { useState } from "react";
 import { toast } from "sonner";
 
+import { PageHeader } from "@/components/page-header";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
@@ -174,12 +176,11 @@ function UsersPage() {
 			</TabsList>
 			<TabsContent value="users" className="space-y-6">
 				<div className="space-y-6">
-					<div>
-						<h1 className="text-2xl font-semibold">Users</h1>
-						<p className="text-muted-foreground">
-							Manage user accounts and permissions
-						</p>
-					</div>
+					<PageHeader
+						icon={UsersIcon}
+						title="Users"
+						description="Manage user accounts and permissions"
+					/>
 
 					<UserFilterBar
 						cohorts={cohorts}

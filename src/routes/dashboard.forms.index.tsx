@@ -3,6 +3,7 @@ import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { FilePlusIcon, Loader2 } from "lucide-react";
 import { useState } from "react";
 
+import { PageHeader } from "@/components/page-header";
 import { Button } from "@/components/ui/button";
 import {
 	Dialog,
@@ -99,21 +100,17 @@ function AdminFormsPage() {
 
 	return (
 		<div className="space-y-6">
-			<div className="flex items-center justify-between">
-				<div className="flex items-center gap-3">
-					<FilePlusIcon className="size-6 text-primary" />
-					<div>
-						<h1 className="text-2xl font-semibold">Forms</h1>
-						<p className="text-muted-foreground">
-							Manage your forms and track student responses
-						</p>
-					</div>
-				</div>
-				<Button onClick={handleCreateNew}>
-					<FilePlusIcon className="mr-2 h-4 w-4" />
-					Create Form
-				</Button>
-			</div>
+			<PageHeader
+				icon={FilePlusIcon}
+				title="Forms"
+				description="Manage your forms and track student responses"
+				action={
+					<Button onClick={handleCreateNew} className="interactive-sm">
+						<FilePlusIcon className="mr-2 h-4 w-4" />
+						Create Form
+					</Button>
+				}
+			/>
 
 			{isLoading ? (
 				<div className="flex items-center justify-center py-12">

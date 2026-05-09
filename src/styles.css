@@ -248,3 +248,13 @@ body {
 		@apply bg-background text-foreground;
 	}
 }
+
+@layer utilities {
+	.interactive {
+		@apply transition-transform duration-75 active:scale-[0.98];
+	}
+
+	.interactive-sm {
+		@apply transition-transform duration-75 active:scale-[0.97];
+	}
+}

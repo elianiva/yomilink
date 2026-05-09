@@ -3,6 +3,7 @@ import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { ClipboardListIcon, Loader2 } from "lucide-react";
 import { useState } from "react";
 
+import { PageHeader } from "@/components/page-header";
 import { Button } from "@/components/ui/button";
 import {
 	Dialog,
@@ -97,18 +98,12 @@ function ManageAssignmentsPage() {
 
 	return (
 		<div className="space-y-6">
-			<div className="flex items-center justify-between">
-				<div className="flex items-center gap-3">
-					<ClipboardListIcon className="size-6 text-primary" />
-					<div>
-						<h1 className="text-2xl font-semibold">Manage Assignments</h1>
-						<p className="text-muted-foreground">
-							Create and manage assignments for your students
-						</p>
-					</div>
-				</div>
-				<CreateAssignmentDialog onSuccess={handleCreateSuccess} />
-			</div>
+			<PageHeader
+				icon={ClipboardListIcon}
+				title="Manage Assignments"
+				description="Create and manage assignments for your students"
+				action={<CreateAssignmentDialog onSuccess={handleCreateSuccess} />}
+			/>
 
 			{isLoading ? (
 				<div className="flex items-center justify-center py-12">

@@ -1,6 +1,7 @@
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { BookOpenIcon } from "lucide-react";
 
+import { PageHeader } from "@/components/page-header";
 import { Skeleton } from "@/components/ui/skeleton";
 import {
 	AssignmentList,
@@ -50,15 +51,11 @@ function AssignmentsPage() {
 
 	return (
 		<div className="space-y-6">
-			<div className="flex items-center gap-3">
-				<BookOpenIcon className="size-6 text-primary" />
-				<div>
-					<h1 className="text-2xl font-semibold">My Assignments</h1>
-					<p className="text-muted-foreground">
-						View and complete your assigned concept maps
-					</p>
-				</div>
-			</div>
+			<PageHeader
+				icon={BookOpenIcon}
+				title="My Assignments"
+				description="View and complete your assigned concept maps"
+			/>
 
 			{isLoading ? (
 				<div className="flex items-center justify-center">

@@ -2,6 +2,7 @@ import { createFileRoute } from "@tanstack/react-router";
 import { BarChart3, List, Loader2, Users } from "lucide-react";
 import { useState } from "react";
 
+import { PageHeader } from "@/components/page-header";
 import { Button } from "@/components/ui/button";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Guard } from "@/features/auth/components/Guard";
@@ -85,25 +86,24 @@ function FormResultsPage() {
 
 	return (
 		<div className="space-y-6">
-			<div className="flex items-center justify-between">
-				<div>
-					<h1 className="text-2xl font-semibold">{form.title} - Results</h1>
-					<p className="text-muted-foreground">
-						{pagination.total} response{pagination.total !== 1 ? "s" : ""}
-					</p>
-				</div>
-				<Button
-					variant="outline"
-					onClick={() => {
-						const csv = generateCsv(responses, questions);
-						downloadCsv(csv, form.title);
-					}}
-					disabled={responses.length === 0}
-				>
-					<BarChart3 className="mr-2 h-4 w-4" />
-					Export CSV
-				</Button>
-			</div>
+			<PageHeader
+				title={`${form.title} — Results`}
+				description={`${pagination.total} response${pagination.total !== 1 ? "s" : ""}`}
+				action={
+					<Button
+						variant="outline"
+						onClick={() => {
+							const csv = generateCsv(responses, questions);
+							downloadCsv(csv, form.title);
+						}}
+						disabled={responses.length === 0}
+						className="interactive-sm"
+					>
+						<BarChart3 className="mr-2 h-4 w-4" />
+						Export CSV
+					</Button>
+				}
+			/>
 
 			<Tabs value={activeTab} onValueChange={(v) => setActiveTab(v as typeof activeTab)}>
 				<TabsList variant="line">

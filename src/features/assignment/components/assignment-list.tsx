@@ -235,9 +235,9 @@ function TeacherCard({
 	return (
 		<Card
 			className={cn(
-				"group relative overflow-hidden border border-stone-200 shadow-none transition-all duration-200 py-2",
+				"group relative overflow-hidden border border-stone-200 shadow-none transition-all duration-200 py-2 interactive",
 				"hover:border-primary/40 hover:shadow-sm hover:bg-stone-50/50",
-				"cursor-pointer bg-white",
+				"bg-white",
 			)}
 			onClick={handleClick}
 		>
@@ -394,9 +394,9 @@ function StudentCard({
 	return (
 		<Card
 			className={cn(
-				"group relative overflow-hidden border border-stone-200 shadow-none transition-all duration-200 py-2",
+				"group relative overflow-hidden border border-stone-200 shadow-none transition-all duration-200 py-2 interactive",
 				"hover:border-primary/40 hover:shadow-sm hover:bg-stone-50/50",
-				"cursor-pointer bg-white",
+				"bg-white",
 			)}
 			onClick={() => onClick?.(assignment)}
 		>

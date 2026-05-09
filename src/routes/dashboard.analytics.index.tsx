@@ -1,5 +1,5 @@
 import { createFileRoute } from "@tanstack/react-router";
-import { ChevronRight, MenuIcon, XIcon } from "lucide-react";
+import { MenuIcon, XIcon } from "lucide-react";
 import { AnimatePresence, motion } from "motion/react";
 import { useCallback, useMemo, useState } from "react";
 
@@ -114,7 +114,7 @@ function AnalyticsPage() {
 
 	return (
 		<TooltipProvider delay={300}>
-			<section className="relative h-full overflow-hidden rounded-lg border-[0.5px]">
+			<section className="relative h-full overflow-hidden -m-6">
 				{/* Background layer — canvas/summary fills everything */}
 				<div className="absolute inset-0">
 					{activeLearnerTab === "conceptMap" ? (

@@ -26,14 +26,14 @@ function DashboardLayout() {
 				<main className="bg-card h-full max-h-[calc(100svh-16px)] rounded-xl flex flex-col overflow-hidden shadow-sm border border-border/50">
 					<header className="flex h-14 shrink-0 items-center gap-2 transition-[width,height] ease-linear group-has-data-[collapsible=icon]/sidebar-wrapper:h-12">
 						<div className="flex items-center gap-2 px-4">
-							<SidebarTrigger className="-ml-1" />
+							<SidebarTrigger className="-ml-1 interactive-sm" />
 							<Separator
 								orientation="vertical"
 								className="data-[orientation=vertical]:h-4"
 							/>
 						</div>
 					</header>
-					<div className="pt-0 flex-1 min-h-0">
+					<div className="flex-1 min-h-0 px-6 overflow-auto">
 						<Outlet />
 					</div>
 				</main>

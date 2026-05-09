@@ -1,7 +1,5 @@
 import { format } from "date-fns";
-import { ArrowLeftIcon, Save } from "lucide-react";
-
-import { Button } from "@/components/ui/button";
+import { Save } from "lucide-react";
 
 interface FormHeaderBarProps {
 	title: string;
@@ -9,28 +7,18 @@ interface FormHeaderBarProps {
 	answeredCount: number;
 	totalQuestions: number;
 	lastSaved: Date | null;
-	onBack: () => void;
 }
 
 export function FormHeaderBar({
 	title,
-	description,
 	answeredCount,
 	totalQuestions,
 	lastSaved,
-	onBack,
 }: FormHeaderBarProps) {
 	return (
-		<div className="flex shrink-0 items-center gap-4 border-b bg-background px-6 py-4">
-			<Button variant="ghost" size="sm" onClick={onBack} className="-ml-2 shrink-0">
-				<ArrowLeftIcon className="h-4 w-4" />
-				Back
-			</Button>
+		<div className="flex flex-wrap shrink-0 items-center gap-4 border-b px-4 py-3">
 			<div className="min-w-0 flex-1">
 				<h1 className="truncate text-lg font-semibold">{title}</h1>
-				{description && (
-					<p className="truncate text-sm text-muted-foreground">{description}</p>
-				)}
 			</div>
 			<div className="flex shrink-0 items-center gap-4 text-sm text-muted-foreground">
 				<span>

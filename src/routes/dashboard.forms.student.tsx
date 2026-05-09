@@ -1,9 +1,12 @@
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { BookOpenIcon, CheckCircle2Icon, FileTextIcon, Loader2 } from "lucide-react";
 
+import { EmptyState } from "@/components/empty-state";
+import { PageHeader } from "@/components/page-header";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { useRpcQuery } from "@/hooks/use-rpc-query";
+import { cn } from "@/lib/utils";
 import { FormRpc } from "@/server/rpc/form";
 
 export const Route = createFileRoute("/dashboard/forms/student")({
@@ -64,7 +67,10 @@ function StudentFormsPage() {
 		return (
 			<Card
 				key={form.id}
-				className={isCompleted ? "" : "cursor-pointer hover:shadow-sm transition-shadow"}
+				className={cn(
+					isCompleted ? "" : "cursor-pointer interactive",
+					"hover:shadow-sm transition-shadow",
+				)}
 				onClick={() => handleFormClick(form)}
 			>
 				<CardContent className="p-4 flex items-start justify-between gap-4">
@@ -94,25 +100,19 @@ function StudentFormsPage() {
 
 	return (
 		<div className="space-y-4">
-			<div>
-				<h1 className="text-2xl font-semibold">My Forms</h1>
-				<p className="text-muted-foreground">
-					Complete your assigned forms to progress in the course
-				</p>
-			</div>
+			<PageHeader
+				icon={FileTextIcon}
+				title="My Forms"
+				description="Complete your assigned forms to progress in the course"
+			/>
 
 			{forms.length === 0 ? (
 				isLoadingForms ? (
-					<div className="h-full flex items-center justify-center">
+					<div className="flex items-center justify-center py-12">
 						<Loader2 className="h-8 w-8 animate-spin text-muted-foreground" />
 					</div>
 				) : (
-					<Card>
-						<CardContent className="flex flex-col items-center justify-center py-12">
-							<FileTextIcon className="size-12 text-muted-foreground mb-4" />
-							<p className="text-muted-foreground">No forms available yet</p>
-						</CardContent>
-					</Card>
+					<EmptyState icon={FileTextIcon} title="No forms available yet" />
 				)
 			) : (
 				<>
