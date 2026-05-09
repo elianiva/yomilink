@@ -51,7 +51,7 @@ export function SearchableSelect({
 	const [search, setSearch] = useState("");
 
 	const grouped = groupOptions(options);
-	const sortedGroups = Array.from(grouped.entries()).toSorted(([a], [b]) => a.localeCompare(b));
+	const sortedGroups = Array.from(grouped.entries()).sort(([a], [b]) => a.localeCompare(b));
 
 	const filterOption = (opt: SearchableSelectOption) =>
 		opt.label.toLowerCase().includes(search.toLowerCase());

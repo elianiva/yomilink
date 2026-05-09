@@ -21,7 +21,7 @@ export function ResponseDetailModal({
 	open,
 	onOpenChange,
 }: ResponseDetailModalProps) {
-	const sortedQuestions = questions.toSorted((a, b) => a.orderIndex - b.orderIndex);
+	const sortedQuestions = questions.slice().sort((a, b) => a.orderIndex - b.orderIndex);
 
 	const formatResponseDate = (timestamp: number | null) => {
 		if (!timestamp) return "-";

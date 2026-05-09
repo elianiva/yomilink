@@ -34,7 +34,7 @@ type LikertStats = {
 
 export function AggregatedResponses({ responses, questions }: AggregatedResponsesProps) {
 	const sortedQuestions = useMemo(
-		() => questions.toSorted((a, b) => a.orderIndex - b.orderIndex),
+		() => questions.slice().sort((a, b) => a.orderIndex - b.orderIndex),
 		[questions],
 	);
 

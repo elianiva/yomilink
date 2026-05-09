@@ -1,11 +1,4 @@
-import {
-	FileText,
-	Pencil,
-	Trash2,
-	BarChart3,
-	Clock,
-	Copy,
-} from "lucide-react";
+import { FileText, Pencil, Trash2, BarChart3, Clock, Copy } from "lucide-react";
 import type * as React from "react";
 
 import { Button } from "@/components/ui/button";
@@ -147,7 +140,6 @@ export function FormList({
 											</>
 										)}
 									</div>
-
 								</div>
 
 								<div className="flex items-center gap-1 shrink-0">

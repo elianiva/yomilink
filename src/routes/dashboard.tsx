@@ -6,6 +6,9 @@ import { SidebarInset, SidebarProvider, SidebarTrigger } from "@/components/ui/s
 import { getMe, ProfileRpc } from "@/server/rpc/profile";
 
 export const Route = createFileRoute("/dashboard")({
+	head: () => ({
+		meta: [{ title: "Dashboard - KitBuild" }],
+	}),
 	beforeLoad: async () => {
 		const me = await getMe();
 		if (!me.success) throw redirect({ to: "/login" });

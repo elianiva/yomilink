@@ -473,7 +473,7 @@ export const getStudentForms = Effect.fn("getStudentForms")(function* (userId: s
 		.where(eq(formProgress.userId, userId));
 
 	const progressMap = new Map(userProgressRows.map((p) => [p.formId, p]));
-	const sortedForms = applicableForms.toSorted(sortFormsByPriority);
+	const sortedForms = applicableForms.slice().sort(sortFormsByPriority);
 
 	return sortedForms.map((form) => {
 		const progress = progressMap.get(form.id);

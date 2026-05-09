@@ -359,7 +359,7 @@ export const getPeerStats = Effect.fn("getPeerStats")(function* (
 		};
 	}
 
-	const sortedScores = peerScores.toSorted((a, b) => a - b);
+	const sortedScores = peerScores.slice().sort((a, b) => a - b);
 	const avgScore = sortedScores.reduce((a, b) => a + b, 0) / sortedScores.length;
 	const medianScore = sortedScores[Math.floor(sortedScores.length / 2)];
 	const highestScore = sortedScores[sortedScores.length - 1];

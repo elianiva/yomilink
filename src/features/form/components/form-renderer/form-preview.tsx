@@ -66,10 +66,10 @@ export function FormPreview({
 	onAnswerChange,
 	className,
 }: FormPreviewProps) {
-	const sortedQuestions = questions.toSorted((a, b) => a.orderIndex - b.orderIndex);
-	const sortedReadingMaterialSections = (form.readingMaterialSections ?? []).toSorted(
-		(a, b) => a.startQuestion - b.startQuestion || a.endQuestion - b.endQuestion,
-	);
+	const sortedQuestions = questions.slice().sort((a, b) => a.orderIndex - b.orderIndex);
+	const sortedReadingMaterialSections = (form.readingMaterialSections ?? [])
+		.slice()
+		.sort((a, b) => a.startQuestion - b.startQuestion || a.endQuestion - b.endQuestion);
 
 	const getReadingMaterialForQuestion = (questionNumber: number) =>
 		sortedReadingMaterialSections.find(

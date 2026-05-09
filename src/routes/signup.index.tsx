@@ -182,6 +182,9 @@ const signupSteps = [
 
 export const Route = createFileRoute("/signup/")({
 	ssr: true,
+	head: () => ({
+		meta: [{ title: "Sign Up - KitBuild" }],
+	}),
 	beforeLoad: async () => {
 		const me = await getMe();
 		if (me?.success) {
@@ -376,6 +379,31 @@ function SignUpPage() {
 							{machine.error}
 						</div>
 					) : null}
+
+					<form.Subscribe
+						selector={(s: { errors: unknown }) => {
+							if (!s.errors) return [];
+							const errs =
+								typeof s.errors === "object" && !Array.isArray(s.errors)
+									? Object.values(s.errors as Record<string, unknown>).flat()
+									: Array.isArray(s.errors)
+										? s.errors
+										: [];
+							return errs.map((e: unknown) =>
+								typeof e === "string"
+									? e
+									: ((e as { message: string }).message ?? String(e)),
+							);
+						}}
+					>
+						{(messages) =>
+							messages.length > 0 ? (
+								<div className="rounded-md border border-destructive/40 bg-destructive/10 px-3 py-2 text-sm text-destructive">
+									{messages.join(", ")}
+								</div>
+							) : null
+						}
+					</form.Subscribe>
 
 					<form.AppForm>
 						<form

@@ -139,7 +139,8 @@ export function MetricsContent({ assignmentId }: MetricsContentProps) {
 		);
 
 		const topLearners = conceptMapLearners
-			.toSorted((a, b) => (b.score ?? 0) - (a.score ?? 0))
+			.slice()
+			.sort((a, b) => (b.score ?? 0) - (a.score ?? 0))
 			.slice(0, 5);
 		const bottomLearners = [...conceptMapLearners]
 			.filter((l) => l.score !== null)

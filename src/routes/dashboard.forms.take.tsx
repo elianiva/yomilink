@@ -46,14 +46,14 @@ function FormTakerPage() {
 	});
 
 	const sortedQuestions = useMemo(
-		() => (data?.questions ?? []).toSorted((a, b) => a.orderIndex - b.orderIndex),
+		() => (data?.questions ?? []).slice().sort((a, b) => a.orderIndex - b.orderIndex),
 		[data?.questions],
 	);
 	const sortedReadingMaterialSections = useMemo(
 		() =>
-			(data?.form.readingMaterialSections ?? []).toSorted(
-				(a, b) => a.startQuestion - b.startQuestion || a.endQuestion - b.endQuestion,
-			),
+			(data?.form.readingMaterialSections ?? [])
+				.slice()
+				.sort((a, b) => a.startQuestion - b.startQuestion || a.endQuestion - b.endQuestion),
 		[data?.form.readingMaterialSections],
 	);
 

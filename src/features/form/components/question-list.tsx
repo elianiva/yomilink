@@ -213,7 +213,7 @@ export function QuestionList({
 		}),
 	);
 
-	const sortedQuestions = questions.toSorted((a, b) => a.orderIndex - b.orderIndex);
+	const sortedQuestions = questions.slice().sort((a, b) => a.orderIndex - b.orderIndex);
 
 	const handleDragEnd = (event: DragEndEvent) => {
 		const { active, over } = event;

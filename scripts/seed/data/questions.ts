@@ -271,7 +271,12 @@ export const READING_COMPREHENSION_QUESTIONS: ReadingQuestion[] = [
 	},
 	{
 		questionText: "本を読むとき、いい場所はどこですか。",
-		options: createMcqOptions(16, ["公園と喫茶店", "図書館とうち", "スーパーと花屋", "郵便局と銀行"]),
+		options: createMcqOptions(16, [
+			"公園と喫茶店",
+			"図書館とうち",
+			"スーパーと花屋",
+			"郵便局と銀行",
+		]),
 		correctOptionId: generateOptionId(16, 0),
 		bloomLevel: "L5-Evaluating",
 		targetInfo: "Evaluate the best reading spots described in the passage",

@@ -39,6 +39,9 @@ function getFriendlyAuthErrorMessage(err: unknown) {
 
 export const Route = createFileRoute("/login")({
 	ssr: true,
+	head: () => ({
+		meta: [{ title: "Sign In - KitBuild" }],
+	}),
 	beforeLoad: async () => {
 		const me = await getMe();
 		if (me?.success) {
