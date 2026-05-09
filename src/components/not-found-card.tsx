@@ -19,8 +19,8 @@ export function NotFoundCard({
 }: NotFoundCardProps) {
 	return (
 		<div className={cn("rounded-xl border bg-card p-8 text-center", className)}>
-			<div className="mx-auto mb-4 flex h-16 w-16 items-center justify-center rounded-full bg-muted">
-				<FileQuestion className="h-8 w-8 text-muted-foreground" />
+			<div className="mx-auto mb-4 flex size-16 items-center justify-center rounded-full bg-muted">
+				<FileQuestion className="size-8 text-muted-foreground" />
 			</div>
 			<h3 className="text-xl font-semibold">{resource} Not Found</h3>
 			<p className="mt-2 text-sm text-muted-foreground">

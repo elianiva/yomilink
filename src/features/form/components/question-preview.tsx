@@ -25,8 +25,8 @@ function McqPreview({ options }: { options: McqOptions }) {
 					key={option.id}
 					className={cn("flex items-center gap-2 rounded-md border bg-muted/40 p-2")}
 				>
-					<div className="flex h-4 w-4 shrink-0 items-center justify-center rounded-full border border-muted-foreground/50">
-						{index === 0 && <Check className="h-2.5 w-2.5 text-muted-foreground" />}
+					<div className="flex size-4 shrink-0 items-center justify-center rounded-full border border-muted-foreground/50">
+						{index === 0 && <Check className="size-2.5 text-muted-foreground" />}
 					</div>
 					<span className="flex-1 truncate text-sm text-muted-foreground">
 						{option.text}
@@ -68,7 +68,7 @@ function LikertPreview({ options }: { options: LikertOptions }) {
 					<div
 						key={scaleValue}
 						className={cn(
-							"flex h-8 w-8 flex-1 items-center justify-center rounded-md border bg-muted/40 text-sm font-medium text-muted-foreground",
+							"flex size-8 flex-1 items-center justify-center rounded-md border bg-muted/40 text-sm font-medium text-muted-foreground",
 						)}
 					>
 						{scaleValue}

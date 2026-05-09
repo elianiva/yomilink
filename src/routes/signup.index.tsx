@@ -334,13 +334,13 @@ function SignUpPage() {
 										<div
 											className={
 												isActive
-													? "h-10 w-10 rounded-full flex items-center justify-center bg-primary text-primary-foreground ring-4 ring-primary/10"
+													? "size-10 rounded-full flex items-center justify-center bg-primary text-primary-foreground ring-4 ring-primary/10"
 													: isCompleted
-														? "h-10 w-10 rounded-full flex items-center justify-center bg-primary/80 text-primary-foreground"
-														: "h-10 w-10 rounded-full flex items-center justify-center bg-muted text-muted-foreground"
+														? "size-10 rounded-full flex items-center justify-center bg-primary/80 text-primary-foreground"
+														: "size-10 rounded-full flex items-center justify-center bg-muted text-muted-foreground"
 											}
 										>
-											<StepIcon className="h-5 w-5" />
+											<StepIcon className="size-5" />
 										</div>
 										<span
 											className={
@@ -358,9 +358,9 @@ function SignUpPage() {
 					</div>
 				</div>
 
-				<div className="rounded-2xl border border-border/60 bg-white shadow-sm overflow-hidden h-150 flex flex-col p-8 space-y-6">
+				<div className="rounded-2xl border border-border/60 bg-white shadow-sm overflow-hidden h-150 flex flex-col p-8 gap-y-6">
 					<div className="flex items-center gap-3">
-						<div className="h-9 w-9 rounded-lg bg-primary/90 ring-4 ring-primary/10 flex items-center justify-center text-primary-foreground font-bold">
+						<div className="size-9 rounded-lg bg-primary/90 ring-4 ring-primary/10 flex items-center justify-center text-primary-foreground font-bold">
 							KB
 						</div>
 						<div>

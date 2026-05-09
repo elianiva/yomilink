@@ -79,7 +79,7 @@ export function FormattingToolbar({
 				aria-label="Bold"
 				title="Bold"
 			>
-				<Bold className="h-4 w-4" />
+				<Bold className="size-4" />
 			</Button>
 			<Button
 				variant="ghost"
@@ -90,7 +90,7 @@ export function FormattingToolbar({
 				aria-label="Italic"
 				title="Italic"
 			>
-				<Italic className="h-4 w-4" />
+				<Italic className="size-4" />
 			</Button>
 			<Separator orientation="vertical" className="mx-1 h-6" />
 			<Button
@@ -102,7 +102,7 @@ export function FormattingToolbar({
 				aria-label="Bullet list"
 				title="Bullet list"
 			>
-				<List className="h-4 w-4" />
+				<List className="size-4" />
 			</Button>
 			<Button
 				variant="ghost"
@@ -113,7 +113,7 @@ export function FormattingToolbar({
 				aria-label="Numbered list"
 				title="Numbered list"
 			>
-				<ListOrdered className="h-4 w-4" />
+				<ListOrdered className="size-4" />
 			</Button>
 		</div>
 	);

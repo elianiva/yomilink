@@ -138,20 +138,22 @@ export function MetricsContent({ assignmentId }: MetricsContentProps) {
 			{},
 		);
 
-		const topLearners = [...conceptMapLearners]
-			.sort((a, b) => (b.score ?? 0) - (a.score ?? 0))
+		const topLearners = conceptMapLearners
+			.toSorted((a, b) => (b.score ?? 0) - (a.score ?? 0))
 			.slice(0, 5);
 		const bottomLearners = [...conceptMapLearners]
 			.filter((l) => l.score !== null)
 			.sort((a, b) => (a.score ?? 0) - (b.score ?? 0))
 			.slice(0, 5);
 
-		const conceptMapScores = conceptMapLearners
-			.map((l) => l.score)
-			.filter((s): s is number => s !== null);
-		const summaryScores = summaryLearners
-			.map((l) => l.score)
-			.filter((s): s is number => s !== null);
+		const conceptMapScores: number[] = [];
+		for (const l of conceptMapLearners) {
+			if (l.score !== null) conceptMapScores.push(l.score);
+		}
+		const summaryScores: number[] = [];
+		for (const l of summaryLearners) {
+			if (l.score !== null) summaryScores.push(l.score);
+		}
 
 		return {
 			data: analyticsData,

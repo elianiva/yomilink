@@ -2,9 +2,10 @@ import type { ReactNode } from "react";
 
 function highlightParens(text: string): ReactNode {
 	const parts = text.split(/(\([^)]*\))/g);
-	return parts.map((part, i) =>
+	let parenCount = 0;
+	return parts.map((part) =>
 		part.startsWith("(") && part.endsWith(")") ? (
-			<span key={i} className="text-foreground/50">
+			<span key={`paren-${parenCount++}`} className="text-foreground/50">
 				{part}
 			</span>
 		) : (

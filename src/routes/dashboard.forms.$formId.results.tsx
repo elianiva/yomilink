@@ -44,7 +44,7 @@ function FormResultsPage() {
 	if (isLoading) {
 		return (
 			<div className="flex items-center justify-center py-12">
-				<Loader2 className="h-8 w-8 animate-spin text-muted-foreground" />
+				<Loader2 className="size-8 animate-spin text-muted-foreground" />
 			</div>
 		);
 	}
@@ -99,7 +99,7 @@ function FormResultsPage() {
 						disabled={responses.length === 0}
 						className="interactive-sm"
 					>
-						<BarChart3 className="mr-2 h-4 w-4" />
+						<BarChart3 className="mr-2 size-4" />
 						Export CSV
 					</Button>
 				}
@@ -108,11 +108,11 @@ function FormResultsPage() {
 			<Tabs value={activeTab} onValueChange={(v) => setActiveTab(v as typeof activeTab)}>
 				<TabsList variant="line">
 					<TabsTrigger value="individual" className="gap-2">
-						<List className="h-4 w-4" />
+						<List className="size-4" />
 						Individual
 					</TabsTrigger>
 					<TabsTrigger value="aggregated" className="gap-2">
-						<Users className="h-4 w-4" />
+						<Users className="size-4" />
 						Aggregated
 					</TabsTrigger>
 				</TabsList>

@@ -81,7 +81,7 @@ export function CanvasContent({
 		return (
 			<div className="w-full h-full flex items-center justify-center">
 				<div className="text-sm text-muted-foreground px-4 text-center">
-					Loading learner maps...
+					Loading learner maps…
 				</div>
 			</div>
 		);

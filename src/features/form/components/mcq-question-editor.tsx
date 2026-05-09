@@ -138,7 +138,7 @@ export function McqQuestionEditor({ data, onChange, disabled = false }: McqQuest
 					data-testid="add-option-button"
 					className="w-full"
 				>
-					<Plus className="mr-2 h-4 w-4" />
+					<Plus className="mr-2 size-4" />
 					Add Option
 				</Button>
 			</div>
@@ -147,7 +147,7 @@ export function McqQuestionEditor({ data, onChange, disabled = false }: McqQuest
 				<div className="flex items-center justify-between">
 					<div className="space-y-0.5">
 						<div className="flex items-center gap-2">
-							<Shuffle className="h-4 w-4 text-muted-foreground" />
+							<Shuffle className="size-4 text-muted-foreground" />
 							<Label htmlFor="shuffle-toggle" className="cursor-pointer">
 								Shuffle Options
 							</Label>
@@ -168,7 +168,7 @@ export function McqQuestionEditor({ data, onChange, disabled = false }: McqQuest
 				<div className="flex items-center justify-between">
 					<div className="space-y-0.5">
 						<div className="flex items-center gap-2">
-							<Check className="h-4 w-4 text-muted-foreground" />
+							<Check className="size-4 text-muted-foreground" />
 							<Label htmlFor="required-toggle" className="cursor-pointer">
 								Required Question
 							</Label>

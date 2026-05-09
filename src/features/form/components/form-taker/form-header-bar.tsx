@@ -25,7 +25,7 @@ export function FormHeaderBar({
 					{answeredCount} of {totalQuestions} answered
 				</span>
 				<span className="flex items-center gap-1">
-					<Save className="h-3 w-3" />
+					<Save className="size-3" />
 					{lastSaved ? `Saved ${format(lastSaved, "h:mm a")}` : "Auto-save"}
 				</span>
 			</div>

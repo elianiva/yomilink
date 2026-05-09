@@ -63,7 +63,7 @@ export function AssignmentDetailPage({ assignment }: AssignmentDetailPageProps) 
 				<div className="space-y-1">
 					<div className="flex items-center gap-2">
 						<div className="p-2 rounded-xl bg-primary">
-							<ClipboardListIcon className="h-4 w-4 text-primary-foreground" />
+							<ClipboardListIcon className="size-4 text-primary-foreground" />
 						</div>
 						<h1 className="text-2xl font-medium">{assignment.title}</h1>
 						{assignment.description && (
@@ -80,7 +80,7 @@ export function AssignmentDetailPage({ assignment }: AssignmentDetailPageProps) 
 				<Card>
 					<CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
 						<CardTitle className="text-sm font-medium">Goal Map</CardTitle>
-						<BookOpenIcon className="h-4 w-4 text-muted-foreground" />
+						<BookOpenIcon className="size-4 text-muted-foreground" />
 					</CardHeader>
 					<CardContent>
 						<div className="text-2xl font-medium">
@@ -93,7 +93,7 @@ export function AssignmentDetailPage({ assignment }: AssignmentDetailPageProps) 
 				<Card>
 					<CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
 						<CardTitle className="text-sm font-medium">Start Date</CardTitle>
-						<CalendarIcon className="h-4 w-4 text-muted-foreground" />
+						<CalendarIcon className="size-4 text-muted-foreground" />
 					</CardHeader>
 					<CardContent>
 						<div className="text-2xl font-medium">{formattedStartDate}</div>
@@ -106,9 +106,9 @@ export function AssignmentDetailPage({ assignment }: AssignmentDetailPageProps) 
 				</Card>
 
 				<Card>
-					<CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+					<CardHeader className="flex flex-row items-center justify-between pb-2">
 						<CardTitle className="text-sm font-medium">Due Date</CardTitle>
-						<CalendarIcon className="h-4 w-4 text-muted-foreground" />
+						<CalendarIcon className="size-4 text-muted-foreground" />
 					</CardHeader>
 					<CardContent>
 						<div className="text-2xl font-medium">{formattedDueDate}</div>
@@ -136,7 +136,7 @@ export function AssignmentDetailPage({ assignment }: AssignmentDetailPageProps) 
 						<CardContent>
 							<div className="flex items-start gap-4 p-4 rounded-lg border bg-card">
 								<div className="p-2 rounded-md bg-primary/10">
-									<BookOpenIcon className="h-5 w-5 text-primary" />
+									<BookOpenIcon className="size-5 text-primary" />
 								</div>
 								<div className="flex-1 min-w-0">
 									<p className="font-medium truncate">
@@ -216,7 +216,7 @@ export function AssignmentDetailPage({ assignment }: AssignmentDetailPageProps) 
 									Students participating in this assignment
 								</CardDescription>
 							</div>
-							<UsersIcon className="h-5 w-5 text-muted-foreground" />
+							<UsersIcon className="size-5 text-muted-foreground" />
 						</CardHeader>
 						<CardContent>
 							<p className="text-sm text-muted-foreground">
@@ -274,7 +274,7 @@ function FormCard({ form, label, variant, children }: FormCardProps) {
 					}`}
 				>
 					<FileTextIcon
-						className={`h-4 w-4 ${
+						className={`size-4 ${
 							variant === "primary" ? "text-primary" : "text-muted-foreground"
 						}`}
 					/>
@@ -288,12 +288,12 @@ function FormCard({ form, label, variant, children }: FormCardProps) {
 						>
 							{form.status === "published" ? (
 								<>
-									<CheckCircle2Icon className="h-3 w-3 mr-1" />
+									<CheckCircle2Icon className="size-3 mr-1" />
 									Published
 								</>
 							) : (
 								<>
-									<CircleIcon className="h-3 w-3 mr-1" />
+									<CircleIcon className="size-3 mr-1" />
 									Draft
 								</>
 							)}

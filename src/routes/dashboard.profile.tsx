@@ -69,7 +69,7 @@ function ProfilePage() {
 					<div className="lg:col-span-4 space-y-6">
 						<div className="rounded-2xl border border-border/60 bg-white shadow-sm p-6">
 							<div className="flex items-center gap-4">
-								<Avatar className="h-16 w-16 rounded-2xl ring-4 ring-primary/10">
+								<Avatar className="size-16 rounded-2xl ring-4 ring-primary/10">
 									<AvatarImage
 										src={me.image ?? ""}
 										alt={me.name ?? me.email ?? "User"}

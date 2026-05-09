@@ -21,7 +21,7 @@ export function LearnerList({
 
 	if (isLoading) {
 		return (
-			<div className="px-3 py-6 text-center text-xs text-muted-foreground">Loading...</div>
+			<div className="px-3 py-6 text-center text-xs text-muted-foreground">Loading…</div>
 		);
 	}
 

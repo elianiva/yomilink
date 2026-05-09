@@ -9,6 +9,8 @@ import { cn } from "@/lib/utils";
 import type { QuestionType } from "../question-list";
 import { QuestionRenderer } from "./question-renderer";
 
+const DEFAULT_ANSWERS: Record<string, string> = {};
+
 export interface FormData {
 	id: string;
 	title: string;
@@ -60,12 +62,12 @@ interface FormPreviewProps {
 export function FormPreview({
 	form,
 	questions,
-	answers = {},
+	answers = DEFAULT_ANSWERS,
 	onAnswerChange,
 	className,
 }: FormPreviewProps) {
-	const sortedQuestions = [...questions].sort((a, b) => a.orderIndex - b.orderIndex);
-	const sortedReadingMaterialSections = [...(form.readingMaterialSections ?? [])].sort(
+	const sortedQuestions = questions.toSorted((a, b) => a.orderIndex - b.orderIndex);
+	const sortedReadingMaterialSections = (form.readingMaterialSections ?? []).toSorted(
 		(a, b) => a.startQuestion - b.startQuestion || a.endQuestion - b.endQuestion,
 	);
 
@@ -83,7 +85,7 @@ export function FormPreview({
 		<Card className={cn("overflow-hidden", className)} data-testid="form-preview">
 			<CardHeader className="space-y-4 bg-muted/30">
 				<div className="flex items-center gap-2 flex-wrap">
-					<Eye className="h-5 w-5 text-primary" />
+					<Eye className="size-5 text-primary" />
 					<span className="text-sm font-medium text-primary">Preview Mode</span>
 				</div>
 
@@ -122,7 +124,7 @@ export function FormPreview({
 			<CardContent className="space-y-8 p-6">
 				{sortedQuestions.length === 0 ? (
 					<div className="py-12 text-center">
-						<EyeOff className="mx-auto h-12 w-12 text-muted-foreground/50" />
+						<EyeOff className="mx-auto size-12 text-muted-foreground/50" />
 						<p className="mt-4 text-muted-foreground">
 							No questions have been added yet
 						</p>
@@ -140,7 +142,7 @@ export function FormPreview({
 								data-testid={`preview-question-${index}`}
 							>
 								<div className="flex items-start gap-2">
-									<span className="flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-muted text-xs font-medium">
+									<span className="flex size-6 shrink-0 items-center justify-center rounded-full bg-muted text-xs font-medium">
 										{index + 1}
 									</span>
 									<div className="flex-1 space-y-2">
@@ -154,7 +156,7 @@ export function FormPreview({
 										{readingMaterial && (
 											<div className="rounded-md border bg-muted/50 p-3">
 												<p className="flex items-center gap-2 font-medium text-sm">
-													<BookOpen className="h-4 w-4 text-primary" />
+													<BookOpen className="size-4 text-primary" />
 													{readingMaterial.title ??
 														"Reading Material (Questions " +
 															String(readingMaterial.startQuestion) +
@@ -206,12 +208,12 @@ export function FormPreviewToggle({ previewMode, onToggle, className }: FormPrev
 		>
 			{previewMode ? (
 				<>
-					<EyeOff className="h-4 w-4" />
+					<EyeOff className="size-4" />
 					Exit Preview
 				</>
 			) : (
 				<>
-					<Eye className="h-4 w-4" />
+					<Eye className="size-4" />
 					Preview
 				</>
 			)}

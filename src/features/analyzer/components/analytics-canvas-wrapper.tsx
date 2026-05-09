@@ -46,7 +46,7 @@ export function AnalyticsCanvasWrapper({
 	visibility,
 	className,
 }: AnalyticsCanvasWrapperProps) {
-	const learnerMapIds = useMemo(() => [...selectedLearnerMapIds].sort(), [selectedLearnerMapIds]);
+	const learnerMapIds = useMemo(() => selectedLearnerMapIds.toSorted(), [selectedLearnerMapIds]);
 
 	const {
 		data: multipleLearnerMapDetails,

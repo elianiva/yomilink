@@ -56,7 +56,7 @@ export function AnswerOptionCard({
 					type="button"
 					variant="ghost"
 					size="icon"
-					className="h-6 w-6"
+					className="size-6"
 					disabled={disabled || index === 0}
 					onClick={onMoveUp}
 					data-testid={`move-up-${index}`}
@@ -67,7 +67,7 @@ export function AnswerOptionCard({
 					type="button"
 					variant="ghost"
 					size="icon"
-					className="h-6 w-6"
+					className="size-6"
 					disabled={disabled || index === totalOptions - 1}
 					onClick={onMoveDown}
 					data-testid={`move-down-${index}`}
@@ -116,13 +116,13 @@ export function AnswerOptionCard({
 				type="button"
 				variant="ghost"
 				size="icon"
-				className="h-8 w-8 shrink-0 text-muted-foreground hover:text-destructive"
+				className="size-8 shrink-0 text-muted-foreground hover:text-destructive"
 				onClick={onRemove}
 				disabled={disabled || totalOptions <= 2}
 				data-testid={`remove-option-${index}`}
 				aria-label="Remove option"
 			>
-				<Trash2 className="h-4 w-4" />
+				<Trash2 className="size-4" />
 			</Button>
 		</motion.div>
 	);

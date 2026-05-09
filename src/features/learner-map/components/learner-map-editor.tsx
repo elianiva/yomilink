@@ -285,7 +285,7 @@ export function LearnerMapEditor() {
 	if (isLoading) {
 		return (
 			<div className="h-full flex items-center justify-center">
-				<div className="text-muted-foreground">Loading assignment...</div>
+				<div className="text-muted-foreground">Loading assignment…</div>
 			</div>
 		);
 	}
@@ -518,7 +518,7 @@ function SummarizingEditor({
 					<div className="flex-1 overflow-y-auto">
 						{materialText && (
 							<Alert className="mb-4">
-								<AlertCircle className="h-4 w-4" />
+								<AlertCircle className="size-4" />
 								<AlertTitle>Summary Task</AlertTitle>
 								<AlertDescription className="text-sm">
 									Write a comprehensive summary of the reading material shown on
@@ -558,7 +558,7 @@ function SummarizingEditor({
 				{/* Right - Reading Material */}
 				<div className="w-[45%] min-w-[350px] flex flex-col border-l bg-muted/10">
 					<div className="px-6 py-3 border-b bg-muted/30 flex items-center gap-2">
-						<BookOpenIcon className="h-4 w-4" />
+						<BookOpenIcon className="size-4" />
 						<h2 className="text-sm font-medium">Reading Material</h2>
 					</div>
 					<div className="flex-1 overflow-y-auto p-6 space-y-4">

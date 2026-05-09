@@ -176,8 +176,8 @@ function McqQuestionEditorWrapper({
 					required: data.required,
 				}}
 				onChange={(newData) =>
-					setData({
-						...data,
+					setData((prev) => ({
+						...prev,
 						questionText: newData.questionText,
 						options: {
 							options: newData.options as { id: string; text: string }[],
@@ -185,7 +185,7 @@ function McqQuestionEditorWrapper({
 							shuffle: newData.shuffle,
 						},
 						required: newData.required,
-					})
+					}))
 				}
 				disabled={isPending}
 			/>

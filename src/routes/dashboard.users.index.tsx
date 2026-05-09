@@ -143,7 +143,7 @@ function UsersPage() {
 	};
 
 	const handlePageChange = (newPage: number) => {
-		setFilters({ ...filters, page: newPage });
+		setFilters((prev) => ({ ...prev, page: newPage }));
 		setSelectedIds([]);
 	};
 

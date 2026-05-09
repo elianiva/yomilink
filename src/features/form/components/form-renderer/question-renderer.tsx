@@ -93,7 +93,7 @@ export function QuestionRenderer({
 		default:
 			return (
 				<div className="flex items-center gap-2 rounded-lg border border-destructive bg-destructive/10 p-4 text-destructive">
-					<AlertCircle className="h-5 w-5" />
+					<AlertCircle className="size-5" />
 					<span>Unknown question type: {(question as QuestionData).type}</span>
 				</div>
 			);

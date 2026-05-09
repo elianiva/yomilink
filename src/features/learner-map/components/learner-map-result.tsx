@@ -94,7 +94,7 @@ export function LearnerMapResult() {
 	if (isLoading) {
 		return (
 			<div className="h-full flex items-center justify-center">
-				<div className="text-muted-foreground">Loading results...</div>
+				<div className="text-muted-foreground">Loading results…</div>
 			</div>
 		);
 	}

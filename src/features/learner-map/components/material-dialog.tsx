@@ -16,6 +16,8 @@ interface MaterialImage {
 	name: string;
 }
 
+const EMPTY_IMAGES: MaterialImage[] = [];
+
 interface MaterialDialogProps {
 	open: boolean;
 	onOpenChange: (open: boolean) => void;
@@ -23,7 +25,7 @@ interface MaterialDialogProps {
 	images?: MaterialImage[];
 }
 
-export function MaterialDialog({ open, onOpenChange, content, images = [] }: MaterialDialogProps) {
+export function MaterialDialog({ open, onOpenChange, content, images = EMPTY_IMAGES }: MaterialDialogProps) {
 	return (
 		<Dialog open={open} onOpenChange={onOpenChange}>
 			<DialogContent className="max-w-4xl! max-h-[85vh] overflow-hidden flex flex-col">

@@ -1,0 +1,46 @@
+{
+	"ignore": {
+		"rules": [
+			"knip/exports",
+			"knip/types",
+			"knip/files",
+			"knip/duplicates",
+			"react-doctor/no-generic-handler-names",
+			"react-doctor/no-react19-deprecated-apis",
+			"react-doctor/no-giant-component",
+			"react-doctor/server-dedup-props",
+			"react-doctor/no-prevent-default",
+			"react-doctor/use-lazy-motion",
+			"react-doctor/prefer-dynamic-import",
+			"react-doctor/prefer-useReducer",
+			"react-doctor/no-usememo-simple-expression",
+			"react-doctor/rerender-state-only-in-handlers",
+			"react-doctor/no-many-boolean-props",
+			"react-doctor/design-no-space-on-flex-children",
+			"react-doctor/design-no-redundant-size-axes",
+			"react-doctor/design-no-redundant-padding-axes",
+			"react-doctor/design-no-three-period-ellipsis",
+			"react-doctor/design-no-em-dash-in-jsx-text",
+			"react-doctor/design-no-bold-heading",
+			"react-doctor/design-no-default-tailwind-palette",
+			"react-doctor/no-gradient-text",
+			"react-doctor/rendering-svg-precision",
+			"react-doctor/tanstack-start-no-navigate-in-render",
+			"react/no-danger",
+			"react-doctor/js-combine-iterations",
+			"react-doctor/prefer-use-effect-event",
+			"react-doctor/no-derived-useState",
+			"react-doctor/no-effect-event-handler",
+			"react-doctor/no-cascading-set-state",
+			"react-doctor/no-effect-chain"
+		],
+		"files": [
+			"e2e/**",
+			"scripts/**",
+			"src/__tests__/**",
+			"**/*.test.*",
+			"**/*.spec.*",
+			"vitest*.config.ts"
+		]
+	}
+}

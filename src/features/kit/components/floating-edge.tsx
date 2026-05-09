@@ -39,9 +39,11 @@ export function FloatingEdge({ id, source, target, markerEnd, style, data }: Edg
 	const createdByRaw = data?.createdBy as string | undefined;
 	const createdBy = createdByRaw
 		?.split("\n")
-		.map((name) => name.trim())
-		.filter(Boolean)
-		.filter((name, index, arr) => arr.indexOf(name) === index)
+		.reduce<string[]>((acc, name) => {
+			const trimmed = name.trim();
+			if (trimmed && !acc.includes(trimmed)) acc.push(trimmed);
+			return acc;
+		}, [])
 		.join("\n");
 	const showNamesOnHover = Boolean(data?.showNamesOnHover);
 

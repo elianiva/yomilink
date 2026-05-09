@@ -58,7 +58,7 @@ function ToolbarButton({ isActive, onClick, disabled, title, children }: Toolbar
 			onClick={onClick}
 			disabled={disabled}
 			title={title}
-			className={cn("h-9 w-9 p-0 touch-manipulation", isActive && "bg-muted")}
+			className={cn("size-9 p-0 touch-manipulation", isActive && "bg-muted")}
 		>
 			{children}
 		</Button>
@@ -87,14 +87,14 @@ function EditorToolbar({ editor, disabled }: { editor: Editor | null; disabled?:
 				onClick={() => editor.chain().focus().undo().run()}
 				disabled={disabled || !editor.can().undo()}
 			>
-				<Undo className="h-4 w-4" />
+				<Undo className="size-4" />
 			</ToolbarButton>
 			<ToolbarButton
 				title="Redo (Ctrl+Shift+Z)"
 				onClick={() => editor.chain().focus().redo().run()}
 				disabled={disabled || !editor.can().redo()}
 			>
-				<Redo className="h-4 w-4" />
+				<Redo className="size-4" />
 			</ToolbarButton>
 
 			<Separator orientation="vertical" className="mx-1 h-6" />
@@ -106,7 +106,7 @@ function EditorToolbar({ editor, disabled }: { editor: Editor | null; disabled?:
 				onClick={() => editor.chain().focus().toggleHeading({ level: 1 }).run()}
 				disabled={disabled}
 			>
-				<Heading1 className="h-4 w-4" />
+				<Heading1 className="size-4" />
 			</ToolbarButton>
 			<ToolbarButton
 				title="Medium Heading"
@@ -114,7 +114,7 @@ function EditorToolbar({ editor, disabled }: { editor: Editor | null; disabled?:
 				onClick={() => editor.chain().focus().toggleHeading({ level: 2 }).run()}
 				disabled={disabled}
 			>
-				<Heading2 className="h-4 w-4" />
+				<Heading2 className="size-4" />
 			</ToolbarButton>
 
 			<Separator orientation="vertical" className="mx-1 h-6" />
@@ -126,7 +126,7 @@ function EditorToolbar({ editor, disabled }: { editor: Editor | null; disabled?:
 				onClick={() => editor.chain().focus().toggleBold().run()}
 				disabled={disabled}
 			>
-				<Bold className="h-4 w-4" />
+				<Bold className="size-4" />
 			</ToolbarButton>
 			<ToolbarButton
 				title="Italic (Ctrl+I)"
@@ -134,7 +134,7 @@ function EditorToolbar({ editor, disabled }: { editor: Editor | null; disabled?:
 				onClick={() => editor.chain().focus().toggleItalic().run()}
 				disabled={disabled}
 			>
-				<Italic className="h-4 w-4" />
+				<Italic className="size-4" />
 			</ToolbarButton>
 			<ToolbarButton
 				title="Underline (Ctrl+U)"
@@ -142,7 +142,7 @@ function EditorToolbar({ editor, disabled }: { editor: Editor | null; disabled?:
 				onClick={() => editor.chain().focus().toggleUnderline().run()}
 				disabled={disabled}
 			>
-				<UnderlineIcon className="h-4 w-4" />
+				<UnderlineIcon className="size-4" />
 			</ToolbarButton>
 
 			<Separator orientation="vertical" className="mx-1 h-6" />
@@ -154,7 +154,7 @@ function EditorToolbar({ editor, disabled }: { editor: Editor | null; disabled?:
 				onClick={() => editor.chain().focus().toggleBulletList().run()}
 				disabled={disabled}
 			>
-				<List className="h-4 w-4" />
+				<List className="size-4" />
 			</ToolbarButton>
 			<ToolbarButton
 				title="Numbered List"
@@ -162,7 +162,7 @@ function EditorToolbar({ editor, disabled }: { editor: Editor | null; disabled?:
 				onClick={() => editor.chain().focus().toggleOrderedList().run()}
 				disabled={disabled}
 			>
-				<ListOrdered className="h-4 w-4" />
+				<ListOrdered className="size-4" />
 			</ToolbarButton>
 			<ToolbarButton
 				title="Quote"
@@ -170,7 +170,7 @@ function EditorToolbar({ editor, disabled }: { editor: Editor | null; disabled?:
 				onClick={() => editor.chain().focus().toggleBlockquote().run()}
 				disabled={disabled}
 			>
-				<Quote className="h-4 w-4" />
+				<Quote className="size-4" />
 			</ToolbarButton>
 
 			<Separator orientation="vertical" className="mx-1 h-6" />
@@ -182,14 +182,14 @@ function EditorToolbar({ editor, disabled }: { editor: Editor | null; disabled?:
 				onClick={addLink}
 				disabled={disabled}
 			>
-				<LinkIcon className="h-4 w-4" />
+				<LinkIcon className="size-4" />
 			</ToolbarButton>
 			<ToolbarButton
 				title="Add Horizontal Line"
 				onClick={() => editor.chain().focus().setHorizontalRule().run()}
 				disabled={disabled}
 			>
-				<Minus className="h-4 w-4" />
+				<Minus className="size-4" />
 			</ToolbarButton>
 		</div>
 	);

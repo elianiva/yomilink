@@ -100,7 +100,7 @@ export function UserDetailSheet({
 					<SheetDescription>View and edit user information</SheetDescription>
 				</SheetHeader>
 
-				<div className="space-y-6 px-6 py-6">
+				<div className="space-y-6 p-6">
 					{/* Basic Info */}
 					<div className="space-y-4">
 						<h3 className="text-sm font-medium text-muted-foreground">
@@ -113,7 +113,7 @@ export function UserDetailSheet({
 									id="name"
 									value={formData.name ?? ""}
 									onChange={(e) =>
-										setFormData({ ...formData, name: e.target.value })
+										setFormData((prev) => ({ ...prev, name: e.target.value }))
 									}
 								/>
 							</div>
@@ -123,7 +123,7 @@ export function UserDetailSheet({
 									id="studentId"
 									value={formData.studentId ?? ""}
 									onChange={(e) =>
-										setFormData({ ...formData, studentId: e.target.value })
+										setFormData((prev) => ({ ...prev, studentId: e.target.value }))
 									}
 								/>
 							</div>
@@ -134,7 +134,7 @@ export function UserDetailSheet({
 									type="email"
 									value={formData.email ?? ""}
 									onChange={(e) =>
-										setFormData({ ...formData, email: e.target.value })
+										setFormData((prev) => ({ ...prev, email: e.target.value }))
 									}
 								/>
 							</div>
@@ -170,12 +170,12 @@ export function UserDetailSheet({
 									type="number"
 									value={formData.age ?? ""}
 									onChange={(e) =>
-										setFormData({
-											...formData,
+										setFormData((prev) => ({
+											...prev,
 											age: e.target.value
 												? Number(e.target.value)
 												: undefined,
-										})
+										}))
 									}
 								/>
 							</div>
@@ -184,10 +184,10 @@ export function UserDetailSheet({
 								<Select
 									value={formData.jlptLevel ?? ""}
 									onValueChange={(level) =>
-										setFormData({
-											...formData,
+										setFormData((prev) => ({
+											...prev,
 											jlptLevel: level as UpdateUserInput["jlptLevel"],
-										})
+										}))
 									}
 								>
 									<SelectTrigger>
@@ -208,10 +208,10 @@ export function UserDetailSheet({
 								<Select
 									value={formData.studyGroup ?? "experiment"}
 									onValueChange={(group) =>
-										setFormData({
-											...formData,
+										setFormData((prev) => ({
+											...prev,
 											studyGroup: group as UpdateUserInput["studyGroup"],
-										})
+										}))
 									}
 								>
 									<SelectTrigger>
@@ -229,7 +229,7 @@ export function UserDetailSheet({
 									id="motivation"
 									value={formData.motivation ?? ""}
 									onChange={(e) =>
-										setFormData({ ...formData, motivation: e.target.value })
+										setFormData((prev) => ({ ...prev, motivation: e.target.value }))
 									}
 								/>
 							</div>

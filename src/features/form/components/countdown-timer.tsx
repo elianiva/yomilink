@@ -113,12 +113,18 @@ export function CountdownTimer({
 		<div className={`countdown-timer flex items-center gap-1 ${className}`}>
 			<span className="text-muted-foreground text-sm">Unlocks in:</span>
 			<div className="flex items-center gap-1">
-				{parts.map((part, index) => (
-					<span key={`part-${index}`} className="flex items-center gap-1">
-						{index > 0 && <span className="text-muted-foreground mx-0.5">:</span>}
-						{part}
-					</span>
-				))}
+				{parts.reduce<React.ReactNode[]>(
+					(acc, part) => {
+						if (acc.length > 0) {
+							acc.push(
+								<span key={`sep-${acc.length}`} className="text-muted-foreground mx-0.5">:</span>,
+							);
+						}
+						acc.push(part);
+						return acc;
+					},
+					[],
+				)}
 			</div>
 		</div>
 	);

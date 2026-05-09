@@ -27,19 +27,19 @@ export function PasswordStrength({ password }: PasswordStrengthProps) {
 				met ? "text-emerald-600" : "text-muted-foreground",
 			)}
 		>
-			{met ? <Check className="h-3 w-3" /> : <X className="h-3 w-3" />}
+			{met ? <Check className="size-3" /> : <X className="size-3" />}
 			<span>{label}</span>
 		</div>
 	);
 	return (
 		<div className="space-y-2 pt-1">
 			<div className="flex gap-0.5 h-1">
-				{[1, 2, 3, 4].map((i) => (
+				{[1, 2, 3, 4].map((value) => (
 					<div
-						key={i}
+						key={value}
 						className={cn(
 							"flex-1 rounded-full transition-colors",
-							i <= passed ? strengthColor[strength] : "bg-muted",
+							value <= passed ? strengthColor[strength] : "bg-muted",
 						)}
 					/>
 				))}

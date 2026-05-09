@@ -60,12 +60,12 @@ export function WordCountValidator({
 			className={cn("flex items-center gap-2 text-sm", className)}
 			data-testid="word-count-validator"
 		>
-			<Type className="h-4 w-4 text-muted-foreground" />
+			<Type className="size-4 text-muted-foreground" />
 			<span
 				className={cn("font-medium", status.textClassName)}
 				data-testid="word-count-message"
 			>
-				<StatusIcon className={cn("mr-1 inline h-4 w-4", status.iconClassName)} />
+				<StatusIcon className={cn("mr-1 inline size-4", status.iconClassName)} />
 				{status.message}
 			</span>
 			{showLabels && minWordCount !== undefined && minWordCount > 0 && (

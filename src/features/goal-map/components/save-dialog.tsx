@@ -79,7 +79,7 @@ function SaveDialogImpl({
 		<Dialog open={open} onOpenChange={(v) => !v && onCancel()}>
 			<DialogContent className="sm:max-w-md" showCloseButton={false}>
 				<DialogHeader>
-					<DialogTitle>Save As...</DialogTitle>
+					<DialogTitle>Save As…</DialogTitle>
 				</DialogHeader>
 
 				<div className="space-y-3">

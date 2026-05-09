@@ -252,8 +252,9 @@ export function FormBuilderPage() {
 			return;
 		}
 
-		const normalizedReadingMaterialSections = [...readingMaterialSections]
-			.sort((a, b) => a.startQuestion - b.startQuestion || a.endQuestion - b.endQuestion)
+		const normalizedReadingMaterialSections = readingMaterialSections.toSorted(
+			(a, b) => a.startQuestion - b.startQuestion || a.endQuestion - b.endQuestion,
+		)
 			.map((section) => ({
 				...section,
 				title: section.title?.trim() ? section.title.trim() : undefined,

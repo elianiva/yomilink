@@ -10,7 +10,7 @@ export function DetailPageSkeleton({ showTabs = true, tabCount = 4 }: DetailPage
 		<div className="space-y-6">
 			{/* Header */}
 			<div className="flex items-start gap-4">
-				<Skeleton className="h-10 w-10 rounded-lg" />
+				<Skeleton className="size-10 rounded-lg" />
 				<div className="flex-1 space-y-2">
 					<Skeleton className="h-7 w-64" />
 					<Skeleton className="h-4 w-96" />

@@ -23,7 +23,7 @@ export function LikertScaleDisplay({ scaleSize, labels, selectedValue }: LikertS
 						<div
 							key={value}
 							className={cn(
-								"flex h-8 w-8 flex-1 items-center justify-center rounded-md text-sm font-medium transition-colors",
+								"flex size-8 flex-1 items-center justify-center rounded-md text-sm font-medium transition-colors",
 								isSelected
 									? "bg-primary text-primary-foreground"
 									: "bg-muted text-muted-foreground",

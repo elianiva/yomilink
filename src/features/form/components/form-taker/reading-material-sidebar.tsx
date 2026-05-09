@@ -18,7 +18,7 @@ export function ReadingMaterialSidebar({ sections }: ReadingMaterialSidebarProps
 	return (
 		<div className="w-1/2 border-r bg-muted/10 space-y-6 overflow-hidden p-6">
 			<div className="flex items-center gap-2">
-				<BookOpen className="h-5 w-5 text-muted-foreground" />
+				<BookOpen className="size-5 text-muted-foreground" />
 				<h2 className="font-semibold">Reading Material</h2>
 			</div>
 			{sections.map((section) => (

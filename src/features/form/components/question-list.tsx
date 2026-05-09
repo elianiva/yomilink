@@ -119,13 +119,13 @@ function SortableQuestionItem({
 								<Button
 									variant="ghost"
 									size="icon"
-									className="h-7 w-7 shrink-0 cursor-grab active:cursor-grabbing"
+									className="size-7 shrink-0 cursor-grab active:cursor-grabbing"
 									data-testid={`question-drag-handle-${question.id}`}
 									aria-label={`Drag to reorder question ${index + 1}`}
 									{...attributes}
 									{...listeners}
 								>
-									<GripVertical className="h-4 w-4 text-muted-foreground" />
+									<GripVertical className="size-4 text-muted-foreground" />
 								</Button>
 							)}
 							<div className="flex size-8 shrink-0 items-center justify-center rounded-sm bg-muted text-sm font-medium">
@@ -168,24 +168,24 @@ function SortableQuestionItem({
 										<Button
 											variant="ghost"
 											size="icon"
-											className="h-7 w-7"
+											className="size-7"
 											data-testid={`question-edit-btn-${question.id}`}
 											aria-label={`Edit question ${index + 1}`}
 											onClick={handleEdit}
 										>
-											<Pencil className="h-3.5 w-3.5" />
+											<Pencil className="size-3.5" />
 										</Button>
 									)}
 									{onDelete && (
 										<Button
 											variant="ghost"
 											size="icon"
-											className="h-7 w-7 text-destructive hover:text-destructive"
+											className="size-7 text-destructive hover:text-destructive"
 											data-testid={`question-delete-btn-${question.id}`}
 											aria-label={`Delete question ${index + 1}`}
 											onClick={handleDelete}
 										>
-											<Trash2 className="h-3.5 w-3.5" />
+											<Trash2 className="size-3.5" />
 										</Button>
 									)}
 								</div>
@@ -213,7 +213,7 @@ export function QuestionList({
 		}),
 	);
 
-	const sortedQuestions = [...questions].sort((a, b) => a.orderIndex - b.orderIndex);
+	const sortedQuestions = questions.toSorted((a, b) => a.orderIndex - b.orderIndex);
 
 	const handleDragEnd = (event: DragEndEvent) => {
 		const { active, over } = event;

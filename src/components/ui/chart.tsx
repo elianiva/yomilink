@@ -72,12 +72,9 @@ const ChartStyle = ({ id, config }: { id: string; config: ChartConfig }) => {
 		return null;
 	}
 
-	return (
-		<style
-			dangerouslySetInnerHTML={{
-				__html: Object.entries(THEMES)
-					.map(
-						([theme, prefix]) => `
+	const styleContent = Object.entries(THEMES)
+		.map(
+			([theme, prefix]) => `
 ${prefix} [data-chart=${id}] {
 ${colorConfig
 	.map(([key, itemConfig]) => {
@@ -88,11 +85,10 @@ ${colorConfig
 	.join("\n")}
 }
 `,
-					)
-					.join("\n"),
-			}}
-		/>
-	);
+		)
+		.join("\n");
+
+	return <style>{styleContent}</style>;
 };
 
 const ChartTooltip = RechartsPrimitive.Tooltip;
@@ -145,8 +141,14 @@ function ChartTooltipContent({
 }: ChartTooltipProps & React.ComponentProps<"div">) {
 	const { config } = useChart();
 
-	const tooltipLabel = React.useMemo(() => {
-		if (hideLabel || !payload?.length) {
+	if (!active || !payload?.length) {
+		return null;
+	}
+
+	const nestLabel = payload.length === 1 && indicator !== "dot";
+
+	const tooltipLabel = (() => {
+		if (hideLabel) {
 			return null;
 		}
 
@@ -171,13 +173,7 @@ function ChartTooltipContent({
 		}
 
 		return <div className={cn("font-medium", labelClassName)}>{value}</div>;
-	}, [label, labelFormatter, payload, hideLabel, labelClassName, config, labelKey]);
-
-	if (!active || !payload?.length) {
-		return null;
-	}
-
-	const nestLabel = payload.length === 1 && indicator !== "dot";
+	})();
 
 	return (
 		<div
@@ -321,7 +317,7 @@ function ChartLegendContent({
 								<itemConfig.icon />
 							) : (
 								<div
-									className="h-2 w-2 shrink-0 rounded-[2px]"
+									className="size-2 shrink-0 rounded-[2px]"
 									style={{
 										backgroundColor: item.color,
 									}}

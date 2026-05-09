@@ -48,7 +48,7 @@ export function SubmissionReview({
 		<div className="container mx-auto max-w-2xl px-4 py-8">
 			<Button variant="ghost" size="sm" asChild className="mb-4">
 				<Link to={backTo}>
-					<ArrowLeftIcon className="mr-2 h-4 w-4" />
+					<ArrowLeftIcon className="mr-2 size-4" />
 					Back
 				</Link>
 			</Button>
@@ -56,7 +56,7 @@ export function SubmissionReview({
 			<Card className="overflow-hidden py-0">
 				<CardHeader className="space-y-2 border-b bg-muted/30 pt-4">
 					<div className="flex items-center gap-2">
-						<CheckCircle2Icon className="h-5 w-5 text-emerald-600" />
+						<CheckCircle2Icon className="size-5 text-emerald-600" />
 						<Badge className="bg-emerald-600 text-white">Completed</Badge>
 					</div>
 					<CardTitle className="text-2xl">{title}</CardTitle>
@@ -79,11 +79,16 @@ export function SubmissionReview({
 							</p>
 						</div>
 					</div>
-					<div className="rounded-b-xl border border-t-0 bg-background py-2 px-3 text-sm text-muted-foreground">
+					<div
+						suppressHydrationWarning
+						className="rounded-b-xl border border-t-0 bg-background py-2 px-3 text-sm text-muted-foreground"
+					>
 						Submitted at{" "}
-						{submission.submittedAt
-							? new Date(submission.submittedAt).toLocaleString()
-							: "unknown"}
+						<span suppressHydrationWarning>
+							{submission.submittedAt
+								? new Date(submission.submittedAt).toLocaleString()
+								: "unknown"}
+						</span>
 						.
 					</div>
 					<div className="mt-4 space-y-3">

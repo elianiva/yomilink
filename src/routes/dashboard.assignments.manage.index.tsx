@@ -107,7 +107,7 @@ function ManageAssignmentsPage() {
 
 			{isLoading ? (
 				<div className="flex items-center justify-center py-12">
-					<Loader2 className="h-8 w-8 animate-spin text-muted-foreground" />
+					<Loader2 className="size-8 animate-spin text-muted-foreground" />
 				</div>
 			) : (
 				<AssignmentList
@@ -138,7 +138,7 @@ function ManageAssignmentsPage() {
 							disabled={deleteMutation.isPending}
 						>
 							{deleteMutation.isPending && (
-								<Loader2 className="mr-2 h-4 w-4 animate-spin" />
+								<Loader2 className="mr-2 size-4 animate-spin" />
 							)}
 							Delete
 						</Button>

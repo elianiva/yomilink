@@ -59,17 +59,19 @@ export const listTeacherAssignments = Effect.fn("listTeacherAssignments")(functi
 
 	const cohortIds = Array.from(
 		new Set(
-			targets
-				.map((target) => target.cohortId)
-				.filter((cohortId): cohortId is string => cohortId !== null),
+			targets.reduce<string[]>((acc, target) => {
+				if (target.cohortId !== null) acc.push(target.cohortId);
+				return acc;
+			}, []),
 		),
 	);
 
 	const directUserIds = Array.from(
 		new Set(
-			targets
-				.map((target) => target.userId)
-				.filter((targetUserId): targetUserId is string => targetUserId !== null),
+			targets.reduce<string[]>((acc, target) => {
+				if (target.userId !== null) acc.push(target.userId);
+				return acc;
+			}, []),
 		),
 	);
 
@@ -110,14 +112,13 @@ export const listTeacherAssignments = Effect.fn("listTeacherAssignments")(functi
 
 	const formIds = Array.from(
 		new Set(
-			rows
-				.flatMap((row) => [
-					row.preTestFormId,
-					row.postTestFormId,
-					row.delayedPostTestFormId,
-					row.tamFormId,
-				])
-				.filter((formId): formId is string => formId !== null),
+			rows.reduce<string[]>((acc, row) => {
+				const ids = [row.preTestFormId, row.postTestFormId, row.delayedPostTestFormId, row.tamFormId];
+				for (const id of ids) {
+					if (id !== null) acc.push(id);
+				}
+				return acc;
+			}, []),
 		),
 	);
 

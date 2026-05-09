@@ -113,7 +113,7 @@ function StudentFormsPage() {
 			{forms.length === 0 ? (
 				isLoadingForms ? (
 					<div className="flex items-center justify-center py-12">
-						<Loader2 className="h-8 w-8 animate-spin text-muted-foreground" />
+						<Loader2 className="size-8 animate-spin text-muted-foreground" />
 					</div>
 				) : (
 					<EmptyState icon={FileTextIcon} title="No forms available yet" />

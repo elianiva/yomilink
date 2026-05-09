@@ -140,7 +140,7 @@ export const AnalyticsRpc = {
 			queryFn: () => getLearnerMapForAnalyticsRpc({ data: { learnerMapId } }),
 		}),
 	getMultipleLearnerMaps: (learnerMapIds: string[]) => {
-		const normalizedLearnerMapIds = [...new Set(learnerMapIds)].sort();
+		const normalizedLearnerMapIds = new Set(learnerMapIds).toSorted();
 		return queryOptions({
 			queryKey: [...AnalyticsRpc.analytics(), "learner-maps", ...normalizedLearnerMapIds],
 			queryFn: () =>

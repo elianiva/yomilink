@@ -86,7 +86,7 @@ export function WhitelistPanel() {
 									colSpan={5}
 									className="py-8 text-center text-muted-foreground"
 								>
-									Loading whitelist...
+									Loading whitelist…
 								</TableCell>
 							</TableRow>
 						) : entries.length === 0 ? (

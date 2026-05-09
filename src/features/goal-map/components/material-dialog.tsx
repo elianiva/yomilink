@@ -182,7 +182,7 @@ function MaterialDialogImpl({ goalMapId, materialText, materialImages }: Materia
 
 					<TabsContent
 						value="attachments"
-						className="flex-1 flex flex-col min-h-0 overflow-hidden space-y-4"
+						className="flex-1 flex flex-col min-h-0 overflow-hidden gap-y-4"
 					>
 						{/* eslint-disable-next-line jsx-a11y/no-static-element-interactions */}
 						<input
@@ -212,7 +212,7 @@ function MaterialDialogImpl({ goalMapId, materialText, materialImages }: Materia
 						</label>
 
 						{images.length > 0 && (
-							<div className="flex-1 flex flex-col min-h-0 space-y-3 overflow-hidden">
+							<div className="flex-1 flex flex-col min-h-0 gap-y-3 overflow-hidden">
 								<Label className="flex-shrink-0">Uploaded Images</Label>
 								<div className="flex-1 overflow-y-auto">
 									<div className="grid grid-cols-2 md:grid-cols-3 gap-3">

@@ -146,7 +146,7 @@ export function FormList({
 					>
 						<CardContent className="p-3">
 							<div className="flex items-start gap-3">
-								<div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-md border border-stone-200 bg-stone-50 text-stone-500">
+								<div className="flex size-9 shrink-0 items-center justify-center rounded-md border border-stone-200 bg-stone-50 text-stone-500">
 									{formTypeIcons[form.type]}
 								</div>
 
@@ -244,7 +244,7 @@ export function FormList({
 												<Button
 													variant="ghost"
 													size="icon"
-													className="h-7 w-7 shrink-0 opacity-0 transition-opacity group-hover:opacity-100 text-stone-400 hover:text-stone-600"
+													className="size-7 shrink-0 opacity-0 transition-opacity group-hover:opacity-100 text-stone-400 hover:text-stone-600"
 												>
 													<MoreVertical className="size-4" />
 												</Button>

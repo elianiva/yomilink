@@ -53,7 +53,7 @@ export function NavUser({
 							size="lg"
 							className="data-[state=open]:bg-sidebar-accent data-[state=open]:text-sidebar-accent-foreground"
 						>
-							<Avatar className="h-8 w-8 rounded-lg">
+							<Avatar className="size-8 rounded-lg">
 								<AvatarImage src={user.avatar} alt={user.name} />
 								<AvatarFallback className="rounded-lg">
 									{((user.name ?? user.email ?? "U")[0] ?? "U").toUpperCase()}
@@ -73,8 +73,8 @@ export function NavUser({
 						sideOffset={4}
 					>
 						<DropdownMenuLabel className="p-0 font-normal">
-							<div className="flex items-center gap-2 px-1 py-1.5 text-left text-sm">
-								<Avatar className="h-8 w-8 rounded-lg">
+							<div className="flex items-center gap-2 p-1.5 text-left text-sm">
+								<Avatar className="size-8 rounded-lg">
 									<AvatarImage src={user.avatar} alt={user.name} />
 									<AvatarFallback className="rounded-lg">
 										{((user.name ?? user.email ?? "U")[0] ?? "U").toUpperCase()}

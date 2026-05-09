@@ -49,7 +49,7 @@ export function ControlSubmissionConfirmModal({
 			>
 				<AlertDialogHeader>
 					<div className="flex items-center gap-2">
-						<FileText className="h-5 w-5 text-primary" />
+						<FileText className="size-5 text-primary" />
 						<AlertDialogTitle>Confirm Submission</AlertDialogTitle>
 					</div>
 					<AlertDialogDescription>
@@ -63,7 +63,7 @@ export function ControlSubmissionConfirmModal({
 						className="flex items-start gap-2 rounded-lg border border-amber-200 bg-amber-50 p-3 dark:border-amber-900 dark:bg-amber-950"
 						data-testid="word-count-warning"
 					>
-						<AlertTriangle className="mt-0.5 h-4 w-4 shrink-0 text-amber-600 dark:text-amber-400" />
+						<AlertTriangle className="mt-0.5 size-4 shrink-0 text-amber-600 dark:text-amber-400" />
 						<div className="text-sm text-amber-800 dark:text-amber-200">
 							<p className="font-medium">Word count below minimum</p>
 							<p>
@@ -76,7 +76,7 @@ export function ControlSubmissionConfirmModal({
 
 				<div className="space-y-3">
 					<div className="flex items-center gap-2 text-sm font-medium">
-						<Eye className="h-4 w-4 text-muted-foreground" />
+						<Eye className="size-4 text-muted-foreground" />
 						<span>Preview</span>
 					</div>
 
@@ -109,7 +109,7 @@ export function ControlSubmissionConfirmModal({
 							disabled={isSubmitting}
 							data-testid="cancel-button"
 						>
-							<X className="mr-2 h-4 w-4" />
+							<X className="mr-2 size-4" />
 							Cancel
 						</Button>
 					</AlertDialogCancel>
@@ -119,7 +119,7 @@ export function ControlSubmissionConfirmModal({
 							disabled={isBelowMinimum || isSubmitting}
 							data-testid="confirm-button"
 						>
-							<Send className="mr-2 h-4 w-4" />
+							<Send className="mr-2 size-4" />
 							{isSubmitting ? "Submitting..." : "Confirm Submission"}
 						</Button>
 					</AlertDialogAction>

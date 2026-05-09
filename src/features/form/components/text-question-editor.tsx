@@ -82,7 +82,7 @@ export function TextQuestionEditor({ data, onChange, disabled = false }: TextQue
 
 			<div className="space-y-3">
 				<div className="flex items-center gap-2">
-					<Type className="h-4 w-4 text-muted-foreground" />
+					<Type className="size-4 text-muted-foreground" />
 					<Label>Validation Settings</Label>
 				</div>
 
@@ -145,7 +145,7 @@ export function TextQuestionEditor({ data, onChange, disabled = false }: TextQue
 					className="flex items-start gap-2 rounded-md bg-muted/50 p-3 text-sm"
 					data-testid="validation-preview"
 				>
-					<Info className="mt-0.5 h-4 w-4 shrink-0 text-muted-foreground" />
+					<Info className="mt-0.5 size-4 shrink-0 text-muted-foreground" />
 					<p className="text-muted-foreground">
 						Answer must be between {data.minLength} and {data.maxLength} characters
 					</p>
@@ -156,7 +156,7 @@ export function TextQuestionEditor({ data, onChange, disabled = false }: TextQue
 				<div className="flex items-center justify-between">
 					<div className="space-y-0.5">
 						<div className="flex items-center gap-2">
-							<Check className="h-4 w-4 text-muted-foreground" />
+							<Check className="size-4 text-muted-foreground" />
 							<Label htmlFor="required-toggle" className="cursor-pointer">
 								Required Question
 							</Label>

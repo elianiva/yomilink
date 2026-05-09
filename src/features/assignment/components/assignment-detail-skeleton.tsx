@@ -8,11 +8,11 @@ export function AssignmentDetailSkeleton() {
 			<div className="flex items-start justify-between">
 				<div className="space-y-2">
 					<div className="flex items-center gap-3">
-						<Skeleton className="h-8 w-8" />
+						<Skeleton className="size-8" />
 						<Skeleton className="h-8 w-64" />
 					</div>
 					<Skeleton className="h-4 w-96" />
-					<Skeleton className="h-3 w-32" />
+					<Skeleton className="size-32" />
 				</div>
 			</div>
 
@@ -64,11 +64,11 @@ export function AssignmentDetailSkeleton() {
 						<div className="grid gap-4 md:grid-cols-2">
 							<div className="space-y-2">
 								<Skeleton className="h-4 w-24" />
-								<Skeleton className="h-4 w-48" />
+								<Skeleton className="size-48" />
 							</div>
 							<div className="space-y-2">
 								<Skeleton className="h-4 w-24" />
-								<Skeleton className="h-4 w-48" />
+								<Skeleton className="size-48" />
 							</div>
 						</div>
 					</CardContent>

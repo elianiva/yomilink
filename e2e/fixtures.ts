@@ -18,20 +18,20 @@ type AppFixtures = {
 };
 
 export const test = base.extend<AppFixtures>({
-	studentPage: async ({ browser }, use) => {
+	studentPage: async ({ browser }, done) => {
 		const context = await browser.newContext({
 			storageState: "./playwright/.auth/student.json",
 		});
 		const page = await context.newPage();
-		await use(page);
+		await done(page);
 		await context.close();
 	},
-	teacherPage: async ({ browser }, use) => {
+	teacherPage: async ({ browser }, done) => {
 		const context = await browser.newContext({
 			storageState: "./playwright/.auth/teacher.json",
 		});
 		const page = await context.newPage();
-		await use(page);
+		await done(page);
 		await context.close();
 	},
 });

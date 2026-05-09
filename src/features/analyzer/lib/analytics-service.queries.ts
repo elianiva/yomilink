@@ -178,7 +178,10 @@ export const getAnalyticsForAssignment = Effect.fn("getAnalyticsForAssignment")(
 		{ concurrency: 10 },
 	);
 
-	const scores = finalLearners.map((l) => l.score).filter((s): s is number => s !== null);
+	const scores: number[] = [];
+	for (const l of finalLearners) {
+		if (l.score !== null) scores.push(l.score);
+	}
 
 	const summary = {
 		totalLearners: finalLearners.length,

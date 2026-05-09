@@ -10,7 +10,7 @@ export function AssignmentSelectContent({
 	isLoading: boolean;
 }) {
 	if (isLoading) {
-		return <EmptyState>Loading...</EmptyState>;
+		return <EmptyState>Loading…</EmptyState>;
 	}
 
 	if (!assignments || assignments.length === 0) {

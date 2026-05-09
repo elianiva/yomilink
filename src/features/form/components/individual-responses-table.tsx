@@ -109,7 +109,7 @@ export function IndividualResponsesTable({
 									size="sm"
 									onClick={() => setSelectedResponse(response)}
 								>
-									<EyeIcon className="h-4 w-4" />
+									<EyeIcon className="size-4" />
 									<span className="ml-2">View</span>
 								</Button>
 							</TableCell>

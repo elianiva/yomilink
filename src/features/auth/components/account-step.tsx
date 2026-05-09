@@ -23,7 +23,7 @@ export function AccountStep({ whitelistOptions, isLoading, onLastFieldSubmit }: 
 						<Label htmlFor="studentId">Reserved Account</Label>
 						{isLoading ? (
 							<div className="rounded-lg border bg-muted/30 px-3 py-2 text-sm text-muted-foreground">
-								Loading whitelist...
+								Loading whitelist…
 							</div>
 						) : whitelistOptions.length === 0 ? (
 							<div className="rounded-lg border bg-muted/30 px-3 py-2 text-sm text-muted-foreground">

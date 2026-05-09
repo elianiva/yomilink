@@ -138,7 +138,7 @@ function NodeContextMenuImpl({
 					role="menu"
 					aria-label="Node actions"
 					tabIndex={-1}
-					className="flex items-center gap-0.5 rounded-lg border bg-background px-1 py-1 shadow-lg animate-in fade-in zoom-in-95 duration-150 origin-bottom focus:outline-none"
+					className="flex items-center gap-0.5 rounded-lg border bg-background p-1 shadow-lg animate-in fade-in zoom-in-95 duration-150 origin-bottom focus:outline-none"
 					onClick={(e) => e.stopPropagation()}
 					onKeyDown={handleKeyDown}
 				>

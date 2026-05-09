@@ -40,7 +40,7 @@ export function QuestionList({
 						{questions.map((question, index) => (
 							<div key={question.id} className="py-6">
 								<div className="mb-4 flex items-start gap-3">
-									<span className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-primary text-sm font-medium text-primary-foreground">
+									<span className="flex size-7 shrink-0 items-center justify-center rounded-full bg-primary text-sm font-medium text-primary-foreground">
 										{index + 1}
 									</span>
 									<div className="flex-1">
@@ -71,7 +71,7 @@ export function QuestionList({
 								disabled={!answeredRequired || isPending}
 								size="lg"
 							>
-								<Send className="h-4 w-4" />
+								<Send className="size-4" />
 								{isPending ? "Submitting..." : "Submit"}
 							</Button>
 						</div>

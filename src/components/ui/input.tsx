@@ -42,7 +42,7 @@ function PasswordInput({ className, showPasswordToggle = true, ...props }: Passw
 					className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring/50 rounded-sm"
 					tabIndex={-1}
 				>
-					{showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+					{showPassword ? <EyeOff className="size-4" /> : <Eye className="size-4" />}
 				</button>
 			)}
 		</div>

@@ -68,9 +68,10 @@ export const canAccessGoalMap = (userId: string, goalMapId: string) =>
 		const hasDirectAccess = assignments_.some((a) => a.targetUserId === userId);
 		if (hasDirectAccess) return true;
 
-		const cohortIds = assignments_
-			.map((a) => a.cohortId)
-			.filter((id): id is string => id !== undefined);
+		const cohortIds: string[] = [];
+		for (const a of assignments_) {
+			if (a.cohortId != null) cohortIds.push(a.cohortId);
+		}
 
 		if (cohortIds.length > 0) {
 			const memberRecords = yield* Effect.tryPromise(() =>
@@ -132,9 +133,10 @@ export const canAccessAssignment = (userId: string, assignmentId: string) =>
 		const hasDirectAccess = targets.some((t) => t.userId === userId);
 		if (hasDirectAccess) return true;
 
-		const cohortIds = targets
-			.map((t) => t.cohortId)
-			.filter((id): id is string => id !== undefined);
+		const cohortIds: string[] = [];
+		for (const t of targets) {
+			if (t.cohortId != null) cohortIds.push(t.cohortId);
+		}
 
 		if (cohortIds.length > 0) {
 			const memberRecords = yield* Effect.tryPromise(() =>

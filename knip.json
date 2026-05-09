@@ -1,0 +1,24 @@
+{
+	"$schema": "https://unpkg.com/knip@5/schema.json",
+	"entry": [
+		"src/routes/**/*.tsx",
+		"src/routes/**/*.ts",
+		"src/server/app-layer.ts",
+		"e2e/**/*.ts",
+		"scripts/**/*.ts"
+	],
+	"project": [
+		"src/**/*.{ts,tsx}",
+		"e2e/**/*.ts",
+		"scripts/**/*.ts"
+	],
+	"ignore": [
+		"src/__tests__/**",
+		"src/components/ui/**",
+		"vitest*.config.ts",
+		"src/features/**/*.test.*"
+	],
+	"ignoreDependencies": [
+		"@effect/vitest"
+	]
+}

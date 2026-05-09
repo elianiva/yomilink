@@ -35,14 +35,16 @@ export const ValidationResultSchema = Schema.Struct({
 export type ValidationResult = typeof ValidationResultSchema.Type;
 
 const composePropositions = (nodes: Readonly<Node[]>, edges: Readonly<Edge[]>): Proposition[] => {
-	const concepts = new Map(
-		nodes
-			.filter((n): n is ConceptNode => n.type === "text" || n.type === "image")
-			.map((c) => [c.id, c]),
-	);
-	const connectors = new Map(
-		nodes.filter((n): n is ConnectorNode => n.type === "connector").map((c) => [c.id, c]),
-	);
+	const concepts = new Map<string, ConceptNode>();
+	const connectors = new Map<string, ConnectorNode>();
+
+	for (const node of nodes) {
+		if (node.type === "text" || node.type === "image") {
+			concepts.set(node.id, node as ConceptNode);
+		} else if (node.type === "connector") {
+			connectors.set(node.id, node as ConnectorNode);
+		}
+	}
 
 	const propositions: Proposition[] = [];
 

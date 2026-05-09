@@ -46,12 +46,12 @@ function FormTakerPage() {
 	});
 
 	const sortedQuestions = useMemo(
-		() => [...(data?.questions ?? [])].sort((a, b) => a.orderIndex - b.orderIndex),
+		() => (data?.questions ?? []).toSorted((a, b) => a.orderIndex - b.orderIndex),
 		[data?.questions],
 	);
 	const sortedReadingMaterialSections = useMemo(
 		() =>
-			[...(data?.form.readingMaterialSections ?? [])].sort(
+			(data?.form.readingMaterialSections ?? []).toSorted(
 				(a, b) => a.startQuestion - b.startQuestion || a.endQuestion - b.endQuestion,
 			),
 		[data?.form.readingMaterialSections],
@@ -72,7 +72,7 @@ function FormTakerPage() {
 	if (isLoading) {
 		return (
 			<div className="flex items-center justify-center py-12">
-				<Loader2 className="h-8 w-8 animate-spin text-muted-foreground" />
+				<Loader2 className="size-8 animate-spin text-muted-foreground" />
 			</div>
 		);
 	}

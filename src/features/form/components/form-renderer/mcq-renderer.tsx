@@ -67,13 +67,13 @@ export function McqRenderer({ question, value, onChange, disabled = false }: Mcq
 						<div className="flex items-center gap-3">
 							<div
 								className={cn(
-									"flex h-6 w-6 shrink-0 items-center justify-center rounded-full border-2 transition-colors",
+									"flex size-6 shrink-0 items-center justify-center rounded-full border-2 transition-colors",
 									isSelected
 										? "border-current bg-current text-primary-foreground"
 										: "border-muted-foreground",
 								)}
 							>
-								{isSelected && <Check className="h-4 w-4 text-primary" />}
+								{isSelected && <Check className="size-4 text-primary" />}
 							</div>
 							<span className="flex-1 font-medium">{option.text}</span>
 						</div>

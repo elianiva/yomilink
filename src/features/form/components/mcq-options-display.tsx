@@ -22,7 +22,7 @@ export function McqOptionsDisplay({ options, selectedOptionId }: McqOptionsDispl
 					>
 						<span
 							className={cn(
-								"flex h-6 w-6 shrink-0 items-center justify-center rounded-full text-xs font-semibold",
+								"flex size-6 shrink-0 items-center justify-center rounded-full text-xs font-semibold",
 								isSelected
 									? "bg-primary-foreground text-primary"
 									: "bg-muted text-muted-foreground",

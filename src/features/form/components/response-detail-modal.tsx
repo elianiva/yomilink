@@ -21,7 +21,7 @@ export function ResponseDetailModal({
 	open,
 	onOpenChange,
 }: ResponseDetailModalProps) {
-	const sortedQuestions = [...questions].sort((a, b) => a.orderIndex - b.orderIndex);
+	const sortedQuestions = questions.toSorted((a, b) => a.orderIndex - b.orderIndex);
 
 	const formatResponseDate = (timestamp: number | null) => {
 		if (!timestamp) return "-";
@@ -130,7 +130,7 @@ export function ResponseDetailModal({
 									className="space-y-2 border-b pb-4 last:border-b-0"
 								>
 									<div className="flex items-start gap-2">
-										<span className="flex h-6 w-6 items-center justify-center rounded-full bg-primary text-xs text-primary-foreground">
+										<span className="flex size-6 items-center justify-center rounded-full bg-primary text-xs text-primary-foreground">
 											{index + 1}
 										</span>
 										<div className="flex-1">
