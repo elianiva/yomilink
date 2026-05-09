@@ -1,26 +1,15 @@
 import {
 	FileText,
-	MoreVertical,
 	Pencil,
 	Trash2,
 	BarChart3,
 	Clock,
-	Users,
-	CheckCircle2,
-	Lock,
-	Unlock,
 	Copy,
 } from "lucide-react";
 import type * as React from "react";
 
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
-import {
-	DropdownMenu,
-	DropdownMenuContent,
-	DropdownMenuItem,
-	DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu";
 import { formatRelativeTime } from "@/lib/date-utils";
 import { cn } from "@/lib/utils";
 
@@ -32,14 +21,6 @@ export type FormType =
 	| "tam"
 	| "questionnaire";
 export type FormStatus = "draft" | "published";
-export type FormListStatus = "locked" | "available" | "completed";
-
-export interface FormStats {
-	completed: number;
-	available: number;
-	locked: number;
-	total: number;
-}
 
 export interface FormListItem {
 	id: string;
@@ -47,10 +28,8 @@ export interface FormListItem {
 	description?: string;
 	type: FormType;
 	status: FormStatus;
-	formStatus?: FormListStatus;
 	createdAt?: Date;
 	updatedAt?: Date;
-	stats?: FormStats;
 }
 
 interface FormListProps {
@@ -91,21 +70,6 @@ const formStatusConfig: Record<FormStatus, { label: string; dot: string }> = {
 	},
 };
 
-const formListStatusConfig: Record<FormListStatus, { label: string; color: string }> = {
-	locked: {
-		label: "Locked",
-		color: "bg-red-500",
-	},
-	available: {
-		label: "Available",
-		color: "bg-blue-500",
-	},
-	completed: {
-		label: "Completed",
-		color: "bg-green-500",
-	},
-};
-
 export function FormList({
 	forms,
 	onEdit,
@@ -132,12 +96,6 @@ export function FormList({
 		<div className={cn("grid gap-2", className)}>
 			{forms.map((form) => {
 				const statusConfig = formStatusConfig[form.status];
-				const stats = form.stats ?? {
-					completed: 0,
-					available: 0,
-					locked: 0,
-					total: 0,
-				};
 
 				return (
 					<Card
@@ -180,20 +138,6 @@ export function FormList({
 											{statusConfig.label}
 										</span>
 
-										{form.formStatus && (
-											<>
-												<span className="text-stone-300">·</span>
-												<span
-													className={cn(
-														"flex items-center gap-1 text-xs",
-														formListStatusConfig[form.formStatus].color,
-													)}
-												>
-													{formListStatusConfig[form.formStatus].label}
-												</span>
-											</>
-										)}
-
 										{form.createdAt && (
 											<>
 												<span className="text-stone-300">·</span>
@@ -204,102 +148,64 @@ export function FormList({
 										)}
 									</div>
 
-									<div className="hidden sm:flex items-center mt-2 gap-3">
-										<div className="flex items-center gap-1.5">
-											<Users className="size-3.5 text-stone-400" />
-											<div className="flex items-baseline gap-1">
-												<span className="text-sm font-medium text-stone-700">
-													{stats.completed}
-												</span>
-												<span className="text-sm text-stone-400">
-													/{stats.total}
-												</span>
-											</div>
-										</div>
-										<span className="text-xs text-stone-600/50">|</span>
-										<div className="flex items-center gap-2 text-sm text-stone-500">
-											<span className="flex items-center gap-0.5">
-												<CheckCircle2 className="size-3" />
-												{stats.completed}
-											</span>
-											<span className="flex items-center gap-0.5">
-												<Unlock className="size-3" />
-												{stats.available}
-											</span>
-											<span className="flex items-center gap-0.5 text-stone-400">
-												<Lock className="size-3" />
-												{stats.locked}
-											</span>
-										</div>
-									</div>
 								</div>
 
-								<div className="flex items-center gap-1">
-									{(onEdit || onDuplicate || onDelete || onViewResults) && (
-										<DropdownMenu>
-											<DropdownMenuTrigger
-												asChild
-												onClick={(e) => e.stopPropagation()}
-											>
-												<Button
-													variant="ghost"
-													size="icon"
-													className="size-7 shrink-0 opacity-0 transition-opacity group-hover:opacity-100 text-stone-400 hover:text-stone-600"
-												>
-													<MoreVertical className="size-4" />
-												</Button>
-											</DropdownMenuTrigger>
-											<DropdownMenuContent
-												align="end"
-												className="border-stone-200"
-											>
-												{onViewResults && (
-													<DropdownMenuItem
-														onClick={(e) => {
-															e.stopPropagation();
-															onViewResults(form);
-														}}
-													>
-														<BarChart3 className="mr-2 size-4" />
-														View Results
-													</DropdownMenuItem>
-												)}
-												{onEdit && (
-													<DropdownMenuItem
-														onClick={(e) => {
-															e.stopPropagation();
-															onEdit(form);
-														}}
-													>
-														<Pencil className="mr-2 size-4" />
-														Edit
-													</DropdownMenuItem>
-												)}
-												{onDuplicate && (
-													<DropdownMenuItem
-														onClick={(e) => {
-															e.stopPropagation();
-															onDuplicate(form);
-														}}
-													>
-														<Copy className="mr-2 size-4" />
-														Duplicate
-													</DropdownMenuItem>
-												)}
-												{onDelete && (
-													<DropdownMenuItem
-														onClick={(e) => {
-															e.stopPropagation();
-															onDelete(form.id);
-														}}
-														className="text-stone-700"
-													>
-														<Trash2 className="mr-2 size-4" />
-														Delete
-													</DropdownMenuItem>
-												)}
-											</DropdownMenuContent>
-										</DropdownMenu>
+								<div className="flex items-center gap-1 shrink-0">
+									{onViewResults && (
+										<Button
+											variant="ghost"
+											size="icon"
+											onClick={(e) => {
+												e.stopPropagation();
+												onViewResults(form);
+											}}
+											title="View Results"
+											className="size-7 text-stone-400 hover:text-stone-600"
+										>
+											<BarChart3 className="size-4" />
+										</Button>
+									)}
+									{onEdit && (
+										<Button
+											variant="ghost"
+											size="icon"
+											onClick={(e) => {
+												e.stopPropagation();
+												onEdit(form);
+											}}
+											title="Edit"
+											className="size-7 text-stone-400 hover:text-stone-600"
+										>
+											<Pencil className="size-4" />
+										</Button>
+									)}
+									{onDuplicate && (
+										<Button
+											variant="ghost"
+											size="icon"
+											onClick={(e) => {
+												e.stopPropagation();
+												onDuplicate(form);
+											}}
+											title="Duplicate"
+											className="size-7 text-stone-400 hover:text-stone-600"
+										>
+											<Copy className="size-4" />
+										</Button>
+									)}
+									{onDelete && (
+										<Button
+											variant="ghost"
+											size="icon"
+											onClick={(e) => {
+												e.stopPropagation();
+												onDelete(form.id);
+											}}
+											title="Delete"
+											className="size-7 text-stone-400 hover:text-red-600"
+										>
+											<Trash2 className="size-4" />
+										</Button>
 									)}
 								</div>
 							</div>

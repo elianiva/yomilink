@@ -44,6 +44,8 @@ const formTypeLabels: Record<FormType, string> = {
 	questionnaire: "Questionnaire",
 };
 
+const formTypeValues = Object.keys(formTypeLabels) as FormType[];
+
 const formTypeDescriptions: Record<FormType, string> = {
 	pre_test: "Assessment before content access",
 	post_test: "Assessment after assignment completion",
@@ -134,10 +136,12 @@ export function FormMetadataEditor({
 				<Label htmlFor="form-type">Form Type</Label>
 				<Select value={metadata.type} onValueChange={handleTypeChange} disabled={disabled}>
 					<SelectTrigger id="form-type" data-testid="form-type-select" className="w-full">
-						<SelectValue placeholder="Select form type" />
+						<SelectValue placeholder="Select form type">
+							{formTypeLabels[metadata.type]}
+						</SelectValue>
 					</SelectTrigger>
 					<SelectContent>
-						{(Object.keys(formTypeLabels) as FormType[]).map((type) => (
+						{formTypeValues.map((type) => (
 							<SelectItem key={type} value={type}>
 								<div className="flex flex-col text-left">
 									<span>{formTypeLabels[type]}</span>
@@ -163,7 +167,9 @@ export function FormMetadataEditor({
 						data-testid="form-audience-select"
 						className="w-full"
 					>
-						<SelectValue placeholder="Select visibility" />
+						<SelectValue placeholder="Select visibility">
+							{audienceLabels[metadata.audience]}
+						</SelectValue>
 					</SelectTrigger>
 					<SelectContent>
 						{(Object.keys(audienceLabels) as FormAudience[]).map((audience) => (
