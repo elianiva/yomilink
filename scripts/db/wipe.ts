@@ -47,8 +47,9 @@ async function wipeRemoteDatabase() {
 		);
 
 		for (const row of result.rows) {
-			const type = String(row.type);
-			const name = escapeIdentifier(String(row.name));
+			const r = row as unknown as { type: string; name: string };
+			const type = r.type;
+			const name = escapeIdentifier(r.name);
 
 			if (type === "table") {
 				await client.execute(`DROP TABLE IF EXISTS "${name}"`);

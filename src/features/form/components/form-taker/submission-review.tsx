@@ -8,6 +8,13 @@ import type { GetStudentFormByIdOutput } from "@/features/form/lib/form-service.
 
 type Submission = NonNullable<GetStudentFormByIdOutput["submission"]>;
 
+function formatAnswer(rawAnswer: unknown): string {
+	if (typeof rawAnswer === "string") return rawAnswer;
+	if (typeof rawAnswer === "number") return String(rawAnswer);
+	if (typeof rawAnswer === "boolean") return String(rawAnswer);
+	return JSON.stringify(rawAnswer);
+}
+
 export function getSubmittedAnswerText(
 	question: GetStudentFormByIdOutput["questions"][number],
 	rawAnswer: unknown,
@@ -17,14 +24,14 @@ export function getSubmittedAnswerText(
 
 	if (question.type === "mcq" && options && "options" in options) {
 		const selected = options.options.find((opt) => opt.id === rawAnswer);
-		return selected?.text ?? String(rawAnswer);
+		return selected?.text ?? formatAnswer(rawAnswer);
 	}
 
 	if (question.type === "likert" && options && "labels" in options) {
-		return options.labels[String(rawAnswer)] ?? String(rawAnswer);
+		return options.labels[formatAnswer(rawAnswer)] ?? formatAnswer(rawAnswer);
 	}
 
-	return String(rawAnswer);
+	return formatAnswer(rawAnswer);
 }
 
 interface SubmissionReviewProps {

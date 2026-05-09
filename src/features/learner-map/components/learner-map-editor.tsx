@@ -130,7 +130,16 @@ export function LearnerMapEditor() {
 					: JSON.stringify({ nodes: arrangedNodes, edges: [] }),
 			);
 		}
-	}, [assignmentData, condition]);
+	}, [
+		assignmentData,
+		condition,
+		setNodes,
+		setEdges,
+		setLearnerMapId,
+		setStatus,
+		setAttempt,
+		setLastSavedSnapshot,
+	]);
 
 	useEffect(() => {
 		if (isSubmitted) return;

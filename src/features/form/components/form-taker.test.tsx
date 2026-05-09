@@ -179,20 +179,17 @@ describe("QuestionList", () => {
 });
 
 describe("FormHeaderBar", () => {
-	it("shows title and description", () => {
+	it("shows title and answered count", () => {
 		render(
 			<FormHeaderBar
 				title="Test Form"
-				description="Test description"
 				answeredCount={0}
 				totalQuestions={3}
 				lastSaved={null}
-				onBack={vi.fn()}
 			/>,
 		);
 
 		expect(screen.getByText("Test Form")).toBeInTheDocument();
-		expect(screen.getByText("Test description")).toBeInTheDocument();
 		expect(screen.getByText("0 of 3 answered")).toBeInTheDocument();
 	});
 });

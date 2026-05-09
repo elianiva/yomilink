@@ -14,8 +14,10 @@ import {
 } from "../data/questions.js";
 import { copyFormWithQuestions } from "./form-copy.js";
 
+type QuestionType = "mcq" | "likert" | "text";
+
 type SeedQuestion = {
-	type?: string;
+	type?: QuestionType;
 	questionText: string;
 	options: unknown;
 	correctOptionId?: string;

@@ -11,7 +11,6 @@ const mockForms: FormListItem[] = [
 		description: "A pre-test form",
 		type: "pre_test",
 		status: "published",
-		formStatus: "available",
 		createdAt: new Date("2026-01-15"),
 	},
 	{
@@ -20,7 +19,6 @@ const mockForms: FormListItem[] = [
 		description: "A post-test form",
 		type: "post_test",
 		status: "draft",
-		formStatus: "locked",
 		createdAt: new Date("2026-01-20"),
 	},
 	{
@@ -28,7 +26,6 @@ const mockForms: FormListItem[] = [
 		title: "Registration Form",
 		type: "registration",
 		status: "published",
-		formStatus: "completed",
 		createdAt: new Date("2026-01-25"),
 	},
 ];
@@ -65,39 +62,34 @@ describe("FormList", () => {
 		expect(screen.getAllByText("draft").length).toBe(1);
 	});
 
-	it("should render form list status badges", () => {
-		render(<FormList forms={mockForms} />);
-		expect(screen.getByText("Available")).toBeInTheDocument();
-		expect(screen.getByText("Locked")).toBeInTheDocument();
-		expect(screen.getByText("Completed")).toBeInTheDocument();
-	});
-
 	it("should render creation dates", () => {
 		render(<FormList forms={mockForms} />);
 		expect(screen.getAllByText(/Created:/).length).toBe(3);
 	});
 
-	it("should call onClick when form is clicked", async () => {
+	it("should call onEdit when edit button clicked", async () => {
 		const user = userEvent.setup();
-		const onClick = vi.fn();
-		render(<FormList forms={mockForms} onClick={onClick} />);
+		const onEdit = vi.fn();
+		render(<FormList forms={[mockForms[0]]} onEdit={onEdit} />);
 
-		await user.click(screen.getByText("Pre-test Form"));
-		expect(onClick).toHaveBeenCalledWith(mockForms[0]);
+		const editButton = screen.getByTitle("Edit");
+		await user.click(editButton);
+		expect(onEdit).toHaveBeenCalledWith(mockForms[0]);
 	});
 
-	it("should show dropdown menu with edit and delete options", () => {
+	it("should show edit and delete buttons when handlers provided", () => {
 		const onEdit = vi.fn();
 		const onDelete = vi.fn();
 		render(<FormList forms={[mockForms[0]]} onEdit={onEdit} onDelete={onDelete} />);
 
-		const moreButton = screen.getByRole("button", { hidden: true });
-		expect(moreButton).toBeInTheDocument();
+		expect(screen.getByTitle("Edit")).toBeInTheDocument();
+		expect(screen.getByTitle("Delete")).toBeInTheDocument();
 	});
 
-	it("should not show dropdown menu when no handlers provided", () => {
+	it("should not show action buttons when no handlers provided", () => {
 		render(<FormList forms={mockForms} />);
-		expect(screen.queryByRole("button", { name: /more/i })).not.toBeInTheDocument();
+		expect(screen.queryByTitle("Edit")).not.toBeInTheDocument();
+		expect(screen.queryByTitle("Delete")).not.toBeInTheDocument();
 	});
 
 	it("should handle forms without description", () => {
@@ -124,20 +116,5 @@ describe("FormList", () => {
 		];
 		render(<FormList forms={formsWithoutDate} />);
 		expect(screen.getByText("Form without date")).toBeInTheDocument();
-	});
-
-	it("should not render form list status when undefined", () => {
-		const formsWithoutListStatus: FormListItem[] = [
-			{
-				id: "form-1",
-				title: "Form without list status",
-				type: "pre_test",
-				status: "published",
-			},
-		];
-		render(<FormList forms={formsWithoutListStatus} />);
-		expect(screen.queryByText("Locked")).not.toBeInTheDocument();
-		expect(screen.queryByText("Available")).not.toBeInTheDocument();
-		expect(screen.queryByText("Completed")).not.toBeInTheDocument();
 	});
 });
