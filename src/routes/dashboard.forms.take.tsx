@@ -16,7 +16,6 @@ import {
 } from "@/features/form/components/form-taker";
 import { useFormDraft } from "@/features/form/components/form-taker/use-form-draft";
 import { useRpcMutation, useRpcQuery } from "@/hooks/use-rpc-query";
-import { cn } from "@/lib/utils";
 import { FormRpc } from "@/server/rpc/form";
 
 export const Route = createFileRoute("/dashboard/forms/take")({
@@ -25,13 +24,12 @@ export const Route = createFileRoute("/dashboard/forms/take")({
 
 type FormTakeSearch = {
 	formId?: string;
-	returnTo?: string;
 };
 
 function FormTakerPage() {
 	const queryClient = useQueryClient();
 	const navigate = useNavigate({ from: "/dashboard/forms/take" });
-	const { formId, returnTo } = useSearch({ from: "/dashboard/forms/take" }) as FormTakeSearch;
+	const { formId } = useSearch({ from: "/dashboard/forms/take" }) as FormTakeSearch;
 	const { answers, lastSaved, updateAnswer, clearDraft } = useFormDraft(formId ?? null);
 
 	const { data, isLoading, error } = useRpcQuery({
@@ -47,10 +45,6 @@ function FormTakerPage() {
 			await queryClient.invalidateQueries({ queryKey: FormRpc.forms() });
 			if (data?.form.type === "post_test") {
 				void navigate({ to: "/dashboard/assignments" });
-				return;
-			}
-			if (returnTo) {
-				window.location.href = returnTo;
 			} else {
 				void navigate({ to: "/dashboard/forms/student" });
 			}
