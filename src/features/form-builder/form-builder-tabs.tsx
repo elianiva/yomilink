@@ -5,7 +5,7 @@ import { FormPreview } from "@/features/form/components/form-renderer/form-previ
 import type { ReadingMaterialSection } from "@/features/form/lib/form-service.shared";
 
 import { EditorContent } from "./editor-content";
-import type { EditorMode, QuestionType, QuestionWithOptions } from "./types";
+import type { EditorMode, QuestionOptions, QuestionType, QuestionWithOptions } from "./types";
 
 interface FormBuilderTabsProps {
 	isEditing: boolean;
@@ -17,7 +17,10 @@ interface FormBuilderTabsProps {
 	isPending: boolean;
 	onEditorModeChange: (mode: EditorMode) => void;
 	onMetadataChange: (metadata: FormMetadata) => void;
-	onEditQuestion: (question: QuestionWithOptions) => void;
+	onQuestionChange: (
+		questionId: string,
+		data: { questionText: string; options: QuestionOptions; required: boolean },
+	) => void;
 	onDeleteQuestion: (questionId: string) => void;
 	onReorderQuestions: (questions: QuestionWithOptions[]) => void;
 	onAddQuestion: (type: QuestionType) => void;
@@ -34,7 +37,7 @@ export function FormBuilderTabs({
 	isPending,
 	onEditorModeChange,
 	onMetadataChange,
-	onEditQuestion,
+	onQuestionChange,
 	onDeleteQuestion,
 	onReorderQuestions,
 	onAddQuestion,
@@ -57,7 +60,7 @@ export function FormBuilderTabs({
 						metadata={metadata}
 						onMetadataChange={onMetadataChange}
 						questions={questions}
-						onEditQuestion={onEditQuestion}
+						onQuestionChange={onQuestionChange}
 						onDeleteQuestion={onDeleteQuestion}
 						onReorderQuestions={onReorderQuestions}
 						onAddQuestion={onAddQuestion}
@@ -101,7 +104,7 @@ export function FormBuilderTabs({
 			metadata={metadata}
 			onMetadataChange={onMetadataChange}
 			questions={questions}
-			onEditQuestion={onEditQuestion}
+			onQuestionChange={onQuestionChange}
 			onDeleteQuestion={onDeleteQuestion}
 			onReorderQuestions={onReorderQuestions}
 			onAddQuestion={onAddQuestion}

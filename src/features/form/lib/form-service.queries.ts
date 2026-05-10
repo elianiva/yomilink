@@ -217,14 +217,15 @@ export const getStudentFormById = Effect.fn("getStudentFormById")(function* (
 				}
 
 				// Strip correctOptionIds from MCQ options for student view
-				const studentOptions = parsedOptions?.type === "mcq"
-					? {
-							type: "mcq" as const,
-							options: parsedOptions.options,
-							shuffle: parsedOptions.shuffle,
-							// NOTE: correctOptionIds is intentionally omitted for student view
-					  }
-					: parsedOptions;
+				const studentOptions =
+					parsedOptions?.type === "mcq"
+						? {
+								type: "mcq" as const,
+								options: parsedOptions.options,
+								shuffle: parsedOptions.shuffle,
+								// NOTE: correctOptionIds is intentionally omitted for student view
+							}
+						: parsedOptions;
 
 				return {
 					id: q.id,

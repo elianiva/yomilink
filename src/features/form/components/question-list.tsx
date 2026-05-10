@@ -43,6 +43,7 @@ interface QuestionListProps {
 	onDelete?: (questionId: string) => void;
 	onReorder?: (questions: Question[]) => void;
 	className?: string;
+	editContent?: (question: Question) => React.ReactNode;
 }
 
 interface SortableQuestionItemProps {
@@ -51,6 +52,7 @@ interface SortableQuestionItemProps {
 	onEdit?: (question: Question) => void;
 	onDelete?: (questionId: string) => void;
 	onReorder?: (questions: Question[]) => void;
+	editContent?: (question: Question) => React.ReactNode;
 }
 
 const getQuestionTypeLabel = (type: QuestionType): string => {
@@ -85,6 +87,7 @@ function SortableQuestionItem({
 	onEdit,
 	onDelete,
 	onReorder,
+	editContent,
 }: SortableQuestionItemProps) {
 	const sortable = useSortable({ id: question.id, disabled: !onReorder });
 	const { attributes, listeners, setNodeRef, transform, transition, isDragging } = sortable;
@@ -164,7 +167,7 @@ function SortableQuestionItem({
 									)}
 								</div>
 								<div className="flex shrink-0 items-center gap-0.5 opacity-0 transition-opacity group-hover:opacity-100">
-									{onEdit && (
+									{!editContent && onEdit && (
 										<Button
 											variant="ghost"
 											size="icon"
@@ -190,7 +193,13 @@ function SortableQuestionItem({
 									)}
 								</div>
 							</div>
-							<QuestionPreview question={question} />
+							<>
+								{editContent ? (
+									editContent(question)
+								) : (
+									<QuestionPreview question={question} />
+								)}
+							</>
 						</div>
 					</div>
 				</CardContent>
@@ -205,6 +214,7 @@ export function QuestionList({
 	onDelete,
 	onReorder,
 	className,
+	editContent,
 }: QuestionListProps) {
 	const sensors = useSensors(
 		useSensor(PointerSensor),
@@ -265,6 +275,7 @@ export function QuestionList({
 						onEdit={onEdit}
 						onDelete={onDelete}
 						onReorder={onReorder}
+						editContent={editContent}
 					/>
 				))}
 			</ul>
@@ -290,6 +301,7 @@ export function QuestionList({
 							onEdit={onEdit}
 							onDelete={onDelete}
 							onReorder={onReorder}
+							editContent={editContent}
 						/>
 					))}
 				</ul>

@@ -5,16 +5,17 @@ import { FormMetadataEditor } from "@/features/form/components/form-metadata-edi
 import { QuestionList, type Question } from "@/features/form/components/question-list";
 import { ReadingMaterialRangesEditor } from "@/features/form/components/reading-material-ranges-editor";
 
+import { InlineEditor } from "./inline-editor";
 import type { EditorContentProps, QuestionWithOptions } from "./types";
 
 export function EditorContent({
 	metadata,
 	onMetadataChange,
 	questions,
-	onEditQuestion,
 	onDeleteQuestion,
 	onReorderQuestions,
 	onAddQuestion,
+	onQuestionChange,
 	isPending,
 	hasForm,
 	readingMaterialSections,
@@ -64,9 +65,15 @@ export function EditorContent({
 					{hasForm ? (
 						<QuestionList
 							questions={questions as Question[]}
-							onEdit={(q) => onEditQuestion(q as QuestionWithOptions)}
 							onDelete={onDeleteQuestion}
 							onReorder={(qs) => onReorderQuestions(qs as QuestionWithOptions[])}
+							editContent={(q) => (
+								<InlineEditor
+									question={q as QuestionWithOptions}
+									onChange={(data) => onQuestionChange(q.id, data)}
+									disabled={isPending}
+								/>
+							)}
 						/>
 					) : (
 						<div className="flex flex-col items-center justify-center rounded-lg border border-dashed p-8 text-center">

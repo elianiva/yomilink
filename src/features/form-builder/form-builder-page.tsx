@@ -1,7 +1,7 @@
 import { useQueryClient } from "@tanstack/react-query";
 import { useNavigate, useSearch } from "@tanstack/react-router";
 import { Loader2 } from "lucide-react";
-import { useState, useCallback, useEffect, useMemo } from "react";
+import { useState, useCallback, useEffect, useMemo, useRef } from "react";
 import { toast } from "sonner";
 
 import type { FormMetadata } from "@/features/form/components/form-metadata-editor";
@@ -17,12 +17,7 @@ import { FormBuilderDialogs } from "./form-builder-dialogs";
 import { FormBuilderHeader } from "./form-builder-header";
 import { FormBuilderTabs } from "./form-builder-tabs";
 import { QuestionEditorDialog } from "./question-editor-dialog";
-import {
-	type QuestionDialogState,
-	type QuestionType,
-	type EditorMode,
-	defaultMetadata,
-} from "./types";
+import { type QuestionType, type EditorMode, defaultMetadata } from "./types";
 import type { QuestionOptions, QuestionWithOptions } from "./types";
 
 const STORAGE_KEY = "form-builder-draft";
@@ -56,11 +51,8 @@ export function FormBuilderPage() {
 	const [editorMode, setEditorMode] = useState<EditorMode>("edit");
 	const [hasUnsavedChanges, setHasUnsavedChanges] = useState(false);
 	const [isDraftLoaded, setIsDraftLoaded] = useState(false);
-	const [questionDialog, setQuestionDialog] = useState<QuestionDialogState>({
-		isOpen: false,
-		questionType: null,
-		editingQuestion: null,
-	});
+	const [addDialogOpen, setAddDialogOpen] = useState(false);
+	const [addDialogType, setAddDialogType] = useState<QuestionType | null>(null);
 	const [showUnsavedDialog, setShowUnsavedDialog] = useState(false);
 	const [showDraftDialog, setShowDraftDialog] = useState(false);
 
@@ -156,6 +148,43 @@ export function FormBuilderPage() {
 		},
 	});
 
+	const debounceTimers = useRef<Record<string, ReturnType<typeof setTimeout>>>({});
+	const updateMutationRef = useRef<((input: UpdateQuestionInput) => void) | null>(null);
+
+	const handleInlineQuestionChange = useCallback(
+		(
+			questionId: string,
+			{
+				questionText,
+				options,
+				required,
+			}: { questionText: string; options: QuestionOptions; required: boolean },
+		) => {
+			setQuestions((prev) =>
+				prev.map((q) =>
+					q.id === questionId ? { ...q, questionText, options, required } : q,
+				),
+			);
+			setHasUnsavedChanges(true);
+
+			// Debounce save for persisted questions
+			if (formId && !isDraftId(questionId)) {
+				if (debounceTimers.current[questionId]) {
+					clearTimeout(debounceTimers.current[questionId]);
+				}
+				debounceTimers.current[questionId] = setTimeout(() => {
+					updateMutationRef.current?.({
+						questionId,
+						questionText,
+						options: options as UpdateQuestionInput["options"],
+						required,
+					});
+				}, 800);
+			}
+		},
+		[formId],
+	);
+
 	const createQuestionMutation = useRpcMutation(FormRpc.createQuestion(), {
 		operation: "create question",
 		showSuccess: false,
@@ -180,6 +209,9 @@ export function FormBuilderPage() {
 			}
 		},
 	});
+
+	updateMutationRef.current = (input: UpdateQuestionInput) =>
+		updateQuestionMutation.mutate(input);
 
 	const deleteQuestionMutation = useRpcMutation(FormRpc.deleteQuestion(), {
 		operation: "delete question",
@@ -309,20 +341,14 @@ export function FormBuilderPage() {
 		}
 	};
 
-	const handleOpenQuestionDialog = (type: QuestionType, question?: QuestionWithOptions) => {
-		setQuestionDialog({
-			isOpen: true,
-			questionType: type,
-			editingQuestion: question ?? null,
-		});
+	const handleOpenAddDialog = (type: QuestionType) => {
+		setAddDialogOpen(true);
+		setAddDialogType(type);
 	};
 
-	const handleCloseQuestionDialog = () => {
-		setQuestionDialog({
-			isOpen: false,
-			questionType: null,
-			editingQuestion: null,
-		});
+	const handleCloseAddDialog = () => {
+		setAddDialogOpen(false);
+		setAddDialogType(null);
 	};
 
 	const handleSaveQuestion = async (questionData: {
@@ -330,60 +356,35 @@ export function FormBuilderPage() {
 		options: QuestionOptions;
 		required: boolean;
 	}) => {
-		const editingQuestion = questionDialog.editingQuestion;
+		if (!addDialogType) return;
 
-		if (editingQuestion) {
-			if (isDraftId(editingQuestion.id)) {
-				setQuestions((prev) =>
-					prev.map((q) =>
-						q.id === editingQuestion.id
-							? {
-									...q,
-									questionText: questionData.questionText,
-									options: questionData.options,
-									required: questionData.required,
-								}
-							: q,
-					),
-				);
-			} else if (formId) {
-				const input: UpdateQuestionInput = {
-					questionId: editingQuestion.id,
-					questionText: questionData.questionText,
-					options: questionData.options as UpdateQuestionInput["options"],
-					required: questionData.required,
-				};
-				await updateQuestionMutation.mutateAsync(input);
-			}
-		} else if (questionDialog.questionType) {
-			const newQuestion: QuestionWithOptions = {
-				id: generateDraftId(),
-				formId: formId ?? generateDraftId(),
-				type: questionDialog.questionType,
+		const newQuestion: QuestionWithOptions = {
+			id: generateDraftId(),
+			formId: formId ?? generateDraftId(),
+			type: addDialogType,
+			questionText: questionData.questionText,
+			options: questionData.options as QuestionOptions,
+			required: questionData.required,
+			orderIndex: questions.length,
+			createdAt: new Date(),
+			updatedAt: new Date(),
+		};
+
+		if (formId && !isDraftId(formId)) {
+			const input: CreateQuestionInput = {
+				formId,
+				type: addDialogType,
 				questionText: questionData.questionText,
-				options: questionData.options as QuestionOptions,
+				options: questionData.options as CreateQuestionInput["options"],
 				required: questionData.required,
-				orderIndex: questions.length,
-				createdAt: new Date(),
-				updatedAt: new Date(),
 			};
-
-			if (formId && !isDraftId(formId)) {
-				const input: CreateQuestionInput = {
-					formId,
-					type: questionDialog.questionType,
-					questionText: questionData.questionText,
-					options: questionData.options as CreateQuestionInput["options"],
-					required: questionData.required,
-				};
-				await createQuestionMutation.mutateAsync(input);
-			} else {
-				setQuestions((prev) => [...prev, newQuestion]);
-			}
+			await createQuestionMutation.mutateAsync(input);
+		} else {
+			setQuestions((prev) => [...prev, newQuestion]);
 		}
 
 		setHasUnsavedChanges(true);
-		handleCloseQuestionDialog();
+		handleCloseAddDialog();
 	};
 
 	const handleDeleteQuestion = async (questionId: string) => {
@@ -510,19 +511,19 @@ export function FormBuilderPage() {
 				isPending={isPending}
 				onEditorModeChange={setEditorMode}
 				onMetadataChange={handleMetadataChange}
-				onEditQuestion={(q) => handleOpenQuestionDialog(q.type as QuestionType, q)}
+				onQuestionChange={handleInlineQuestionChange}
 				onDeleteQuestion={handleDeleteQuestion}
 				onReorderQuestions={handleReorderQuestions}
-				onAddQuestion={handleOpenQuestionDialog}
+				onAddQuestion={handleOpenAddDialog}
 			/>
 
 			<QuestionEditorDialog
-				isOpen={questionDialog.isOpen}
-				questionType={questionDialog.questionType}
-				editingQuestion={questionDialog.editingQuestion}
-				onClose={handleCloseQuestionDialog}
+				isOpen={addDialogOpen}
+				questionType={addDialogType}
+				editingQuestion={null}
+				onClose={handleCloseAddDialog}
 				onSave={handleSaveQuestion}
-				isPending={createQuestionMutation.isPending || updateQuestionMutation.isPending}
+				isPending={createQuestionMutation.isPending}
 			/>
 
 			<FormBuilderDialogs

@@ -21,12 +21,6 @@ export interface QuestionWithOptions extends Question {
 	updatedAt?: Date;
 }
 
-export interface QuestionDialogState {
-	isOpen: boolean;
-	questionType: QuestionType | null;
-	editingQuestion: QuestionWithOptions | null;
-}
-
 export const defaultMetadata: FormMetadata = {
 	title: "",
 	description: null,
@@ -39,10 +33,13 @@ export interface EditorContentProps {
 	metadata: FormMetadata;
 	onMetadataChange: (metadata: FormMetadata) => void;
 	questions: QuestionWithOptions[];
-	onEditQuestion: (question: QuestionWithOptions) => void;
 	onDeleteQuestion: (questionId: string) => void;
 	onReorderQuestions: (questions: QuestionWithOptions[]) => void;
 	onAddQuestion: (type: QuestionType) => void;
+	onQuestionChange: (
+		questionId: string,
+		data: { questionText: string; options: QuestionOptions; required: boolean },
+	) => void;
 	isPending: boolean;
 	hasForm: boolean;
 	readingMaterialSections: ReadingMaterialSection[];

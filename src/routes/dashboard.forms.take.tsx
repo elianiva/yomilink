@@ -48,7 +48,8 @@ function FormTakerPage() {
 	const questionsData = (data as any)?.questions ?? [];
 	const formData = (data as any)?.form;
 	const sortedQuestions = useMemo(
-		() => (questionsData as any[]).slice().sort((a: any, b: any) => a.orderIndex - b.orderIndex),
+		() =>
+			(questionsData as any[]).slice().sort((a: any, b: any) => a.orderIndex - b.orderIndex),
 		[questionsData],
 	);
 	const readingMaterialSections = formData?.readingMaterialSections ?? [];
@@ -56,7 +57,10 @@ function FormTakerPage() {
 		() =>
 			(readingMaterialSections as any[])
 				.slice()
-				.sort((a: any, b: any) => a.startQuestion - b.startQuestion || a.endQuestion - b.endQuestion),
+				.sort(
+					(a: any, b: any) =>
+						a.startQuestion - b.startQuestion || a.endQuestion - b.endQuestion,
+				),
 		[readingMaterialSections],
 	);
 
