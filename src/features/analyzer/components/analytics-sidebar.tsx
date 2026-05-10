@@ -102,7 +102,7 @@ export function AnalyticsSidebar({
 
 	const groupedLearners = useMemo(() => {
 		const isSummaryLearner = (learner: LearnerAnalytics) =>
-			learner.condition === "summarizing" || learner.score === null;
+			learner.condition === "summarizing";
 		return {
 			conceptMap: filteredLearners.filter((l: LearnerAnalytics) => !isSummaryLearner(l)),
 			summary: filteredLearners.filter(isSummaryLearner),

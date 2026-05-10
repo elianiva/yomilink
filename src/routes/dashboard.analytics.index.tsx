@@ -96,7 +96,7 @@ function AnalyticsPage() {
 	const summaryLearners = useMemo(() => {
 		if (!analyticsData) return [];
 		return analyticsData.learners.filter(
-			(l: LearnerAnalytics) => l.condition === "summarizing" || l.score === null,
+			(l: LearnerAnalytics) => l.condition === "summarizing",
 		);
 	}, [analyticsData]);
 

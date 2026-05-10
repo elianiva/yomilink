@@ -69,7 +69,7 @@ export function MetricsContent({ assignmentId }: MetricsContentProps) {
 
 		const { learners } = analyticsData;
 		const isSummaryLearner = (learner: LearnerAnalytics): boolean =>
-			learner.condition === "summarizing" || learner.score === null;
+			learner.condition === "summarizing";
 		const summaryLearners = learners.filter(isSummaryLearner);
 		const conceptMapLearners = learners.filter((l) => !isSummaryLearner(l));
 
