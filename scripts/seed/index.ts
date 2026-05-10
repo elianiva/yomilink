@@ -21,14 +21,15 @@ const program = Effect.gen(function* () {
 	yield* seedWhitelistEntries();
 
 	const { goalMapIdsByTitle, goalMapDataByTitle } = yield* seedGoalMaps(teacherId);
-	const { preTestFormId, postTestFormId, delayedTestFormId } = yield* seedForms(teacherId);
+	const { tamFormId, preTestFormId, postTestFormId, delayedTestFormId } =
+		yield* seedForms(teacherId);
 
 	const demoData = yield* seedDemoData(
 		userIdsByEmail,
 		teacherId,
 		goalMapIdsByTitle,
 		goalMapDataByTitle,
-		{ preTestFormId, postTestFormId, delayedTestFormId },
+		{ tamFormId, preTestFormId, postTestFormId, delayedTestFormId },
 	);
 
 	if (!demoData) {
@@ -60,7 +61,7 @@ const program = Effect.gen(function* () {
 			"  - Assignment: わたしのうち Demo Assignment (" +
 			demoData.demoAssignmentId.slice(0, 8) +
 			"...)\n" +
-			"  - Forms: pre-test, post-test, delayed-test\n" +
+			"  - Forms: pre-test, post-test, delayed-test, TAM, feedback\n" +
 			"  - Submissions: 5 demo student accounts\n" +
 			"  - Whitelist: 47 reserved student IDs\n",
 	);

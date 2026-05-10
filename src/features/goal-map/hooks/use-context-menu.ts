@@ -131,8 +131,6 @@ export function useContextMenu() {
 					id: `e-${connectionMode.linkNodeId}-${node.id}`,
 					source: connectionMode.direction === "to" ? connectionMode.linkNodeId : node.id,
 					target: connectionMode.direction === "to" ? node.id : connectionMode.linkNodeId,
-					sourceHandle: "right",
-					targetHandle: "left",
 					type: "floating",
 					style: { stroke: "#16a34a", strokeWidth: 3 },
 					markerEnd: { type: "arrowclosed" as const, color: "#16a34a" },
@@ -180,14 +178,10 @@ export function useContextMenu() {
 				(sType === "connector" && tType === "text");
 			if (!ok) return;
 
-			// Manually create edge with correct handle IDs
-			// In ConnectionMode.Loose with all source handles, we use positional IDs
 			const newEdge = {
 				id: `e-${params.source}-${params.target}`,
 				source: params.source!,
 				target: params.target!,
-				sourceHandle: "right",
-				targetHandle: "left",
 				type: "floating" as const,
 				style: { stroke: "#16a34a", strokeWidth: 3 },
 				markerEnd: { type: "arrowclosed" as const, color: "#16a34a" },

@@ -37,32 +37,35 @@ function tryRemove(formId: string): void {
 }
 
 export function useFormDraft(formId: string | null) {
-	const [answers, setAnswers] = useState<Record<string, string | number>>(() => {
-		return formId ? (tryRead(formId) ?? {}) : {};
-	});
+	const [answers, setAnswers] = useState<Record<string, string | number>>({});
 	const [lastSaved, setLastSaved] = useState<Date | null>(null);
-	const initialized = useRef(false);
+	const answersRef = useRef(answers);
 
+	// Keep ref in sync
+	answersRef.current = answers;
+
+	// Restore draft from localStorage when formId changes
 	useEffect(() => {
-		if (initialized.current) return;
-		if (!formId) return;
-		initialized.current = true;
-		const saved = tryRead<Record<string, string | number>>(formId);
-		if (saved) {
-			setAnswers(saved);
+		if (!formId) {
+			setAnswers({});
+			return;
 		}
+		const saved = tryRead<Record<string, string | number>>(formId);
+		setAnswers(saved ?? {});
 	}, [formId]);
 
+	// Steady-interval auto-save (does not reset on every answer change)
 	useEffect(() => {
 		if (!formId) return;
 		const interval = setInterval(() => {
-			if (Object.keys(answers).length > 0) {
-				tryWrite(formId, answers);
+			const current = answersRef.current;
+			if (Object.keys(current).length > 0) {
+				tryWrite(formId, current);
 				setLastSaved(new Date());
 			}
 		}, 5000);
 		return () => clearInterval(interval);
-	}, [formId, answers]);
+	}, [formId]);
 
 	const clearDraft = useCallback(() => {
 		if (formId) tryRemove(formId);

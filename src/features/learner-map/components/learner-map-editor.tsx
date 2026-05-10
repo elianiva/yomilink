@@ -206,13 +206,10 @@ export function LearnerMapEditor() {
 				return;
 			if (areNodesConnected(edges, params.source, params.target)) return;
 
-			// Normalize handle IDs for consistent floating edge rendering
 			const newEdge = {
 				id: `e-${params.source}-${params.target}`,
 				source: params.source!,
 				target: params.target!,
-				sourceHandle: "right",
-				targetHandle: "left",
 				type: "floating" as const,
 				style: { stroke: "#16a34a", strokeWidth: 3 },
 				markerEnd: { type: "arrowclosed" as const, color: "#16a34a" },

@@ -18,6 +18,7 @@ export function seedDemoData(
 		{ nodes: unknown[]; edges: Array<{ id: string; source: string; target: string }> }
 	>,
 	testFormIds?: {
+		tamFormId: string;
 		preTestFormId: string;
 		postTestFormId: string;
 		delayedTestFormId: string;
@@ -156,6 +157,7 @@ export function seedDemoData(
 
 		const startDate = new Date(Date.now() - 60 * 60 * 1000);
 		const dueAt = new Date(Date.now() + 7 * 24 * 60 * 60 * 1000);
+		const tamFormId = testFormIds?.tamFormId ?? null;
 		const preTestFormId = testFormIds?.preTestFormId ?? null;
 		const postTestFormId = testFormIds?.postTestFormId ?? null;
 		const delayedTestFormId = testFormIds?.delayedTestFormId ?? null;
@@ -178,7 +180,7 @@ export function seedDemoData(
 					preTestFormId,
 					postTestFormId,
 					delayedPostTestFormId: delayedTestFormId,
-					tamFormId: null,
+					tamFormId,
 					createdBy: teacherId,
 				})
 				.where(eq(assignments.id, demoAssignmentId));
@@ -199,7 +201,7 @@ export function seedDemoData(
 				preTestFormId,
 				postTestFormId,
 				delayedPostTestFormId: delayedTestFormId,
-				tamFormId: null,
+				tamFormId,
 				createdBy: teacherId,
 			});
 			yield* Effect.log("  Created assignment: " + assignmentTitle);
