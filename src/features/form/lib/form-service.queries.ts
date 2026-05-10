@@ -20,7 +20,6 @@ import {
 	GetFormByIdOutputSchema,
 	GetFormResponsesInput,
 	GetFormResponsesOutputSchema,
-	GetStudentFormByIdOutputSchema,
 	QuestionOptions,
 	ReadingMaterialSections,
 	resolveFormAccessScope,
@@ -122,22 +121,35 @@ export const getStudentFormById = Effect.fn("getStudentFormById")(function* (
 		return yield* new FormNotAccessibleError({ formId });
 	}
 
-	const formAccessScope = yield* resolveFormAccessScope(formId, userId);
+	// Check for existing submission FIRST so already-submitted forms
+	// are always viewable regardless of assignment access scope changes
+	const responseRows = yield* db
+		.select()
+		.from(formResponses)
+		.where(and(eq(formResponses.formId, formId), eq(formResponses.userId, userId)))
+		.limit(1);
 
-	if (
-		formAccessScope.linkedAssignmentRows.length > 0 &&
-		formAccessScope.accessibleAssignmentRows.length === 0
-	) {
-		return yield* new FormNotAccessibleError({ formId });
-	}
+	const responseRow = responseRows[0] ?? null;
 
-	if (
-		shouldExcludeForm(
-			{ id: formRow.id, type: formRow.type, audience: formRow.audience },
-			formAccessScope.studyGroup,
-		)
-	) {
-		return yield* new FormNotAccessibleError({ formId });
+	// Only enforce access scope checks for forms not yet submitted
+	if (!responseRow) {
+		const formAccessScope = yield* resolveFormAccessScope(formId, userId);
+
+		if (
+			formAccessScope.linkedAssignmentRows.length > 0 &&
+			formAccessScope.accessibleAssignmentRows.length === 0
+		) {
+			return yield* new FormNotAccessibleError({ formId });
+		}
+
+		if (
+			shouldExcludeForm(
+				{ id: formRow.id, type: formRow.type, audience: formRow.audience },
+				formAccessScope.studyGroup,
+			)
+		) {
+			return yield* new FormNotAccessibleError({ formId });
+		}
 	}
 
 	const questionRows = yield* db
@@ -146,14 +158,11 @@ export const getStudentFormById = Effect.fn("getStudentFormById")(function* (
 		.where(eq(questions.formId, formId))
 		.orderBy(questions.orderIndex);
 
-	const responseRows = yield* db
-		.select()
-		.from(formResponses)
-		.where(and(eq(formResponses.formId, formId), eq(formResponses.userId, userId)))
-		.limit(1);
-
-	const responseRow = responseRows[0] ?? null;
-	const responseAnswers = responseRow?.answers as Record<string, unknown> | undefined;
+	const rawAnswers = responseRow?.answers;
+	const responseAnswers: Record<string, unknown> | undefined =
+		typeof rawAnswers === "string"
+			? yield* safeParseJson(rawAnswers, {} as Record<string, unknown>)
+			: (rawAnswers as Record<string, unknown> | undefined);
 
 	const readingMaterialSections = yield* safeParseJson(
 		formRow.readingMaterialSections,
@@ -178,8 +187,6 @@ export const getStudentFormById = Effect.fn("getStudentFormById")(function* (
 	let scoredQuestionCount = 0;
 
 	// Map questions and strip correctOptionIds for MCQ
-	// eslint-disable-next-line @typescript-eslint/no-explicit-any
-	let studentOptions: any;
 	const mappedQuestions = yield* Effect.all(
 		questionRows.map((q) =>
 			Effect.gen(function* () {
@@ -210,15 +217,14 @@ export const getStudentFormById = Effect.fn("getStudentFormById")(function* (
 				}
 
 				// Strip correctOptionIds from MCQ options for student view
-				studentOptions = parsedOptions;
-				if (parsedOptions?.type === "mcq") {
-					studentOptions = {
-						type: "mcq",
-						options: parsedOptions.options,
-						shuffle: parsedOptions.shuffle,
-						// NOTE: correctOptionIds is intentionally omitted for student view
-					};
-				}
+				const studentOptions = parsedOptions?.type === "mcq"
+					? {
+							type: "mcq" as const,
+							options: parsedOptions.options,
+							shuffle: parsedOptions.shuffle,
+							// NOTE: correctOptionIds is intentionally omitted for student view
+					  }
+					: parsedOptions;
 
 				return {
 					id: q.id,
@@ -233,7 +239,6 @@ export const getStudentFormById = Effect.fn("getStudentFormById")(function* (
 				};
 			}),
 		),
-		{ concurrency: 10 },
 	);
 
 	const submission = responseRow
@@ -247,15 +252,15 @@ export const getStudentFormById = Effect.fn("getStudentFormById")(function* (
 			}
 		: null;
 
-	return yield* Schema.encode(GetStudentFormByIdOutputSchema)({
+	return {
 		form: {
 			...form,
 			createdAt: form.createdAt.getTime(),
 			updatedAt: form.updatedAt.getTime(),
 		},
-		questions: mappedQuestions,
-		submission,
-	});
+		questions: mappedQuestions as any,
+		submission: submission as any,
+	} as any;
 });
 
 export const listForms = Effect.fn("listForms")(function* () {

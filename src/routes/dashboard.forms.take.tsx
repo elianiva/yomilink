@@ -32,7 +32,7 @@ function FormTakerPage() {
 	const { formId } = useSearch({ from: "/dashboard/forms/take" }) as FormTakeSearch;
 	const { answers, lastSaved, updateAnswer, clearDraft } = useFormDraft(formId ?? null);
 
-	const { data, isLoading, error } = useRpcQuery({
+	const { data, isLoading, error, rpcError } = useRpcQuery({
 		...FormRpc.getStudentFormById(formId ?? ""),
 		enabled: !!formId,
 	});
@@ -45,16 +45,19 @@ function FormTakerPage() {
 		},
 	});
 
+	const questionsData = (data as any)?.questions ?? [];
+	const formData = (data as any)?.form;
 	const sortedQuestions = useMemo(
-		() => (data?.questions ?? []).slice().sort((a, b) => a.orderIndex - b.orderIndex),
-		[data?.questions],
+		() => (questionsData as any[]).slice().sort((a: any, b: any) => a.orderIndex - b.orderIndex),
+		[questionsData],
 	);
+	const readingMaterialSections = formData?.readingMaterialSections ?? [];
 	const sortedReadingMaterialSections = useMemo(
 		() =>
-			(data?.form.readingMaterialSections ?? [])
+			(readingMaterialSections as any[])
 				.slice()
-				.sort((a, b) => a.startQuestion - b.startQuestion || a.endQuestion - b.endQuestion),
-		[data?.form.readingMaterialSections],
+				.sort((a: any, b: any) => a.startQuestion - b.startQuestion || a.endQuestion - b.endQuestion),
+		[readingMaterialSections],
 	);
 
 	const totalQuestions = sortedQuestions.length;
@@ -76,7 +79,15 @@ function FormTakerPage() {
 			</div>
 		);
 	}
-	if (error || !data) return <FormLoadingError backTo="/dashboard/forms/student" />;
+	const loadError = error || rpcError;
+	if (loadError || !data) {
+		return (
+			<FormLoadingError
+				backTo="/dashboard/forms/student"
+				message={typeof loadError === "string" ? loadError : undefined}
+			/>
+		);
+	}
 
 	if (data.submission) {
 		const backTo =

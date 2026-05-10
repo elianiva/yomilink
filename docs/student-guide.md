@@ -19,6 +19,8 @@
 **Route:** `/login`
 **Title:** "Sign In - KitBuild"
 
+![Login page](../docs/images/01-login.png)
+
 **Components:**
 
 | Element                | Type            | Description                                                                                                                                                         |
@@ -44,6 +46,8 @@
 
 **Route:** `/signup`
 **Title:** "Sign Up - KitBuild"
+
+![Signup page](../docs/images/02-signup.png)
 
 Multi-step registration with 4 steps. A horizontal stepper shows progress:
 
@@ -110,6 +114,8 @@ Completed steps have filled primary color; active step has ring highlight; futur
 **Route:** `/dashboard/assignments`
 **Title:** "Dashboard - KitBuild"
 
+![My Assignments](../docs/images/03-student-assignments.png)
+
 **Sidebar:**
 
 | Component          | Description                                                    |
@@ -151,6 +157,8 @@ Completed steps have filled primary color; active step has ring highlight; futur
 **Route:** `/dashboard/forms/student`
 **Title:** "Dashboard - KitBuild"
 
+![My Forms](../docs/images/04-student-forms.png)
+
 | Component    | Description                                              |
 | ------------ | -------------------------------------------------------- |
 | **Heading**  | "My Forms"                                               |
@@ -183,6 +191,8 @@ Completed steps have filled primary color; active step has ring highlight; futur
 
 **Route:** `/dashboard/forms/take?formId={id}`
 **Title:** "Dashboard - KitBuild"
+
+![Form taker](../docs/images/12-form-taker.png)
 
 **Header bar:**
 
@@ -230,6 +240,8 @@ Completed steps have filled primary color; active step has ring highlight; futur
 
 ## Viewing Form Results
 
+![Pre-test result](../docs/images/07-pretest-result.png)
+
 After submission, the `SubmissionReview` component displays:
 
 | Component           | Description                                                                                  |
@@ -251,6 +263,8 @@ After submission, the `SubmissionReview` component displays:
 **Title:** "Dashboard - KitBuild"
 
 Interactive concept map editor using React Flow.
+
+![Learner map result](../docs/images/05-learner-map-result.png)
 
 **Toolbar:**
 
@@ -340,6 +354,8 @@ Interactive concept map editor using React Flow.
 
 **Route:** `/dashboard/profile`
 **Title:** "Dashboard - KitBuild"
+
+![Student profile](../docs/images/06-student-profile.png)
 
 **Header:**
 

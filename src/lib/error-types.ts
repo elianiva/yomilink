@@ -98,20 +98,6 @@ const FORBIDDEN_PATTERNS = [
 /**
  * Common validation error patterns.
  */
-const VALIDATION_PATTERNS = [
-	"validation",
-	"invalid",
-	"required",
-	"must be",
-	"cannot be",
-	"expected",
-	"parse",
-	"decode",
-] as const;
-
-/**
- * Common server error patterns.
- */
 const SERVER_ERROR_PATTERNS = [
 	"internal server",
 	"500",
@@ -119,6 +105,18 @@ const SERVER_ERROR_PATTERNS = [
 	"503",
 	"504",
 	"server error",
+] as const;
+
+/**
+ * Common validation error patterns.
+ */
+const VALIDATION_PATTERNS = [
+	"validation",
+	"invalid",
+	"required",
+	"must be",
+	"cannot be",
+	"expected",
 ] as const;
 
 /**
@@ -225,11 +223,11 @@ function categorizeByMessage(message: string): ErrorCategory {
 	if (matchesPatterns(message, FORBIDDEN_PATTERNS)) {
 		return "forbidden";
 	}
-	if (matchesPatterns(message, VALIDATION_PATTERNS)) {
-		return "validation";
-	}
 	if (matchesPatterns(message, SERVER_ERROR_PATTERNS)) {
 		return "server";
+	}
+	if (matchesPatterns(message, VALIDATION_PATTERNS)) {
+		return "validation";
 	}
 	return "unknown";
 }
