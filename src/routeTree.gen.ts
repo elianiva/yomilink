@@ -25,7 +25,6 @@ import { Route as DashboardGoalMapGoalMapIdRouteImport } from './routes/dashboar
 import { Route as DashboardFormsTakeRouteImport } from './routes/dashboard.forms.take'
 import { Route as DashboardFormsStudentRouteImport } from './routes/dashboard.forms.student'
 import { Route as DashboardFormsBuilderRouteImport } from './routes/dashboard.forms.builder'
-import { Route as DashboardFormsFormIdRouteImport } from './routes/dashboard.forms.$formId'
 import { Route as ApiAuthSplatRouteImport } from './routes/api/auth/$'
 import { Route as DashboardLearnerMapAssignmentIdIndexRouteImport } from './routes/dashboard.learner-map.$assignmentId.index'
 import { Route as DashboardAssignmentsManageIndexRouteImport } from './routes/dashboard.assignments.manage.index'
@@ -118,11 +117,6 @@ const DashboardFormsBuilderRoute = DashboardFormsBuilderRouteImport.update({
   path: '/forms/builder',
   getParentRoute: () => DashboardRoute,
 } as any)
-const DashboardFormsFormIdRoute = DashboardFormsFormIdRouteImport.update({
-  id: '/forms/$formId',
-  path: '/forms/$formId',
-  getParentRoute: () => DashboardRoute,
-} as any)
 const ApiAuthSplatRoute = ApiAuthSplatRouteImport.update({
   id: '/api/auth/$',
   path: '/api/auth/$',
@@ -154,9 +148,9 @@ const DashboardLearnerMapAssignmentIdResultRoute =
   } as any)
 const DashboardFormsFormIdResultsRoute =
   DashboardFormsFormIdResultsRouteImport.update({
-    id: '/results',
-    path: '/results',
-    getParentRoute: () => DashboardFormsFormIdRoute,
+    id: '/forms/$formId/results',
+    path: '/forms/$formId/results',
+    getParentRoute: () => DashboardRoute,
   } as any)
 const DashboardAssignmentsManageAssignmentIdRoute =
   DashboardAssignmentsManageAssignmentIdRouteImport.update({
@@ -186,7 +180,6 @@ export interface FileRoutesByFullPath {
   '/dashboard/': typeof DashboardIndexRoute
   '/signup/': typeof SignupIndexRoute
   '/api/auth/$': typeof ApiAuthSplatRoute
-  '/dashboard/forms/$formId': typeof DashboardFormsFormIdRouteWithChildren
   '/dashboard/forms/builder': typeof DashboardFormsBuilderRoute
   '/dashboard/forms/student': typeof DashboardFormsStudentRoute
   '/dashboard/forms/take': typeof DashboardFormsTakeRoute
@@ -213,7 +206,6 @@ export interface FileRoutesByTo {
   '/dashboard': typeof DashboardIndexRoute
   '/signup': typeof SignupIndexRoute
   '/api/auth/$': typeof ApiAuthSplatRoute
-  '/dashboard/forms/$formId': typeof DashboardFormsFormIdRouteWithChildren
   '/dashboard/forms/builder': typeof DashboardFormsBuilderRoute
   '/dashboard/forms/student': typeof DashboardFormsStudentRoute
   '/dashboard/forms/take': typeof DashboardFormsTakeRoute
@@ -242,7 +234,6 @@ export interface FileRoutesById {
   '/dashboard/': typeof DashboardIndexRoute
   '/signup/': typeof SignupIndexRoute
   '/api/auth/$': typeof ApiAuthSplatRoute
-  '/dashboard/forms/$formId': typeof DashboardFormsFormIdRouteWithChildren
   '/dashboard/forms/builder': typeof DashboardFormsBuilderRoute
   '/dashboard/forms/student': typeof DashboardFormsStudentRoute
   '/dashboard/forms/take': typeof DashboardFormsTakeRoute
@@ -272,7 +263,6 @@ export interface FileRouteTypes {
     | '/dashboard/'
     | '/signup/'
     | '/api/auth/$'
-    | '/dashboard/forms/$formId'
     | '/dashboard/forms/builder'
     | '/dashboard/forms/student'
     | '/dashboard/forms/take'
@@ -299,7 +289,6 @@ export interface FileRouteTypes {
     | '/dashboard'
     | '/signup'
     | '/api/auth/$'
-    | '/dashboard/forms/$formId'
     | '/dashboard/forms/builder'
     | '/dashboard/forms/student'
     | '/dashboard/forms/take'
@@ -327,7 +316,6 @@ export interface FileRouteTypes {
     | '/dashboard/'
     | '/signup/'
     | '/api/auth/$'
-    | '/dashboard/forms/$formId'
     | '/dashboard/forms/builder'
     | '/dashboard/forms/student'
     | '/dashboard/forms/take'
@@ -471,13 +459,6 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof DashboardFormsBuilderRouteImport
       parentRoute: typeof DashboardRoute
     }
-    '/dashboard/forms/$formId': {
-      id: '/dashboard/forms/$formId'
-      path: '/forms/$formId'
-      fullPath: '/dashboard/forms/$formId'
-      preLoaderRoute: typeof DashboardFormsFormIdRouteImport
-      parentRoute: typeof DashboardRoute
-    }
     '/api/auth/$': {
       id: '/api/auth/$'
       path: '/api/auth/$'
@@ -515,10 +496,10 @@ declare module '@tanstack/react-router' {
     }
     '/dashboard/forms/$formId/results': {
       id: '/dashboard/forms/$formId/results'
-      path: '/results'
+      path: '/forms/$formId/results'
       fullPath: '/dashboard/forms/$formId/results'
       preLoaderRoute: typeof DashboardFormsFormIdResultsRouteImport
-      parentRoute: typeof DashboardFormsFormIdRoute
+      parentRoute: typeof DashboardRoute
     }
     '/dashboard/assignments/manage/$assignmentId': {
       id: '/dashboard/assignments/manage/$assignmentId'
@@ -544,21 +525,9 @@ declare module '@tanstack/react-router' {
   }
 }
 
-interface DashboardFormsFormIdRouteChildren {
-  DashboardFormsFormIdResultsRoute: typeof DashboardFormsFormIdResultsRoute
-}
-
-const DashboardFormsFormIdRouteChildren: DashboardFormsFormIdRouteChildren = {
-  DashboardFormsFormIdResultsRoute: DashboardFormsFormIdResultsRoute,
-}
-
-const DashboardFormsFormIdRouteWithChildren =
-  DashboardFormsFormIdRoute._addFileChildren(DashboardFormsFormIdRouteChildren)
-
 interface DashboardRouteChildren {
   DashboardProfileRoute: typeof DashboardProfileRoute
   DashboardIndexRoute: typeof DashboardIndexRoute
-  DashboardFormsFormIdRoute: typeof DashboardFormsFormIdRouteWithChildren
   DashboardFormsBuilderRoute: typeof DashboardFormsBuilderRoute
   DashboardFormsStudentRoute: typeof DashboardFormsStudentRoute
   DashboardFormsTakeRoute: typeof DashboardFormsTakeRoute
@@ -570,6 +539,7 @@ interface DashboardRouteChildren {
   DashboardUsersIndexRoute: typeof DashboardUsersIndexRoute
   DashboardAnalyticsAssignmentIdMetricsRoute: typeof DashboardAnalyticsAssignmentIdMetricsRoute
   DashboardAssignmentsManageAssignmentIdRoute: typeof DashboardAssignmentsManageAssignmentIdRoute
+  DashboardFormsFormIdResultsRoute: typeof DashboardFormsFormIdResultsRoute
   DashboardLearnerMapAssignmentIdResultRoute: typeof DashboardLearnerMapAssignmentIdResultRoute
   DashboardAnalyticsAssignmentIdIndexRoute: typeof DashboardAnalyticsAssignmentIdIndexRoute
   DashboardAssignmentsManageIndexRoute: typeof DashboardAssignmentsManageIndexRoute
@@ -579,7 +549,6 @@ interface DashboardRouteChildren {
 const DashboardRouteChildren: DashboardRouteChildren = {
   DashboardProfileRoute: DashboardProfileRoute,
   DashboardIndexRoute: DashboardIndexRoute,
-  DashboardFormsFormIdRoute: DashboardFormsFormIdRouteWithChildren,
   DashboardFormsBuilderRoute: DashboardFormsBuilderRoute,
   DashboardFormsStudentRoute: DashboardFormsStudentRoute,
   DashboardFormsTakeRoute: DashboardFormsTakeRoute,
@@ -593,6 +562,7 @@ const DashboardRouteChildren: DashboardRouteChildren = {
     DashboardAnalyticsAssignmentIdMetricsRoute,
   DashboardAssignmentsManageAssignmentIdRoute:
     DashboardAssignmentsManageAssignmentIdRoute,
+  DashboardFormsFormIdResultsRoute: DashboardFormsFormIdResultsRoute,
   DashboardLearnerMapAssignmentIdResultRoute:
     DashboardLearnerMapAssignmentIdResultRoute,
   DashboardAnalyticsAssignmentIdIndexRoute:
