@@ -148,10 +148,10 @@ export function AnalyticsSidebar({
 		() =>
 			Array.isArray(assignments)
 				? assignments.map((a) => ({
-						id: a.id,
-						title: a.title,
-						totalSubmissions: a.totalSubmissions ?? 0,
-					}))
+					id: a.id,
+					title: a.title,
+					totalSubmissions: a.totalSubmissions ?? 0,
+				}))
 				: undefined,
 		[assignments],
 	);
@@ -202,7 +202,7 @@ export function AnalyticsSidebar({
 								<div className="text-muted-foreground">Avg Score</div>
 								<div className="font-semibold">
 									{analyticsData.summary.avgScore
-										? `${analyticsData.summary.avgScore.toFixed(1)}%`
+										? analyticsData.summary.avgScore * 100
 										: "N/A"}
 								</div>
 							</div>
