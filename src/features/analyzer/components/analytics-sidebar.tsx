@@ -202,7 +202,7 @@ export function AnalyticsSidebar({
 								<div className="text-muted-foreground">Avg Score</div>
 								<div className="font-semibold">
 									{analyticsData.summary.avgScore
-										? analyticsData.summary.avgScore * 100
+										? (analyticsData.summary.avgScore * 100).toFixed(1)
 										: "N/A"}
 								</div>
 							</div>
