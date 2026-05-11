@@ -53,7 +53,7 @@ export function LearnerList({
 						<span className="text-sm">{learner.userName}</span>
 					</div>
 					<span className="text-xs font-semibold tabular-nums">
-						{learner.score !== null ? `${learner.score}%` : "-"}
+						{learner.score !== null ? `${learner.score * 100}%` : "-"}
 					</span>
 				</button>
 			))}
