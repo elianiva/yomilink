@@ -11,7 +11,8 @@ import { useRpcMutation, useRpcQuery } from "@/hooks/use-rpc-query";
 import { parseDateInput } from "@/lib/date-utils";
 import { AssignmentRpc } from "@/server/rpc/assignment";
 import { FormRpc } from "@/server/rpc/form";
-import { KitRpc } from "@/server/rpc/kit";
+
+import { FormSelect } from "./form-select";
 
 type FormState = {
 	currentStep: number;
@@ -130,9 +131,6 @@ export function CreateAssignmentForm({ onSuccess, onCancel }: CreateAssignmentFo
 	const { data: users } = useRpcQuery(AssignmentRpc.getAvailableUsers());
 	const { data: forms } = useRpcQuery(FormRpc.listForms());
 
-	const generateKitMutation = useRpcMutation(KitRpc.generateKit(), {
-		operation: "generate kit for goal map",
-	});
 	const createMutation = useRpcMutation(AssignmentRpc.createAssignment(), {
 		operation: "create assignment",
 		showSuccess: true,
@@ -165,34 +163,27 @@ export function CreateAssignmentForm({ onSuccess, onCancel }: CreateAssignmentFo
 			return;
 		}
 
-		generateKitMutation.mutate(
-			{ goalMapId: state.config.goalMapId, layout: "random" },
+		createMutation.mutate(
 			{
-				onSuccess: () => {
-					createMutation.mutate(
-						{
-							title: state.basic.title.trim(),
-							cohortIds: state.assignment.selectedCohorts,
-							description: state.basic.description.trim() || undefined,
-							goalMapId: state.config.goalMapId,
-							startDate: parseDateInput(state.config.startDate) ?? Date.now(),
-							endDate: parseDateInput(state.config.endDate),
-							userIds: state.assignment.selectedUsers,
-							preTestFormId: state.procedure.preTestFormId,
-							postTestFormId: state.procedure.postTestFormId || undefined,
-							delayedPostTestFormId:
-								state.procedure.delayedPostTestFormId || undefined,
-							delayedPostTestDelayDays: state.procedure.delayedPostTestDelayDays,
-							tamFormId: state.procedure.tamFormId || undefined,
-						},
-						{ onSuccess },
-					);
-				},
+				title: state.basic.title.trim(),
+				cohortIds: state.assignment.selectedCohorts,
+				description: state.basic.description.trim() || undefined,
+				goalMapId: state.config.goalMapId,
+				layout: "random",
+				startDate: parseDateInput(state.config.startDate) ?? Date.now(),
+				endDate: parseDateInput(state.config.endDate),
+				userIds: state.assignment.selectedUsers,
+				preTestFormId: state.procedure.preTestFormId,
+				postTestFormId: state.procedure.postTestFormId || undefined,
+				delayedPostTestFormId: state.procedure.delayedPostTestFormId || undefined,
+				delayedPostTestDelayDays: state.procedure.delayedPostTestDelayDays,
+				tamFormId: state.procedure.tamFormId || undefined,
 			},
+			{ onSuccess },
 		);
 	};
 
-	const isSubmitting = createMutation.isPending || generateKitMutation.isPending;
+	const isSubmitting = createMutation.isPending;
 	const currentStepData = steps[state.currentStep];
 
 	const formOptions = {
@@ -511,11 +502,9 @@ export function CreateAssignmentForm({ onSuccess, onCancel }: CreateAssignmentFo
 					</Button>
 				) : (
 					<Button type="submit" disabled={isSubmitting || !canProceedNext()}>
-						{generateKitMutation.isPending
-							? "Generating Kit..."
-							: createMutation.isPending
-								? "Creating..."
-								: "Create Assignment"}
+						{createMutation.isPending
+							? "Creating..."
+							: "Create Assignment"}
 					</Button>
 				)}
 			</div>
@@ -523,40 +512,4 @@ export function CreateAssignmentForm({ onSuccess, onCancel }: CreateAssignmentFo
 	);
 }
 
-function FormSelect({
-	id,
-	label,
-	value,
-	onChange,
-	forms,
-	placeholder,
-	required,
-}: {
-	id: string;
-	label: string;
-	value: string;
-	onChange: (value: string) => void;
-	forms: { id: string; title: string; description: string }[];
-	placeholder: string;
-	required?: boolean;
-}) {
-	return (
-		<div className="space-y-2">
-			<Label htmlFor={id}>
-				{label}
-				{required && <span className="text-amber-600 ml-1">*</span>}
-			</Label>
-			<SearchableSelect
-				value={value}
-				onChange={onChange}
-				options={forms.map((f) => ({
-					id: f.id,
-					label: f.title,
-					description: f.description ?? undefined,
-				}))}
-				placeholder={placeholder}
-				searchPlaceholder={`Search ${label.toLowerCase()}s...`}
-			/>
-		</div>
-	);
-}
+

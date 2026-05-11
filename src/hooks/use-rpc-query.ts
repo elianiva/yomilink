@@ -17,7 +17,8 @@ import {
 import { toast, type ErrorToastOptions } from "@/lib/error-toast";
 import { getErrorDetails, isRetryableError } from "@/lib/error-types";
 
-import { isError, type RpcResult, unwrap } from "./use-rpc-error";
+import { isError, unwrap } from "./use-rpc-error";
+import type { RpcResult } from "@/lib/rpc-types";
 
 /**
  * Extracted RPC result fields shared by query and mutation hooks.

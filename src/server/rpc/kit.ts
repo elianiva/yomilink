@@ -63,9 +63,9 @@ export const getKitStatusRpc = createServerFn()
 export const generateKitRpc = createServerFn({ method: "POST" })
 	.middleware([requireRoleMiddleware("teacher", "admin")])
 	.inputValidator((raw) => Schema.decodeUnknownSync(GenerateKitInput)(raw))
-	.handler(({ data, context }) =>
+	.handler(({ data }) =>
 		AppRuntime.runPromise(
-			generateKit(context.user.id, data).pipe(
+			generateKit(data).pipe(
 				Effect.map(() => Rpc.ok(true)),
 				Effect.withSpan("generateKit"),
 				Effect.tapError(logRpcError("generateKit")),

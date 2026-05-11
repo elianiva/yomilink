@@ -132,10 +132,7 @@ export const getKitStatus = Effect.fn("getKitStatus")(function* (input: GetKitSt
 	};
 });
 
-export const generateKit = Effect.fn("generateKit")(function* (
-	_userId: string,
-	input: GenerateKitInput,
-) {
+export const generateKit = Effect.fn("generateKit")(function* (input: GenerateKitInput) {
 	const db = yield* Database;
 
 	const gmRows = yield* db

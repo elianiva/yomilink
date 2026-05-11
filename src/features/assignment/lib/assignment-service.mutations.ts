@@ -1,32 +1,64 @@
 import { eq } from "drizzle-orm";
-import { Effect } from "effect";
+import { Effect, Schema } from "effect";
 
-import { randomString } from "@/lib/utils";
+import { GoalMapNotFoundError } from "@/lib/errors";
+import { randomString, safeParseJson } from "@/lib/utils";
 import { Database } from "@/server/db/client";
-import { assignments, assignmentTargets, kits } from "@/server/db/schema/app-schema";
+import { assignments, assignmentTargets, goalMaps, kits } from "@/server/db/schema/app-schema";
 
 import {
 	AssignmentNotFoundError,
 	CreateAssignmentInput,
 	DeleteAssignmentInput,
-	KitNotFoundError,
 } from "./assignment-service.shared";
 
 export const createAssignment = Effect.fn("createAssignment")(function* (
-	_userId: string,
+	userId: string,
 	data: CreateAssignmentInput,
 ) {
 	const db = yield* Database;
 
 	const kitRows = yield* db
-		.select()
+		.select({ id: kits.id, teacherId: kits.teacherId })
 		.from(kits)
 		.where(eq(kits.goalMapId, data.goalMapId))
 		.limit(1);
+	let kit = kitRows[0];
 
-	const kit = kitRows[0];
 	if (!kit) {
-		return yield* new KitNotFoundError({ goalMapId: data.goalMapId });
+		const gmRows = yield* db
+			.select()
+			.from(goalMaps)
+			.where(eq(goalMaps.id, data.goalMapId))
+			.limit(1);
+		const gm = gmRows[0];
+		if (!gm) {
+			return yield* new GoalMapNotFoundError({ goalMapId: data.goalMapId });
+		}
+
+		const nodes = Array.isArray(gm.nodes)
+			? gm.nodes
+			: typeof gm.nodes === "string"
+				? yield* safeParseJson(gm.nodes, [], Schema.Array(Schema.Any))
+				: [];
+
+		const kitNodes = nodes.filter((n: any) => n?.type === "text" || n?.type === "connector");
+
+		const kitId = randomString();
+		yield* db.insert(kits).values({
+			id: kitId,
+			kitId: randomString(),
+			name: gm.title,
+			goalMapId: data.goalMapId,
+			teacherId: gm.teacherId ?? userId,
+			layout: data.layout ?? "random",
+			nodes: JSON.stringify(kitNodes),
+			edges: "[]",
+			textId: gm.textId,
+		});
+		kit = { id: kitId, teacherId: gm.teacherId ?? userId };
+	} else if (data.layout) {
+		yield* db.update(kits).set({ layout: data.layout }).where(eq(kits.id, kit.id));
 	}
 
 	const assignmentId = randomString();
@@ -46,7 +78,7 @@ export const createAssignment = Effect.fn("createAssignment")(function* (
 		delayedPostTestFormId: data.delayedPostTestFormId,
 		delayedPostTestDelayDays: data.delayedPostTestDelayDays,
 		tamFormId: data.tamFormId,
-		createdBy: kit.teacherId,
+		createdBy: userId,
 	});
 
 	const targets: Array<{

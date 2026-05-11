@@ -6,27 +6,7 @@
  * Provides the foundation for consistent error handling across all components.
  */
 
-/**
- * Standardized RPC error response format.
- */
-export type RpcError = {
-	readonly success: false;
-	readonly error: string;
-	readonly code?: string;
-};
-
-/**
- * Standardized RPC success response format.
- */
-export type RpcSuccess<T> = {
-	readonly success: true;
-	readonly data: T;
-};
-
-/**
- * Standardized RPC response type (success or error).
- */
-export type RpcResult<T> = RpcSuccess<T> | RpcError;
+import type { RpcError, RpcResult, RpcSuccess } from "@/lib/rpc-types";
 
 /**
  * Type guard to check if a response is an error response.

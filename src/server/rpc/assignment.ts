@@ -33,7 +33,7 @@ export const createAssignmentRpc = createServerFn({ method: "POST" })
 				Effect.withSpan("createAssignment"),
 				Effect.tapError(logRpcError("createAssignment")),
 				Effect.catchTags({
-					KitNotFoundError: () => Rpc.notFound("Kit"),
+					GoalMapNotFoundError: () => Rpc.notFound("Goal map"),
 				}),
 				Effect.catchAll(logAndReturnError("createAssignment")),
 				Effect.catchAllDefect(logAndReturnDefect("createAssignment")),

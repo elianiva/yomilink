@@ -1,8 +1,13 @@
 import { Config, ConfigProvider, Effect } from "effect";
 
-// these are not available on workers runtime so we can use it to check if we are on local or not
-const IS_LOCAL = import.meta.env?.DEV || process.env;
-const env = IS_LOCAL ? process.env || import.meta.env : (await import("cloudflare:workers")).env;
+const env = await (async () => {
+	try {
+		const mod = await import("cloudflare:workers");
+		return mod.env;
+	} catch {
+		return process.env ?? import.meta.env;
+	}
+})();
 
 export const ClientConfig = Config.all({
 	sentryDsn: Config.redacted("SENTRY_DSN"),

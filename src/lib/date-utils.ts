@@ -1,33 +1,21 @@
 import { format, formatDistanceToNow } from "date-fns";
 
+function toDate(timestamp: number | Date | string): Date {
+	if (typeof timestamp === "number") return new Date(timestamp);
+	if (typeof timestamp === "string") return new Date(timestamp);
+	return timestamp;
+}
+
 export function formatDate(timestamp: number | Date | string): string {
-	const date =
-		typeof timestamp === "number"
-			? new Date(timestamp)
-			: typeof timestamp === "string"
-				? new Date(timestamp)
-				: timestamp;
-	return format(date, "MMM d, yyyy");
+	return format(toDate(timestamp), "MMM d, yyyy");
 }
 
 export function formatDateTime(timestamp: number | Date | string): string {
-	const date =
-		typeof timestamp === "number"
-			? new Date(timestamp)
-			: typeof timestamp === "string"
-				? new Date(timestamp)
-				: timestamp;
-	return format(date, "MMM d, yyyy h:mm a");
+	return format(toDate(timestamp), "MMM d, yyyy h:mm a");
 }
 
 export function formatRelativeTime(timestamp: number | Date | string): string {
-	const date =
-		typeof timestamp === "number"
-			? new Date(timestamp)
-			: typeof timestamp === "string"
-				? new Date(timestamp)
-				: timestamp;
-	return formatDistanceToNow(date, { addSuffix: true });
+	return formatDistanceToNow(toDate(timestamp), { addSuffix: true });
 }
 
 export function parseDateInput(dateStr: string | undefined): number | undefined {

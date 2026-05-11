@@ -253,14 +253,6 @@ function isRetryableCategory(category: ErrorCategory): boolean {
 }
 
 /**
- * Determines if an error category should be shown to users.
- */
-function shouldShowToUser(_category: ErrorCategory): boolean {
-	// All categories should be shown to users
-	return true;
-}
-
-/**
  * Extracts the error message from various error types.
  */
 function extractMessage(error: unknown): string {
@@ -312,7 +304,7 @@ export function getErrorDetails(error: unknown): ErrorDetails {
 		category,
 		message,
 		isRetryable: isRetryableCategory(category),
-		showToUser: shouldShowToUser(category),
+		showToUser: true,
 		originalError: error,
 	};
 }

@@ -8,6 +8,9 @@ export const CreateAssignmentInput = Schema.Struct({
 		nullable: true,
 	}),
 	goalMapId: NonEmpty("Goal map ID"),
+	layout: Schema.optionalWith(Schema.Literal("preset", "random"), {
+		default: () => "random" as const,
+	}),
 	startDate: Schema.optionalWith(Schema.Number, { nullable: true }),
 	endDate: Schema.optionalWith(Schema.Number, { nullable: true }),
 	cohortIds: Schema.Array(NonEmpty("Cohort ID")),

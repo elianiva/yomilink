@@ -17,9 +17,13 @@ const queryClient = new QueryClient({
 				return;
 			}
 			if (mutation.options.mutationKey) {
-				void queryClient.invalidateQueries({
-					queryKey: mutation.options.mutationKey,
-				});
+				// Invalidate at the resource level so sibling queries
+				// (e.g. mutation key ["forms","delete"] invalidates query ["forms","list"])
+				const resourceKey =
+					mutation.options.mutationKey.length > 1
+						? [mutation.options.mutationKey[0]]
+						: mutation.options.mutationKey;
+				void queryClient.invalidateQueries({ queryKey: resourceKey });
 			} else {
 				void queryClient.invalidateQueries();
 			}
