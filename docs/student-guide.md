@@ -218,6 +218,8 @@ This is the student's landing page after login. It shows all assigned Kit-Build 
 
 ![Pre-Test](../docs/images/05-pretest.png)
 
+![Pre-Test In Progress](../docs/images/05-pretest-current.png)
+
 **Header bar:**
 
 | Component      | Description                      |
@@ -249,6 +251,8 @@ This is the student's landing page after login. It shows all assigned Kit-Build 
 | Component  | Description                                     |
 | ---------- | ----------------------------------------------- |
 | **Submit** | `Button` — Disabled until ALL required answered |
+
+![Form Taker Interface](../docs/images/12-form-taker.png)
 
 **Passage text** (わたしのうち):
 

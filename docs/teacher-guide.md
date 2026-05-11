@@ -27,6 +27,8 @@
 | **Forms**           | `/dashboard/forms`              | Form management             |
 | **Users**           | `/dashboard/users`              | User & whitelist management |
 
+![Teacher Dashboard](../docs/images/08-teacher-dashboard.png)
+
 ### Topics Section
 
 | Component      | Description                                                                             |
@@ -82,6 +84,8 @@ Lists all goal maps with search and topic filtering.
 
 **Route:** `/dashboard/assignments/manage`
 **Title:** "Dashboard - KitBuild"
+
+![Manage Assignments](../docs/images/09-teacher-assignments.png)
 
 | Component             | Description                                       |
 | --------------------- | ------------------------------------------------- |
@@ -140,6 +144,8 @@ Tabs: Overview, Students, Results.
 **Route:** `/dashboard/forms`
 **Title:** "Dashboard - KitBuild"
 
+![Forms Management](../docs/images/10-teacher-forms.png)
+
 | Component       | Description                                     |
 | --------------- | ----------------------------------------------- |
 | **Heading**     | "Forms"                                         |
@@ -181,6 +187,8 @@ Tabs: Overview, Students, Results.
 ## Form Builder
 
 **Route:** `/dashboard/forms/builder?formId={id}`
+
+![Form Builder](../docs/images/12-form-taker.png)
 
 ### Form Metadata
 
@@ -245,6 +253,8 @@ Each question is a card with:
 
 **Route:** `/dashboard/users`
 **Title:** "Dashboard - KitBuild"
+
+![Users & Whitelist](../docs/images/11-teacher-users.png)
 
 ### Tabs
 
