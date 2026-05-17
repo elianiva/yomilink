@@ -24,6 +24,7 @@ export function CanvasContent({
 	multipleLearnerMapDetails,
 	isLoadingLearnerMaps,
 	visibility,
+	allowNodeDragging,
 }: {
 	selectedAssignmentId: string | null;
 	selectedLearnerMapIds: Set<string>;
@@ -40,6 +41,7 @@ export function CanvasContent({
 		consolidatedView: boolean;
 		showNamesOnHover: boolean;
 	};
+	allowNodeDragging: boolean;
 }) {
 	const mappedLearnerMaps = useMemo(
 		() => multipleLearnerMapDetails?.map((m) => m.learnerMap) ?? [],
@@ -95,6 +97,7 @@ export function CanvasContent({
 				allEdgeClassifications={allEdgeClassificationsMemo}
 				visibility={visibility}
 				isMultiView={true}
+				readOnly={!allowNodeDragging}
 			/>
 		</Suspense>
 	);

@@ -25,6 +25,7 @@ interface AnalyticsCanvasWrapperProps {
 	selectedLearnerMapIds: Set<string>;
 	analyticsData: AssignmentAnalytics | null;
 	visibility: VisibilityState;
+	allowNodeDragging?: boolean;
 	className?: string;
 }
 
@@ -44,6 +45,7 @@ export function AnalyticsCanvasWrapper({
 	selectedLearnerMapIds,
 	analyticsData,
 	visibility,
+	allowNodeDragging = false,
 	className,
 }: AnalyticsCanvasWrapperProps) {
 	const learnerMapIds = useMemo(
@@ -91,6 +93,7 @@ export function AnalyticsCanvasWrapper({
 					multipleLearnerMapDetails={multipleLearnerMapDetails ?? null}
 					isLoadingLearnerMaps={multipleLearnerMapsLoading}
 					visibility={visibility}
+					allowNodeDragging={allowNodeDragging}
 				/>
 			)}
 		</div>

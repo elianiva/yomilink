@@ -124,6 +124,7 @@ function AnalyticsPage() {
 							selectedLearnerMapIds={selectedLearnerMapIds}
 							analyticsData={analyticsData ?? null}
 							visibility={visibility}
+							allowNodeDragging={true}
 						/>
 					) : (
 						<AnalyticsSummaryPanel

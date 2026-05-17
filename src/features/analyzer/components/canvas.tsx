@@ -58,6 +58,7 @@ interface AnalyticsCanvasProps {
 		showNamesOnHover: boolean;
 	};
 	isMultiView?: boolean;
+	readOnly?: boolean;
 }
 
 export function AnalyticsCanvas(props: AnalyticsCanvasProps) {
@@ -76,6 +77,7 @@ function AnalyticsCanvasInner({
 	allEdgeClassifications,
 	visibility,
 	isMultiView,
+	readOnly = true,
 }: AnalyticsCanvasProps) {
 	const { zoomIn, zoomOut, fitView } = useReactFlow();
 
@@ -139,7 +141,7 @@ function AnalyticsCanvasInner({
 				onNodesChange={noop}
 				onEdgesChange={noop}
 				onConnect={noop}
-				readOnly={true}
+				readOnly={readOnly}
 			/>
 		</div>
 	);
