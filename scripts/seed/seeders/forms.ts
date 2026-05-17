@@ -133,7 +133,7 @@ export function seedForms(teacherId: string) {
 
 		yield* Effect.log("--- Seeding TAM and questionnaire forms ---");
 
-		const tamFormTitle = "TAM Questionnaire - Kit-Build Evaluation";
+		const tamFormTitle = "「わたしのうち」 TAM Questionnaire";
 		const existingTamForm = yield* db
 			.select()
 			.from(forms)
@@ -147,7 +147,7 @@ export function seedForms(teacherId: string) {
 				.update(forms)
 				.set({
 					description:
-						"Technology Acceptance Model questionnaire to evaluate Kit-Build's usefulness and ease of use. Scale: 1=Strongly Disagree to 5=Strongly Agree",
+						"Technology Acceptance Model questionnaire about Kit-Build — 10 Likert-scale questions on usefulness and ease of use.",
 					type: "tam",
 					audience: "experiment",
 					status: "published",
@@ -162,7 +162,7 @@ export function seedForms(teacherId: string) {
 				id: tamFormId,
 				title: tamFormTitle,
 				description:
-					"Technology Acceptance Model questionnaire to evaluate Kit-Build's usefulness and ease of use. Scale: 1=Strongly Disagree to 5=Strongly Agree",
+					"Technology Acceptance Model questionnaire about Kit-Build — 10 Likert-scale questions on usefulness and ease of use.",
 				type: "tam",
 				audience: "experiment",
 				status: "published",
@@ -174,7 +174,7 @@ export function seedForms(teacherId: string) {
 
 		yield* upsertQuestions(tamFormId, TAM_QUESTIONS);
 
-		const feedbackFormTitle = "Feedback Questionnaire - Kit-Build Experience";
+		const feedbackFormTitle = "「わたしのうち」 Feedback Questionnaire";
 		const existingFeedbackForm = yield* db
 			.select()
 			.from(forms)
@@ -187,7 +187,7 @@ export function seedForms(teacherId: string) {
 			yield* db
 				.update(forms)
 				.set({
-					description: "Open-ended feedback about the Kit-Build learning experience",
+					description: "Open-ended feedback about Kit-Build — what you liked, difficulties, and suggestions.",
 					type: "questionnaire",
 					audience: "experiment",
 					status: "published",
@@ -201,7 +201,7 @@ export function seedForms(teacherId: string) {
 			yield* db.insert(forms).values({
 				id: feedbackFormId,
 				title: feedbackFormTitle,
-				description: "Open-ended feedback about the Kit-Build learning experience",
+				description: "Open-ended feedback about Kit-Build — what you liked, difficulties, and suggestions.",
 				type: "questionnaire",
 				audience: "experiment",
 				status: "published",
@@ -215,12 +215,12 @@ export function seedForms(teacherId: string) {
 
 		yield* Effect.log("--- Seeding reading comprehension test forms ---");
 
-		const preTestFormTitle = "Reading Comprehension Pre-Test";
+		const preTestFormTitle = "「わたしのうち」 Pre-Test";
 		const readingComprehensionReadingMaterialSections = buildReadingMaterialSections(
 			READING_COMPREHENSION_QUESTIONS.length,
 		);
 		const preTestDescription =
-			"Pre-test to measure baseline reading comprehension for the わたしのうち passage. 20 MCQ items based on Bloom's Taxonomy. The same questions are reused for the post-test and delayed-test.";
+			"20 multiple-choice questions about the わたしのうち passage (4 options each) — Bloom's L1 to L6.";
 		const existingPreTestForm = yield* db
 			.select()
 			.from(forms)
@@ -261,9 +261,9 @@ export function seedForms(teacherId: string) {
 
 		const postTestFormId = yield* copyFormWithQuestions({
 			sourceFormId: preTestFormId,
-			title: "Reading Comprehension Post-Test",
+			title: "「わたしのうち」 Post-Test",
 			description:
-				"Post-test to measure immediate learning outcomes after the reading session. Same reading passage (わたしのうち) and same questions as the pre-test.",
+				"20 multiple-choice questions about わたしのうち (4 options each) — same as the pre-test.",
 			type: "post_test",
 			audience: "all",
 			readingMaterialSections: readingComprehensionReadingMaterialSections,
@@ -272,9 +272,9 @@ export function seedForms(teacherId: string) {
 
 		const delayedTestFormId = yield* copyFormWithQuestions({
 			sourceFormId: preTestFormId,
-			title: "Reading Comprehension Delayed Test",
+			title: "「わたしのうち」 Delayed-Test",
 			description:
-				"Delayed test to measure retention after one week. Same reading passage (わたしのうち) and same questions as the pre-test.",
+				"20 multiple-choice questions about わたしのうち (4 options each) — same as the pre-test.",
 			type: "delayed_test",
 			audience: "all",
 			readingMaterialSections: readingComprehensionReadingMaterialSections,
