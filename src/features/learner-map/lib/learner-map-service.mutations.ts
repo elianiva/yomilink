@@ -5,7 +5,7 @@ import { randomString, safeParseJson } from "@/lib/utils";
 import { Database } from "@/server/db/client";
 import { assignments, diagnoses, goalMaps, learnerMaps } from "@/server/db/schema/app-schema";
 
-import { compareMaps, EdgeSchema } from "./comparator";
+import { compareMaps, EdgeSchema, NodeSchema } from "./comparator";
 import {
 	AssignmentNotFoundError,
 	GoalMapNotFoundError,
@@ -135,7 +135,7 @@ export const submitLearnerMap = Effect.fn("submitLearnerMap")(function* (
 
 	// Use assignment's goalMapId for comparison (not learnerMap.goalMapId which may be null for kits)
 	const goalMapRows = yield* db
-		.select({ edges: goalMaps.edges })
+		.select({ nodes: goalMaps.nodes, edges: goalMaps.edges })
 		.from(goalMaps)
 		.where(eq(goalMaps.id, assignment.goalMapId))
 		.limit(1);
@@ -145,12 +145,14 @@ export const submitLearnerMap = Effect.fn("submitLearnerMap")(function* (
 		return yield* new GoalMapNotFoundError({ goalMapId: assignment.goalMapId });
 	}
 
-	const [goalMapEdges, learnerEdges] = yield* Effect.all([
+	const [goalMapNodes, goalMapEdges, learnerNodes, learnerEdges] = yield* Effect.all([
+		safeParseJson(goalMap.nodes, [], Schema.Array(NodeSchema)),
 		safeParseJson(goalMap.edges, [], Schema.Array(EdgeSchema)),
+		safeParseJson(learnerMap.nodes, [], Schema.Array(NodeSchema)),
 		safeParseJson(learnerMap.edges, [], Schema.Array(EdgeSchema)),
 	]);
 
-	const diagnosis = compareMaps(goalMapEdges, learnerEdges);
+	const diagnosis = compareMaps(goalMapNodes, goalMapEdges, learnerNodes, learnerEdges);
 
 	yield* db
 		.update(learnerMaps)

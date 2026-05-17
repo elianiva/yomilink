@@ -35,69 +35,84 @@ export const EdgeSchema = Schema.Struct({
 
 export type Edge = Schema.Schema.Type<typeof EdgeSchema>;
 
-export const NodeLabelSchema = Schema.Struct({
-	id: Schema.String,
-	label: Schema.String,
+export const PropositionTripleSchema = Schema.Struct({
+	sourceId: Schema.String,
+	linkId: Schema.String,
+	targetId: Schema.String,
 });
-export type NodeLabel = Schema.Schema.Type<typeof NodeLabelSchema>;
 
-export const PropositionSchema = Schema.Struct({
-	source: NodeLabelSchema,
-	link: NodeLabelSchema,
-	target: NodeLabelSchema,
-});
-export type Proposition = Schema.Schema.Type<typeof PropositionSchema>;
+export type PropositionTriple = typeof PropositionTripleSchema.Type;
 
 export interface DiagnosisResult {
-	correct: Array<{ source: string; target: string; edgeId?: string }>;
-	missing: Array<{ source: string; target: string; edgeId?: string }>;
-	excessive: Array<{ source: string; target: string; edgeId?: string }>;
+	correct: PropositionTriple[];
+	missing: PropositionTriple[];
+	excessive: PropositionTriple[];
 	score: number;
-	totalGoalEdges: number;
+	totalGoalPropositions: number;
+}
+
+function composePropositionTriples(
+	nodes: Readonly<Node[]>,
+	edges: Readonly<Edge[]>,
+): PropositionTriple[] {
+	const conceptIds = new Set(
+		nodes.filter((n) => n.type === "text" || n.type === "image").map((n) => n.id),
+	);
+	const connectorIds = new Set(nodes.filter((n) => n.type === "connector").map((n) => n.id));
+
+	const triples: PropositionTriple[] = [];
+
+	for (const connectorId of connectorIds) {
+		const inbound = edges.filter((e) => e.target === connectorId);
+		const outbound = edges.filter((e) => e.source === connectorId);
+
+		for (const inEdge of inbound) {
+			if (!conceptIds.has(inEdge.source)) continue;
+			for (const outEdge of outbound) {
+				if (!conceptIds.has(outEdge.target)) continue;
+				triples.push({
+					sourceId: inEdge.source,
+					linkId: connectorId,
+					targetId: outEdge.target,
+				});
+			}
+		}
+	}
+
+	return triples;
+}
+
+function tripleKey(t: PropositionTriple): string {
+	return `${t.sourceId}|${t.linkId}|${t.targetId}`;
 }
 
 export function compareMaps(
-	goalMapEdges: Readonly<Edge[]>,
+	goalNodes: Readonly<Node[]>,
+	goalEdges: Readonly<Edge[]>,
+	learnerNodes: Readonly<Node[]>,
 	learnerEdges: Readonly<Edge[]>,
 ): DiagnosisResult {
-	const goalMapSet = new Set(goalMapEdges.map((e) => `${e.source}-${e.target}`));
-	const learnerMapSet = new Set(learnerEdges.map((e) => `${e.source}-${e.target}`));
+	const goalPropositions = composePropositionTriples(goalNodes, goalEdges);
+	const learnerPropositions = composePropositionTriples(learnerNodes, learnerEdges);
 
-	const correct = goalMapEdges.filter((edge) =>
-		learnerMapSet.has(`${edge.source}-${edge.target}`),
-	);
+	const learnerSet = new Set(learnerPropositions.map(tripleKey));
+	const goalSet = new Set(goalPropositions.map(tripleKey));
 
-	const missing = goalMapEdges.filter(
-		(edge) => !learnerMapSet.has(`${edge.source}-${edge.target}`),
-	);
-
-	const excessive = learnerEdges.filter(
-		(edge) => !goalMapSet.has(`${edge.source}-${edge.target}`),
-	);
+	const correct = goalPropositions.filter((p) => learnerSet.has(tripleKey(p)));
+	const missing = goalPropositions.filter((p) => !learnerSet.has(tripleKey(p)));
+	const excessive = learnerPropositions.filter((p) => !goalSet.has(tripleKey(p)));
 
 	const score =
-		goalMapEdges.length > 0
-			? Math.round((correct.length / goalMapEdges.length) * 100) / 100
+		goalPropositions.length > 0
+			? Math.round((correct.length / goalPropositions.length) * 100) / 100
 			: 1;
 
 	return {
-		correct: correct.map((e) => ({
-			source: e.source,
-			target: e.target,
-			edgeId: e.id,
-		})),
-		missing: missing.map((e) => ({
-			source: e.source,
-			target: e.target,
-			edgeId: e.id,
-		})),
-		excessive: excessive.map((e) => ({
-			source: e.source,
-			target: e.target,
-			edgeId: e.id,
-		})),
+		correct,
+		missing,
+		excessive,
 		score,
-		totalGoalEdges: goalMapEdges.length,
+		totalGoalPropositions: goalPropositions.length,
 	};
 }
 
@@ -111,24 +126,34 @@ export const EdgeClassificationSchema = Schema.Struct({
 	type: Schema.Literal("correct", "missing", "excessive"),
 });
 
+function edgeKey(source: string, target: string): string {
+	return `${source}|${target}`;
+}
+
 export function classifyEdges(
 	goalMapEdges: Readonly<Edge[]>,
 	learnerEdges: Readonly<Edge[]>,
 ): EdgeClassification[] {
-	const diagnosis = compareMaps(goalMapEdges, learnerEdges);
+	const goalSet = new Set(goalMapEdges.map((e) => edgeKey(e.source, e.target)));
+	const learnerSet = new Set(learnerEdges.map((e) => edgeKey(e.source, e.target)));
 
-	const excessiveMap = new Set(diagnosis.excessive.map((e) => `${e.source}-${e.target}`));
+	const missing = goalMapEdges.filter((e) => !learnerSet.has(edgeKey(e.source, e.target)));
+	const excessiveSet = new Set(
+		learnerEdges
+			.filter((e) => !goalSet.has(edgeKey(e.source, e.target)))
+			.map((e) => edgeKey(e.source, e.target)),
+	);
 
 	const learnerClassifications: EdgeClassification[] = learnerEdges.map((edge) => ({
 		edge,
-		type: excessiveMap.has(`${edge.source}-${edge.target}`) ? "excessive" : "correct",
+		type: excessiveSet.has(edgeKey(edge.source, edge.target)) ? "excessive" : "correct",
 	}));
 
-	const missingClassifications: EdgeClassification[] = diagnosis.missing.map((missing) => ({
+	const missingClassifications: EdgeClassification[] = missing.map((m) => ({
 		edge: {
-			id: `missing-${missing.source}-${missing.target}`,
-			source: missing.source,
-			target: missing.target,
+			id: `missing-${m.source}-${m.target}`,
+			source: m.source,
+			target: m.target,
 			animated: true,
 			style: { strokeDasharray: "5,5", opacity: 0.5 },
 		},

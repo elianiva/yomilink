@@ -1,6 +1,10 @@
 import { Data, Schema } from "effect";
 
-import { EdgeSchema, NodeSchema } from "@/features/learner-map/lib/comparator";
+import {
+	EdgeSchema,
+	NodeSchema,
+	PropositionTripleSchema,
+} from "@/features/learner-map/lib/comparator";
 import { GoalMapNotFoundError } from "@/lib/errors";
 import { NonEmpty } from "@/lib/validation-schemas";
 
@@ -41,18 +45,11 @@ export const ExportAnalyticsDataInput = Schema.Struct({
 
 export type ExportAnalyticsDataInput = typeof ExportAnalyticsDataInput.Type;
 
-export const LinkSchema = Schema.Struct({
-	source: Schema.String,
-	target: Schema.String,
-});
-
-export type Link = typeof LinkSchema.Type;
-
 export const PerLinkDiagnosisSchema = Schema.Struct({
-	correct: Schema.optional(Schema.Array(LinkSchema)),
-	missing: Schema.optional(Schema.Array(LinkSchema)),
-	excessive: Schema.optional(Schema.Array(LinkSchema)),
-	totalGoalEdges: Schema.optional(Schema.Number),
+	correct: Schema.optional(Schema.Array(PropositionTripleSchema)),
+	missing: Schema.optional(Schema.Array(PropositionTripleSchema)),
+	excessive: Schema.optional(Schema.Array(PropositionTripleSchema)),
+	totalGoalPropositions: Schema.optional(Schema.Number),
 });
 
 export type PerLinkDiagnosis = typeof PerLinkDiagnosisSchema.Type;
@@ -93,7 +90,7 @@ export const LearnerAnalyticsSchema = Schema.Struct({
 	correct: Schema.Number,
 	missing: Schema.Number,
 	excessive: Schema.Number,
-	totalGoalEdges: Schema.Number,
+	totalGoalPropositions: Schema.Number,
 });
 
 export type LearnerAnalytics = typeof LearnerAnalyticsSchema.Type;
@@ -143,10 +140,10 @@ export const LearnerMapSchema = Schema.Struct({
 });
 
 export const DiagnosisResultSchema = Schema.Struct({
-	correct: Schema.optional(Schema.Array(LinkSchema)),
-	missing: Schema.optional(Schema.Array(LinkSchema)),
-	excessive: Schema.optional(Schema.Array(LinkSchema)),
-	totalGoalEdges: Schema.optional(Schema.Number),
+	correct: Schema.optional(Schema.Array(PropositionTripleSchema)),
+	missing: Schema.optional(Schema.Array(PropositionTripleSchema)),
+	excessive: Schema.optional(Schema.Array(PropositionTripleSchema)),
+	totalGoalPropositions: Schema.optional(Schema.Number),
 });
 
 export const EdgeClassificationSchema = Schema.Struct({

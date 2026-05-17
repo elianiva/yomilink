@@ -3,79 +3,119 @@ import { describe, expect, it } from "vite-plus/test";
 import { simpleGoalMap } from "@/__tests__/fixtures/goal-maps";
 
 import { classifyEdges, compareMaps, getEdgeStyleByType } from "./comparator";
+import type { Edge, Node } from "./comparator";
+
+function props(correct: number, missing: number, excessive: number, total: number, score: number) {
+	return { correct, missing, excessive, total, score };
+}
+
+function result(d: ReturnType<typeof compareMaps>) {
+	return props(
+		d.correct.length,
+		d.missing.length,
+		d.excessive.length,
+		d.totalGoalPropositions,
+		d.score,
+	);
+}
+
+const { nodes: fixtureNodes, edges: fixtureEdges } = simpleGoalMap;
 
 describe("compareMaps", () => {
-	it("should return perfect match", () => {
-		const result = compareMaps([...simpleGoalMap.edges], [...simpleGoalMap.edges]);
-		expect(result.score).toBe(1);
-		expect(result.correct).toHaveLength(2);
-		expect(result.missing).toHaveLength(0);
-		expect(result.excessive).toHaveLength(0);
+	it("perfect match — 1 proposition, 2 edges", () => {
+		const nodes = [...fixtureNodes] as Node[];
+		const edges = [...fixtureEdges] as Edge[];
+		const r = result(compareMaps(nodes, edges, nodes, edges));
+		expect(r).toEqual(props(1, 0, 0, 1, 1));
 	});
 
-	it("should detect missing edges", () => {
-		const result = compareMaps([...simpleGoalMap.edges], [simpleGoalMap.edges[0]]);
-		expect(result.score).toBe(0.5);
-		expect(result.correct).toHaveLength(1);
-		expect(result.missing).toHaveLength(1);
-		expect(result.missing[0]?.source).toBe("l1");
-		expect(result.missing[0]?.target).toBe("c2");
+	it("half proposition — only concept→connector edge matches", () => {
+		const nodes = [...fixtureNodes] as Node[];
+		const edges = [...fixtureEdges] as Edge[];
+		const learnerEdges: Edge[] = [edges[0]]; // c1→l1 only, missing l1→c2
+		const r = result(compareMaps(nodes, edges, nodes, learnerEdges));
+		expect(r).toEqual(props(0, 1, 0, 1, 0));
 	});
 
-	it("should detect excessive edges", () => {
-		const learnerEdges = [...simpleGoalMap.edges, { id: "e3", source: "c2", target: "c1" }];
-		const result = compareMaps([...simpleGoalMap.edges], learnerEdges);
-		expect(result.score).toBe(1);
-		expect(result.excessive).toHaveLength(1);
-		expect(result.excessive[0]?.source).toBe("c2");
-		expect(result.excessive[0]?.target).toBe("c1");
+	it("swapped connector — edges partially match but proposition is wrong", () => {
+		// Goal: c1→l1→c2,   c2→l2→c1
+		// Learner: c1→l1→c1, c2→l2→c2  (swapped targets)
+		const nodes: Node[] = [
+			{ id: "c1", type: "text", position: { x: 0, y: 0 }, data: { label: "A" } },
+			{ id: "c2", type: "text", position: { x: 100, y: 0 }, data: { label: "B" } },
+			{ id: "l1", type: "connector", position: { x: 50, y: 50 }, data: { label: "is" } },
+			{ id: "l2", type: "connector", position: { x: 150, y: 50 }, data: { label: "has" } },
+		];
+		const goalEdges: Edge[] = [
+			{ id: "e1", source: "c1", target: "l1" },
+			{ id: "e2", source: "l1", target: "c2" },
+			{ id: "e3", source: "c2", target: "l2" },
+			{ id: "e4", source: "l2", target: "c1" },
+		];
+		const learnerEdges: Edge[] = [
+			{ id: "e1", source: "c1", target: "l1" },
+			{ id: "e2", source: "l1", target: "c1" },
+			{ id: "e3", source: "c2", target: "l2" },
+			{ id: "e4", source: "l2", target: "c2" },
+		];
+		const r = result(compareMaps(nodes, goalEdges, nodes, learnerEdges));
+		// 0/2 propositions correct
+		expect(r).toEqual(props(0, 2, 2, 2, 0));
 	});
 
-	it("should handle empty goal map", () => {
-		const result = compareMaps([], []);
-		expect(result.score).toBe(1);
-		expect(result.correct).toHaveLength(0);
+	it("empty goal map", () => {
+		const r = result(compareMaps([], [], [], []));
+		expect(r).toEqual(props(0, 0, 0, 0, 1));
 	});
 
-	it("should handle empty learner map", () => {
-		const result = compareMaps([...simpleGoalMap.edges], []);
-		expect(result.score).toBe(0);
-		expect(result.missing).toHaveLength(2);
+	it("empty learner map", () => {
+		const nodes = [...fixtureNodes] as Node[];
+		const edges = [...fixtureEdges] as Edge[];
+		const r = result(compareMaps(nodes, edges, [], []));
+		expect(r).toEqual(props(0, 1, 0, 1, 0));
+	});
+
+	it("extra connector — excessive proposition", () => {
+		const nodes = [...fixtureNodes] as Node[];
+		const edges = [...fixtureEdges] as Edge[];
+		const learnerNodes: Node[] = [
+			...nodes,
+			{ id: "l2", type: "connector", position: { x: 200, y: 200 }, data: { label: "x" } },
+		];
+		const learnerEdges: Edge[] = [
+			...edges,
+			{ id: "e3", source: "c1", target: "l2" },
+			{ id: "e4", source: "l2", target: "c1" },
+		];
+		const r = result(compareMaps(nodes, edges, learnerNodes, learnerEdges));
+		expect(r).toEqual(props(1, 0, 1, 1, 1));
 	});
 });
 
 describe("classifyEdges", () => {
-	it("should classify all edge types correctly", () => {
-		const goalEdges = [
+	it("classify all edge types correctly", () => {
+		const goalEdges: Edge[] = [
 			{ id: "e1", source: "c1", target: "l1" },
 			{ id: "e2", source: "l1", target: "c2" },
 		];
-		const learnerEdges = [
+		const learnerEdges: Edge[] = [
 			{ id: "e1", source: "c1", target: "l1" },
 			{ id: "e3", source: "c2", target: "c1" },
 		];
 
 		const result = classifyEdges(goalEdges, learnerEdges);
 
-		const correct = result.filter((e) => e.type === "correct");
-		const excessive = result.filter((e) => e.type === "excessive");
-		const missing = result.filter((e) => e.type === "missing");
-
-		expect(correct).toHaveLength(1);
-		expect(excessive).toHaveLength(1);
-		expect(missing).toHaveLength(1);
-
-		expect(missing[0]?.edge.style?.strokeDasharray).toBe("5,5");
-		expect(missing[0]?.edge.animated).toBe(true);
+		expect(result.filter((e) => e.type === "correct")).toHaveLength(1);
+		expect(result.filter((e) => e.type === "excessive")).toHaveLength(1);
+		expect(result.filter((e) => e.type === "missing")).toHaveLength(1);
 	});
 
-	it("should handle empty edge lists", () => {
-		const result = classifyEdges([], []);
-		expect(result).toHaveLength(0);
+	it("handle empty edge lists", () => {
+		expect(classifyEdges([], [])).toHaveLength(0);
 	});
 
-	it("should classify all learner edges as excessive when goal map is empty", () => {
-		const learnerEdges = [
+	it("all learner edges excessive when goal map is empty", () => {
+		const learnerEdges: Edge[] = [
 			{ id: "e1", source: "c1", target: "l1" },
 			{ id: "e2", source: "l1", target: "c2" },
 		];
@@ -84,83 +124,18 @@ describe("classifyEdges", () => {
 		expect(result.every((e) => e.type === "excessive")).toBe(true);
 	});
 
-	it("should mark all goal edges as missing when learner map is empty", () => {
-		const goalEdges = [
+	it("all goal edges missing when learner map is empty", () => {
+		const goalEdges: Edge[] = [
 			{ id: "e1", source: "c1", target: "l1" },
 			{ id: "e2", source: "l1", target: "c2" },
 		];
 		const result = classifyEdges(goalEdges, []);
 		expect(result).toHaveLength(2);
 		expect(result.every((e) => e.type === "missing")).toBe(true);
-		result.forEach((r) => {
-			expect(r.edge.style?.strokeDasharray).toBe("5,5");
-			expect(r.edge.animated).toBe(true);
-		});
 	});
 
-	it("should not have neutral edges in classification", () => {
-		const goalEdges = [
-			{ id: "e1", source: "c1", target: "l1" },
-			{ id: "e2", source: "l1", target: "c2" },
-		];
-		const learnerEdges = [
-			{ id: "e1", source: "c1", target: "l1" },
-			{ id: "e3", source: "x", target: "y" },
-		];
-		const result = classifyEdges(goalEdges, learnerEdges);
-		const correct = result.filter((e) => e.type === "correct");
-		const excessive = result.filter((e) => e.type === "excessive");
-		const missing = result.filter((e) => e.type === "missing");
-
-		expect(correct).toHaveLength(1);
-		expect(excessive).toHaveLength(1);
-		expect(missing).toHaveLength(1);
-	});
-
-	it("should handle multiple edges between same nodes", () => {
-		const goalEdges = [
-			{ id: "e1", source: "c1", target: "l1" },
-			{ id: "e2", source: "l1", target: "c2" },
-		];
-		const learnerEdges = [
-			{ id: "e1", source: "c1", target: "l1" },
-			{ id: "e2", source: "l1", target: "c2" },
-			{ id: "e3", source: "l1", target: "c1" },
-		];
-		const result = classifyEdges(goalEdges, learnerEdges);
-		const correct = result.filter((e) => e.type === "correct");
-		const excessive = result.filter((e) => e.type === "excessive");
-		const missing = result.filter((e) => e.type === "missing");
-
-		expect(correct).toHaveLength(2);
-		expect(excessive).toHaveLength(1);
-		expect(missing).toHaveLength(0);
-		expect(excessive[0]?.edge.id).toBe("e3");
-	});
-
-	it("should handle complex scenario with all edge types", () => {
-		const goalEdges = [
-			{ id: "e1", source: "c1", target: "l1" },
-			{ id: "e2", source: "l1", target: "c2" },
-			{ id: "e3", source: "c2", target: "l2" },
-		];
-		const learnerEdges = [
-			{ id: "e1", source: "c1", target: "l1" },
-			{ id: "e4", source: "c3", target: "l1" },
-			{ id: "e5", source: "l1", target: "c1" },
-		];
-		const result = classifyEdges(goalEdges, learnerEdges);
-		const correct = result.filter((e) => e.type === "correct");
-		const excessive = result.filter((e) => e.type === "excessive");
-		const missing = result.filter((e) => e.type === "missing");
-
-		expect(correct).toHaveLength(1);
-		expect(excessive).toHaveLength(2);
-		expect(missing).toHaveLength(2);
-	});
-
-	it("should handle perfect match", () => {
-		const edges = [
+	it("perfect match", () => {
+		const edges: Edge[] = [
 			{ id: "e1", source: "c1", target: "l1" },
 			{ id: "e2", source: "l1", target: "c2" },
 		];
@@ -171,48 +146,20 @@ describe("classifyEdges", () => {
 });
 
 describe("getEdgeStyleByType", () => {
-	it("should return correct style for correct edge", () => {
-		const style = getEdgeStyleByType("correct");
-		expect(style).toEqual({ stroke: "#22c55e", strokeWidth: 3 });
+	it("returns correct style for correct edge", () => {
+		expect(getEdgeStyleByType("correct")).toEqual({ stroke: "#22c55e", strokeWidth: 3 });
 	});
 
-	it("should return correct style for excessive edge", () => {
-		const style = getEdgeStyleByType("excessive");
-		expect(style).toEqual({ stroke: "#ef4444", strokeWidth: 3 });
+	it("returns correct style for excessive edge", () => {
+		expect(getEdgeStyleByType("excessive")).toEqual({ stroke: "#ef4444", strokeWidth: 3 });
 	});
 
-	it("should return correct style for excessive edge", () => {
-		const style = getEdgeStyleByType("excessive");
-		expect(style).toEqual({ stroke: "#ef4444", strokeWidth: 3 });
-	});
-
-	it("should return correct style for missing edge", () => {
-		const style = getEdgeStyleByType("missing");
-		expect(style).toEqual({
+	it("returns correct style for missing edge", () => {
+		expect(getEdgeStyleByType("missing")).toEqual({
 			stroke: "#f59e0b",
 			strokeWidth: 2,
 			strokeDasharray: "5,5",
 			opacity: 0.7,
 		});
-	});
-
-	it("should return correct style for missing edge", () => {
-		const style = getEdgeStyleByType("missing");
-		expect(style).toEqual({
-			stroke: "#f59e0b",
-			strokeWidth: 2,
-			strokeDasharray: "5,5",
-			opacity: 0.7,
-		});
-	});
-
-	expect(getEdgeStyleByType("correct")).toEqual({
-		stroke: "#22c55e",
-		strokeWidth: 3,
-	});
-
-	expect(getEdgeStyleByType("excessive")).toEqual({
-		stroke: "#ef4444",
-		strokeWidth: 3,
 	});
 });

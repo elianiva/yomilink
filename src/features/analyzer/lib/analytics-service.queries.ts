@@ -144,14 +144,14 @@ export const getAnalyticsForAssignment = Effect.fn("getAnalyticsForAssignment")(
 				let correct = 0;
 				let missing = 0;
 				let excessive = 0;
-				let totalGoalEdges = 0;
+				let totalGoalPropositions = 0;
 
 				if (lm.perLink) {
 					const parsed = yield* safeParseJson(lm.perLink, {}, PerLinkDiagnosisSchema);
 					correct = parsed.correct?.length ?? 0;
 					missing = parsed.missing?.length ?? 0;
 					excessive = parsed.excessive?.length ?? 0;
-					totalGoalEdges = parsed.totalGoalEdges ?? 0;
+					totalGoalPropositions = parsed.totalGoalPropositions ?? 0;
 				}
 
 				return yield* Schema.encode(LearnerAnalyticsSchema)({
@@ -171,7 +171,7 @@ export const getAnalyticsForAssignment = Effect.fn("getAnalyticsForAssignment")(
 					correct,
 					missing,
 					excessive,
-					totalGoalEdges,
+					totalGoalPropositions,
 				});
 			}),
 		),
@@ -276,7 +276,12 @@ export const getLearnerMapForAnalytics = Effect.fn("getLearnerMapForAnalytics")(
 			{ concurrency: 10 },
 		);
 
-	const diagnosis = compareMaps(parsedGoalMapEdges, parsedLearnerMapEdges);
+	const diagnosis = compareMaps(
+		parsedGoalMapNodes,
+		parsedGoalMapEdges,
+		parsedLearnerMapNodes,
+		parsedLearnerMapEdges,
+	);
 	const edgeClassifications = classifyEdges(parsedGoalMapEdges, parsedLearnerMapEdges);
 
 	return {
