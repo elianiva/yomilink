@@ -48,7 +48,7 @@ export function WhitelistPanel() {
 						Import CSV. Columns: studentId, name, cohortId.
 					</p>
 				</div>
-				<div className="grid gap-3 md:grid-cols-[1fr_auto] md:items-end">
+				<div className="grid gap-3 md:grid-cols-[1fr_auto] md:items-start">
 					<div className="space-y-1.5">
 						<Input
 							type="file"
