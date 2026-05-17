@@ -148,10 +148,10 @@ export function AnalyticsSidebar({
 		() =>
 			Array.isArray(assignments)
 				? assignments.map((a) => ({
-					id: a.id,
-					title: a.title,
-					totalSubmissions: a.totalSubmissions ?? 0,
-				}))
+						id: a.id,
+						title: a.title,
+						totalSubmissions: a.totalSubmissions ?? 0,
+					}))
 				: undefined,
 		[assignments],
 	);

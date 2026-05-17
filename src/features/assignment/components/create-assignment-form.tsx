@@ -502,14 +502,10 @@ export function CreateAssignmentForm({ onSuccess, onCancel }: CreateAssignmentFo
 					</Button>
 				) : (
 					<Button type="submit" disabled={isSubmitting || !canProceedNext()}>
-						{createMutation.isPending
-							? "Creating..."
-							: "Create Assignment"}
+						{createMutation.isPending ? "Creating..." : "Create Assignment"}
 					</Button>
 				)}
 			</div>
 		</form>
 	);
 }
-
-

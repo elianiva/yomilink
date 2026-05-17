@@ -8,6 +8,11 @@ import { forms, questions } from "@/server/db/schema/app-schema";
 
 import { GOAL_MAP_TO_MATERIAL } from "../data/materials.js";
 import {
+	FEEDBACK_QUESTIONS as FEEDBACK_QUESTIONS_DOKO,
+	READING_COMPREHENSION_QUESTIONS as READING_COMPREHENSION_QUESTIONS_DOKO,
+	TAM_QUESTIONS as TAM_QUESTIONS_DOKO,
+} from "../data/questions-doko-ga-ichiban.js";
+import {
 	FEEDBACK_QUESTIONS,
 	READING_COMPREHENSION_QUESTIONS,
 	TAM_QUESTIONS,
@@ -47,8 +52,9 @@ function getQuestionOptions(question: SeedQuestion): string {
 
 function buildReadingMaterialSections(
 	totalQuestions: number,
+	materialTitle: string = "わたしのうち",
 ): ReadonlyArray<ReadingMaterialSection> {
-	const readingMaterialContent = GOAL_MAP_TO_MATERIAL["わたしのうち"]?.content.trim() ?? "";
+	const readingMaterialContent = GOAL_MAP_TO_MATERIAL[materialTitle]?.content.trim() ?? "";
 	const content =
 		readingMaterialContent.length > 0
 			? readingMaterialContent
@@ -56,8 +62,8 @@ function buildReadingMaterialSections(
 
 	return [
 		{
-			id: "seed-reading-watashi-no-uchi",
-			title: "わたしのうち",
+			id: `seed-reading-${materialTitle}`,
+			title: materialTitle,
 			startQuestion: 1,
 			endQuestion: Math.max(1, totalQuestions),
 			content,
@@ -187,7 +193,8 @@ export function seedForms(teacherId: string) {
 			yield* db
 				.update(forms)
 				.set({
-					description: "Open-ended feedback about Kit-Build — what you liked, difficulties, and suggestions.",
+					description:
+						"Open-ended feedback about Kit-Build — what you liked, difficulties, and suggestions.",
 					type: "questionnaire",
 					audience: "experiment",
 					status: "published",
@@ -201,7 +208,8 @@ export function seedForms(teacherId: string) {
 			yield* db.insert(forms).values({
 				id: feedbackFormId,
 				title: feedbackFormTitle,
-				description: "Open-ended feedback about Kit-Build — what you liked, difficulties, and suggestions.",
+				description:
+					"Open-ended feedback about Kit-Build — what you liked, difficulties, and suggestions.",
 				type: "questionnaire",
 				audience: "experiment",
 				status: "published",
@@ -281,12 +289,172 @@ export function seedForms(teacherId: string) {
 			teacherId,
 		}).pipe(Effect.map((result) => result.formId));
 
+		yield* Effect.log("--- Seeding forms for どこが いちばん いいですか ---");
+
+		const tamFormTitleDoko = "「どこが いちばん いいですか」 TAM Questionnaire";
+		const existingTamFormDoko = yield* db
+			.select()
+			.from(forms)
+			.where(eq(forms.title, tamFormTitleDoko))
+			.limit(1);
+
+		let tamFormIdDoko: string;
+		if (existingTamFormDoko[0]) {
+			tamFormIdDoko = existingTamFormDoko[0].id;
+			yield* db
+				.update(forms)
+				.set({
+					description:
+						"Technology Acceptance Model questionnaire about Kit-Build — 10 Likert-scale questions on usefulness and ease of use.",
+					type: "tam",
+					audience: "experiment",
+					status: "published",
+					readingMaterialSections: null,
+					createdBy: teacherId,
+				})
+				.where(eq(forms.id, tamFormIdDoko));
+			yield* Effect.log("  TAM form already exists: " + tamFormTitleDoko);
+		} else {
+			tamFormIdDoko = randomString();
+			yield* db.insert(forms).values({
+				id: tamFormIdDoko,
+				title: tamFormTitleDoko,
+				description:
+					"Technology Acceptance Model questionnaire about Kit-Build — 10 Likert-scale questions on usefulness and ease of use.",
+				type: "tam",
+				audience: "experiment",
+				status: "published",
+				readingMaterialSections: null,
+				createdBy: teacherId,
+			});
+			yield* Effect.log("  Created TAM form: " + tamFormTitleDoko);
+		}
+
+		yield* upsertQuestions(tamFormIdDoko, TAM_QUESTIONS_DOKO);
+
+		const feedbackFormTitleDoko = "「どこが いちばん いいですか」 Feedback Questionnaire";
+		const existingFeedbackFormDoko = yield* db
+			.select()
+			.from(forms)
+			.where(eq(forms.title, feedbackFormTitleDoko))
+			.limit(1);
+
+		let feedbackFormIdDoko: string;
+		if (existingFeedbackFormDoko[0]) {
+			feedbackFormIdDoko = existingFeedbackFormDoko[0].id;
+			yield* db
+				.update(forms)
+				.set({
+					description:
+						"Open-ended feedback about Kit-Build — what you liked, difficulties, and suggestions.",
+					type: "questionnaire",
+					audience: "experiment",
+					status: "published",
+					readingMaterialSections: null,
+					createdBy: teacherId,
+				})
+				.where(eq(forms.id, feedbackFormIdDoko));
+			yield* Effect.log("  Feedback form already exists: " + feedbackFormTitleDoko);
+		} else {
+			feedbackFormIdDoko = randomString();
+			yield* db.insert(forms).values({
+				id: feedbackFormIdDoko,
+				title: feedbackFormTitleDoko,
+				description:
+					"Open-ended feedback about Kit-Build — what you liked, difficulties, and suggestions.",
+				type: "questionnaire",
+				audience: "experiment",
+				status: "published",
+				readingMaterialSections: null,
+				createdBy: teacherId,
+			});
+			yield* Effect.log("  Created feedback form: " + feedbackFormTitleDoko);
+		}
+
+		yield* upsertQuestions(feedbackFormIdDoko, FEEDBACK_QUESTIONS_DOKO, false);
+
+		yield* Effect.log(
+			"--- Seeding reading comprehension test forms for どこが いちばん いいですか ---",
+		);
+
+		const preTestFormTitleDoko = "「どこが いちばん いいですか」 Pre-Test";
+		const readingComprehensionReadingMaterialSectionsDoko = buildReadingMaterialSections(
+			READING_COMPREHENSION_QUESTIONS_DOKO.length,
+			"どこが いちばん いいですか",
+		);
+		const preTestDescriptionDoko =
+			"22 multiple-choice questions about the どこが いちばん いいですか passage (4 options each) — Bloom's L1 to L6.";
+		const existingPreTestFormDoko = yield* db
+			.select()
+			.from(forms)
+			.where(eq(forms.title, preTestFormTitleDoko))
+			.limit(1);
+
+		let preTestFormIdDoko: string;
+		if (existingPreTestFormDoko[0]) {
+			preTestFormIdDoko = existingPreTestFormDoko[0].id;
+			yield* db
+				.update(forms)
+				.set({
+					description: preTestDescriptionDoko,
+					type: "pre_test",
+					audience: "all",
+					status: "published",
+					readingMaterialSections: readingComprehensionReadingMaterialSectionsDoko,
+					createdBy: teacherId,
+				})
+				.where(eq(forms.id, preTestFormIdDoko));
+			yield* Effect.log("  Pre-test form already exists: " + preTestFormTitleDoko);
+		} else {
+			preTestFormIdDoko = randomString();
+			yield* db.insert(forms).values({
+				id: preTestFormIdDoko,
+				title: preTestFormTitleDoko,
+				description: preTestDescriptionDoko,
+				type: "pre_test",
+				audience: "all",
+				status: "published",
+				readingMaterialSections: readingComprehensionReadingMaterialSectionsDoko,
+				createdBy: teacherId,
+			});
+			yield* Effect.log("  Created pre-test form: " + preTestFormTitleDoko);
+		}
+
+		yield* upsertQuestions(preTestFormIdDoko, READING_COMPREHENSION_QUESTIONS_DOKO);
+
+		const postTestFormIdDoko = yield* copyFormWithQuestions({
+			sourceFormId: preTestFormIdDoko,
+			title: "「どこが いちばん いいですか」 Post-Test",
+			description:
+				"22 multiple-choice questions about どこが いちばん いいですか (4 options each) — same as the pre-test.",
+			type: "post_test",
+			audience: "all",
+			readingMaterialSections: readingComprehensionReadingMaterialSectionsDoko,
+			teacherId,
+		}).pipe(Effect.map((result) => result.formId));
+
+		const delayedTestFormIdDoko = yield* copyFormWithQuestions({
+			sourceFormId: preTestFormIdDoko,
+			title: "「どこが いちばん いいですか」 Delayed-Test",
+			description:
+				"22 multiple-choice questions about どこが いちばん いいですか (4 options each) — same as the pre-test.",
+			type: "delayed_test",
+			audience: "all",
+			readingMaterialSections: readingComprehensionReadingMaterialSectionsDoko,
+			teacherId,
+		}).pipe(Effect.map((result) => result.formId));
+
 		return {
 			tamFormId,
 			feedbackFormId,
 			preTestFormId,
 			postTestFormId,
 			delayedTestFormId,
+			tamFormIdDoko,
+			feedbackFormIdDoko,
+			preTestFormIdDoko,
+			postTestFormIdDoko,
+			delayedTestFormIdDoko,
 		};
 	});
 }
