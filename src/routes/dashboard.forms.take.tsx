@@ -41,7 +41,6 @@ function FormTakerPage() {
 		operation: "submit form",
 		onSuccess: async () => {
 			await queryClient.invalidateQueries({ queryKey: FormRpc.forms() });
-			void navigate({ to: "/dashboard/forms/take", search: { formId } });
 		},
 	});
 
@@ -138,7 +137,7 @@ function FormTakerPage() {
 		submitMutation.mutate({ formId: formId!, answers: stringAnswers, timeSpentSeconds });
 	};
 
-	if (submitMutation.isPending) return <FormSubmittedSuccess />;
+	if (submitMutation.isPending || (submitMutation.isSuccess && !data?.submission)) return <FormSubmittedSuccess />;
 	if (totalQuestions === 0)
 		return (
 			<FormNoQuestions
