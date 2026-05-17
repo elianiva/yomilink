@@ -337,6 +337,31 @@ export const getFormResponses = Effect.fn("getFormResponses")(function* (
 		return yield* new FormNotFoundError({ formId: input.formId });
 	}
 
+	const questionRows = yield* db
+		.select()
+		.from(questions)
+		.where(eq(questions.formId, input.formId))
+		.orderBy(questions.orderIndex);
+
+	const questionOptionMap = new Map<
+		string,
+		{ type: "mcq"; correctOptionIds: ReadonlyArray<string> } | null
+	>();
+	for (const q of questionRows) {
+		const parsedOpts =
+			typeof q.options === "string"
+				? (JSON.parse(q.options) as Record<string, unknown>)
+				: (q.options as Record<string, unknown> | null);
+		if (parsedOpts?.type === "mcq" && Array.isArray(parsedOpts.correctOptionIds)) {
+			questionOptionMap.set(q.id, {
+				type: "mcq",
+				correctOptionIds: parsedOpts.correctOptionIds as string[],
+			});
+		} else {
+			questionOptionMap.set(q.id, null);
+		}
+	}
+
 	const page = Math.max(1, input.page ?? 1);
 	const limit = Math.min(100, Math.max(1, input.limit ?? 20));
 	const offset = (page - 1) * limit;
@@ -367,13 +392,25 @@ export const getFormResponses = Effect.fn("getFormResponses")(function* (
 	const total = countResult[0]?.total ?? 0;
 	const totalPages = Math.ceil(total / limit);
 
-	// Parse answers for each response to handle both string and object formats
 	const parsedResponses = yield* Effect.all(
 		responseRows.map((row) =>
 			Effect.gen(function* () {
 				const parsedAnswers = yield* parseJson<Record<string, unknown>>(
 					row.response.answers,
 				);
+
+				let correctCount = 0;
+				let scoredQuestionCount = 0;
+				for (const [qId, scorable] of questionOptionMap) {
+					const answer = parsedAnswers[qId];
+					const isCorrect = isCorrectMcqAnswer(scorable, answer);
+					if (isCorrect !== null) {
+						scoredQuestionCount += 1;
+						if (isCorrect) correctCount += 1;
+					}
+				}
+				const score = scoredQuestionCount > 0 ? correctCount / scoredQuestionCount : null;
+
 				return {
 					id: row.response.id,
 					formId: row.response.formId,
@@ -381,6 +418,7 @@ export const getFormResponses = Effect.fn("getFormResponses")(function* (
 					answers: parsedAnswers,
 					submittedAt: row.response.submittedAt,
 					timeSpentSeconds: row.response.timeSpentSeconds,
+					score,
 					user: row.user,
 				};
 			}),

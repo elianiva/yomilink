@@ -469,6 +469,7 @@ export const FormResponseOutputSchema = Schema.Struct({
 	answers: Schema.Record({ key: Schema.String, value: Schema.Any }),
 	submittedAt: Schema.NullOr(Schema.Number),
 	timeSpentSeconds: Schema.NullOr(Schema.Number),
+	score: Schema.NullOr(Schema.Number),
 	user: ResponseUserSchema,
 });
 

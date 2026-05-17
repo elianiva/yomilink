@@ -1,7 +1,7 @@
 import { useQueryClient } from "@tanstack/react-query";
 import { createFileRoute, useNavigate, useSearch } from "@tanstack/react-router";
 import { Loader2 } from "lucide-react";
-import { useMemo } from "react";
+import { useEffect, useMemo, useRef } from "react";
 
 import {
 	FormHeaderBar,
@@ -75,6 +75,24 @@ function FormTakerPage() {
 	);
 	const progress = totalQuestions > 0 ? (answeredCount / totalQuestions) * 100 : 0;
 
+	const startTimeRef = useRef<number>(Date.now());
+
+	useEffect(() => {
+		if (!formId) return;
+		const key = `form-start-${formId}`;
+		const stored = localStorage.getItem(key);
+		if (stored) {
+			startTimeRef.current = Number(stored);
+		} else {
+			startTimeRef.current = Date.now();
+			localStorage.setItem(key, String(startTimeRef.current));
+		}
+
+		if (data?.submission) {
+			localStorage.removeItem(key);
+		}
+	}, [formId, data?.submission]);
+
 	if (!formId) return <FormNoFormSpecified backTo="/dashboard/forms/student" />;
 	if (isLoading) {
 		return (
@@ -109,11 +127,15 @@ function FormTakerPage() {
 
 	const handleSubmit = () => {
 		if (!answeredRequired) return;
+		const timeSpentSeconds = Math.round((Date.now() - startTimeRef.current) / 1000);
 		clearDraft();
+		if (formId) {
+			localStorage.removeItem(`form-start-${formId}`);
+		}
 		const stringAnswers: Record<string, string> = Object.fromEntries(
 			Object.entries(answers).map(([k, v]) => [k, String(v)]),
 		);
-		submitMutation.mutate({ formId: formId!, answers: stringAnswers });
+		submitMutation.mutate({ formId: formId!, answers: stringAnswers, timeSpentSeconds });
 	};
 
 	if (submitMutation.isPending) return <FormSubmittedSuccess />;

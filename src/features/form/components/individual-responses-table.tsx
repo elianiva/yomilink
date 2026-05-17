@@ -79,6 +79,11 @@ export function IndividualResponsesTable({
 		return `${secs}s`;
 	};
 
+	const formatScore = (score: number | null) => {
+		if (score === null) return "-";
+		return `${Math.round(score * 100)}%`;
+	};
+
 	return (
 		<>
 			<Table>
@@ -87,6 +92,7 @@ export function IndividualResponsesTable({
 						<TableHead>Student</TableHead>
 						<TableHead>Submitted</TableHead>
 						<TableHead>Time Spent</TableHead>
+						<TableHead>Score</TableHead>
 						<TableHead className="text-right">Actions</TableHead>
 					</TableRow>
 				</TableHeader>
@@ -103,6 +109,7 @@ export function IndividualResponsesTable({
 							</TableCell>
 							<TableCell>{formatResponseDate(response.submittedAt)}</TableCell>
 							<TableCell>{formatTimeSpent(response.timeSpentSeconds)}</TableCell>
+							<TableCell>{formatScore(response.score)}</TableCell>
 							<TableCell className="text-right">
 								<Button
 									variant="ghost"
