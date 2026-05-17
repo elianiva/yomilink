@@ -2,10 +2,6 @@ import { Cause, Effect } from "effect";
 
 import type { RpcError, RpcSuccess } from "@/lib/rpc-types";
 
-/**
- * Format an error for safe serialization.
- * Handles various error types including Effect errors, exceptions, and arbitrary values.
- */
 const formatError = (error: unknown): { message: string; cause?: unknown } => {
 	if (error && typeof error === "object" && "_tag" in error) {
 		const err = error as { _tag: string; message?: string; cause?: unknown };
@@ -32,12 +28,6 @@ const formatError = (error: unknown): { message: string; cause?: unknown } => {
 	};
 };
 
-/**
- * Log an error with operation context and return a formatted error response.
- * Use this with Effect.catchAll to log AND return errors.
- *
- * @param operationName - The name of the operation for context
- */
 export const logAndReturnError =
 	(operationName: string) =>
 	(error: unknown): Effect.Effect<RpcError> => {
@@ -60,10 +50,7 @@ export const logAndReturnError =
 		});
 	};
 
-/**
- * Log an error with operation context (error-only logging, for use with tapError).
- * Prefer logAndReturnError for catchAll handlers.
- */
+// For use with tapError, returns Effect<void> instead of error response
 export const logRpcError =
 	(operationName: string) =>
 	<TError>(error: TError) =>
@@ -74,12 +61,6 @@ export const logRpcError =
 			}),
 		);
 
-/**
- * Log a defect (unexpected crash) with operation context and return error response.
- * Use this with Effect.catchAllDefect to handle unexpected failures.
- *
- * @param operationName - The name of the operation for context
- */
 export const logAndReturnDefect =
 	(operationName: string) =>
 	(defect: unknown): Effect.Effect<RpcError> => {
@@ -102,23 +83,9 @@ export const logAndReturnDefect =
 		});
 	};
 
-/**
- * Create a standardized success response.
- * @param data - The data to return
- */
 export const Rpc = {
-	/**
-	 * Create a standardized success response (plain value for use with Effect.map).
-	 * @param data - The data to return
-	 */
 	ok: <T>(data: T): RpcSuccess<T> => ({ success: true, data }) as const,
 
-	/**
-	 * Create a standardized error response with optional cause.
-	 * @param error - Human-readable error message
-	 * @param code - Optional error code for client-side handling
-	 * @param cause - Optional underlying cause (will be serialized)
-	 */
 	err: (error: string, code?: string, cause?: unknown): Effect.Effect<RpcError> =>
 		Effect.succeed({
 			success: false,
@@ -127,10 +94,6 @@ export const Rpc = {
 			...(cause !== undefined && { cause }),
 		} as const),
 
-	/**
-	 * Create a "not found" error response.
-	 * @param resource - Optional resource name (e.g., "User", "Goal map")
-	 */
 	notFound: (resource = "Resource"): Effect.Effect<RpcError> =>
 		Effect.succeed({
 			success: false,
@@ -138,10 +101,6 @@ export const Rpc = {
 			code: "NOT_FOUND",
 		} as const),
 
-	/**
-	 * Create a "forbidden" error response.
-	 * @param message - Optional custom message
-	 */
 	forbidden: (message = "Access denied"): Effect.Effect<RpcError> =>
 		Effect.succeed({
 			success: false,
@@ -149,10 +108,6 @@ export const Rpc = {
 			code: "FORBIDDEN",
 		} as const),
 
-	/**
-	 * Create a "bad request" error response for validation failures.
-	 * @param message - Validation error message
-	 */
 	badRequest: (message: string): Effect.Effect<RpcError> =>
 		Effect.succeed({
 			success: false,
@@ -160,10 +115,6 @@ export const Rpc = {
 			code: "BAD_REQUEST",
 		} as const),
 
-	/**
-	 * Create an "unauthorized" error response.
-	 * @param message - Optional custom message
-	 */
 	unauthorized: (message = "Authentication required"): Effect.Effect<RpcError> =>
 		Effect.succeed({
 			success: false,

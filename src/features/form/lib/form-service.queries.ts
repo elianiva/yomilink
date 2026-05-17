@@ -20,6 +20,7 @@ import {
 	GetFormByIdOutputSchema,
 	GetFormResponsesInput,
 	GetFormResponsesOutputSchema,
+	GetStudentFormByIdOutput,
 	QuestionOptions,
 	ReadingMaterialSections,
 	resolveFormAccessScope,
@@ -259,9 +260,9 @@ export const getStudentFormById = Effect.fn("getStudentFormById")(function* (
 			createdAt: form.createdAt.getTime(),
 			updatedAt: form.updatedAt.getTime(),
 		},
-		questions: mappedQuestions as any,
-		submission: submission as any,
-	} as any;
+		questions: mappedQuestions as GetStudentFormByIdOutput["questions"],
+		submission: submission as GetStudentFormByIdOutput["submission"],
+	} as GetStudentFormByIdOutput;
 });
 
 export const listForms = Effect.fn("listForms")(function* () {

@@ -1,5 +1,3 @@
-"use client";
-
 import { Bold, Italic, List, ListOrdered } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
@@ -7,34 +5,14 @@ import { Separator } from "@/components/ui/separator";
 import { cn } from "@/lib/utils";
 
 export interface FormattingToolbarProps {
-	/** Whether the toolbar is disabled */
 	disabled?: boolean;
-	/** Additional CSS classes */
 	className?: string;
-	/** Callback when bold button is clicked */
 	onBold?: () => void;
-	/** Callback when italic button is clicked */
 	onItalic?: () => void;
-	/** Callback when bullet list button is clicked */
 	onBulletList?: () => void;
-	/** Callback when numbered list button is clicked */
 	onNumberedList?: () => void;
 }
 
-/**
- * A reusable formatting toolbar with Bold, Italic, Bullet List, and Numbered List buttons.
- * Uses document.execCommand to apply formatting to the current selection in a contentEditable element.
- *
- * @example
- * ```tsx
- * <FormattingToolbar
- *   onBold={() => document.execCommand("bold", false)}
- *   onItalic={() => document.execCommand("italic", false)}
- *   onBulletList={() => document.execCommand("insertUnorderedList", false)}
- *   onNumberedList={() => document.execCommand("insertOrderedList", false)}
- * />
- * ```
- */
 export function FormattingToolbar({
 	disabled = false,
 	className,

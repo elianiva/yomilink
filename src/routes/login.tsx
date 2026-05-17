@@ -75,11 +75,6 @@ function LoginPage() {
 			setError(null);
 			try {
 				const identifier = value.studentId.trim();
-				if (!identifier) {
-					setError("Student ID / email is required.");
-					return;
-				}
-
 				const email = identifier.includes("@")
 					? identifier
 					: studentIdToAuthEmail(identifier);

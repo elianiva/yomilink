@@ -32,7 +32,7 @@ function tryRemove(key: string): void {
 	try {
 		localStorage.removeItem(key);
 	} catch {
-		// Ignore
+		// localStorage may throw in private mode
 	}
 }
 
@@ -43,10 +43,8 @@ export function useFormDraft(userId: string | undefined, formId: string | null) 
 
 	const effectiveKey = userId && formId ? draftKey(userId, formId) : null;
 
-	// Keep answersRef in sync during render so interval callback has latest.
 	answersRef.current = answers;
 
-	// Restore draft from localStorage when key changes
 	useEffect(() => {
 		if (!effectiveKey) {
 			setAnswers({});
@@ -56,7 +54,7 @@ export function useFormDraft(userId: string | undefined, formId: string | null) 
 		setAnswers(saved ?? {});
 	}, [effectiveKey]);
 
-	// Steady-interval auto-save
+	// Auto-save every 5s
 	useEffect(() => {
 		if (!effectiveKey) return;
 		const key = effectiveKey;

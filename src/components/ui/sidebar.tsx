@@ -98,10 +98,13 @@ function SidebarProvider({
 			}
 
 			try {
-				// Prefer Cookie Store API when available
-				const anyGlobal: any = globalThis as any;
-				if (anyGlobal.cookieStore && typeof anyGlobal.cookieStore.set === "function") {
-					anyGlobal.cookieStore.set({
+				const g = globalThis as {
+					cookieStore?: {
+						set: (opts: { name: string; value: string; path: string }) => void;
+					};
+				};
+				if (g.cookieStore && typeof g.cookieStore.set === "function") {
+					g.cookieStore.set({
 						name: SIDEBAR_COOKIE_NAME,
 						value: String(openState),
 						path: "/",
@@ -110,18 +113,16 @@ function SidebarProvider({
 					document.cookie = `${SIDEBAR_COOKIE_NAME}=${openState}; path=/; max-age=${SIDEBAR_COOKIE_MAX_AGE}`;
 				}
 			} catch {
-				// ignore cookie errors
+				// cookieStore not available in all environments
 			}
 		},
 		[setOpenProp, open],
 	);
 
-	// Helper to toggle the sidebar.
 	const toggleSidebar = useCallback(() => {
 		return isMobile ? setOpenMobile((open) => !open) : setOpen((open) => !open);
 	}, [isMobile, setOpen]);
 
-	// Adds a keyboard shortcut to toggle the sidebar.
 	useEffect(() => {
 		const handleKeyDown = (event: KeyboardEvent) => {
 			if (event.key === SIDEBAR_KEYBOARD_SHORTCUT && (event.metaKey || event.ctrlKey)) {

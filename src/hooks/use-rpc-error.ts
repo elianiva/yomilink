@@ -1,27 +1,5 @@
-/**
- * RPC Error Type Utilities
- *
- * Type-safe utilities for handling the standardized RPC error response format
- * ({ success: false, error: string }) and success format ({ success: true, data: T }).
- * Provides the foundation for consistent error handling across all components.
- */
-
 import type { RpcError, RpcResult, RpcSuccess } from "@/lib/rpc-types";
 
-/**
- * Type guard to check if a response is an error response.
- * Handles undefined, null, and non-object values gracefully.
- *
- * @example
- * ```ts
- * const response = await fetchData();
- * if (isError(response)) {
- *   console.error(response.error);
- *   return;
- * }
- * // response is now narrowed to success type
- * ```
- */
 export function isError(response: unknown): response is RpcError {
 	if (response === null || response === undefined) {
 		return false;
@@ -33,18 +11,6 @@ export function isError(response: unknown): response is RpcError {
 	return obj.success === false && typeof obj.error === "string";
 }
 
-/**
- * Type guard to check if a response is a success response.
- * Handles undefined, null, and non-object values gracefully.
- *
- * @example
- * ```ts
- * const response = await fetchData();
- * if (isSuccess(response)) {
- *   console.log("Got data:", response.data);
- * }
- * ```
- */
 export function isSuccess<T>(response: unknown): response is RpcSuccess<T> {
 	if (response === null || response === undefined) {
 		return false;
@@ -56,20 +22,6 @@ export function isSuccess<T>(response: unknown): response is RpcSuccess<T> {
 	return obj.success === true && "data" in obj;
 }
 
-/**
- * Extracts data from an RPC response, returning null for errors.
- *
- * @example
- * ```ts
- * const response = await fetchGoalMaps();
- * const goalMaps = unwrap(response);
- * if (!goalMaps) {
- *   // Handle error case
- *   return;
- * }
- * // Use goalMaps safely
- * ```
- */
 export function unwrap<T>(response: RpcResult<T> | null | undefined): T | null {
 	if (response === null || response === undefined) {
 		return null;
@@ -86,42 +38,15 @@ export function unwrap<T>(response: RpcResult<T> | null | undefined): T | null {
 	return null;
 }
 
-/**
- * Result type for getRpcState function.
- */
 export type RpcState<T> = {
-	/** Extracted data, undefined if error or loading */
 	data: T | undefined;
-	/** Error message if response is an error, undefined otherwise */
 	error: string | undefined;
-	/** Error code if available */
 	code: string | undefined;
-	/** Whether the response is an error */
 	isError: boolean;
-	/** Whether the response is successful */
 	isSuccess: boolean;
-	/** Whether loading (response is null/undefined) */
 	isLoading: boolean;
 };
 
-/**
- * Extracts both data and error state from an RPC response.
- * Returns a structured object with data, error, and status flags.
- *
- * @example
- * ```ts
- * const response = await fetchAssignments();
- * const { data, error, isError } = getRpcState(response);
- *
- * if (isError) {
- *   showErrorMessage(error);
- *   return;
- * }
- *
- * // Use data safely
- * renderAssignments(data);
- * ```
- */
 export function getRpcState<T>(response: RpcResult<T> | null | undefined): RpcState<T> {
 	if (response === null || response === undefined) {
 		return {
@@ -156,17 +81,6 @@ export function getRpcState<T>(response: RpcResult<T> | null | undefined): RpcSt
 	};
 }
 
-/**
- * Filters an array response, returning empty array for errors.
- * Common pattern for list endpoints.
- *
- * @example
- * ```ts
- * const response = await fetchAssignments();
- * const assignments = filterArrayResponse(response);
- * // Always returns an array, empty if error
- * ```
- */
 export function filterArrayResponse<T>(response: unknown): T[] {
 	if (response === null || response === undefined) {
 		return [];

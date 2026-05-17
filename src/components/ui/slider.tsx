@@ -1,5 +1,3 @@
-"use client";
-
 import * as SliderPrimitive from "@radix-ui/react-slider";
 import { type ComponentProps, useMemo } from "react";
 

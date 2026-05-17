@@ -13,9 +13,6 @@ import { cn } from "@/lib/utils";
 
 import { Button } from "./button";
 
-/**
- * ErrorCard component variants using class-variance-authority.
- */
 const errorCardVariants = cva("flex flex-col gap-3 rounded-lg border p-4 text-sm", {
 	variants: {
 		variant: {
@@ -30,78 +27,25 @@ const errorCardVariants = cva("flex flex-col gap-3 rounded-lg border p-4 text-sm
 	},
 });
 
-/**
- * Icon mapping for each variant.
- */
 const variantIcons = {
 	error: AlertCircleIcon,
 	warning: AlertTriangleIcon,
 	info: InfoIcon,
 } as const;
 
-/**
- * Props for the ErrorCard component.
- */
 export type ErrorCardProps = VariantProps<typeof errorCardVariants> & {
-	/** Main title/heading for the error */
 	title: string;
-	/** Optional description with more details */
 	description?: string | React.ReactNode;
-	/** Whether to show a retry button (default: true if onRetry is provided) */
 	showRetry?: boolean;
-	/** Callback when retry button is clicked */
 	onRetry?: () => void;
-	/** Whether retry is in progress (shows loading state) */
 	isRetrying?: boolean;
-	/** Whether the card can be dismissed (default: false) */
 	dismissible?: boolean;
-	/** Callback when dismiss button is clicked */
 	onDismiss?: () => void;
-	/** Additional actions to render */
 	actions?: React.ReactNode;
-	/** Additional className for the root element */
 	className?: string;
-	/** Additional content to render below the description */
 	children?: React.ReactNode;
 };
 
-/**
- * ErrorCard - A reusable component for displaying inline error, warning, or info messages.
- *
- * @example
- * ```tsx
- * // Basic error
- * <ErrorCard
- *   title="Failed to load data"
- *   description="Please try again later."
- * />
- *
- * // With retry button
- * <ErrorCard
- *   title="Connection Error"
- *   description="Unable to reach the server."
- *   onRetry={() => refetch()}
- *   isRetrying={isLoading}
- * />
- *
- * // Warning variant
- * <ErrorCard
- *   variant="warning"
- *   title="Unsaved Changes"
- *   description="You have unsaved changes that will be lost."
- *   dismissible
- *   onDismiss={() => setShowWarning(false)}
- * />
- *
- * // Info variant with custom actions
- * <ErrorCard
- *   variant="info"
- *   title="New Feature Available"
- *   description="Check out the new dashboard improvements."
- *   actions={<Button size="sm">Learn More</Button>}
- * />
- * ```
- */
 export function ErrorCard({
 	variant = "error",
 	title,
@@ -125,7 +69,6 @@ export function ErrorCard({
 			aria-live="polite"
 			className={cn(errorCardVariants({ variant }), className)}
 		>
-			{/* Header with icon and title */}
 			<div className="flex items-start gap-3">
 				<Icon className="size-5 shrink-0 mt-0.5" aria-hidden="true" />
 				<div className="flex-1 min-w-0">
@@ -138,7 +81,6 @@ export function ErrorCard({
 					{children && <div className="mt-2">{children}</div>}
 				</div>
 
-				{/* Dismiss button (top right) */}
 				{dismissible && onDismiss && (
 					<button
 						type="button"
@@ -151,7 +93,6 @@ export function ErrorCard({
 				)}
 			</div>
 
-			{/* Actions */}
 			{hasActions && (
 				<div className="flex items-center gap-2 pl-8">
 					{shouldShowRetry && onRetry && (
@@ -178,10 +119,6 @@ export function ErrorCard({
 	);
 }
 
-/**
- * Convenience component for inline error messages without card styling.
- * Useful for form field errors or simple inline feedback.
- */
 export function InlineError({ message, className }: { message: string; className?: string }) {
 	return (
 		<p

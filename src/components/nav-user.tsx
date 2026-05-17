@@ -35,13 +35,9 @@ export function NavUser({
 
 	async function handleLogout(e: Event) {
 		e.preventDefault();
-		try {
-			await authClient.signOut();
-			toast.success("You have been logged out");
-			void navigate({ to: "/login" });
-		} catch {
-			toast.error("Failed to log out");
-		}
+		await authClient.signOut();
+		toast.success("You have been logged out");
+		void navigate({ to: "/login" });
 	}
 
 	return (
