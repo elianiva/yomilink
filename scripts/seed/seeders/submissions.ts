@@ -11,6 +11,12 @@ import {
 	questions,
 } from "@/server/db/schema/app-schema";
 
+import { LEARNER_MAP_CONFIGS_DOKO } from "../data/learner-maps-doko-ga-ichiban.js";
+import {
+	DEMO_DELAYEDTEST_SCORES_DOKO,
+	DEMO_POSTTEST_SCORES_DOKO,
+	DEMO_PRETEST_SCORES_DOKO,
+} from "../data/responses-doko-ga-ichiban.js";
 import { DEMO_STUDENTS } from "../data/users.js";
 
 type QuestionRow = {
@@ -218,6 +224,7 @@ function seedLearnerMapSubmissions(
 	demoKitId: string,
 	dailyLifeData: DailyLifeData,
 	submittedAt: Date,
+	configs: LearnerMapConfig[] = DEMO_LEARNER_MAP_CONFIGS,
 ) {
 	return Effect.gen(function* () {
 		const db = yield* Database;
@@ -234,7 +241,7 @@ function seedLearnerMapSubmissions(
 			existingLearnerMaps.map((row) => row.userId + ":" + row.attempt),
 		);
 
-		for (const config of DEMO_LEARNER_MAP_CONFIGS) {
+		for (const config of configs) {
 			const userId = userIdsByEmail[config.studentEmail];
 			if (!userId) continue;
 			const key = userId + ":" + config.attempt;
@@ -309,6 +316,13 @@ export function seedSubmissions(
 	demoKitId: string,
 	dailyLifeData: DailyLifeData,
 	formIds: { preTestFormId: string; postTestFormId: string; delayedTestFormId: string },
+	doko?: {
+		assignmentId: string;
+		goalMapId: string;
+		kitId: string;
+		data: DailyLifeData;
+		formIds: { preTestFormId: string; postTestFormId: string; delayedTestFormId: string };
+	},
 ) {
 	return Effect.gen(function* () {
 		const preTestDate = new Date(Date.now() - 14 * 24 * 60 * 60 * 1000);
@@ -340,6 +354,36 @@ export function seedSubmissions(
 		yield* seedFormResponsesForForm(
 			formIds.delayedTestFormId,
 			DEMO_DELAYEDTEST_SCORES,
+			userIdsByEmail,
+			delayedTestDate,
+		);
+
+		if (!doko) return;
+
+		yield* seedFormResponsesForForm(
+			doko.formIds.preTestFormId,
+			DEMO_PRETEST_SCORES_DOKO,
+			userIdsByEmail,
+			preTestDate,
+		);
+		yield* seedLearnerMapSubmissions(
+			userIdsByEmail,
+			doko.assignmentId,
+			doko.goalMapId,
+			doko.kitId,
+			doko.data,
+			learnerMapDate,
+			LEARNER_MAP_CONFIGS_DOKO,
+		);
+		yield* seedFormResponsesForForm(
+			doko.formIds.postTestFormId,
+			DEMO_POSTTEST_SCORES_DOKO,
+			userIdsByEmail,
+			postTestDate,
+		);
+		yield* seedFormResponsesForForm(
+			doko.formIds.delayedTestFormId,
+			DEMO_DELAYEDTEST_SCORES_DOKO,
 			userIdsByEmail,
 			delayedTestDate,
 		);

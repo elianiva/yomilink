@@ -22,6 +22,10 @@ export function seedDemoData(
 		preTestFormId: string;
 		postTestFormId: string;
 		delayedTestFormId: string;
+		tamFormIdDoko?: string;
+		preTestFormIdDoko?: string;
+		postTestFormIdDoko?: string;
+		delayedTestFormIdDoko?: string;
 	},
 ) {
 	return Effect.gen(function* () {
@@ -91,145 +95,183 @@ export function seedDemoData(
 			{ concurrency: 10 },
 		);
 
-		yield* Effect.log("Creating kit for わたしのうち...");
-		const goalMapId = goalMapIdsByTitle["わたしのうち"];
-		const goalMapData = goalMapDataByTitle["わたしのうち"];
+		const startDate = new Date(Date.now() - 60 * 60 * 1000);
+		const dueAt = new Date(Date.now() + 7 * 24 * 60 * 60 * 1000);
 
-		if (!goalMapId || !goalMapData) {
+		const createDemoSet = Effect.fn("createDemoSet")(
+			(
+				materialTitle: string,
+				assignmentTitle: string,
+				description: string,
+				formIds: {
+					tamFormId: string | null;
+					preTestFormId: string | null;
+					postTestFormId: string | null;
+					delayedTestFormId: string | null;
+				},
+			) =>
+				Effect.gen(function* () {
+					const goalMapId = goalMapIdsByTitle[materialTitle];
+					const goalMapData = goalMapDataByTitle[materialTitle];
+					if (!goalMapId || !goalMapData) return null;
+
+					const goalMap = yield* db
+						.select()
+						.from(goalMaps)
+						.where(eq(goalMaps.id, goalMapId))
+						.limit(1);
+					const textId = goalMap[0]?.textId || null;
+
+					const kitName = `${materialTitle} Kit`;
+					const existingKit = yield* db
+						.select()
+						.from(kits)
+						.where(eq(kits.name, kitName))
+						.limit(1);
+
+					let demoKitId: string;
+					if (existingKit[0]) {
+						demoKitId = existingKit[0].id;
+						yield* db
+							.update(kits)
+							.set({
+								kitId: existingKit[0].kitId,
+								name: kitName,
+								layout: "preset",
+								enabled: true,
+								goalMapId,
+								teacherId,
+								textId,
+								nodes: JSON.stringify(goalMapData.nodes),
+								edges: "[]",
+							})
+							.where(eq(kits.id, demoKitId));
+					} else {
+						demoKitId = randomString();
+						yield* db.insert(kits).values({
+							id: demoKitId,
+							kitId: randomString(),
+							name: kitName,
+							layout: "preset",
+							enabled: true,
+							goalMapId,
+							teacherId,
+							textId,
+							nodes: JSON.stringify(goalMapData.nodes),
+							edges: "[]",
+						});
+					}
+
+					const readingMaterialContent =
+						GOAL_MAP_TO_MATERIAL[materialTitle]?.content || "";
+					const existingAssignment = yield* db
+						.select()
+						.from(assignments)
+						.where(eq(assignments.title, assignmentTitle))
+						.limit(1);
+
+					let demoAssignmentId: string;
+					if (existingAssignment[0]) {
+						demoAssignmentId = existingAssignment[0].id;
+						yield* db
+							.update(assignments)
+							.set({
+								goalMapId,
+								kitId: demoKitId,
+								title: assignmentTitle,
+								description,
+								readingMaterial: readingMaterialContent,
+								timeLimitMinutes: 20,
+								startDate,
+								dueAt,
+								preTestFormId: formIds.preTestFormId,
+								postTestFormId: formIds.postTestFormId,
+								delayedPostTestFormId: formIds.delayedTestFormId,
+								tamFormId: formIds.tamFormId,
+								createdBy: teacherId,
+							})
+							.where(eq(assignments.id, demoAssignmentId));
+					} else {
+						demoAssignmentId = randomString();
+						yield* db.insert(assignments).values({
+							id: demoAssignmentId,
+							goalMapId,
+							kitId: demoKitId,
+							title: assignmentTitle,
+							description,
+							readingMaterial: readingMaterialContent,
+							timeLimitMinutes: 20,
+							startDate,
+							dueAt,
+							preTestFormId: formIds.preTestFormId,
+							postTestFormId: formIds.postTestFormId,
+							delayedPostTestFormId: formIds.delayedTestFormId,
+							tamFormId: formIds.tamFormId,
+							createdBy: teacherId,
+						});
+					}
+
+					return { demoAssignmentId, demoKitId, goalMapId, goalMapData };
+				}),
+		);
+
+		const dailyLifeSet = yield* createDemoSet(
+			"わたしのうち",
+			"わたしのうち Demo Assignment",
+			"Demo assignment for the わたしのうち reading passage about a quiet neighborhood.",
+			{
+				tamFormId: testFormIds?.tamFormId ?? null,
+				preTestFormId: testFormIds?.preTestFormId ?? null,
+				postTestFormId: testFormIds?.postTestFormId ?? null,
+				delayedTestFormId: testFormIds?.delayedTestFormId ?? null,
+			},
+		);
+		if (!dailyLifeSet) {
 			yield* Effect.log("わたしのうち goal map not found!");
 			return null;
 		}
 
-		const goalMap = yield* db
-			.select()
-			.from(goalMaps)
-			.where(eq(goalMaps.id, goalMapId))
-			.limit(1);
-
-		const textId = goalMap[0]?.textId || null;
-
-		const kitName = "わたしのうち Kit";
-		const existingKit = yield* db.select().from(kits).where(eq(kits.name, kitName)).limit(1);
-
-		let demoKitId: string;
-		if (existingKit[0]) {
-			demoKitId = existingKit[0].id;
-			yield* db
-				.update(kits)
-				.set({
-					kitId: existingKit[0].kitId,
-					name: kitName,
-					layout: "preset",
-					enabled: true,
-					goalMapId,
-					teacherId,
-					textId,
-					nodes: JSON.stringify(goalMapData.nodes),
-					edges: "[]",
-				})
-				.where(eq(kits.id, demoKitId));
-			yield* Effect.log("  Updated kit: " + kitName);
-		} else {
-			demoKitId = randomString();
-			yield* db.insert(kits).values({
-				id: demoKitId,
-				kitId: randomString(),
-				name: kitName,
-				layout: "preset",
-				enabled: true,
-				goalMapId,
-				teacherId,
-				textId,
-				nodes: JSON.stringify(goalMapData.nodes),
-				edges: "[]",
-			});
-			yield* Effect.log("  Created kit: " + kitName);
+		const dokoSet = yield* createDemoSet(
+			"どこが いちばん いいですか",
+			"どこが いちばん いいですか Demo Assignment",
+			"Demo assignment for supermarket comparison reading material.",
+			{
+				tamFormId: testFormIds?.tamFormIdDoko ?? null,
+				preTestFormId: testFormIds?.preTestFormIdDoko ?? null,
+				postTestFormId: testFormIds?.postTestFormIdDoko ?? null,
+				delayedTestFormId: testFormIds?.delayedTestFormIdDoko ?? null,
+			},
+		);
+		if (!dokoSet) {
+			yield* Effect.log("どこが いちばん いいですか goal map not found!");
+			return null;
 		}
 
-		yield* Effect.log("Creating assignment...");
-		const assignmentTitle = "わたしのうち Demo Assignment";
-		const readingMaterialContent = GOAL_MAP_TO_MATERIAL["わたしのうち"]?.content || "";
-		const existingAssignment = yield* db
-			.select()
-			.from(assignments)
-			.where(eq(assignments.title, assignmentTitle))
-			.limit(1);
-
-		const startDate = new Date(Date.now() - 60 * 60 * 1000);
-		const dueAt = new Date(Date.now() + 7 * 24 * 60 * 60 * 1000);
-		const tamFormId = testFormIds?.tamFormId ?? null;
-		const preTestFormId = testFormIds?.preTestFormId ?? null;
-		const postTestFormId = testFormIds?.postTestFormId ?? null;
-		const delayedTestFormId = testFormIds?.delayedTestFormId ?? null;
-
-		let demoAssignmentId: string;
-		if (existingAssignment[0]) {
-			demoAssignmentId = existingAssignment[0].id;
-			yield* db
-				.update(assignments)
-				.set({
-					goalMapId,
-					kitId: demoKitId,
-					title: assignmentTitle,
-					description:
-						"Demo assignment for the わたしのうち reading passage about a quiet neighborhood.",
-					readingMaterial: readingMaterialContent,
-					timeLimitMinutes: 20,
-					startDate,
-					dueAt,
-					preTestFormId,
-					postTestFormId,
-					delayedPostTestFormId: delayedTestFormId,
-					tamFormId,
-					createdBy: teacherId,
-				})
-				.where(eq(assignments.id, demoAssignmentId));
-			yield* Effect.log("  Updated assignment: " + assignmentTitle);
-		} else {
-			demoAssignmentId = randomString();
-			yield* db.insert(assignments).values({
-				id: demoAssignmentId,
-				goalMapId,
-				kitId: demoKitId,
-				title: assignmentTitle,
-				description:
-					"Demo assignment for the わたしのうち reading passage about a quiet neighborhood.",
-				readingMaterial: readingMaterialContent,
-				timeLimitMinutes: 20,
-				startDate,
-				dueAt,
-				preTestFormId,
-				postTestFormId,
-				delayedPostTestFormId: delayedTestFormId,
-				tamFormId,
-				createdBy: teacherId,
-			});
-			yield* Effect.log("  Created assignment: " + assignmentTitle);
-		}
-
+		const demoAssignmentId = dailyLifeSet.demoAssignmentId;
+		const demoKitId = dailyLifeSet.demoKitId;
+		const goalMapId = dailyLifeSet.goalMapId;
+		const goalMapData = dailyLifeSet.goalMapData;
 		yield* Effect.log("Linking assignment to cohorts...");
-		for (const cohortId of cohortIds) {
-			const existingTarget = yield* db
-				.select()
-				.from(assignmentTargets)
-				.where(
-					and(
-						eq(assignmentTargets.assignmentId, demoAssignmentId),
-						eq(assignmentTargets.cohortId, cohortId),
-					),
-				)
-				.limit(1);
+		for (const assignmentId of [dailyLifeSet.demoAssignmentId, dokoSet.demoAssignmentId]) {
+			for (const cohortId of cohortIds) {
+				const existingTarget = yield* db
+					.select()
+					.from(assignmentTargets)
+					.where(
+						and(
+							eq(assignmentTargets.assignmentId, assignmentId),
+							eq(assignmentTargets.cohortId, cohortId),
+						),
+					)
+					.limit(1);
 
-			if (existingTarget[0]) {
-				yield* Effect.log("  Assignment already linked to cohort " + cohortId);
-			} else {
+				if (existingTarget[0]) continue;
 				yield* db.insert(assignmentTargets).values({
 					id: randomString(),
-					assignmentId: demoAssignmentId,
+					assignmentId,
 					cohortId,
 					userId: null,
 				});
-				yield* Effect.log("  Linked assignment to cohort " + cohortId);
 			}
 		}
 
@@ -239,6 +281,10 @@ export function seedDemoData(
 			demoAssignmentId,
 			dailyLifeGoalMapId: goalMapId,
 			dailyLifeData: goalMapData,
+			dokoKitId: dokoSet.demoKitId,
+			dokoAssignmentId: dokoSet.demoAssignmentId,
+			dokoGoalMapId: dokoSet.goalMapId,
+			dokoData: dokoSet.goalMapData,
 		};
 	});
 }
