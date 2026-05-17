@@ -33,51 +33,49 @@ export function QuestionList({
 	).length;
 
 	return (
-		<div className="flex-1 relative min-w-0">
-			<div className="absolute inset-0">
-				<ScrollArea className="flex-1 h-full">
-					<div className={`${centered ? "mx-auto max-w-2xl" : ""} p-6 pb-32`}>
-						{questions.map((question, index) => (
-							<div key={question.id} className="py-6">
-								<div className="mb-4 flex items-start gap-3">
-									<span className="flex size-7 shrink-0 items-center justify-center rounded-full bg-primary text-sm font-medium text-primary-foreground">
-										{index + 1}
-									</span>
-									<div className="flex-1">
-										<p className="text-base font-medium leading-relaxed">
-											{question.questionText}
-											{question.required && (
-												<span className="ml-1 text-destructive">*</span>
-											)}
-										</p>
-									</div>
+		<div className="flex flex-col flex-1 min-h-0 min-w-0">
+			<ScrollArea className="flex-1">
+				<div className={`${centered ? "mx-auto max-w-2xl" : ""} p-6 pb-32`}>
+					{questions.map((question, index) => (
+						<div key={question.id} className="py-6">
+							<div className="mb-4 flex items-start gap-3">
+								<span className="flex size-7 shrink-0 items-center justify-center rounded-full bg-primary text-sm font-medium text-primary-foreground">
+									{index + 1}
+								</span>
+								<div className="flex-1">
+									<p className="text-base font-medium leading-relaxed">
+										{question.questionText}
+										{question.required && (
+											<span className="ml-1 text-destructive">*</span>
+										)}
+									</p>
 								</div>
-								<QuestionRenderer
-									question={question}
-									value={answers[question.id]}
-									onChange={onAnswerChange}
-								/>
 							</div>
-						))}
-
-						<div className="flex items-center justify-between gap-4 pt-6">
-							<p className="text-sm text-muted-foreground">
-								{answeredRequired
-									? "All required questions answered"
-									: `Answer all required questions (${remaining} remaining)`}
-							</p>
-							<Button
-								onClick={onSubmit}
-								disabled={!answeredRequired || isPending}
-								size="lg"
-							>
-								<Send className="size-4" />
-								{isPending ? "Submitting..." : "Submit"}
-							</Button>
+							<QuestionRenderer
+								question={question}
+								value={answers[question.id]}
+								onChange={onAnswerChange}
+							/>
 						</div>
+					))}
+
+					<div className="flex items-center justify-between gap-4 pt-6">
+						<p className="text-sm text-muted-foreground">
+							{answeredRequired
+								? "All required questions answered"
+								: `Answer all required questions (${remaining} remaining)`}
+						</p>
+						<Button
+							onClick={onSubmit}
+							disabled={!answeredRequired || isPending}
+							size="lg"
+						>
+							<Send className="size-4" />
+							{isPending ? "Submitting..." : "Submit"}
+						</Button>
 					</div>
-				</ScrollArea>
-			</div>
+				</div>
+			</ScrollArea>
 		</div>
 	);
 }
