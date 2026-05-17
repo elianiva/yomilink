@@ -5,6 +5,7 @@ import { EmptyState } from "@/components/empty-state";
 import { PageHeader } from "@/components/page-header";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useRpcQuery } from "@/hooks/use-rpc-query";
 import { FormRpc } from "@/server/rpc/form";
 
@@ -31,8 +32,10 @@ function StudentFormsPage() {
 	const navigate = useNavigate();
 	const { data: forms = [], isLoading: isLoadingForms } = useRpcQuery(FormRpc.getStudentForms());
 
-	const availableForms = forms.filter((f) => f.unlockStatus === "available");
-	const completedForms = forms.filter((f) => f.unlockStatus === "completed");
+	const compareTitles = (a: StudentForm, b: StudentForm) => a.title.localeCompare(b.title);
+
+	const availableForms = forms.filter((f) => f.unlockStatus === "available").sort(compareTitles);
+	const completedForms = forms.filter((f) => f.unlockStatus === "completed").sort(compareTitles);
 
 	const getTypeLabel = (type: string) => {
 		switch (type) {
@@ -119,24 +122,39 @@ function StudentFormsPage() {
 					<EmptyState icon={FileTextIcon} title="No forms available yet" />
 				)
 			) : (
-				<>
-					{availableForms.length > 0 && (
-						<div className="space-y-3">
-							<h2 className="text-lg font-medium">Available Forms</h2>
+				<Tabs defaultValue="available">
+					<TabsList>
+						<TabsTrigger value="available">
+							Available ({availableForms.length})
+						</TabsTrigger>
+						<TabsTrigger value="completed">
+							<CheckCircle2Icon className="size-4" />
+							Completed ({completedForms.length})
+						</TabsTrigger>
+					</TabsList>
+					<TabsContent value="available">
+						{availableForms.length > 0 ? (
 							<div className="space-y-2">{availableForms.map(renderFormRow)}</div>
-						</div>
-					)}
-
-					{completedForms.length > 0 && (
-						<div className="space-y-3">
-							<h2 className="text-lg font-semibold flex items-center gap-2">
-								<CheckCircle2Icon className="size-5 text-green-600" />
-								Completed Forms
-							</h2>
+						) : (
+							<EmptyState
+								icon={BookOpenIcon}
+								title="No available forms"
+								description="All forms have been completed."
+							/>
+						)}
+					</TabsContent>
+					<TabsContent value="completed">
+						{completedForms.length > 0 ? (
 							<div className="space-y-2">{completedForms.map(renderFormRow)}</div>
-						</div>
-					)}
-				</>
+						) : (
+							<EmptyState
+								icon={CheckCircle2Icon}
+								title="No completed forms"
+								description="Complete your available forms to see them here."
+							/>
+						)}
+					</TabsContent>
+				</Tabs>
 			)}
 		</div>
 	);

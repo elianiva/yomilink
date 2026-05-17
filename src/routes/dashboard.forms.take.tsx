@@ -137,7 +137,8 @@ function FormTakerPage() {
 		submitMutation.mutate({ formId: formId!, answers: stringAnswers, timeSpentSeconds });
 	};
 
-	if (submitMutation.isPending || (submitMutation.isSuccess && !data?.submission)) return <FormSubmittedSuccess />;
+	if (submitMutation.isPending || (submitMutation.isSuccess && !data?.submission))
+		return <FormSubmittedSuccess />;
 	if (totalQuestions === 0)
 		return (
 			<FormNoQuestions

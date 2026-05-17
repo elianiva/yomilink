@@ -13,6 +13,7 @@ import {
 	DialogHeader,
 	DialogTitle,
 } from "@/components/ui/dialog";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Guard } from "@/features/auth/components/Guard";
 import { FormList, type FormListItem } from "@/features/form/components/form-list";
 import { useRpcMutation, useRpcQuery } from "@/hooks/use-rpc-query";
@@ -98,6 +99,11 @@ function AdminFormsPage() {
 		stats: form.stats,
 	}));
 
+	const compareTitles = (a: FormListItem, b: FormListItem) => a.title.localeCompare(b.title);
+
+	const drafts = mappedForms.filter((f) => f.status === "draft").sort(compareTitles);
+	const published = mappedForms.filter((f) => f.status === "published").sort(compareTitles);
+
 	return (
 		<div className="space-y-6">
 			<PageHeader
@@ -117,13 +123,30 @@ function AdminFormsPage() {
 					<Loader2 className="size-8 animate-spin text-muted-foreground" />
 				</div>
 			) : (
-				<FormList
-					forms={mappedForms}
-					onEdit={handleEdit}
-					onDelete={handleDelete}
-					onDuplicate={handleDuplicate}
-					onViewResults={handleViewResults}
-				/>
+				<Tabs defaultValue="published">
+					<TabsList>
+						<TabsTrigger value="published">Published ({published.length})</TabsTrigger>
+						<TabsTrigger value="drafts">Drafts ({drafts.length})</TabsTrigger>
+					</TabsList>
+					<TabsContent value="published">
+						<FormList
+							forms={published}
+							onEdit={handleEdit}
+							onDelete={handleDelete}
+							onDuplicate={handleDuplicate}
+							onViewResults={handleViewResults}
+						/>
+					</TabsContent>
+					<TabsContent value="drafts">
+						<FormList
+							forms={drafts}
+							onEdit={handleEdit}
+							onDelete={handleDelete}
+							onDuplicate={handleDuplicate}
+							onViewResults={handleViewResults}
+						/>
+					</TabsContent>
+				</Tabs>
 			)}
 
 			<Dialog open={deleteDialogOpen} onOpenChange={setDeleteDialogOpen}>
