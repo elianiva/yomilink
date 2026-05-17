@@ -57,7 +57,7 @@ export function LikertRenderer({
 							<label
 								key={scaleValue}
 								className={cn(
-									"flex size-12 cursor-pointer flex-1 items-center justify-center rounded-lg border-2 font-semibold transition-all duration-200",
+									"relative flex size-12 cursor-pointer flex-1 items-center justify-center rounded-lg border-2 font-semibold transition-all duration-200",
 									"hover:border-primary/50 hover:bg-primary/5",
 									isSelected
 										? "border-primary bg-primary text-primary-foreground"
