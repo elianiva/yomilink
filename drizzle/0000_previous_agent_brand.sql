@@ -136,21 +136,6 @@ CREATE TABLE `goal_maps` (
 CREATE INDEX `goal_maps_teacherId_idx` ON `goal_maps` (`teacher_id`);--> statement-breakpoint
 CREATE INDEX `goal_maps_textId_idx` ON `goal_maps` (`text_id`);--> statement-breakpoint
 CREATE INDEX `goal_maps_topicId_idx` ON `goal_maps` (`topic_id`);--> statement-breakpoint
-CREATE TABLE `kit_sets` (
-	`id` text PRIMARY KEY NOT NULL,
-	`kit_id` text NOT NULL,
-	`set_id` text NOT NULL,
-	`order` integer NOT NULL,
-	`text_id` text,
-	`instructions` text,
-	`created_at` integer DEFAULT (cast(unixepoch('subsecond') * 1000 as integer)) NOT NULL,
-	`updated_at` integer DEFAULT (cast(unixepoch('subsecond') * 1000 as integer)) NOT NULL,
-	FOREIGN KEY (`kit_id`) REFERENCES `kits`(`id`) ON UPDATE no action ON DELETE no action,
-	FOREIGN KEY (`text_id`) REFERENCES `texts`(`id`) ON UPDATE no action ON DELETE no action
-);
---> statement-breakpoint
-CREATE INDEX `kit_sets_kitId_idx` ON `kit_sets` (`kit_id`);--> statement-breakpoint
-CREATE INDEX `kit_sets_textId_idx` ON `kit_sets` (`text_id`);--> statement-breakpoint
 CREATE TABLE `kits` (
 	`id` text PRIMARY KEY NOT NULL,
 	`kit_id` text NOT NULL,

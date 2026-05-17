@@ -27,8 +27,7 @@ const RESET_MODES = {
 		// Assignment related (assignments FKs to goal_maps/kits)
 		"assignment_targets",
 		"assignments",
-		// Kit related (kit_sets FKs to kits/texts, kits FKs to goal_maps/texts)
-		"kit_sets",
+		// Kit related (kits FKs to goal_maps/texts)
 		"kits",
 		// Core content (no FKs)
 		"goal_maps",
@@ -69,7 +68,6 @@ const RESET_MODES = {
 		"assignment_targets",
 		"assignments",
 		// Kit related
-		"kit_sets",
 		"kits",
 		// Core content
 		"goal_maps",

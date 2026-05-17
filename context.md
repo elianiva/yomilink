@@ -126,7 +126,7 @@ src/server/
 │   └── schema/
 │       ├── index.ts        # Re-exports app-schema + auth-schema
 │       ├── auth-schema.ts  # better-auth tables: user, session, account, verification, cohorts, whitelist_entries, cohort_members
-│       └── app-schema.ts   # Domain tables: texts, topics, goal_maps, kits, kit_sets, assignments, assignment_targets,
+│       └── app-schema.ts   # Domain tables: texts, topics, goal_maps, kits, assignments, assignment_targets,
 │                           #   learner_maps, diagnoses, feedback, forms, questions, form_responses, form_progress
 └── rpc/
     ├── analytics.ts        # RPC handlers for analytics
@@ -193,7 +193,6 @@ src/server/
 | `topics`             | Topics/themes                                                                                           | —                                                                      |
 | `goal_maps`          | Teacher-created concept maps (nodes, edges as JSON). Type: teacher/scratch                              | teacherId→user, textId→texts, topicId→topics                           |
 | `kits`               | Subsets of goal maps assigned to students (layout, nodes, edges)                                        | goalMapId→goal_maps, teacherId→user, textId→texts                      |
-| `kit_sets`           | Ordered sets within a kit                                                                               | kitId→kits, textId→texts                                               |
 | `assignments`        | Assignment wrapper (time limit, dates, pre/post test forms)                                             | goalMapId→goal_maps, kitId→kits, pre/postTestFormId→forms              |
 | `assignment_targets` | Links assignments to cohorts or individual users                                                        | assignmentId→assignments (cascade), cohortId→cohorts, userId→user      |
 | `learner_maps`       | Student submissions (nodes, edges, control_text, status: draft/submitted/graded)                        | assignmentId→assignments, goalMapId→goal_maps, kitId→kits, userId→user |

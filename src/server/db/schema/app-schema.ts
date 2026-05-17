@@ -84,25 +84,6 @@ export const kits = sqliteTable(
 	],
 );
 
-export const kitSets = sqliteTable(
-	"kit_sets",
-	{
-		id: text("id").primaryKey(),
-		kitId: text("kit_id")
-			.notNull()
-			.references(() => kits.id, { onDelete: "cascade" }),
-		setId: text("set_id").notNull(),
-		order: integer("order").notNull(),
-		textId: text("text_id").references(() => texts.id, { onDelete: "set null" }),
-		instructions: text("instructions"),
-		...timestamps,
-	},
-	(table) => [
-		index("kit_sets_kitId_idx").on(table.kitId),
-		index("kit_sets_textId_idx").on(table.textId),
-	],
-);
-
 // Assignment System
 export const assignments = sqliteTable(
 	"assignments",
@@ -247,7 +228,6 @@ export const feedback = sqliteTable(
 export const textsRelations = relations(texts, ({ many }) => ({
 	goalMaps: many(goalMaps),
 	kits: many(kits),
-	kitSets: many(kitSets),
 }));
 
 export const topicsRelations = relations(topics, ({ many }) => ({
@@ -287,20 +267,8 @@ export const kitsRelations = relations(kits, ({ one, many }) => ({
 		fields: [kits.textId],
 		references: [texts.id],
 	}),
-	kitSets: many(kitSets),
 	assignments: many(assignments),
 	learnerMaps: many(learnerMaps),
-}));
-
-export const kitSetsRelations = relations(kitSets, ({ one }) => ({
-	kit: one(kits, {
-		fields: [kitSets.kitId],
-		references: [kits.id],
-	}),
-	text: one(texts, {
-		fields: [kitSets.textId],
-		references: [texts.id],
-	}),
 }));
 
 export const assignmentsRelations = relations(assignments, ({ one, many }) => ({

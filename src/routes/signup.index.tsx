@@ -11,6 +11,7 @@ import { PersonalStep } from "@/features/auth/components/personal-step";
 import { useAppForm } from "@/features/auth/components/use-app-form";
 import { steps, SignUpSchema } from "@/features/auth/types";
 import { useRpcMutation, useRpcQuery } from "@/hooks/use-rpc-query";
+import { extractFormErrorMessages } from "@/lib/form-error-messages";
 import { AuthRpc, type SignUpInput } from "@/server/rpc/auth";
 import { getMe } from "@/server/rpc/profile";
 import { WhitelistRpc } from "@/server/rpc/whitelist";
@@ -381,20 +382,7 @@ function SignUpPage() {
 					) : null}
 
 					<form.Subscribe
-						selector={(s: { errors: unknown }) => {
-							if (!s.errors) return [];
-							const errs =
-								typeof s.errors === "object" && !Array.isArray(s.errors)
-									? Object.values(s.errors as Record<string, unknown>).flat()
-									: Array.isArray(s.errors)
-										? s.errors
-										: [];
-							return errs.map((e: unknown) =>
-								typeof e === "string"
-									? e
-									: ((e as { message: string }).message ?? String(e)),
-							);
-						}}
+						selector={(s: { errors: unknown }) => extractFormErrorMessages(s.errors)}
 					>
 						{(messages) =>
 							messages.length > 0 ? (
