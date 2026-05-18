@@ -15,15 +15,6 @@ export type ContextMenuState = {
 } | null;
 
 /**
- * Context menu state for edge interactions.
- * Used when clicking on an edge to show delete option.
- */
-export type EdgeContextMenuState = {
-	edgeId: string;
-	position: { x: number; y: number };
-} | null;
-
-/**
  * Connection mode state for manual edge creation.
  * Active when user clicks "Connect To" or "Connect From" on a link node.
  */

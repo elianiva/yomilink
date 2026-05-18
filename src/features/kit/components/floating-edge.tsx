@@ -1,4 +1,10 @@
-import { BaseEdge, type EdgeProps, getStraightPath, useInternalNode } from "@xyflow/react";
+import {
+	BaseEdge,
+	type EdgeProps,
+	getStraightPath,
+	useInternalNode,
+	useReactFlow,
+} from "@xyflow/react";
 
 import {
 	Tooltip,
@@ -21,9 +27,10 @@ import {
  * A custom edge that connects to the closest point on the node boundary
  * rather than fixed handle positions.
  */
-export function FloatingEdge({ id, source, target, markerEnd, style, data }: EdgeProps) {
+export function FloatingEdge({ id, source, target, selected, markerEnd, style, data }: EdgeProps) {
 	const sourceNode = useInternalNode(source);
 	const targetNode = useInternalNode(target);
+	const { deleteElements } = useReactFlow();
 	const tooltipHandle = createTooltipHandle();
 
 	if (!sourceNode || !targetNode) {
@@ -119,6 +126,23 @@ export function FloatingEdge({ id, source, target, markerEnd, style, data }: Edg
 							/>
 						</div>
 					)}
+				</foreignObject>
+			)}
+			{selected && (
+				<foreignObject
+					width={24}
+					height={24}
+					x={badgePoint.x - 12}
+					y={badgePoint.y - 16}
+					className="overflow-visible"
+				>
+					<button
+						type="button"
+						className="flex items-center justify-center size-6 rounded-full bg-background text-destructive border-2 border-destructive text-xs font-semibold shadow-md cursor-pointer"
+						onClick={() => deleteElements({ edges: [{ id }] })}
+					>
+						×
+					</button>
 				</foreignObject>
 			)}
 		</>

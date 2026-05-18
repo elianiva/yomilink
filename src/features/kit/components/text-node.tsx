@@ -1,4 +1,4 @@
-import { Handle, type Node, type NodeProps, Position } from "@xyflow/react";
+import { Handle, type Node, type NodeProps, Position, useReactFlow } from "@xyflow/react";
 import { useAtomValue } from "jotai";
 import { memo } from "react";
 
@@ -44,20 +44,36 @@ function getColorClasses(data?: TextNodeData) {
 
 const HANDLE_CLASSES = "!w-3 !h-3 !bg-background !border-2";
 
-function TextNodeComponent({ id, data }: Partial<NodeProps<Node<TextNodeData>>>) {
+function TextNodeComponent({ id, data, selected }: Partial<NodeProps<Node<TextNodeData>>>) {
 	const contextMenu = useAtomValue(contextMenuAtom);
 	const isActive = contextMenu?.nodeId === id;
+	const { deleteElements } = useReactFlow();
 	const colorClasses = getColorClasses(data);
 
 	return (
 		<div
 			className={cn(
-				"w-fit min-h-16 min-w-24 max-w-52 rounded-md px-3 py-2 shadow-sm ring-2 transition-all duration-150 flex items-center justify-center relative",
+				"w-fit min-h-16 min-w-24 max-w-52 rounded-md px-3 py-2 shadow-sm ring-2 transition-all duration-150 relative",
 				colorClasses.container,
 				isActive && "ring-4 scale-105 z-50 shadow-lg",
 			)}
 		>
-			<p className="text-sm font-medium leading-tight text-center">{data?.label ?? "Text"}</p>
+			{/* Delete button - shown when selected */}
+			{selected && (
+				<button
+					type="button"
+					className="absolute -top-2.5 -right-2.5 z-20 flex items-center justify-center size-5 rounded-full bg-destructive text-destructive-foreground text-xs font-bold shadow-md hover:scale-110 transition-transform cursor-pointer"
+					onClick={(e) => {
+						e.stopPropagation();
+						void deleteElements({ nodes: [{ id: id! }] });
+					}}
+				>
+					×
+				</button>
+			)}
+			<p className="text-sm font-medium leading-tight text-center flex items-center justify-center w-full min-h-8">
+				{data?.label ?? "Text"}
+			</p>
 			{/* Connection handles - both source type for ConnectionMode.Loose */}
 			<Handle
 				type="source"

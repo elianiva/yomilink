@@ -1,4 +1,4 @@
-import { Handle, type Node, type NodeProps, Position } from "@xyflow/react";
+import { Handle, type Node, type NodeProps, Position, useReactFlow } from "@xyflow/react";
 import { useAtomValue } from "jotai";
 import { memo } from "react";
 
@@ -7,17 +7,35 @@ import { cn } from "@/lib/utils";
 
 const HANDLE_CLASSES = "!w-3 !h-3 !bg-background !border-2 !border-sky-500";
 
-function ConnectorNodeComponent({ id, data }: Partial<NodeProps<Node<{ label: string }>>>) {
+function ConnectorNodeComponent({
+	id,
+	data,
+	selected,
+}: Partial<NodeProps<Node<{ label: string }>>>) {
 	const contextMenu = useAtomValue(contextMenuAtom);
 	const isActive = contextMenu?.nodeId === id;
+	const { deleteElements } = useReactFlow();
 
 	return (
 		<div
 			className={cn(
-				"w-fit min-w-24 rounded-md bg-background px-3 py-1.5 shadow-sm ring-2 ring-sky-500 text-sky-800 transition-all duration-150 relative flex items-center justify-center",
+				"w-fit min-w-24 rounded-md bg-background px-3 py-1.5 shadow-sm ring-2 ring-sky-500 text-sky-800 transition-all duration-150 relative",
 				isActive && "ring-4 scale-105 z-50 shadow-lg",
 			)}
 		>
+			{/* Delete button - shown when selected */}
+			{selected && (
+				<button
+					type="button"
+					className="absolute -top-2.5 -right-2.5 z-20 flex items-center justify-center size-5 rounded-full bg-destructive text-destructive-foreground text-xs font-bold shadow-md hover:scale-110 transition-transform cursor-pointer"
+					onClick={(e) => {
+						e.stopPropagation();
+						void deleteElements({ nodes: [{ id: id! }] });
+					}}
+				>
+					×
+				</button>
+			)}
 			<p className="text-sm font-medium leading-tight text-center w-full">
 				{data?.label ?? "rel"}
 			</p>

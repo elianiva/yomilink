@@ -1,5 +1,5 @@
 import { getRouteApi, useNavigate } from "@tanstack/react-router";
-import type { Connection, EdgeMouseHandler } from "@xyflow/react";
+import type { Connection } from "@xyflow/react";
 import { ReactFlowProvider, useReactFlow } from "@xyflow/react";
 import { useAtom, useAtomValue, useSetAtom } from "jotai";
 import { useCallback, useEffect } from "react";
@@ -21,7 +21,6 @@ import { useViewportControls } from "@/features/goal-map/hooks/use-viewport-cont
 import {
 	conceptDialogOpenAtom,
 	contextMenuAtom,
-	edgeContextMenuAtom,
 	editNodeAtom,
 	imagesAtom,
 	linkDialogOpenAtom,
@@ -53,7 +52,6 @@ export function GoalMapEditor() {
 	const [linkDialogOpen, setLinkDialogOpen] = useAtom(linkDialogOpenAtom);
 	const [searchOpen, setSearchOpen] = useAtom(searchOpenAtom);
 	const [contextMenu, setContextMenu] = useAtom(contextMenuAtom);
-	const [edgeContextMenu, setEdgeContextMenu] = useAtom(edgeContextMenuAtom);
 	const [editNode, setEditNode] = useAtom(editNodeAtom);
 	const [materialImages, setMaterialImages] = useAtom(imagesAtom);
 	const materialText = useAtomValue(materialTextAtom);
@@ -274,13 +272,11 @@ export function GoalMapEditor() {
 
 	const handlePaneClick = useCallback(() => {
 		onPaneClick();
-		setEdgeContextMenu(null);
-	}, [onPaneClick, setEdgeContextMenu]);
+	}, [onPaneClick]);
 
 	const onConnectEnd = useCallback(() => {
 		setContextMenu(null);
-		setEdgeContextMenu(null);
-	}, [setContextMenu, setEdgeContextMenu]);
+	}, [setContextMenu]);
 
 	// Validate connection during drag (prevents visual feedback for invalid connections)
 	const isValidConnectionHandler = useCallback(
@@ -295,32 +291,6 @@ export function GoalMapEditor() {
 			);
 		},
 		[getNodeType, graphEdges],
-	);
-
-	const onEdgeClick: EdgeMouseHandler = useCallback(
-		(_event, edge) => {
-			const target = _event.target as HTMLElement;
-			const edgeElement = target.closest(".react-flow__edge") as HTMLElement | null;
-			if (edgeElement) {
-				const rect = edgeElement.getBoundingClientRect();
-				setEdgeContextMenu({
-					edgeId: edge.id,
-					position: {
-						x: rect.left + rect.width / 2,
-						y: rect.top + rect.height / 2,
-					},
-				});
-			}
-		},
-		[setEdgeContextMenu],
-	);
-
-	const deleteEdge = useCallback(
-		(edgeId: string) => {
-			setEdges((eds) => eds.filter((e) => e.id !== edgeId));
-			setEdgeContextMenu(null);
-		},
-		[setEdges, setEdgeContextMenu],
 	);
 
 	const handleSaveAs = (meta: { topicId: string; name: string; description?: string }) => {
@@ -426,7 +396,6 @@ export function GoalMapEditor() {
 					onConnectEnd={onConnectEnd}
 					isValidConnection={isValidConnectionHandler}
 					onNodeClick={onNodeClick}
-					onEdgeClick={onEdgeClick}
 					onPaneClick={handlePaneClick}
 					readOnly={false}
 				>
@@ -461,26 +430,6 @@ export function GoalMapEditor() {
 						onDelete={handleContextMenuDelete}
 						onClose={() => setContextMenu(null)}
 					/>
-				)}
-				{edgeContextMenu && (
-					<div
-						className="absolute z-50"
-						style={{
-							left: edgeContextMenu.position.x,
-							top: edgeContextMenu.position.y + 4,
-							transform: "translateX(-50%)",
-						}}
-					>
-						<div className="flex items-center gap-1 rounded-lg border bg-background p-1.5 shadow-lg animate-in fade-in zoom-in-95 duration-150 origin-top">
-							<button
-								type="button"
-								className="px-3 py-1.5 text-sm text-destructive hover:bg-destructive/10 rounded transition-colors"
-								onClick={() => deleteEdge(edgeContextMenu.edgeId)}
-							>
-								Delete Connection
-							</button>
-						</div>
-					</div>
 				)}
 			</div>
 		</div>

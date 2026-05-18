@@ -1,6 +1,6 @@
 import { useQueryClient } from "@tanstack/react-query";
 import { useNavigate, getRouteApi } from "@tanstack/react-router";
-import type { Connection, EdgeMouseHandler, NodeMouseHandler } from "@xyflow/react";
+import type { Connection, NodeMouseHandler } from "@xyflow/react";
 import { ReactFlowProvider, useReactFlow } from "@xyflow/react";
 
 import "@xyflow/react/dist/style.css";
@@ -29,7 +29,6 @@ import {
 	assignmentAtom,
 	attemptAtom,
 	contextMenuAtom,
-	edgeContextMenuAtom,
 	lastSavedSnapshotAtom,
 	learnerEdgesAtom,
 	learnerMapIdAtom,
@@ -99,7 +98,6 @@ export function LearnerMapEditor() {
 	const [searchOpen, setSearchOpen] = useAtom(searchOpenAtom);
 	const [materialOpen, setMaterialOpen] = useAtom(materialDialogOpenAtom);
 	const [contextMenu, setContextMenu] = useAtom(contextMenuAtom);
-	const [edgeContextMenu, setEdgeContextMenu] = useAtom(edgeContextMenuAtom);
 	const [lastSavedSnapshot, setLastSavedSnapshot] = useAtom(lastSavedSnapshotAtom);
 	const setAssignment = useSetAtom(assignmentAtom);
 	const setLearnerMapId = useSetAtom(learnerMapIdAtom);
@@ -234,8 +232,7 @@ export function LearnerMapEditor() {
 
 	const onPaneClick = useCallback(() => {
 		setContextMenu(null);
-		setEdgeContextMenu(null);
-	}, [setContextMenu, setEdgeContextMenu]);
+	}, [setContextMenu]);
 
 	const onConnect = useCallback(
 		(params: Connection) => {
@@ -265,35 +262,7 @@ export function LearnerMapEditor() {
 
 	const onConnectEnd = useCallback(() => {
 		setContextMenu(null);
-		setEdgeContextMenu(null);
-	}, [setContextMenu, setEdgeContextMenu]);
-
-	const onEdgeClick: EdgeMouseHandler = useCallback(
-		(_event, edge) => {
-			if (isSubmitted) return;
-			const target = _event.target as HTMLElement;
-			const edgeElement = target.closest(".react-flow__edge") as HTMLElement | null;
-			if (edgeElement) {
-				const rect = edgeElement.getBoundingClientRect();
-				setEdgeContextMenu({
-					edgeId: edge.id,
-					position: {
-						x: rect.left + rect.width / 2,
-						y: rect.top + rect.height / 2,
-					},
-				});
-			}
-		},
-		[setEdgeContextMenu, isSubmitted],
-	);
-
-	const deleteEdge = useCallback(
-		(edgeId: string) => {
-			setEdges((eds) => eds.filter((e) => e.id !== edgeId));
-			setEdgeContextMenu(null);
-		},
-		[setEdges, setEdgeContextMenu],
-	);
+	}, [setContextMenu]);
 
 	const isValidConnectionHandler = useCallback(
 		(params: ConnectionParams) => {
@@ -461,7 +430,6 @@ export function LearnerMapEditor() {
 					onConnectEnd={onConnectEnd}
 					isValidConnection={isValidConnectionHandler}
 					onNodeClick={onNodeClick}
-					onEdgeClick={onEdgeClick}
 					onPaneClick={onPaneClick}
 					readOnly={isSubmitted}
 				>
@@ -504,26 +472,6 @@ export function LearnerMapEditor() {
 						>
 							Cancel
 						</button>
-					</div>
-				)}
-				{edgeContextMenu && (
-					<div
-						className="absolute z-50"
-						style={{
-							left: edgeContextMenu.position.x,
-							top: edgeContextMenu.position.y + 4,
-							transform: "translateX(-50%)",
-						}}
-					>
-						<div className="flex items-center gap-1 rounded-lg border bg-background p-1.5 shadow-lg animate-in fade-in zoom-in-95 duration-150 origin-top">
-							<button
-								type="button"
-								className="px-3 py-1.5 text-sm text-destructive hover:bg-destructive/10 rounded transition-colors"
-								onClick={() => deleteEdge(edgeContextMenu.edgeId)}
-							>
-								Delete Connection
-							</button>
-						</div>
 					</div>
 				)}
 			</div>
