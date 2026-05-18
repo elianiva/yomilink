@@ -1,8 +1,6 @@
-function highlightParensAsHtml(text: string, showParens: boolean): string {
-	return text.replaceAll(/(\([^)]*\))/g, (match) =>
-		showParens
-			? `<span class="text-foreground/50">${match}</span>`
-			: "",
+function highlightParensAsHtml(text: string, showFurigana: boolean): string {
+	return text.replaceAll(/(（[^）]*）)/g, (match) =>
+		showFurigana ? `<span style="opacity:0.5">${match}</span>` : "",
 	);
 }
 

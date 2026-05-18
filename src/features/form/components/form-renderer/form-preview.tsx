@@ -1,9 +1,11 @@
-import { BookOpen, Eye, EyeOff } from "lucide-react";
+import { BookOpen, Eye, EyeOff, Languages } from "lucide-react";
+import { useState } from "react";
 
 import { ReadingMaterialRenderer } from "@/components/reading-material-renderer";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Separator } from "@/components/ui/separator";
+import { Switch } from "@/components/ui/switch";
 import { cn } from "@/lib/utils";
 
 import type { QuestionType } from "../question-list";
@@ -66,6 +68,7 @@ export function FormPreview({
 	onAnswerChange,
 	className,
 }: FormPreviewProps) {
+	const [showFurigana, setShowFurigana] = useState(true);
 	const sortedQuestions = questions.slice().sort((a, b) => a.orderIndex - b.orderIndex);
 	const sortedReadingMaterialSections = (form.readingMaterialSections ?? [])
 		.slice()
