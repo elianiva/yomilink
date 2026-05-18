@@ -75,13 +75,12 @@ export function UserDetailSheet({
 	const canBan = isAdmin && user.id !== currentUserId;
 
 	const handleSave = () => {
-		const changes: UpdateUserInput = {};
+		const changes: Record<string, unknown> = {};
 		for (const [key, value] of Object.entries(formData)) {
 			if (value === undefined || value === "") continue;
-			// @ts-expect-error dynamic key assignment
 			changes[key] = value;
 		}
-		onSave(user.id, changes);
+		onSave(user.id, changes as UpdateUserInput);
 	};
 
 	const handleBan = () => {

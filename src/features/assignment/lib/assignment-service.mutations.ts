@@ -42,7 +42,11 @@ export const createAssignment = Effect.fn("createAssignment")(function* (
 				? yield* safeParseJson(gm.nodes, [], Schema.Array(Schema.Any))
 				: [];
 
-		const kitNodes = nodes.filter((n: any) => n?.type === "text" || n?.type === "connector");
+		const kitNodes = nodes.filter((n) => {
+			if (typeof n !== "object" || n === null) return false;
+			const node = n as { type?: string };
+			return node.type === "text" || node.type === "connector";
+		});
 
 		const kitId = randomString();
 		yield* db.insert(kits).values({

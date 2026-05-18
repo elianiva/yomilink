@@ -48,9 +48,7 @@ function FormTakerPage() {
 	});
 
 	const questions: GetStudentFormByIdOutput["questions"] = data?.questions ?? [];
-	const form = data?.form;
-	const submission = data?.submission;
-	const readingMaterialSections = form?.readingMaterialSections ?? [];
+	const readingMaterialSections = data?.form?.readingMaterialSections ?? [];
 
 	const totalQuestions = questions.length;
 	const hasReadingMaterial =
@@ -99,6 +97,9 @@ function FormTakerPage() {
 			/>
 		);
 	}
+
+	const form = data.form;
+	const submission = data.submission;
 
 	if (submission) {
 		const backTo =

@@ -13,9 +13,6 @@ type SignUpFormShape = {
 	}) => ReactElement;
 };
 
-/** Typed form context for step components — safe access to Field/Subscribe without prop drilling. */
 export function useSignUpForm(): SignUpFormShape {
-	// biome-ignore lint/suspicious/noExplicitAny: useFormContext() returns a too-strictly-typed form,
-	// we only need Field/Subscribe shape in step components
-	return useFormContext() as unknown as SignUpFormShape;
+	return useFormContext() as SignUpFormShape;
 }

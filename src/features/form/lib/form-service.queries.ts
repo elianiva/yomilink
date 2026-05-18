@@ -100,9 +100,6 @@ export const getFormById = Effect.fn("getFormById")(function* (formId: string) {
 	});
 });
 
-/**
- * Get form for student viewing - strips correct answers and verifies access
- */
 export const getStudentFormById = Effect.fn("getStudentFormById")(function* (
 	formId: string,
 	userId: string,
@@ -260,8 +257,8 @@ export const getStudentFormById = Effect.fn("getStudentFormById")(function* (
 			createdAt: form.createdAt.getTime(),
 			updatedAt: form.updatedAt.getTime(),
 		},
-		questions: mappedQuestions as GetStudentFormByIdOutput["questions"],
-		submission: submission as GetStudentFormByIdOutput["submission"],
+		questions: mappedQuestions,
+		submission: submission,
 	} as GetStudentFormByIdOutput;
 });
 

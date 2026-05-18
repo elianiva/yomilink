@@ -104,7 +104,7 @@ function AnalyticsCanvasInner({
 		isMultiView,
 	});
 
-	const displayEdges = edges as unknown as Edge[];
+	const displayEdges = edges as Edge[];
 	const noop = useCallback(() => {}, []);
 
 	return (

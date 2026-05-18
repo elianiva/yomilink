@@ -47,6 +47,46 @@ import { LearnerMapRpc } from "@/server/rpc/learner-map";
 
 const routeApi = getRouteApi("/dashboard/learner-map/$assignmentId/");
 
+type ConnectionParams = { source: string; target: string };
+
+type AssignmentSummaryData = {
+	assignment: {
+		id: string;
+		title: string;
+		description: string | null;
+		readingMaterial: string | null;
+		timeLimitMinutes: number | null;
+		goalMapId: string;
+		kitId: string;
+		dueAt: number | undefined;
+		preTestFormId: string | null;
+		postTestFormId: string | null;
+		delayedPostTestFormId: string | null;
+		delayedPostTestDelayDays: number | null;
+		tamFormId: string | null;
+	};
+	learnerMap: {
+		id: string;
+		nodes: readonly unknown[];
+		edges: readonly unknown[];
+		status: string;
+		attempt: number;
+		controlText: string | null;
+	} | null;
+	kit: { id: string; nodes: readonly unknown[]; edges: readonly unknown[] };
+	materialText: string | null;
+	studyGroup: string | null;
+};
+
+type SummarizingEditorProps = {
+	assignmentId: string;
+	assignmentData: AssignmentSummaryData | null;
+	isSubmitted: boolean;
+	setStatus: (value: "draft" | "submitted" | "not_started" | "graded") => void;
+	lastSavedSnapshot: string | null;
+	setLastSavedSnapshot: (s: string) => void;
+};
+
 export function LearnerMapEditor() {
 	const { assignmentId } = routeApi.useParams();
 	const navigate = useNavigate();
@@ -225,7 +265,7 @@ export function LearnerMapEditor() {
 	}, [setContextMenu]);
 
 	const isValidConnectionHandler = useCallback(
-		(params: { source: string; target: string }) => {
+		(params: ConnectionParams) => {
 			if (isSubmitted) return false;
 			if (params.source === params.target) return false;
 			if (areNodesConnected(edges, params.source, params.target)) return false;
@@ -446,14 +486,9 @@ function SummarizingEditor({
 	setStatus,
 	lastSavedSnapshot,
 	setLastSavedSnapshot,
-}: {
-	assignmentId: string;
-	assignmentData: any;
-	isSubmitted: boolean;
-	setStatus: (s: any) => void;
-	lastSavedSnapshot: string | null;
-	setLastSavedSnapshot: (s: string) => void;
-}) {
+}: SummarizingEditorProps) {
+	if (!assignmentData) return null;
+
 	const queryClient = useQueryClient();
 	const [controlText, setControlText] = useState(assignmentData.learnerMap?.controlText || "");
 

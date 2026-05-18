@@ -48,13 +48,17 @@ type SignUpMachineEvent =
 	| { type: "setError"; message: string }
 	| { type: "clearError" };
 
+type SelectOption = { id: string; label: string };
+
 type StepRenderProps = {
-	whitelistOptions: Array<{ id: string; label: string }>;
+	whitelistOptions: Array<SelectOption>;
 	whitelistLoading: boolean;
-	cohorts: Array<{ id: string; label: string }>;
+	cohorts: Array<SelectOption>;
 	preselectedCohortName: string | null;
 	onLastFieldSubmit?: () => void;
 };
+
+type FormSubscribeState = { errors: unknown };
 
 function createSignUpMachineState(): SignUpMachineState {
 	return {
@@ -98,11 +102,28 @@ function signUpMachineReducer(
 	}
 }
 
+type WhitelistEntry = { studentId: string; cohortId: string | null };
+
+type FormSnapshotState = {
+	values: Record<string, unknown>;
+	fieldMeta: Record<string, { errors: unknown[] }>;
+};
+
+type FormSnapshotValues = {
+	studentId: string;
+	password: string;
+	confirmPassword: string;
+	age: number | null;
+	jlptLevel: string;
+	cohortId: string;
+};
+
 function selectSignUpStepSnapshot(
-	state: any,
-	whitelistEntries: Array<{ studentId: string; cohortId: string | null }>,
+	state: FormSnapshotState,
+	whitelistEntries: Array<WhitelistEntry>,
 ): SignUpStepSnapshot {
-	const { studentId, password, confirmPassword, age, jlptLevel, cohortId } = state.values;
+	const { studentId, password, confirmPassword, age, jlptLevel, cohortId } =
+		state.values as FormSnapshotValues;
 
 	// Derive effective cohortId: form value falls back to whitelist mapping
 	const whitelistCohortId = studentId
@@ -238,13 +259,13 @@ function SignUpPage() {
 			studentId: "",
 			password: "",
 			confirmPassword: "",
-			age: null as unknown as number | null,
+			age: null as number | null,
 			jlptLevel: "None" as SignUpInput["jlptLevel"],
 			cohortId: "",
-			japaneseLearningDuration: null as unknown as number | null,
-			previousJapaneseScore: null as unknown as number | null,
-			mediaConsumption: null as unknown as number | null,
-			motivation: null as unknown as string | null,
+			japaneseLearningDuration: null as number | null,
+			previousJapaneseScore: null as number | null,
+			mediaConsumption: null as number | null,
+			motivation: null as string | null,
 			consentGiven: false,
 		},
 		validators: {
@@ -382,7 +403,7 @@ function SignUpPage() {
 					) : null}
 
 					<form.Subscribe
-						selector={(s: { errors: unknown }) => extractFormErrorMessages(s.errors)}
+						selector={(s: FormSubscribeState) => extractFormErrorMessages(s.errors)}
 					>
 						{(messages) =>
 							messages.length > 0 ? (
@@ -431,7 +452,7 @@ function SignUpPage() {
 
 								{currentStep < signupSteps.length - 1 ? (
 									<form.Subscribe
-										selector={(state: any) =>
+										selector={(state) =>
 											selectSignUpStepSnapshot(state, whitelistEntries)
 										}
 									>

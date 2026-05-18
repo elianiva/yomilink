@@ -532,7 +532,7 @@ function SidebarMenuButton({
 }: ComponentProps<"button"> & {
 	asChild?: boolean;
 	isActive?: boolean;
-	tooltip?: string | { children: ReactNode; [key: string]: any };
+	tooltip?: string | { children: ReactNode; [key: string]: unknown };
 } & VariantProps<typeof sidebarMenuButtonVariants>) {
 	const Comp = asChild ? Slot : "button";
 	const { isMobile, state } = useSidebar();

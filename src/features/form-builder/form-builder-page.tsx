@@ -88,7 +88,7 @@ export function FormBuilderPage() {
 				audience: existingForm.form.audience,
 				status: existingForm.form.status,
 			});
-			setQuestions([...((existingForm.questions ?? []) as unknown as QuestionWithOptions[])]);
+			setQuestions([...(existingForm.questions ?? [])] as unknown as QuestionWithOptions[]);
 			setReadingMaterialSections(
 				[...(existingForm.form.readingMaterialSections ?? [])].map((section) => ({
 					...section,

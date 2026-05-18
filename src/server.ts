@@ -10,7 +10,7 @@ addEventListener("error", (event) => {
 	console.error("===========================");
 });
 
-addEventListener("unhandledrejection", (event: any) => {
+addEventListener("unhandledrejection", (event: PromiseRejectionEvent) => {
 	if (event.reason instanceof Error && "statusCode" in event.reason) return;
 	console.error("=== Unhandled Promise Rejection ===");
 	console.error("Reason:", event.reason);

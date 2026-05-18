@@ -184,7 +184,6 @@ function MaterialDialogImpl({ goalMapId, materialText, materialImages }: Materia
 						value="attachments"
 						className="flex-1 flex flex-col min-h-0 overflow-hidden gap-y-4"
 					>
-						{/* eslint-disable-next-line jsx-a11y/no-static-element-interactions */}
 						<input
 							ref={imageInputRef}
 							id="image-upload"
