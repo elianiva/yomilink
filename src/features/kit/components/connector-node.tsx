@@ -1,8 +1,9 @@
 import { Handle, type Node, type NodeProps, Position, useReactFlow } from "@xyflow/react";
-import { useAtomValue } from "jotai";
+import { useAtomValue, useSetAtom } from "jotai";
+import { Pencil, Trash2 } from "lucide-react";
 import { memo } from "react";
 
-import { contextMenuAtom } from "@/features/goal-map/lib/atoms";
+import { contextMenuAtom, editNodeAtom } from "@/features/goal-map/lib/atoms";
 import { cn } from "@/lib/utils";
 
 const HANDLE_CLASSES = "!w-3 !h-3 !bg-background !border-2 !border-sky-500";
@@ -15,6 +16,7 @@ function ConnectorNodeComponent({
 	const contextMenu = useAtomValue(contextMenuAtom);
 	const isActive = contextMenu?.nodeId === id;
 	const { deleteElements } = useReactFlow();
+	const setEditNode = useSetAtom(editNodeAtom);
 
 	return (
 		<div
@@ -23,18 +25,36 @@ function ConnectorNodeComponent({
 				isActive && "ring-4 scale-105 z-50 shadow-lg",
 			)}
 		>
-			{/* Delete button - shown when selected */}
+			{/* Toolbar — shown when selected */}
 			{selected && (
-				<button
-					type="button"
-					className="absolute -top-2.5 -right-2.5 z-20 flex items-center justify-center size-5 rounded-full bg-destructive text-destructive-foreground text-xs font-bold shadow-md hover:scale-110 transition-transform cursor-pointer"
-					onClick={(e) => {
-						e.stopPropagation();
-						void deleteElements({ nodes: [{ id: id! }] });
-					}}
-				>
-					×
-				</button>
+				<div className="absolute -top-4 right-1/2 translate-x-1/2 z-20 flex items-center gap-0.5 rounded-md border bg-background p-0.5 shadow-md">
+					<button
+						type="button"
+						className="flex items-center justify-center size-6 rounded text-muted-foreground hover:text-foreground hover:bg-accent transition-colors cursor-pointer"
+						title="Edit"
+						onClick={(e) => {
+							e.stopPropagation();
+							setEditNode({
+								id: id!,
+								type: "connector",
+								label: data?.label ?? "",
+							});
+						}}
+					>
+						<Pencil className="size-3.5" />
+					</button>
+					<button
+						type="button"
+						className="flex items-center justify-center size-6 rounded text-destructive hover:bg-destructive/10 transition-colors cursor-pointer"
+						title="Delete"
+						onClick={(e) => {
+							e.stopPropagation();
+							void deleteElements({ nodes: [{ id: id! }] });
+						}}
+					>
+						<Trash2 className="size-3.5" />
+					</button>
+				</div>
 			)}
 			<p className="text-sm font-medium leading-tight text-center w-full">
 				{data?.label ?? "rel"}

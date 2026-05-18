@@ -34,7 +34,6 @@ import {
 	type TailwindColor,
 } from "@/features/kit/components/color-picker";
 import { ConceptMapCanvas } from "@/features/kit/components/concept-map-canvas";
-import { NodeContextMenu } from "@/features/kit/components/node-context-menu";
 import { SearchNodesPanel } from "@/features/kit/components/search-nodes-panel";
 import { useRpcMutation, useRpcQuery } from "@/hooks/use-rpc-query";
 import { toast } from "@/lib/error-toast";
@@ -51,7 +50,7 @@ export function GoalMapEditor() {
 	const [conceptDialogOpen, setConceptDialogOpen] = useAtom(conceptDialogOpenAtom);
 	const [linkDialogOpen, setLinkDialogOpen] = useAtom(linkDialogOpenAtom);
 	const [searchOpen, setSearchOpen] = useAtom(searchOpenAtom);
-	const [contextMenu, setContextMenu] = useAtom(contextMenuAtom);
+	const [, setContextMenu] = useAtom(contextMenuAtom);
 	const [editNode, setEditNode] = useAtom(editNodeAtom);
 	const [materialImages, setMaterialImages] = useAtom(imagesAtom);
 	const materialText = useAtomValue(materialTextAtom);
@@ -86,14 +85,7 @@ export function GoalMapEditor() {
 		setEdges,
 	} = useGraphHandlers();
 
-	const {
-		onNodeClick,
-		onPaneClick,
-		onConnect,
-		handleContextMenuEdit,
-		handleContextMenuDelete,
-		handleEditNodeConfirm,
-	} = useContextMenu();
+	const { onNodeClick, onPaneClick, onConnect, handleEditNodeConfirm } = useContextMenu();
 
 	const { zoomIn, zoomOut, fit, centerMap, autoLayout } = useViewportControls();
 
@@ -420,17 +412,6 @@ export function GoalMapEditor() {
 					saving={saving}
 					isNewMap={isNewMap}
 				/>
-
-				{contextMenu && (
-					<NodeContextMenu
-						nodeId={contextMenu.nodeId}
-						nodeType={contextMenu.nodeType}
-						position={contextMenu.position}
-						onEdit={handleContextMenuEdit}
-						onDelete={handleContextMenuDelete}
-						onClose={() => setContextMenu(null)}
-					/>
-				)}
 			</div>
 		</div>
 	);

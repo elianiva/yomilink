@@ -97,7 +97,7 @@ export function LearnerMapEditor() {
 	const [edges, setEdges] = useAtom(learnerEdgesAtom);
 	const [searchOpen, setSearchOpen] = useAtom(searchOpenAtom);
 	const [materialOpen, setMaterialOpen] = useAtom(materialDialogOpenAtom);
-	const [contextMenu, setContextMenu] = useAtom(contextMenuAtom);
+	const [, setContextMenu] = useAtom(contextMenuAtom);
 	const [lastSavedSnapshot, setLastSavedSnapshot] = useAtom(lastSavedSnapshotAtom);
 	const setAssignment = useSetAtom(assignmentAtom);
 	const setLearnerMapId = useSetAtom(learnerMapIdAtom);
@@ -456,24 +456,6 @@ export function LearnerMapEditor() {
 					isSubmitted={isSubmitted}
 					hasMaterial={!!assignmentData.materialText}
 				/>
-				{contextMenu && contextMenu.nodeType === "connector" && (
-					<div
-						className="absolute z-50 bg-background border rounded-lg shadow-lg p-1 min-w-30"
-						style={{
-							left: contextMenu.position.x,
-							top: contextMenu.position.y - 40,
-							transform: "translateX(-50%)",
-						}}
-					>
-						<button
-							type="button"
-							className="w-full px-3 py-1.5 text-sm text-left text-muted-foreground hover:bg-accent rounded"
-							onClick={() => setContextMenu(null)}
-						>
-							Cancel
-						</button>
-					</div>
-				)}
 			</div>
 		</div>
 	);
