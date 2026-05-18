@@ -2,7 +2,6 @@ import { BookOpenIcon, Languages } from "lucide-react";
 import { useState } from "react";
 
 import { ReadingMaterialRenderer } from "@/components/reading-material-renderer";
-import { Switch } from "@/components/ui/switch";
 import {
 	Dialog,
 	DialogContent,
@@ -11,6 +10,7 @@ import {
 	DialogTitle,
 } from "@/components/ui/dialog";
 import { Label } from "@/components/ui/label";
+import { Switch } from "@/components/ui/switch";
 
 interface MaterialImage {
 	id: string;
@@ -58,7 +58,10 @@ export function MaterialDialog({
 						<div className="space-y-4">
 							<Label className="text-base font-medium">Text Content</Label>
 							<div className="rounded-lg border bg-muted/50 p-4">
-								<ReadingMaterialRenderer content={content} showFurigana={showFurigana} />
+								<ReadingMaterialRenderer
+									content={content}
+									showFurigana={showFurigana}
+								/>
 							</div>
 						</div>
 					) : (

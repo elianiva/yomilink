@@ -1,4 +1,10 @@
-import type { Connection, EdgeChange, NodeChange, NodeMouseHandler } from "@xyflow/react";
+import type {
+	Connection,
+	EdgeChange,
+	EdgeMouseHandler,
+	NodeChange,
+	NodeMouseHandler,
+} from "@xyflow/react";
 import { Background, ConnectionMode, MiniMap, ReactFlow, useReactFlow } from "@xyflow/react";
 import { useCallback, useMemo } from "react";
 
@@ -24,6 +30,8 @@ export type ConceptMapCanvasProps = {
 	onConnectEnd?: () => void;
 	/** Called when a node is clicked */
 	onNodeClick?: NodeMouseHandler;
+	/** Called when an edge is clicked */
+	onEdgeClick?: EdgeMouseHandler;
 	/** Called when the canvas/pane is clicked */
 	onPaneClick?: () => void;
 	/** Validates if a connection is allowed during drag */
@@ -61,6 +69,7 @@ export function ConceptMapCanvas({
 	onConnect,
 	onConnectEnd,
 	onNodeClick,
+	onEdgeClick,
 	onPaneClick,
 	isValidConnection,
 	readOnly,
@@ -111,6 +120,14 @@ export function ConceptMapCanvas({
 		[onNodeClick, readOnly],
 	);
 
+	const handleEdgeClick: EdgeMouseHandler = useCallback(
+		(event, edge) => {
+			if (readOnly) return;
+			onEdgeClick?.(event, edge);
+		},
+		[onEdgeClick, readOnly],
+	);
+
 	const handlePaneClick = useCallback(() => {
 		if (readOnly) return;
 		onPaneClick?.();
@@ -142,6 +159,7 @@ export function ConceptMapCanvas({
 			onConnectEnd={onConnectEnd}
 			isValidConnection={isValidConnection}
 			onNodeClick={handleNodeClick}
+			onEdgeClick={handleEdgeClick}
 			onPaneClick={handlePaneClick}
 			connectionRadius={80}
 			connectionMode={ConnectionMode.Loose}

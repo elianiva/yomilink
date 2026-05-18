@@ -6,11 +6,20 @@ import type { Edge, Node } from "@/features/learner-map/lib/comparator";
 
 /**
  * Context menu state for node interactions.
- * Used when right-clicking on a node to show edit/delete/connect options.
+ * Used when clicking on a node to show edit/delete/connect options.
  */
 export type ContextMenuState = {
 	nodeId: string;
 	nodeType: "text" | "connector";
+	position: { x: number; y: number };
+} | null;
+
+/**
+ * Context menu state for edge interactions.
+ * Used when clicking on an edge to show delete option.
+ */
+export type EdgeContextMenuState = {
+	edgeId: string;
 	position: { x: number; y: number };
 } | null;
 

@@ -3,6 +3,7 @@ import { atom } from "jotai";
 import type {
 	ConnectionModeState,
 	ContextMenuState,
+	EdgeContextMenuState,
 	HistorySnapshot,
 } from "@/lib/react-flow-types";
 
@@ -43,6 +44,7 @@ export const connectionModeAtom = atom<ConnectionModeState>(null);
 
 // Context menu state
 export const contextMenuAtom = atom<ContextMenuState>(null);
+export const edgeContextMenuAtom = atom<EdgeContextMenuState>(null);
 
 // History for undo/redo
 export const historyAtom = atom<HistorySnapshot[]>([]);
