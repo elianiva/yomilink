@@ -1,6 +1,7 @@
 import { eq } from "drizzle-orm";
 import { Effect } from "effect";
 
+import { compareMaps, type Edge, type Node } from "@/features/learner-map/lib/comparator";
 import { randomString } from "@/lib/utils";
 import { Database } from "@/server/db/client";
 import { diagnoses, learnerMaps } from "@/server/db/schema/app-schema";
@@ -128,37 +129,49 @@ export function seedLearnerMaps(
 						`  Created learner map for ${config.studentEmail} (attempt ${config.attempt})`,
 					);
 
-					const correctCount = config.correctEdgeIds.length;
-					const totalGoalEdges = goalEdges.length;
-					const score = Math.round((correctCount / totalGoalEdges) * 100) / 100;
-
-					const perLink = {
-						correct: config.correctEdgeIds
-							.map((edgeId) => edgeById[edgeId])
-							.filter((edge): edge is { source: string; target: string } =>
-								Boolean(edge),
-							)
-							.map((edge) => ({ source: edge.source, target: edge.target })),
-						missing: goalEdges
-							.filter((e) => !config.correctEdgeIds.includes(e.id))
-							.map((e) => ({ source: e.source, target: e.target })),
-						excessive: config.excessiveEdges.map((e) => ({
+					const learnerEdgesForCompare: Edge[] = [
+						...config.correctEdgeIds
+							.map((edgeId) => {
+								const edge = edgeById[edgeId];
+								return edge
+									? { id: edgeId, source: edge.source, target: edge.target }
+									: null;
+							})
+							.filter((e): e is Edge => e !== null),
+						...config.excessiveEdges.map((e, i) => ({
+							id: `excess-${i + 1}`,
 							source: e.source,
 							target: e.target,
 						})),
+					];
+
+					const goalNodes = dailyLifeData.nodes as unknown as Node[];
+					const goalEdgesTyped = dailyLifeData.edges as unknown as Edge[];
+
+					const diagnosisResult = compareMaps(
+						goalNodes,
+						goalEdgesTyped,
+						goalNodes,
+						learnerEdgesForCompare,
+					);
+
+					const perLink = {
+						correct: diagnosisResult.correct,
+						missing: diagnosisResult.missing,
+						excessive: diagnosisResult.excessive,
 					};
 
 					yield* db.insert(diagnoses).values({
 						id: randomString(),
 						goalMapId: dailyLifeGoalMapId,
 						learnerMapId: learnerMapId,
-						summary: `Score: ${Math.round(score * 100)}% (${correctCount}/${totalGoalEdges} correct edges)`,
+						summary: `Score: ${Math.round(diagnosisResult.score * 100)}% (${diagnosisResult.correct.length}/${diagnosisResult.totalGoalPropositions} correct propositions)`,
 						perLink: perLink,
-						score: score,
+						score: diagnosisResult.score,
 						rubricVersion: "v1.0",
 					});
 					yield* Effect.log(
-						`  Created diagnosis for ${config.studentEmail}: ${Math.round(score * 100)}%`,
+						`  Created diagnosis for ${config.studentEmail}: ${Math.round(diagnosisResult.score * 100)}%`,
 					);
 				}),
 			),

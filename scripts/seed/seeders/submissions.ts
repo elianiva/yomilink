@@ -1,6 +1,7 @@
 import { asc, eq } from "drizzle-orm";
 import { Effect } from "effect";
 
+import { compareMaps, type Edge, type Node } from "@/features/learner-map/lib/comparator";
 import { randomString } from "@/lib/utils";
 import { Database } from "@/server/db/client";
 import {
@@ -231,8 +232,6 @@ function seedLearnerMapSubmissions(
 		const edgeById: Record<string, { source: string; target: string }> = {};
 		for (const edge of dailyLifeData.edges)
 			edgeById[edge.id] = { source: edge.source, target: edge.target };
-		const totalGoalEdges = dailyLifeData.edges.length;
-
 		const existingLearnerMaps = yield* db
 			.select()
 			.from(learnerMaps)
@@ -277,32 +276,45 @@ function seedLearnerMapSubmissions(
 				submittedAt,
 			});
 
+			const learnerEdgesForCompare: Edge[] = [
+				...config.correctEdgeIds
+					.map((edgeId) => {
+						const edge = edgeById[edgeId];
+						return edge
+							? { id: edgeId, source: edge.source, target: edge.target }
+							: null;
+					})
+					.filter((e): e is Edge => e !== null),
+				...config.excessiveEdges.map((e, i) => ({
+					id: `excess-${i + 1}`,
+					source: e.source,
+					target: e.target,
+				})),
+			];
+
+			const goalNodes = dailyLifeData.nodes as unknown as Node[];
+			const goalEdgesTyped = dailyLifeData.edges as unknown as Edge[];
+
+			const diagnosisResult = compareMaps(
+				goalNodes,
+				goalEdgesTyped,
+				goalNodes,
+				learnerEdgesForCompare,
+			);
+
+			const perLink = {
+				correct: diagnosisResult.correct,
+				missing: diagnosisResult.missing,
+				excessive: diagnosisResult.excessive,
+			};
+
 			yield* db.insert(diagnoses).values({
 				id: randomString(),
 				goalMapId: dailyLifeGoalMapId,
 				learnerMapId,
-				summary:
-					"Score: " +
-					String(Math.round(config.expectedScore * 100)) +
-					"% (" +
-					String(config.correctEdgeIds.length) +
-					"/" +
-					String(totalGoalEdges) +
-					" correct edges)",
-				perLink: {
-					correct: config.correctEdgeIds
-						.map((edgeId) => edgeById[edgeId])
-						.filter((edge): edge is { source: string; target: string } => Boolean(edge))
-						.map((edge) => ({ source: edge.source, target: edge.target })),
-					missing: dailyLifeData.edges
-						.filter((edge) => !config.correctEdgeIds.includes(edge.id))
-						.map((edge) => ({ source: edge.source, target: edge.target })),
-					excessive: config.excessiveEdges.map((edge) => ({
-						source: edge.source,
-						target: edge.target,
-					})),
-				},
-				score: config.expectedScore,
+				summary: `Score: ${Math.round(diagnosisResult.score * 100)}% (${diagnosisResult.correct.length}/${diagnosisResult.totalGoalPropositions} correct propositions)`,
+				perLink: perLink,
+				score: diagnosisResult.score,
 				rubricVersion: "v1.0",
 			});
 		}
