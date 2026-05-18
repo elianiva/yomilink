@@ -4,6 +4,7 @@ import type { Edge, Node } from "@/features/learner-map/lib/comparator";
 import type {
 	ContextMenuState as LibContextMenuState,
 	ConnectionModeState as LibConnectionModeState,
+	EdgeContextMenuState,
 } from "@/lib/react-flow-types";
 
 export const nodesAtom = atom<Node[]>([]);
@@ -56,6 +57,7 @@ export const isApplyingHistoryAtom = atom(false);
 
 export type ContextMenuState = LibContextMenuState;
 export const contextMenuAtom = atom<ContextMenuState>(null);
+export const edgeContextMenuAtom = atom<EdgeContextMenuState>(null);
 
 export type ConnectionModeState = LibConnectionModeState;
 export const connectionModeAtom = atom<ConnectionModeState>(null);
