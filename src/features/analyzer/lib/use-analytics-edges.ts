@@ -141,10 +141,6 @@ export function useAnalyticsEdges({
 								type: "floating",
 								style,
 								animated: type === "missing",
-								markerEnd: {
-									type: "arrowclosed",
-									color: style.stroke,
-								},
 								data: {
 									badge: data[type].count.toString(),
 									curveOffset: getSymmetricCurveOffset(
@@ -183,10 +179,6 @@ export function useAnalyticsEdges({
 								type: "floating",
 								style,
 								animated: classification.type === "missing",
-								markerEnd: {
-									type: "arrowclosed",
-									color: style.stroke,
-								},
 								data: {
 									curveOffset: getSymmetricCurveOffset(index, group.length),
 									useCurvedPath: true,
@@ -209,10 +201,6 @@ export function useAnalyticsEdges({
 						type: "floating",
 						style,
 						animated: classification.type === "missing",
-						markerEnd: {
-							type: "arrowclosed",
-							color: style.stroke,
-						},
 						data: {
 							...classification.edge.data,
 							createdBy: classification.createdBy ?? currentLearnerMaps[0]?.userName,
@@ -232,10 +220,7 @@ export function useAnalyticsEdges({
 						stroke: "var(--edge-neutral)",
 						strokeWidth: 2,
 					},
-					markerEnd: {
-						type: "arrowclosed",
-						color: "var(--edge-neutral)",
-					},
+
 				});
 			}
 		} else if (showLearnerMap) {
@@ -289,10 +274,6 @@ export function useAnalyticsEdges({
 								targetHandle: "left",
 								type: "floating",
 								style,
-								markerEnd: {
-									type: "arrowclosed",
-									color: style.stroke,
-								},
 								data: {
 									badge: data[type].count.toString(),
 									curveOffset: getSymmetricCurveOffset(
@@ -331,10 +312,6 @@ export function useAnalyticsEdges({
 								targetHandle: "left",
 								type: "floating",
 								style,
-								markerEnd: {
-									type: "arrowclosed",
-									color: style.stroke,
-								},
 								data: {
 									curveOffset: getSymmetricCurveOffset(index, group.length),
 									useCurvedPath: true,
@@ -357,10 +334,6 @@ export function useAnalyticsEdges({
 						targetHandle: "left",
 						type: "floating",
 						style,
-						markerEnd: {
-							type: "arrowclosed",
-							color: style.stroke,
-						},
 						data: {
 							...classification.edge.data,
 							createdBy: classification.createdBy ?? currentLearnerMaps[0]?.userName,

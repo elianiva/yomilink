@@ -108,9 +108,23 @@ export function LearnerMapEditor() {
 
 	const isSubmitted = status === "submitted";
 
-	const { onNodesChange, onEdgesChange } = useGraphChangeHandlers(setNodes, setEdges, {
-		disabled: isSubmitted,
-	});
+	const { onNodesChange: onNodesChangeBase, onEdgesChange } = useGraphChangeHandlers(
+		setNodes,
+		setEdges,
+		{
+			disabled: isSubmitted,
+		},
+	);
+
+	// Filter out select changes to prevent node edit/delete toolbar — students should not edit/delete nodes
+	const onNodesChange: typeof onNodesChangeBase = useCallback(
+		(changes) => {
+			onNodesChangeBase(
+				changes.filter((c): c is (typeof changes)[number] => c.type !== "select"),
+			);
+		},
+		[onNodesChangeBase],
+	);
 
 	const { undo, redo, canUndo, canRedo } = useHistory(nodes, edges, {
 		maxSnapshots: 50,
@@ -206,29 +220,9 @@ export function LearnerMapEditor() {
 		setLastSavedSnapshot,
 	]);
 
-	const onNodeClick: NodeMouseHandler = useCallback(
-		(_event, node) => {
-			if (isSubmitted) return;
-
-			if (node.type === "connector") {
-				const target = _event.target as HTMLElement;
-				const nodeElement = target.closest(".react-flow__node") as HTMLElement | null;
-
-				if (nodeElement) {
-					const rect = nodeElement.getBoundingClientRect();
-					setContextMenu({
-						nodeId: node.id,
-						nodeType: "connector",
-						position: {
-							x: rect.left + rect.width / 2,
-							y: rect.top,
-						},
-					});
-				}
-			}
-		},
-		[setContextMenu, isSubmitted],
-	);
+	const onNodeClick: NodeMouseHandler = useCallback((_event, _node) => {
+		// Node edit/delete is reserved for teachers
+	}, []);
 
 	const onPaneClick = useCallback(() => {
 		setContextMenu(null);
@@ -252,7 +246,6 @@ export function LearnerMapEditor() {
 				target: params.target!,
 				type: "floating" as const,
 				style: { stroke: "#16a34a", strokeWidth: 3 },
-				markerEnd: { type: "arrowclosed" as const, color: "#16a34a" },
 			};
 
 			setEdges((eds) => [...eds, newEdge]);

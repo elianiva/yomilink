@@ -133,7 +133,6 @@ export function useContextMenu() {
 					target: connectionMode.direction === "to" ? node.id : connectionMode.linkNodeId,
 					type: "floating",
 					style: { stroke: "#16a34a", strokeWidth: 3 },
-					markerEnd: { type: "arrowclosed" as const, color: "#16a34a" },
 				};
 
 				setEdges((eds) => [...eds, newEdge]);
@@ -184,7 +183,6 @@ export function useContextMenu() {
 				target: params.target!,
 				type: "floating" as const,
 				style: { stroke: "#16a34a", strokeWidth: 3 },
-				markerEnd: { type: "arrowclosed" as const, color: "#16a34a" },
 			};
 
 			setEdges((eds) => [...eds, newEdge]);

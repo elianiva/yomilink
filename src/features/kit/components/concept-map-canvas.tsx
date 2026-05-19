@@ -56,7 +56,7 @@ const EDGE_TYPES = {
  *
  * Handles:
  * - Rendering nodes (text and connector types)
- * - Rendering edges (floating type with arrows)
+ * - Rendering edges (floating type)
  * - Connection validation
  * - Read-only mode support
  * - Shared styling and behavior
@@ -82,7 +82,6 @@ export function ConceptMapCanvas({
 		() => ({
 			type: "floating",
 			style: { stroke: "#16a34a", strokeWidth: 3 },
-			markerEnd: { type: "arrowclosed" as const, color: "#16a34a" },
 		}),
 		[],
 	);
