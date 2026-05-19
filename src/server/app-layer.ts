@@ -27,9 +27,17 @@ import { ServerTelemetry } from "./telemetry";
  * );
  * ```
  */
-export const AppLayer = Layer.mergeAll(Auth.Default, DatabaseLive, LoggerLive, ServerTelemetry);
+export const AppLayer = Layer.mergeAll(
+	Layer.provideMerge(Auth.Default, DatabaseLive),
+	LoggerLive,
+	ServerTelemetry,
+);
 /**
  * Test variant of AppLayer - uses in-memory database.
  * Use in tests where you don't want to hit the real database.
  */
-export const AppLayerTest = Layer.mergeAll(Auth.Default, DatabaseTest, LoggerLive, ServerTelemetry);
+export const AppLayerTest = Layer.mergeAll(
+	Layer.provideMerge(Auth.Default, DatabaseTest),
+	LoggerLive,
+	ServerTelemetry,
+);

@@ -1,13 +1,12 @@
 import { Config, ConfigProvider, Effect } from "effect";
 
-const env = await (async () => {
-	try {
-		const mod = await import("cloudflare:workers");
-		return mod.env;
-	} catch {
-		return process.env ?? import.meta.env;
-	}
-})();
+const env = (
+	typeof process !== "undefined" && process.env
+		? process.env
+		: typeof import.meta !== "undefined" && import.meta.env
+			? import.meta.env
+			: {}
+) as Record<string, string>;
 
 export const ClientConfig = Config.all({
 	sentryDsn: Config.redacted("SENTRY_DSN"),

@@ -6,7 +6,7 @@ import { Effect, Schema } from "effect";
 
 import { ServerConfig } from "@/config";
 import { ac, roles } from "@/lib/auth-permissions";
-import { Database, DatabaseLive } from "@/server/db/client";
+import { Database } from "@/server/db/client";
 import * as appSchema from "@/server/db/schema/app-schema";
 import * as authSchema from "@/server/db/schema/auth-schema";
 
@@ -80,7 +80,6 @@ export class Auth extends Effect.Service<Auth>()("Auth", {
 			logger: { disabled: false },
 		});
 	}),
-	dependencies: [DatabaseLive],
 }) {}
 
 export const Role = Schema.Literal("teacher", "admin", "student").annotations({
