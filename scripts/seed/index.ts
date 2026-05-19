@@ -1,6 +1,5 @@
 import { Layer, Logger, Effect } from "effect";
 
-import { Auth } from "@/lib/auth";
 import { AppLayer } from "@/server/app-layer";
 
 import {
@@ -89,6 +88,6 @@ const program = Effect.gen(function* () {
 			"  - Submissions: 5 demo student accounts per material\n" +
 			"  - Whitelist: 47 reserved student IDs\n",
 	);
-}).pipe(Effect.provide(Layer.mergeAll(AppLayer, Auth.Default, Logger.pretty)));
+}).pipe(Effect.provide(Layer.mergeAll(AppLayer, Logger.pretty)));
 
 void Effect.runPromise(program);
