@@ -6,7 +6,7 @@ import {
 	uploadMaterialImage,
 	UploadMaterialImageInput,
 } from "@/features/analyzer/lib/material-image-service";
-import { authMiddleware, csrfMiddleware } from "@/middlewares/auth";
+import { authMiddleware } from "@/middlewares/auth";
 
 import { AppRuntime } from "../app-runtime";
 import { Rpc, TIMEOUT_DURATION, logRpcError } from "../rpc-helper";
@@ -26,7 +26,7 @@ function parseUploadFormData(formData: FormData): UploadMaterialImageInput {
 }
 
 export const uploadMaterialImageRpc = createServerFn({ method: "POST" })
-	.middleware([csrfMiddleware, authMiddleware])
+	.middleware([authMiddleware])
 	.inputValidator((data: unknown) => {
 		if (!(data instanceof FormData)) {
 			throw new Error("Expected FormData");

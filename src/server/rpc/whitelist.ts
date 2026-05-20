@@ -11,7 +11,7 @@ import {
 	WhitelistImportInput,
 	WhitelistLookupInput,
 } from "@/features/whitelist/lib/whitelist-service.shared";
-import { authMiddleware, authMiddlewareOptional, csrfMiddleware, requireRoleMiddleware } from "@/middlewares/auth";
+import { authMiddleware, authMiddlewareOptional, requireRoleMiddleware } from "@/middlewares/auth";
 
 import { AppRuntime } from "../app-runtime";
 import { Rpc, TIMEOUT_DURATION, logRpcError, logAndReturnError, logAndReturnDefect } from "../rpc-helper";
@@ -55,7 +55,7 @@ export const listUnregisteredWhitelistRpc = createServerFn()
 	);
 
 export const importWhitelistCsvRpc = createServerFn({ method: "POST" })
-	.middleware([csrfMiddleware, requireRoleMiddleware("admin")])
+	.middleware([requireRoleMiddleware("admin")])
 	.inputValidator((raw) => Schema.decodeUnknownSync(WhitelistImportInput)(raw))
 	.handler(({ data }) =>
 		AppRuntime.runPromise(

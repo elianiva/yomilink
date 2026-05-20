@@ -33,14 +33,14 @@ import {
 	ReorderQuestionsInput,
 	UpdateQuestionInput,
 } from "@/features/form/lib/form-service.shared";
-import { csrfMiddleware, requireRoleMiddleware } from "@/middlewares/auth";
+import { requireRoleMiddleware } from "@/middlewares/auth";
 
 import { RateLimiter } from "@/lib/rate-limiter";
 import { AppRuntime } from "../app-runtime";
 import { Rpc, TIMEOUT_DURATION, logRpcError, logAndReturnError, logAndReturnDefect } from "../rpc-helper";
 
 export const createFormRpc = createServerFn({ method: "POST" })
-	.middleware([csrfMiddleware, requireRoleMiddleware("teacher", "admin")])
+	.middleware([requireRoleMiddleware("teacher", "admin")])
 	.inputValidator((raw) => Schema.decodeUnknownSync(CreateFormInput)(raw))
 	.handler(({ data, context }) =>
 		AppRuntime.runPromise(
@@ -148,7 +148,7 @@ export const getStudentFormByIdRpc = createServerFn()
 	);
 
 export const deleteFormRpc = createServerFn({ method: "POST" })
-	.middleware([csrfMiddleware, requireRoleMiddleware("teacher", "admin")])
+	.middleware([requireRoleMiddleware("teacher", "admin")])
 	.inputValidator((raw) => Schema.decodeUnknownSync(GetFormByIdInput)(raw))
 	.handler(({ data }) =>
 		AppRuntime.runPromise(
@@ -169,7 +169,7 @@ export const deleteFormRpc = createServerFn({ method: "POST" })
 	);
 
 export const publishFormRpc = createServerFn({ method: "POST" })
-	.middleware([csrfMiddleware, requireRoleMiddleware("teacher", "admin")])
+	.middleware([requireRoleMiddleware("teacher", "admin")])
 	.inputValidator((raw) => Schema.decodeUnknownSync(GetFormByIdInput)(raw))
 	.handler(({ data }) =>
 		AppRuntime.runPromise(
@@ -190,7 +190,7 @@ export const publishFormRpc = createServerFn({ method: "POST" })
 	);
 
 export const unpublishFormRpc = createServerFn({ method: "POST" })
-	.middleware([csrfMiddleware, requireRoleMiddleware("teacher", "admin")])
+	.middleware([requireRoleMiddleware("teacher", "admin")])
 	.inputValidator((raw) => Schema.decodeUnknownSync(GetFormByIdInput)(raw))
 	.handler(({ data }) =>
 		AppRuntime.runPromise(
@@ -211,7 +211,7 @@ export const unpublishFormRpc = createServerFn({ method: "POST" })
 	);
 
 export const updateFormRpc = createServerFn({ method: "POST" })
-	.middleware([csrfMiddleware, requireRoleMiddleware("teacher", "admin")])
+	.middleware([requireRoleMiddleware("teacher", "admin")])
 	.inputValidator((raw) => Schema.decodeUnknownSync(UpdateFormInput)(raw))
 	.handler(({ data }) =>
 		AppRuntime.runPromise(
@@ -241,7 +241,7 @@ export const updateFormRpc = createServerFn({ method: "POST" })
 	);
 
 export const cloneFormRpc = createServerFn({ method: "POST" })
-	.middleware([csrfMiddleware, requireRoleMiddleware("teacher", "admin")])
+	.middleware([requireRoleMiddleware("teacher", "admin")])
 	.inputValidator((raw) => Schema.decodeUnknownSync(CloneFormInput)(raw))
 	.handler(({ data, context }) =>
 		AppRuntime.runPromise(
@@ -291,7 +291,7 @@ export const SubmitFormResponseInput = Schema.Struct({
 export type SubmitFormResponseInput = typeof SubmitFormResponseInput.Type;
 
 export const submitFormResponseRpc = createServerFn({ method: "POST" })
-	.middleware([csrfMiddleware, requireRoleMiddleware("student", "teacher", "admin")])
+	.middleware([requireRoleMiddleware("student", "teacher", "admin")])
 	.inputValidator((raw) => Schema.decodeUnknownSync(SubmitFormResponseInput)(raw))
 	.handler(({ data, context }) =>
 		AppRuntime.runPromise(
@@ -327,7 +327,7 @@ export const submitFormResponseRpc = createServerFn({ method: "POST" })
 	);
 
 export const reorderQuestionsRpc = createServerFn({ method: "POST" })
-	.middleware([csrfMiddleware, requireRoleMiddleware("teacher", "admin")])
+	.middleware([requireRoleMiddleware("teacher", "admin")])
 	.inputValidator((raw) => Schema.decodeUnknownSync(ReorderQuestionsInput)(raw))
 	.handler(({ data }) =>
 		AppRuntime.runPromise(
@@ -352,7 +352,7 @@ export const reorderQuestionsRpc = createServerFn({ method: "POST" })
 	);
 
 export const createQuestionRpc = createServerFn({ method: "POST" })
-	.middleware([csrfMiddleware, requireRoleMiddleware("teacher", "admin")])
+	.middleware([requireRoleMiddleware("teacher", "admin")])
 	.inputValidator((raw) => Schema.decodeUnknownSync(CreateQuestionInput)(raw))
 	.handler(({ data }) =>
 		AppRuntime.runPromise(
@@ -375,7 +375,7 @@ export const createQuestionRpc = createServerFn({ method: "POST" })
 	);
 
 export const updateQuestionRpc = createServerFn({ method: "POST" })
-	.middleware([csrfMiddleware, requireRoleMiddleware("teacher", "admin")])
+	.middleware([requireRoleMiddleware("teacher", "admin")])
 	.inputValidator((raw) => Schema.decodeUnknownSync(UpdateQuestionInput)(raw))
 	.handler(({ data }) =>
 		AppRuntime.runPromise(
@@ -398,7 +398,7 @@ export const updateQuestionRpc = createServerFn({ method: "POST" })
 	);
 
 export const deleteQuestionRpc = createServerFn({ method: "POST" })
-	.middleware([csrfMiddleware, requireRoleMiddleware("teacher", "admin")])
+	.middleware([requireRoleMiddleware("teacher", "admin")])
 	.inputValidator((raw) => Schema.decodeUnknownSync(GetQuestionByIdInput)(raw))
 	.handler(({ data }) =>
 		AppRuntime.runPromise(

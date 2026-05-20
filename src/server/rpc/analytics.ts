@@ -17,7 +17,7 @@ import {
 	GetLearnerSummaryTextInput,
 	GetMultipleLearnerMapsInput,
 } from "@/features/analyzer/lib/analytics-service.shared";
-import { csrfMiddleware, requireRoleMiddleware } from "@/middlewares/auth";
+import { requireRoleMiddleware } from "@/middlewares/auth";
 
 import { AppRuntime } from "../app-runtime";
 import { Rpc, TIMEOUT_DURATION, logRpcError, logAndReturnError, logAndReturnDefect } from "../rpc-helper";
@@ -123,7 +123,7 @@ export const getLearnerSummaryTextRpc = createServerFn()
 	);
 
 export const exportAnalyticsDataRpc = createServerFn({ method: "POST" })
-	.middleware([csrfMiddleware, requireRoleMiddleware("teacher", "admin")])
+	.middleware([requireRoleMiddleware("teacher", "admin")])
 	.inputValidator((raw) => Schema.decodeUnknownSync(ExportAnalyticsDataInput)(raw))
 	.handler(({ data }) =>
 		AppRuntime.runPromise(

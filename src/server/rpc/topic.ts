@@ -3,7 +3,7 @@ import { createServerFn } from "@tanstack/react-start";
 import { Effect, Schema } from "effect";
 
 import { listTopics, createTopic, CreateTopicInput } from "@/features/analyzer/lib/topic-service";
-import { authMiddleware, csrfMiddleware } from "@/middlewares/auth";
+import { authMiddleware } from "@/middlewares/auth";
 
 import { AppRuntime } from "../app-runtime";
 import { Rpc, TIMEOUT_DURATION, logRpcError, logAndReturnError, logAndReturnDefect } from "../rpc-helper";
@@ -26,7 +26,7 @@ export const listTopicsRpc = createServerFn()
 	);
 
 export const createTopicRpc = createServerFn({ method: "POST" })
-	.middleware([csrfMiddleware, authMiddleware])
+	.middleware([authMiddleware])
 	.inputValidator((raw) => Schema.decodeUnknownSync(CreateTopicInput)(raw))
 	.handler(({ data }) =>
 		AppRuntime.runPromise(

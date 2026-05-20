@@ -17,7 +17,7 @@ import {
 	UpdateUserInput,
 	UserFilterInput,
 } from "@/features/user/lib/user-service.shared";
-import { csrfMiddleware, requireRoleMiddleware } from "@/middlewares/auth";
+import { requireRoleMiddleware } from "@/middlewares/auth";
 
 import { AppRuntime } from "../app-runtime";
 import { Rpc, TIMEOUT_DURATION, logRpcError, logAndReturnError, logAndReturnDefect } from "../rpc-helper";
@@ -64,7 +64,7 @@ export const getUserByIdRpc = createServerFn()
 	);
 
 export const updateUserRpc = createServerFn({ method: "POST" })
-	.middleware([csrfMiddleware, requireRoleMiddleware("teacher", "admin")])
+	.middleware([requireRoleMiddleware("teacher", "admin")])
 	.inputValidator((raw) =>
 		Schema.decodeUnknownSync(
 			Schema.Struct({
@@ -92,7 +92,7 @@ export const updateUserRpc = createServerFn({ method: "POST" })
 	);
 
 export const updateUserRoleRpc = createServerFn({ method: "POST" })
-	.middleware([csrfMiddleware, requireRoleMiddleware("admin")])
+	.middleware([requireRoleMiddleware("admin")])
 	.inputValidator((raw) => Schema.decodeUnknownSync(UpdateRoleInput)(raw))
 	.handler(({ data, context }) =>
 		AppRuntime.runPromise(
@@ -115,7 +115,7 @@ export const updateUserRoleRpc = createServerFn({ method: "POST" })
 	);
 
 export const banUserRpc = createServerFn({ method: "POST" })
-	.middleware([csrfMiddleware, requireRoleMiddleware("admin")])
+	.middleware([requireRoleMiddleware("admin")])
 	.inputValidator((raw) => Schema.decodeUnknownSync(BanUserInput)(raw))
 	.handler(({ data, context }) =>
 		AppRuntime.runPromise(
@@ -138,7 +138,7 @@ export const banUserRpc = createServerFn({ method: "POST" })
 	);
 
 export const unbanUserRpc = createServerFn({ method: "POST" })
-	.middleware([csrfMiddleware, requireRoleMiddleware("admin")])
+	.middleware([requireRoleMiddleware("admin")])
 	.inputValidator((raw) =>
 		Schema.decodeUnknownSync(Schema.Struct({ userId: Schema.String }))(raw),
 	)
@@ -162,7 +162,7 @@ export const unbanUserRpc = createServerFn({ method: "POST" })
 	);
 
 export const bulkAssignCohortRpc = createServerFn({ method: "POST" })
-	.middleware([csrfMiddleware, requireRoleMiddleware("teacher", "admin")])
+	.middleware([requireRoleMiddleware("teacher", "admin")])
 	.inputValidator((raw) => Schema.decodeUnknownSync(BulkCohortAssignInput)(raw))
 	.handler(({ data }) =>
 		AppRuntime.runPromise(

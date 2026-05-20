@@ -3,7 +3,7 @@ import { createServerFn } from "@tanstack/react-start";
 import { Effect, Schema } from "effect";
 
 import { UpdateProfileInput, updateProfile } from "@/features/profile/lib/profile-service";
-import { authMiddleware, authMiddlewareOptional, csrfMiddleware } from "@/middlewares/auth";
+import { authMiddleware, authMiddlewareOptional } from "@/middlewares/auth";
 
 import { AppRuntime } from "../app-runtime";
 import { Rpc, TIMEOUT_DURATION, logRpcError, logAndReturnError, logAndReturnDefect } from "../rpc-helper";
@@ -21,7 +21,7 @@ export const getMe = createServerFn()
 	);
 
 export const updateProfileRpc = createServerFn({ method: "POST" })
-	.middleware([csrfMiddleware, authMiddleware])
+	.middleware([authMiddleware])
 	.inputValidator((raw) => Schema.decodeUnknownSync(UpdateProfileInput)(raw))
 	.handler(({ data, context }) =>
 		AppRuntime.runPromise(

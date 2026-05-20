@@ -10,7 +10,7 @@ import { Auth } from "@/lib/auth";
 import { studentIdToAuthEmail } from "@/lib/student-id-auth";
 import { randomString } from "@/lib/utils";
 import { NonEmpty, Password } from "@/lib/validation-schemas";
-import { authMiddlewareOptional, csrfMiddleware } from "@/middlewares/auth";
+import { authMiddlewareOptional } from "@/middlewares/auth";
 import { Database } from "@/server/db/client";
 import { cohortMembers, cohorts } from "@/server/db/schema/auth-schema";
 
@@ -68,7 +68,7 @@ function getFriendlySignUpError(err: unknown): string {
 }
 
 export const signUpRpc = createServerFn({ method: "POST" })
-	.middleware([csrfMiddleware, authMiddlewareOptional])
+	.middleware([authMiddlewareOptional])
 	.inputValidator((raw) => Schema.decodeUnknownSync(SignUpInput)(raw))
 	.handler(({ data, context }) =>
 		AppRuntime.runPromise(

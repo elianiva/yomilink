@@ -19,7 +19,7 @@ import {
 	SaveGoalMapInput,
 	UpdateMaterialInput,
 } from "@/features/goal-map/lib/goal-map-service.shared";
-import { authMiddleware, csrfMiddleware } from "@/middlewares/auth";
+import { authMiddleware } from "@/middlewares/auth";
 
 import { AppRuntime } from "../app-runtime";
 import { Rpc, TIMEOUT_DURATION, logRpcError, logAndReturnError, logAndReturnDefect } from "../rpc-helper";
@@ -43,7 +43,7 @@ export const getGoalMapRpc = createServerFn()
 	);
 
 export const saveGoalMapRpc = createServerFn({ method: "POST" })
-	.middleware([csrfMiddleware, authMiddleware])
+	.middleware([authMiddleware])
 	.inputValidator((raw) => Schema.decodeUnknownSync(SaveGoalMapInput)(raw))
 	.handler(({ data, context }) =>
 		AppRuntime.runPromise(
@@ -102,7 +102,7 @@ export const listGoalMapsByTopicRpc = createServerFn()
 	);
 
 export const deleteGoalMapRpc = createServerFn({ method: "POST" })
-	.middleware([csrfMiddleware, authMiddleware])
+	.middleware([authMiddleware])
 	.inputValidator((raw) => Schema.decodeUnknownSync(DeleteGoalMapInput)(raw))
 	.handler(({ data, context }) =>
 		AppRuntime.runPromise(
@@ -125,7 +125,7 @@ export const deleteGoalMapRpc = createServerFn({ method: "POST" })
 	);
 
 export const updateMaterialRpc = createServerFn({ method: "POST" })
-	.middleware([csrfMiddleware, authMiddleware])
+	.middleware([authMiddleware])
 	.inputValidator((raw) => Schema.decodeUnknownSync(UpdateMaterialInput)(raw))
 	.handler(({ data, context }) =>
 		AppRuntime.runPromise(

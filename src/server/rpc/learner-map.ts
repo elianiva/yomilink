@@ -23,7 +23,7 @@ import {
 	GetPeerStatsInput,
 	SubmitControlTextInput,
 } from "@/features/learner-map/lib/learner-map-service.shared";
-import { authMiddleware, csrfMiddleware } from "@/middlewares/auth";
+import { authMiddleware } from "@/middlewares/auth";
 
 import { AppRuntime } from "../app-runtime";
 import { Rpc, TIMEOUT_DURATION, logRpcError, logAndReturnError, logAndReturnDefect } from "../rpc-helper";
@@ -67,7 +67,7 @@ export const getAssignmentForStudentRpc = createServerFn()
 	);
 
 export const saveLearnerMapRpc = createServerFn({ method: "POST" })
-	.middleware([csrfMiddleware, authMiddleware])
+	.middleware([authMiddleware])
 	.inputValidator((raw) => Schema.decodeUnknownSync(SaveLearnerMapInput)(raw))
 	.handler(({ data, context }) =>
 		AppRuntime.runPromise(
@@ -90,7 +90,7 @@ export const saveLearnerMapRpc = createServerFn({ method: "POST" })
 	);
 
 export const submitLearnerMapRpc = createServerFn({ method: "POST" })
-	.middleware([csrfMiddleware, authMiddleware])
+	.middleware([authMiddleware])
 	.inputValidator((raw) => Schema.decodeUnknownSync(SubmitLearnerMapInput)(raw))
 	.handler(({ data, context }) =>
 		AppRuntime.runPromise(
@@ -133,7 +133,7 @@ export const getDiagnosisRpc = createServerFn()
 	);
 
 export const startNewAttemptRpc = createServerFn({ method: "POST" })
-	.middleware([csrfMiddleware, authMiddleware])
+	.middleware([authMiddleware])
 	.inputValidator((raw) => Schema.decodeUnknownSync(StartNewAttemptInput)(raw))
 	.handler(({ data, context }) =>
 		AppRuntime.runPromise(
@@ -174,7 +174,7 @@ export const getPeerStatsRpc = createServerFn()
 	);
 
 export const submitControlTextRpc = createServerFn({ method: "POST" })
-	.middleware([csrfMiddleware, authMiddleware])
+	.middleware([authMiddleware])
 	.inputValidator((raw) => Schema.decodeUnknownSync(SubmitControlTextInput)(raw))
 	.handler(({ data, context }) =>
 		AppRuntime.runPromise(

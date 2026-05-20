@@ -1,5 +1,5 @@
 import { redirect } from "@tanstack/react-router";
-import { createCsrfMiddleware, createMiddleware } from "@tanstack/react-start";
+import { createMiddleware } from "@tanstack/react-start";
 import { Effect } from "effect";
 
 import { getServerUser } from "@/lib/auth";
@@ -18,11 +18,8 @@ export const authMiddleware = createMiddleware().server(async ({ next, request }
 });
 
 /** Returns null for user if not authenticated */
-/**
- * CSRF protection middleware for POST server functions.
- * Checks Sec-Fetch-Site, Origin, or Referer headers.
- */
-export const csrfMiddleware = createCsrfMiddleware();
+// CSRF protection is auto-installed by TanStack Start when src/start.ts doesn't exist.
+// See https://tanstack.com/start/latest/docs/framework/react/guide/middleware#csrf-middleware
 
 export const authMiddlewareOptional = createMiddleware().server(async ({ next, request }) => {
 	const user = await AppRuntime.runPromise(getServerUser(request.headers));
@@ -40,7 +37,7 @@ export const requireRoleMiddleware = (...roles: string[]) =>
 		.middleware([authMiddleware])
 		.server(async ({ next, context }) => {
 			await AppRuntime.runPromise(
-				requireAnyRole(...roles)(context.user.id).pipe(
+				requireAnyRole(context.user.id, roles).pipe(
 					Effect.mapError((e) => new Error(e.message)),
 				),
 			);
