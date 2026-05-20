@@ -80,6 +80,7 @@ export default defineConfig({
 			"@tanstack/react-start/server",
 		],
 	},
+
 	plugins: [
 		cloudflare({ viteEnvironment: { name: "ssr" } }),
 		tailwindcss(),
