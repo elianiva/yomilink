@@ -1,6 +1,6 @@
-import { env } from "cloudflare:workers";
 import { Effect, Schema } from "effect";
 
+import { StorageService } from "@/server/storage/storage-service";
 import { NonEmpty } from "@/lib/validation-schemas";
 
 class InvalidFileTypeError extends Schema.TaggedError<InvalidFileTypeError>()(
@@ -62,17 +62,12 @@ export const uploadMaterialImage = Effect.fn("uploadMaterialImage")(function* (
 	const key = `materials/${input.goalMapId}/${imageId}`;
 
 	const arrayBuffer = yield* Effect.tryPromise(() => input.file.arrayBuffer());
-	yield* Effect.tryPromise(() =>
-		env.MATERIAL_IMAGES.put(key, arrayBuffer, {
-			httpMetadata: {
-				contentType: input.file.type,
-			},
-		}),
-	);
+	const storage = yield* StorageService;
+	yield* storage.put(key, arrayBuffer, input.file.type);
 
 	const publicUrl = `/api/materials/images/${input.goalMapId}/${imageId}`;
 
-	const imageMetadata = {
+	return {
 		id: imageId,
 		url: publicUrl,
 		name: input.file.name,
@@ -80,6 +75,4 @@ export const uploadMaterialImage = Effect.fn("uploadMaterialImage")(function* (
 		type: input.file.type,
 		uploadedAt: Date.now(),
 	};
-
-	return imageMetadata;
 });

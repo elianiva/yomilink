@@ -36,7 +36,7 @@ import {
 import { requireRoleMiddleware } from "@/middlewares/auth";
 
 import { AppRuntime } from "../app-runtime";
-import { Rpc, logRpcError, logAndReturnError, logAndReturnDefect } from "../rpc-helper";
+import { Rpc, TIMEOUT_DURATION, logRpcError, logAndReturnError, logAndReturnDefect } from "../rpc-helper";
 
 export const createFormRpc = createServerFn({ method: "POST" })
 	.middleware([requireRoleMiddleware("teacher", "admin")])
@@ -53,7 +53,10 @@ export const createFormRpc = createServerFn({ method: "POST" })
 				}),
 				Effect.catchAll(logAndReturnError("createForm")),
 				Effect.catchAllDefect(logAndReturnDefect("createForm")),
-			),
+				Effect.timeout(TIMEOUT_DURATION),
+				Effect.catchTag("TimeoutException", () =>
+					Rpc.err("Request timed out", "TIMEOUT"),
+				),			)
 		),
 	);
 
@@ -71,7 +74,10 @@ export const getFormByIdRpc = createServerFn()
 				}),
 				Effect.catchAll(logAndReturnError("getFormById")),
 				Effect.catchAllDefect(logAndReturnDefect("getFormById")),
-			),
+				Effect.timeout(TIMEOUT_DURATION),
+				Effect.catchTag("TimeoutException", () =>
+					Rpc.err("Request timed out", "TIMEOUT"),
+				),			)
 		),
 	);
 
@@ -85,7 +91,10 @@ export const listFormsRpc = createServerFn()
 				Effect.tapError(logRpcError("listForms")),
 				Effect.catchAll(logAndReturnError("listForms")),
 				Effect.catchAllDefect(logAndReturnDefect("listForms")),
-			),
+				Effect.timeout(TIMEOUT_DURATION),
+				Effect.catchTag("TimeoutException", () =>
+					Rpc.err("Request timed out", "TIMEOUT"),
+				),			)
 		),
 	);
 
@@ -99,7 +108,10 @@ export const getStudentFormsRpc = createServerFn()
 				Effect.tapError(logRpcError("getStudentForms")),
 				Effect.catchAll(logAndReturnError("getStudentForms")),
 				Effect.catchAllDefect(logAndReturnDefect("getStudentForms")),
-			),
+				Effect.timeout(TIMEOUT_DURATION),
+				Effect.catchTag("TimeoutException", () =>
+					Rpc.err("Request timed out", "TIMEOUT"),
+				),			)
 		),
 	);
 
@@ -127,7 +139,10 @@ export const getStudentFormByIdRpc = createServerFn()
 				}),
 				Effect.catchAll(logAndReturnError("getStudentFormById")),
 				Effect.catchAllDefect(logAndReturnDefect("getStudentFormById")),
-			),
+				Effect.timeout(TIMEOUT_DURATION),
+				Effect.catchTag("TimeoutException", () =>
+					Rpc.err("Request timed out", "TIMEOUT"),
+				),			)
 		),
 	);
 
@@ -145,7 +160,10 @@ export const deleteFormRpc = createServerFn({ method: "POST" })
 				}),
 				Effect.catchAll(logAndReturnError("deleteForm")),
 				Effect.catchAllDefect(logAndReturnDefect("deleteForm")),
-			),
+				Effect.timeout(TIMEOUT_DURATION),
+				Effect.catchTag("TimeoutException", () =>
+					Rpc.err("Request timed out", "TIMEOUT"),
+				),			)
 		),
 	);
 
@@ -163,7 +181,10 @@ export const publishFormRpc = createServerFn({ method: "POST" })
 				}),
 				Effect.catchAll(logAndReturnError("publishForm")),
 				Effect.catchAllDefect(logAndReturnDefect("publishForm")),
-			),
+				Effect.timeout(TIMEOUT_DURATION),
+				Effect.catchTag("TimeoutException", () =>
+					Rpc.err("Request timed out", "TIMEOUT"),
+				),			)
 		),
 	);
 
@@ -181,7 +202,10 @@ export const unpublishFormRpc = createServerFn({ method: "POST" })
 				}),
 				Effect.catchAll(logAndReturnError("unpublishForm")),
 				Effect.catchAllDefect(logAndReturnDefect("unpublishForm")),
-			),
+				Effect.timeout(TIMEOUT_DURATION),
+				Effect.catchTag("TimeoutException", () =>
+					Rpc.err("Request timed out", "TIMEOUT"),
+				),			)
 		),
 	);
 
@@ -208,7 +232,10 @@ export const updateFormRpc = createServerFn({ method: "POST" })
 				}),
 				Effect.catchAll(logAndReturnError("updateForm")),
 				Effect.catchAllDefect(logAndReturnDefect("updateForm")),
-			),
+				Effect.timeout(TIMEOUT_DURATION),
+				Effect.catchTag("TimeoutException", () =>
+					Rpc.err("Request timed out", "TIMEOUT"),
+				),			)
 		),
 	);
 
@@ -226,7 +253,10 @@ export const cloneFormRpc = createServerFn({ method: "POST" })
 				}),
 				Effect.catchAll(logAndReturnError("cloneForm")),
 				Effect.catchAllDefect(logAndReturnDefect("cloneForm")),
-			),
+				Effect.timeout(TIMEOUT_DURATION),
+				Effect.catchTag("TimeoutException", () =>
+					Rpc.err("Request timed out", "TIMEOUT"),
+				),			)
 		),
 	);
 
@@ -244,7 +274,10 @@ export const getFormResponsesRpc = createServerFn()
 				}),
 				Effect.catchAll(logAndReturnError("getFormResponses")),
 				Effect.catchAllDefect(logAndReturnDefect("getFormResponses")),
-			),
+				Effect.timeout(TIMEOUT_DURATION),
+				Effect.catchTag("TimeoutException", () =>
+					Rpc.err("Request timed out", "TIMEOUT"),
+				),			)
 		),
 	);
 
@@ -278,7 +311,10 @@ export const submitFormResponseRpc = createServerFn({ method: "POST" })
 				}),
 				Effect.catchAll(logAndReturnError("submitFormResponse")),
 				Effect.catchAllDefect(logAndReturnDefect("submitFormResponse")),
-			),
+				Effect.timeout(TIMEOUT_DURATION),
+				Effect.catchTag("TimeoutException", () =>
+					Rpc.err("Request timed out", "TIMEOUT"),
+				),			)
 		),
 	);
 
@@ -300,7 +336,10 @@ export const reorderQuestionsRpc = createServerFn({ method: "POST" })
 				}),
 				Effect.catchAll(logAndReturnError("reorderQuestions")),
 				Effect.catchAllDefect(logAndReturnDefect("reorderQuestions")),
-			),
+				Effect.timeout(TIMEOUT_DURATION),
+				Effect.catchTag("TimeoutException", () =>
+					Rpc.err("Request timed out", "TIMEOUT"),
+				),			)
 		),
 	);
 
@@ -320,7 +359,10 @@ export const createQuestionRpc = createServerFn({ method: "POST" })
 				}),
 				Effect.catchAll(logAndReturnError("createQuestion")),
 				Effect.catchAllDefect(logAndReturnDefect("createQuestion")),
-			),
+				Effect.timeout(TIMEOUT_DURATION),
+				Effect.catchTag("TimeoutException", () =>
+					Rpc.err("Request timed out", "TIMEOUT"),
+				),			)
 		),
 	);
 
@@ -340,7 +382,10 @@ export const updateQuestionRpc = createServerFn({ method: "POST" })
 				}),
 				Effect.catchAll(logAndReturnError("updateQuestion")),
 				Effect.catchAllDefect(logAndReturnDefect("updateQuestion")),
-			),
+				Effect.timeout(TIMEOUT_DURATION),
+				Effect.catchTag("TimeoutException", () =>
+					Rpc.err("Request timed out", "TIMEOUT"),
+				),			)
 		),
 	);
 
@@ -360,7 +405,10 @@ export const deleteQuestionRpc = createServerFn({ method: "POST" })
 				}),
 				Effect.catchAll(logAndReturnError("deleteQuestion")),
 				Effect.catchAllDefect(logAndReturnDefect("deleteQuestion")),
-			),
+				Effect.timeout(TIMEOUT_DURATION),
+				Effect.catchTag("TimeoutException", () =>
+					Rpc.err("Request timed out", "TIMEOUT"),
+				),			)
 		),
 	);
 

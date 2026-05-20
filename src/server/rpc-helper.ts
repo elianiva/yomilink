@@ -1,6 +1,8 @@
-import { Cause, Effect } from "effect";
+import { Cause, Duration, Effect } from "effect";
 
 import type { RpcError, RpcSuccess } from "@/lib/rpc-types";
+
+export const TIMEOUT_DURATION = Duration.seconds(30);
 
 const formatError = (error: unknown): { message: string; cause?: unknown } => {
 	if (error && typeof error === "object" && "_tag" in error) {

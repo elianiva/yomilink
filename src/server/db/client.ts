@@ -10,6 +10,7 @@ const SqlRemote = Layer.unwrapEffect(
 		return LibsqlClient.layer({
 			url: config.databaseUrl,
 			authToken: config.dbAuthToken,
+			concurrency: 10,
 		});
 	}),
 );
@@ -37,6 +38,7 @@ const SqlLive = Layer.unwrapEffect(
 			return SqlLocal;
 		}
 		yield* Effect.log("Using remote Turso database");
+		// Libsql client handles connection internally, no layer-level retry needed
 		return SqlRemote;
 	}),
 );

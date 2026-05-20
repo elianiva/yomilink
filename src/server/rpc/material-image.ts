@@ -9,7 +9,7 @@ import {
 import { authMiddleware } from "@/middlewares/auth";
 
 import { AppRuntime } from "../app-runtime";
-import { Rpc, logRpcError } from "../rpc-helper";
+import { Rpc, TIMEOUT_DURATION, logRpcError } from "../rpc-helper";
 
 function parseUploadFormData(formData: FormData): UploadMaterialImageInput {
 	const goalMapId = formData.get("goalMapId");
@@ -53,6 +53,10 @@ export const uploadMaterialImageRpc = createServerFn({ method: "POST" })
 						yield* Effect.logError("Upload failed", error);
 						return yield* Rpc.err("Failed to upload image", undefined, error);
 					}),
+				),
+				Effect.timeout(TIMEOUT_DURATION),
+				Effect.catchTag("TimeoutException", () =>
+					Rpc.err("Request timed out", "TIMEOUT"),
 				),
 			),
 		);

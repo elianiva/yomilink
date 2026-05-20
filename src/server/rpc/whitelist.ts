@@ -14,7 +14,7 @@ import {
 import { authMiddleware, authMiddlewareOptional, requireRoleMiddleware } from "@/middlewares/auth";
 
 import { AppRuntime } from "../app-runtime";
-import { Rpc, logRpcError, logAndReturnError, logAndReturnDefect } from "../rpc-helper";
+import { Rpc, TIMEOUT_DURATION, logRpcError, logAndReturnError, logAndReturnDefect } from "../rpc-helper";
 
 export const getWhitelistEntryRpc = createServerFn()
 	.middleware([authMiddleware])
@@ -30,7 +30,10 @@ export const getWhitelistEntryRpc = createServerFn()
 				}),
 				Effect.catchAll(logAndReturnError("getWhitelistEntry")),
 				Effect.catchAllDefect(logAndReturnDefect("getWhitelistEntry")),
-			),
+				Effect.timeout(TIMEOUT_DURATION),
+				Effect.catchTag("TimeoutException", () =>
+					Rpc.err("Request timed out", "TIMEOUT"),
+				),			)
 		),
 	);
 
@@ -44,7 +47,10 @@ export const listUnregisteredWhitelistRpc = createServerFn()
 				Effect.tapError(logRpcError("listUnregisteredWhitelist")),
 				Effect.catchAll(logAndReturnError("listUnregisteredWhitelist")),
 				Effect.catchAllDefect(logAndReturnDefect("listUnregisteredWhitelist")),
-			),
+				Effect.timeout(TIMEOUT_DURATION),
+				Effect.catchTag("TimeoutException", () =>
+					Rpc.err("Request timed out", "TIMEOUT"),
+				),			)
 		),
 	);
 
@@ -62,7 +68,10 @@ export const importWhitelistCsvRpc = createServerFn({ method: "POST" })
 				}),
 				Effect.catchAll(logAndReturnError("importWhitelistCsv")),
 				Effect.catchAllDefect(logAndReturnDefect("importWhitelistCsv")),
-			),
+				Effect.timeout(TIMEOUT_DURATION),
+				Effect.catchTag("TimeoutException", () =>
+					Rpc.err("Request timed out", "TIMEOUT"),
+				),			)
 		),
 	);
 

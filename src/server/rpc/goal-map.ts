@@ -22,7 +22,7 @@ import {
 import { authMiddleware } from "@/middlewares/auth";
 
 import { AppRuntime } from "../app-runtime";
-import { Rpc, logRpcError, logAndReturnError, logAndReturnDefect } from "../rpc-helper";
+import { Rpc, TIMEOUT_DURATION, logRpcError, logAndReturnError, logAndReturnDefect } from "../rpc-helper";
 
 export const getGoalMapRpc = createServerFn()
 	.middleware([authMiddleware])
@@ -35,7 +35,10 @@ export const getGoalMapRpc = createServerFn()
 				Effect.tapError(logRpcError("getGoalMap")),
 				Effect.catchAll(logAndReturnError("getGoalMap")),
 				Effect.catchAllDefect(logAndReturnDefect("getGoalMap")),
-			),
+				Effect.timeout(TIMEOUT_DURATION),
+				Effect.catchTag("TimeoutException", () =>
+					Rpc.err("Request timed out", "TIMEOUT"),
+				),			)
 		),
 	);
 
@@ -56,7 +59,10 @@ export const saveGoalMapRpc = createServerFn({ method: "POST" })
 				}),
 				Effect.catchAll(logAndReturnError("saveGoalMap")),
 				Effect.catchAllDefect(logAndReturnDefect("saveGoalMap")),
-			),
+				Effect.timeout(TIMEOUT_DURATION),
+				Effect.catchTag("TimeoutException", () =>
+					Rpc.err("Request timed out", "TIMEOUT"),
+				),			)
 		),
 	);
 
@@ -70,7 +76,10 @@ export const listGoalMapsRpc = createServerFn()
 				Effect.tapError(logRpcError("listGoalMaps")),
 				Effect.catchAll(logAndReturnError("listGoalMaps")),
 				Effect.catchAllDefect(logAndReturnDefect("listGoalMaps")),
-			),
+				Effect.timeout(TIMEOUT_DURATION),
+				Effect.catchTag("TimeoutException", () =>
+					Rpc.err("Request timed out", "TIMEOUT"),
+				),			)
 		),
 	);
 
@@ -85,7 +94,10 @@ export const listGoalMapsByTopicRpc = createServerFn()
 				Effect.tapError(logRpcError("listGoalMapsByTopic")),
 				Effect.catchAll(logAndReturnError("listGoalMapsByTopic")),
 				Effect.catchAllDefect(logAndReturnDefect("listGoalMapsByTopic")),
-			),
+				Effect.timeout(TIMEOUT_DURATION),
+				Effect.catchTag("TimeoutException", () =>
+					Rpc.err("Request timed out", "TIMEOUT"),
+				),			)
 		),
 	);
 
@@ -105,7 +117,10 @@ export const deleteGoalMapRpc = createServerFn({ method: "POST" })
 				}),
 				Effect.catchAll(logAndReturnError("deleteGoalMap")),
 				Effect.catchAllDefect(logAndReturnDefect("deleteGoalMap")),
-			),
+				Effect.timeout(TIMEOUT_DURATION),
+				Effect.catchTag("TimeoutException", () =>
+					Rpc.err("Request timed out", "TIMEOUT"),
+				),			)
 		),
 	);
 
@@ -125,7 +140,10 @@ export const updateMaterialRpc = createServerFn({ method: "POST" })
 				}),
 				Effect.catchAll(logAndReturnError("updateMaterial")),
 				Effect.catchAllDefect(logAndReturnDefect("updateMaterial")),
-			),
+				Effect.timeout(TIMEOUT_DURATION),
+				Effect.catchTag("TimeoutException", () =>
+					Rpc.err("Request timed out", "TIMEOUT"),
+				),			)
 		),
 	);
 

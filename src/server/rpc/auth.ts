@@ -15,7 +15,7 @@ import { Database } from "@/server/db/client";
 import { cohortMembers, cohorts, user as users } from "@/server/db/schema/auth-schema";
 
 import { AppRuntime } from "../app-runtime";
-import { Rpc, logRpcError, logAndReturnError, logAndReturnDefect } from "../rpc-helper";
+import { Rpc, TIMEOUT_DURATION, logRpcError, logAndReturnError, logAndReturnDefect } from "../rpc-helper";
 
 export const JlptLevelSchema = Schema.Union(Schema.Literal("N5", "N4", "N3", "N2", "N1", "None"));
 
@@ -199,6 +199,10 @@ export const signUpRpc = createServerFn({ method: "POST" })
 				}),
 				Effect.catchAll(logAndReturnError("signUp")),
 				Effect.catchAllDefect(logAndReturnDefect("signUp")),
+				Effect.timeout(TIMEOUT_DURATION),
+				Effect.catchTag("TimeoutException", () =>
+					Rpc.err("Request timed out", "TIMEOUT"),
+				),
 			),
 		),
 	);
@@ -237,6 +241,10 @@ export const listCohortsRpc = createServerFn()
 				Effect.tapError(logRpcError("listCohorts")),
 				Effect.catchAll(logAndReturnError("listCohorts")),
 				Effect.catchAllDefect(logAndReturnDefect("listCohorts")),
+				Effect.timeout(TIMEOUT_DURATION),
+				Effect.catchTag("TimeoutException", () =>
+					Rpc.err("Request timed out", "TIMEOUT"),
+				),
 			),
 		),
 	);

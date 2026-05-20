@@ -6,7 +6,7 @@ import { UpdateProfileInput, updateProfile } from "@/features/profile/lib/profil
 import { authMiddleware, authMiddlewareOptional } from "@/middlewares/auth";
 
 import { AppRuntime } from "../app-runtime";
-import { Rpc, logRpcError, logAndReturnError, logAndReturnDefect } from "../rpc-helper";
+import { Rpc, TIMEOUT_DURATION, logRpcError, logAndReturnError, logAndReturnDefect } from "../rpc-helper";
 
 export const getMe = createServerFn()
 	.middleware([authMiddlewareOptional])
@@ -34,7 +34,10 @@ export const updateProfileRpc = createServerFn({ method: "POST" })
 				}),
 				Effect.catchAll(logAndReturnError("updateProfile")),
 				Effect.catchAllDefect(logAndReturnDefect("updateProfile")),
-			),
+				Effect.timeout(TIMEOUT_DURATION),
+				Effect.catchTag("TimeoutException", () =>
+					Rpc.err("Request timed out", "TIMEOUT"),
+				),			)
 		),
 	);
 

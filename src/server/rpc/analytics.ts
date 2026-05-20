@@ -20,7 +20,7 @@ import {
 import { requireRoleMiddleware } from "@/middlewares/auth";
 
 import { AppRuntime } from "../app-runtime";
-import { Rpc, logRpcError, logAndReturnError, logAndReturnDefect } from "../rpc-helper";
+import { Rpc, TIMEOUT_DURATION, logRpcError, logAndReturnError, logAndReturnDefect } from "../rpc-helper";
 
 export const getTeacherAssignmentsRpc = createServerFn()
 	.middleware([requireRoleMiddleware("teacher", "admin")])
@@ -32,7 +32,10 @@ export const getTeacherAssignmentsRpc = createServerFn()
 				Effect.tapError(logRpcError("getTeacherAssignments")),
 				Effect.catchAll(logAndReturnError("getTeacherAssignments")),
 				Effect.catchAllDefect(logAndReturnDefect("getTeacherAssignments")),
-			),
+				Effect.timeout(TIMEOUT_DURATION),
+				Effect.catchTag("TimeoutException", () =>
+					Rpc.err("Request timed out", "TIMEOUT"),
+				),			),
 		),
 	);
 
@@ -51,7 +54,10 @@ export const getAnalyticsForAssignmentRpc = createServerFn()
 				}),
 				Effect.catchAll(logAndReturnError("getAnalyticsForAssignment")),
 				Effect.catchAllDefect(logAndReturnDefect("getAnalyticsForAssignment")),
-			),
+				Effect.timeout(TIMEOUT_DURATION),
+				Effect.catchTag("TimeoutException", () =>
+					Rpc.err("Request timed out", "TIMEOUT"),
+				),			),
 		),
 	);
 
@@ -70,7 +76,10 @@ export const getLearnerMapForAnalyticsRpc = createServerFn()
 				}),
 				Effect.catchAll(logAndReturnError("getLearnerMapForAnalytics")),
 				Effect.catchAllDefect(logAndReturnDefect("getLearnerMapForAnalytics")),
-			),
+				Effect.timeout(TIMEOUT_DURATION),
+				Effect.catchTag("TimeoutException", () =>
+					Rpc.err("Request timed out", "TIMEOUT"),
+				),			),
 		),
 	);
 
@@ -85,7 +94,10 @@ export const getMultipleLearnerMapsRpc = createServerFn()
 				Effect.tapError(logRpcError("getMultipleLearnerMaps")),
 				Effect.catchAll(logAndReturnError("getMultipleLearnerMaps")),
 				Effect.catchAllDefect(logAndReturnDefect("getMultipleLearnerMaps")),
-			),
+				Effect.timeout(TIMEOUT_DURATION),
+				Effect.catchTag("TimeoutException", () =>
+					Rpc.err("Request timed out", "TIMEOUT"),
+				),			),
 		),
 	);
 
@@ -103,7 +115,10 @@ export const getLearnerSummaryTextRpc = createServerFn()
 				}),
 				Effect.catchAll(logAndReturnError("getLearnerSummaryText")),
 				Effect.catchAllDefect(logAndReturnDefect("getLearnerSummaryText")),
-			),
+				Effect.timeout(TIMEOUT_DURATION),
+				Effect.catchTag("TimeoutException", () =>
+					Rpc.err("Request timed out", "TIMEOUT"),
+				),			),
 		),
 	);
 
@@ -118,7 +133,10 @@ export const exportAnalyticsDataRpc = createServerFn({ method: "POST" })
 				Effect.tapError(logRpcError("exportAnalyticsData")),
 				Effect.catchAll(logAndReturnError("exportAnalyticsData")),
 				Effect.catchAllDefect(logAndReturnDefect("exportAnalyticsData")),
-			),
+				Effect.timeout(TIMEOUT_DURATION),
+				Effect.catchTag("TimeoutException", () =>
+					Rpc.err("Request timed out", "TIMEOUT"),
+				),			),
 		),
 	);
 

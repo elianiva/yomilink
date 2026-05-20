@@ -1,14 +1,14 @@
 {
 	"$schema": "node_modules/wrangler/config-schema.json",
 	"name": "yomilink",
-	"compatibility_date": "2025-09-02",
+	"compatibility_date": "2026-01-01",
 	"compatibility_flags": ["nodejs_compat"],
 	"workers_dev": true,
 	"preview_urls": true,
 	"observability": {
 		"logs": {
 			"enabled": true,
-			"invocation_logs": true
+			"invocation_logs": false
 		}
 	},
 	"main": "./src/server.ts",
