@@ -4,4 +4,3 @@ export const NodeContext = createContext<{ readOnly: boolean }>({ readOnly: fals
 
 export const useNodeContext = () => useContext(NodeContext);
 
-export const useNodeContext = () => useContext(NodeContext);
