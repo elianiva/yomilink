@@ -55,7 +55,6 @@ function DashboardHome() {
 		successMessage: "Goal map deleted successfully",
 	});
 
-	const isLoading = topicsLoading || goalMapsLoading;
 	const error = topicsError || goalMapsError;
 
 	const handleDelete = (goalMapId: string) => {
@@ -80,7 +79,7 @@ function DashboardHome() {
 					<NewTopicDialog />
 				</div>
 				<div className="space-y-px">
-					{isLoading
+					{topicsLoading
 						? Array.from({ length: 6 }).map((_, i) => (
 								<div key={i} className="px-4 py-3">
 									<Skeleton className="h-4 w-3/4 mb-1.5" />
@@ -141,7 +140,7 @@ function DashboardHome() {
 						</p>
 					)}
 				</div>
-				{isLoading ? (
+				{goalMapsLoading && goalMaps.length === 0 ? (
 					<div className="grid grid-cols-1 md:grid-cols-2 gap-4">
 						{Array.from({ length: 4 }).map((_, i) => (
 							<Skeleton
