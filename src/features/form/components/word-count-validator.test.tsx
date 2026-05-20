@@ -1,6 +1,7 @@
 import { render, screen } from "@testing-library/react";
 import { describe, expect, it } from "vite-plus/test";
 import "@testing-library/jest-dom/vitest";
+
 import { WordCountValidator, countWords } from "./word-count-validator";
 
 describe("WordCountValidator", () => {

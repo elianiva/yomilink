@@ -2,14 +2,13 @@ import { getRouteApi, useNavigate } from "@tanstack/react-router";
 import type { Connection } from "@xyflow/react";
 import { ReactFlowProvider, useReactFlow } from "@xyflow/react";
 import { useAtom, useAtomValue, useSetAtom } from "jotai";
-import { useCallback, useEffect } from "react";
+import { Suspense, useCallback, useEffect, lazy } from "react";
 
 import { AddConceptDialog } from "@/features/goal-map/components/add-concept-dialog";
 
 import "@xyflow/react/dist/style.css";
 import { AddLinkDialog } from "@/features/goal-map/components/add-link-dialog";
 import { EditorToolbar } from "@/features/goal-map/components/editor-toolbar";
-import { MaterialDialog } from "@/features/goal-map/components/material-dialog";
 import { SaveDialog, WarningsPanel } from "@/features/goal-map/components/save-dialog";
 import { useContextMenu } from "@/features/goal-map/hooks/use-context-menu";
 import { useGraphHandlers } from "@/features/goal-map/hooks/use-graph-handlers";
@@ -42,6 +41,12 @@ import { randomString } from "@/lib/utils";
 import { GoalMapRpc } from "@/server/rpc/goal-map";
 import { KitRpc } from "@/server/rpc/kit";
 import { TopicRpc } from "@/server/rpc/topic";
+
+const MaterialDialog = lazy(() =>
+	import("@/features/goal-map/components/material-dialog").then((m) => ({
+		default: m.MaterialDialog,
+	})),
+);
 
 const routeApi = getRouteApi("/dashboard/goal-map/$goalMapId");
 
@@ -333,12 +338,14 @@ export function GoalMapEditor() {
 				onConfirm={(data) => handleEditNodeConfirm(data)}
 			/>
 			{materialDialogOpen && (
-				<MaterialDialog
-					key={`${materialText.slice(0, 50)}-${materialImages.length}`}
-					goalMapId={goalMapId}
-					materialText={materialText}
-					materialImages={materialImages}
-				/>
+				<Suspense fallback={null}>
+					<MaterialDialog
+						key={`${materialText.slice(0, 50)}-${materialImages.length}`}
+						goalMapId={goalMapId}
+						materialText={materialText}
+						materialImages={materialImages}
+					/>
+				</Suspense>
 			)}
 			<SaveDialog
 				open={saveOpen}
