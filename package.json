@@ -64,7 +64,6 @@
 		"@radix-ui/react-switch": "^1.2.6",
 		"@radix-ui/react-tabs": "^1.1.13",
 		"@radix-ui/react-tooltip": "^1.2.8",
-		"@sentry/effect": "^10.53.1",
 		"@tailwindcss/vite": "^4.3.0",
 		"@tanstack/match-sorter-utils": "^8.19.4",
 		"@tanstack/react-devtools": "^0.10.5",

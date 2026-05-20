@@ -22,7 +22,7 @@ export const CreateTopicInput = Schema.Struct({
 
 export type CreateTopicInput = typeof CreateTopicInput.Type;
 
-export const listTopics = Effect.fn("listTopics")(function* () {
+export const listTopics = Effect.fn("listTopics")(function*() {
 	const db = yield* Database;
 	const rows = yield* db
 		.select({
@@ -36,7 +36,7 @@ export const listTopics = Effect.fn("listTopics")(function* () {
 	return rows;
 });
 
-export const createTopic = Effect.fn("createTopic")(function* (data: CreateTopicInput) {
+export const createTopic = Effect.fn("createTopic")(function*(data: CreateTopicInput) {
 	const db = yield* Database;
 	yield* db.insert(topics).values({
 		id: randomString(),

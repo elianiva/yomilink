@@ -8,9 +8,7 @@ const env = (
 			: {}
 ) as Record<string, string>;
 
-export const ClientConfig = Config.all({
-	sentryDsn: Config.redacted("SENTRY_DSN"),
-}).pipe(
+export const ClientConfig = Config.all({}).pipe(
 	Effect.withConfigProvider(ConfigProvider.fromJson(env).pipe(ConfigProvider.nested("VITE_"))),
 );
 

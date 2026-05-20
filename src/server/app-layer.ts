@@ -6,7 +6,6 @@ import { RateLimiter } from "@/lib/rate-limiter";
 import { DatabaseLive, DatabaseTest } from "./db/client";
 import { StorageService } from "./storage/storage-service";
 import { LoggerLive } from "./logger";
-import { ServerTelemetry } from "./telemetry";
 /**
  * Centralized application layer that combines all server-side dependencies.
  *
@@ -15,8 +14,7 @@ import { ServerTelemetry } from "./telemetry";
  *
  * Includes:
  * - DatabaseLive (SQLite/Drizzle)
- * - LoggerLive (Sentry error logging)
- * - ServerTelemetry (OpenTelemetry/Sentry tracing)
+ * - LoggerLive (structured JSON logging)
  *
  * @example
  * ```ts
@@ -34,7 +32,6 @@ export const AppLayer = Layer.mergeAll(
 	StorageService.Default,
 	RateLimiter.Default,
 	LoggerLive,
-	ServerTelemetry,
 );
 /**
  * Test variant of AppLayer - uses in-memory database.
@@ -45,5 +42,4 @@ export const AppLayerTest = Layer.mergeAll(
 	StorageService.Default,
 	RateLimiter.Default,
 	LoggerLive,
-	ServerTelemetry,
 );

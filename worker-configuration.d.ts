@@ -6,7 +6,6 @@ declare namespace Cloudflare {
 		MATERIAL_IMAGES: R2Bucket;
 		TURSO_DATABASE_URL: string;
 		TURSO_AUTH_TOKEN: string;
-		VITE_SENTRY_DSN: string;
 		SITE_URL: string;
 		BETTER_AUTH_URL: string;
 		BETTER_AUTH_SECRET: string;
@@ -22,7 +21,6 @@ declare namespace NodeJS {
 			Cloudflare.Env,
 			| "TURSO_DATABASE_URL"
 			| "TURSO_AUTH_TOKEN"
-			| "VITE_SENTRY_DSN"
 			| "SITE_URL"
 			| "BETTER_AUTH_URL"
 			| "BETTER_AUTH_SECRET"

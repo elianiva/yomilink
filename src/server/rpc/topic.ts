@@ -21,7 +21,7 @@ export const listTopicsRpc = createServerFn()
 				Effect.timeout(TIMEOUT_DURATION),
 				Effect.catchTag("TimeoutException", () =>
 					Rpc.err("Request timed out", "TIMEOUT"),
-				),			)
+				),)
 		),
 	);
 
@@ -39,7 +39,7 @@ export const createTopicRpc = createServerFn({ method: "POST" })
 				Effect.timeout(TIMEOUT_DURATION),
 				Effect.catchTag("TimeoutException", () =>
 					Rpc.err("Request timed out", "TIMEOUT"),
-				),			)
+				),)
 		),
 	);
 
