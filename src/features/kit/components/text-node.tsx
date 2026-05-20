@@ -6,6 +6,8 @@ import { memo } from "react";
 import { contextMenuAtom, editNodeAtom } from "@/features/goal-map/lib/atoms";
 import { cn } from "@/lib/utils";
 
+import { useNodeContext } from "../lib/node-context";
+
 /**
  * Maps color values to Tailwind classes.
  * We need explicit mappings because Tailwind purges dynamic class names.
@@ -51,6 +53,7 @@ function TextNodeComponent({ id, data, selected }: Partial<NodeProps<Node<TextNo
 	const { deleteElements } = useReactFlow();
 	const setEditNode = useSetAtom(editNodeAtom);
 	const colorClasses = getColorClasses(data);
+	const { readOnly } = useNodeContext();
 
 	return (
 		<div
@@ -60,8 +63,8 @@ function TextNodeComponent({ id, data, selected }: Partial<NodeProps<Node<TextNo
 				isActive && "ring-4 scale-105 z-50 shadow-lg",
 			)}
 		>
-			{/* Toolbar — shown when selected */}
-			{selected && (
+			{/* Toolbar — shown when selected and not read-only */}
+			{selected && !readOnly && (
 				<div className="absolute -top-4 right-1/2 translate-x-1/2 z-20 flex items-center gap-0.5 rounded-md border bg-background p-0.5 shadow-md">
 					<button
 						type="button"

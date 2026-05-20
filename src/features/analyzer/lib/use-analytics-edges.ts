@@ -220,7 +220,6 @@ export function useAnalyticsEdges({
 						stroke: "var(--edge-neutral)",
 						strokeWidth: 2,
 					},
-
 				});
 			}
 		} else if (showLearnerMap) {

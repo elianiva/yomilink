@@ -6,6 +6,8 @@ import { memo } from "react";
 import { contextMenuAtom, editNodeAtom } from "@/features/goal-map/lib/atoms";
 import { cn } from "@/lib/utils";
 
+import { useNodeContext } from "../lib/node-context";
+
 const HANDLE_CLASSES = "!w-3 !h-3 !bg-background !border-2 !border-sky-500";
 
 function ConnectorNodeComponent({
@@ -17,6 +19,7 @@ function ConnectorNodeComponent({
 	const isActive = contextMenu?.nodeId === id;
 	const { deleteElements } = useReactFlow();
 	const setEditNode = useSetAtom(editNodeAtom);
+	const { readOnly } = useNodeContext();
 
 	return (
 		<div
@@ -25,8 +28,8 @@ function ConnectorNodeComponent({
 				isActive && "ring-4 scale-105 z-50 shadow-lg",
 			)}
 		>
-			{/* Toolbar — shown when selected */}
-			{selected && (
+			{/* Toolbar — shown when selected and not read-only */}
+			{selected && !readOnly && (
 				<div className="absolute -top-4 right-1/2 translate-x-1/2 z-20 flex items-center gap-0.5 rounded-md border bg-background p-0.5 shadow-md">
 					<button
 						type="button"

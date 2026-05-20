@@ -10,6 +10,7 @@ import { useCallback, useMemo } from "react";
 
 import type { Node, Edge } from "@/features/learner-map/lib/comparator";
 
+import { NodeContext } from "../lib/node-context";
 import { ConnectorNode } from "./connector-node";
 import { FloatingConnectionLine } from "./floating-connection-line";
 import { FloatingEdge } from "./floating-edge";
@@ -144,32 +145,34 @@ export function ConceptMapCanvas({
 	);
 
 	return (
-		<ReactFlow
-			ref={refCallback}
-			nodes={nodes}
-			edges={edges}
-			nodeTypes={NODE_TYPES}
-			edgeTypes={EDGE_TYPES}
-			defaultEdgeOptions={defaultEdgeOptions}
-			connectionLineComponent={FloatingConnectionLine}
-			onNodesChange={handleNodesChange}
-			onEdgesChange={handleEdgesChange}
-			onConnect={handleConnect}
-			onConnectEnd={onConnectEnd}
-			isValidConnection={isValidConnection}
-			onNodeClick={handleNodeClick}
-			onEdgeClick={handleEdgeClick}
-			onPaneClick={handlePaneClick}
-			connectionRadius={80}
-			connectionMode={ConnectionMode.Loose}
-			nodesDraggable={!readOnly}
-			nodesConnectable={!readOnly}
-			elementsSelectable={!readOnly}
-			fitView
-		>
-			<MiniMap />
-			<Background gap={16} />
-			{children}
-		</ReactFlow>
+		<NodeContext.Provider value={{ readOnly: !!readOnly }}>
+			<ReactFlow
+				ref={refCallback}
+				nodes={nodes}
+				edges={edges}
+				nodeTypes={NODE_TYPES}
+				edgeTypes={EDGE_TYPES}
+				defaultEdgeOptions={defaultEdgeOptions}
+				connectionLineComponent={FloatingConnectionLine}
+				onNodesChange={handleNodesChange}
+				onEdgesChange={handleEdgesChange}
+				onConnect={handleConnect}
+				onConnectEnd={onConnectEnd}
+				isValidConnection={isValidConnection}
+				onNodeClick={handleNodeClick}
+				onEdgeClick={handleEdgeClick}
+				onPaneClick={handlePaneClick}
+				connectionRadius={80}
+				connectionMode={ConnectionMode.Loose}
+				nodesDraggable={!readOnly}
+				nodesConnectable={!readOnly}
+				elementsSelectable={!readOnly}
+				fitView
+			>
+				<MiniMap />
+				<Background gap={16} />
+				{children}
+			</ReactFlow>
+		</NodeContext.Provider>
 	);
 }
