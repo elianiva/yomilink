@@ -14,7 +14,13 @@ import {
 import { requireRoleMiddleware } from "@/middlewares/auth";
 
 import { AppRuntime } from "../app-runtime";
-import { Rpc, TIMEOUT_DURATION, logRpcError, logAndReturnError, logAndReturnDefect } from "../rpc-helper";
+import {
+	Rpc,
+	TIMEOUT_DURATION,
+	logRpcError,
+	logAndReturnError,
+	logAndReturnDefect,
+} from "../rpc-helper";
 
 export const listGoalMapsWithKitsRpc = createServerFn()
 	.middleware([requireRoleMiddleware("teacher", "admin")])
@@ -27,9 +33,8 @@ export const listGoalMapsWithKitsRpc = createServerFn()
 				Effect.catchAll(logAndReturnError("listGoalMapsWithKits")),
 				Effect.catchAllDefect(logAndReturnDefect("listGoalMapsWithKits")),
 				Effect.timeout(TIMEOUT_DURATION),
-				Effect.catchTag("TimeoutException", () =>
-					Rpc.err("Request timed out", "TIMEOUT"),
-				),			)
+				Effect.catchTag("TimeoutException", () => Rpc.err("Request timed out", "TIMEOUT")),
+			),
 		),
 	);
 
@@ -45,9 +50,8 @@ export const getKitRpc = createServerFn()
 				Effect.catchAll(logAndReturnError("getKit")),
 				Effect.catchAllDefect(logAndReturnDefect("getKit")),
 				Effect.timeout(TIMEOUT_DURATION),
-				Effect.catchTag("TimeoutException", () =>
-					Rpc.err("Request timed out", "TIMEOUT"),
-				),			)
+				Effect.catchTag("TimeoutException", () => Rpc.err("Request timed out", "TIMEOUT")),
+			),
 		),
 	);
 
@@ -63,9 +67,8 @@ export const getKitStatusRpc = createServerFn()
 				Effect.catchAll(logAndReturnError("getKitStatus")),
 				Effect.catchAllDefect(logAndReturnDefect("getKitStatus")),
 				Effect.timeout(TIMEOUT_DURATION),
-				Effect.catchTag("TimeoutException", () =>
-					Rpc.err("Request timed out", "TIMEOUT"),
-				),			)
+				Effect.catchTag("TimeoutException", () => Rpc.err("Request timed out", "TIMEOUT")),
+			),
 		),
 	);
 
@@ -84,9 +87,8 @@ export const generateKitRpc = createServerFn({ method: "POST" })
 				Effect.catchAll(logAndReturnError("generateKit")),
 				Effect.catchAllDefect(logAndReturnDefect("generateKit")),
 				Effect.timeout(TIMEOUT_DURATION),
-				Effect.catchTag("TimeoutException", () =>
-					Rpc.err("Request timed out", "TIMEOUT"),
-				),			)
+				Effect.catchTag("TimeoutException", () => Rpc.err("Request timed out", "TIMEOUT")),
+			),
 		),
 	);
 

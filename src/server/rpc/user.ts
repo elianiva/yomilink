@@ -20,7 +20,13 @@ import {
 import { requireRoleMiddleware } from "@/middlewares/auth";
 
 import { AppRuntime } from "../app-runtime";
-import { Rpc, TIMEOUT_DURATION, logRpcError, logAndReturnError, logAndReturnDefect } from "../rpc-helper";
+import {
+	Rpc,
+	TIMEOUT_DURATION,
+	logRpcError,
+	logAndReturnError,
+	logAndReturnDefect,
+} from "../rpc-helper";
 
 export const listUsersRpc = createServerFn()
 	.middleware([requireRoleMiddleware("teacher", "admin")])
@@ -34,9 +40,8 @@ export const listUsersRpc = createServerFn()
 				Effect.catchAll(logAndReturnError("listUsers")),
 				Effect.catchAllDefect(logAndReturnDefect("listUsers")),
 				Effect.timeout(TIMEOUT_DURATION),
-				Effect.catchTag("TimeoutException", () =>
-					Rpc.err("Request timed out", "TIMEOUT"),
-				),			)
+				Effect.catchTag("TimeoutException", () => Rpc.err("Request timed out", "TIMEOUT")),
+			),
 		),
 	);
 
@@ -57,9 +62,8 @@ export const getUserByIdRpc = createServerFn()
 				Effect.catchAll(logAndReturnError("getUserById")),
 				Effect.catchAllDefect(logAndReturnDefect("getUserById")),
 				Effect.timeout(TIMEOUT_DURATION),
-				Effect.catchTag("TimeoutException", () =>
-					Rpc.err("Request timed out", "TIMEOUT"),
-				),			)
+				Effect.catchTag("TimeoutException", () => Rpc.err("Request timed out", "TIMEOUT")),
+			),
 		),
 	);
 
@@ -85,9 +89,8 @@ export const updateUserRpc = createServerFn({ method: "POST" })
 				Effect.catchAll(logAndReturnError("updateUser")),
 				Effect.catchAllDefect(logAndReturnDefect("updateUser")),
 				Effect.timeout(TIMEOUT_DURATION),
-				Effect.catchTag("TimeoutException", () =>
-					Rpc.err("Request timed out", "TIMEOUT"),
-				),			)
+				Effect.catchTag("TimeoutException", () => Rpc.err("Request timed out", "TIMEOUT")),
+			),
 		),
 	);
 
@@ -108,9 +111,8 @@ export const updateUserRoleRpc = createServerFn({ method: "POST" })
 				Effect.catchAll(logAndReturnError("updateUserRole")),
 				Effect.catchAllDefect(logAndReturnDefect("updateUserRole")),
 				Effect.timeout(TIMEOUT_DURATION),
-				Effect.catchTag("TimeoutException", () =>
-					Rpc.err("Request timed out", "TIMEOUT"),
-				),			)
+				Effect.catchTag("TimeoutException", () => Rpc.err("Request timed out", "TIMEOUT")),
+			),
 		),
 	);
 
@@ -131,9 +133,8 @@ export const banUserRpc = createServerFn({ method: "POST" })
 				Effect.catchAll(logAndReturnError("banUser")),
 				Effect.catchAllDefect(logAndReturnDefect("banUser")),
 				Effect.timeout(TIMEOUT_DURATION),
-				Effect.catchTag("TimeoutException", () =>
-					Rpc.err("Request timed out", "TIMEOUT"),
-				),			)
+				Effect.catchTag("TimeoutException", () => Rpc.err("Request timed out", "TIMEOUT")),
+			),
 		),
 	);
 
@@ -155,9 +156,8 @@ export const unbanUserRpc = createServerFn({ method: "POST" })
 				Effect.catchAll(logAndReturnError("unbanUser")),
 				Effect.catchAllDefect(logAndReturnDefect("unbanUser")),
 				Effect.timeout(TIMEOUT_DURATION),
-				Effect.catchTag("TimeoutException", () =>
-					Rpc.err("Request timed out", "TIMEOUT"),
-				),			)
+				Effect.catchTag("TimeoutException", () => Rpc.err("Request timed out", "TIMEOUT")),
+			),
 		),
 	);
 
@@ -173,9 +173,8 @@ export const bulkAssignCohortRpc = createServerFn({ method: "POST" })
 				Effect.catchAll(logAndReturnError("bulkAssignCohort")),
 				Effect.catchAllDefect(logAndReturnDefect("bulkAssignCohort")),
 				Effect.timeout(TIMEOUT_DURATION),
-				Effect.catchTag("TimeoutException", () =>
-					Rpc.err("Request timed out", "TIMEOUT"),
-				),			)
+				Effect.catchTag("TimeoutException", () => Rpc.err("Request timed out", "TIMEOUT")),
+			),
 		),
 	);
 

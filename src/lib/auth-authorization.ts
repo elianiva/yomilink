@@ -8,14 +8,14 @@ import { cohortMembers, user } from "@/server/db/schema/auth-schema";
 
 class ForbiddenError extends Data.TaggedError("ForbiddenError")<{
 	readonly message: string;
-}> { }
+}> {}
 
 class AssignmentNotFoundError extends Data.TaggedError("AssignmentNotFoundError")<{
 	readonly assignmentId: string;
-}> { }
+}> {}
 
 export const isGoalMapOwner = (userId: string, goalMapId: string) =>
-	Effect.gen(function*() {
+	Effect.gen(function* () {
 		const db = yield* Database;
 		const rows = yield* db
 			.select({ teacherId: goalMaps.teacherId })
@@ -30,7 +30,7 @@ export const isGoalMapOwner = (userId: string, goalMapId: string) =>
 	});
 
 export const canAccessGoalMap = (userId: string, goalMapId: string) =>
-	Effect.gen(function*() {
+	Effect.gen(function* () {
 		const db = yield* Database;
 
 		const goalMapRows = yield* db
@@ -81,7 +81,7 @@ export const canAccessGoalMap = (userId: string, goalMapId: string) =>
 	});
 
 export const canAccessAssignment = (userId: string, assignmentId: string) =>
-	Effect.gen(function*() {
+	Effect.gen(function* () {
 		const db = yield* Database;
 
 		const assignmentRows = yield* db
@@ -130,7 +130,7 @@ export const canAccessAssignment = (userId: string, assignmentId: string) =>
 	});
 
 export const isRole = (userId: string, role: string) =>
-	Effect.gen(function*() {
+	Effect.gen(function* () {
 		const db = yield* Database;
 		const rows = yield* db
 			.select({ role: user.role })
@@ -142,7 +142,7 @@ export const isRole = (userId: string, role: string) =>
 
 export const requireGoalMapOwner = Effect.fn("requireGoalMapOwner")(
 	(userId: string, goalMapId: string) =>
-		Effect.gen(function*() {
+		Effect.gen(function* () {
 			const isOwner = yield* isGoalMapOwner(userId, goalMapId);
 			if (!isOwner) {
 				return yield* new ForbiddenError({
@@ -154,7 +154,7 @@ export const requireGoalMapOwner = Effect.fn("requireGoalMapOwner")(
 );
 
 export const requireGoalMapAccess = (userId: string, goalMapId: string) =>
-	Effect.gen(function*() {
+	Effect.gen(function* () {
 		const hasAccess = yield* canAccessGoalMap(userId, goalMapId);
 		if (!hasAccess) {
 			return yield* new ForbiddenError({
@@ -165,7 +165,7 @@ export const requireGoalMapAccess = (userId: string, goalMapId: string) =>
 	});
 
 export const requireRole = (role: string) => (userId: string) =>
-	Effect.gen(function*() {
+	Effect.gen(function* () {
 		const hasRole = yield* isRole(userId, role);
 		if (!hasRole) {
 			return yield* new ForbiddenError({
@@ -175,7 +175,7 @@ export const requireRole = (role: string) => (userId: string) =>
 		return userId;
 	});
 
-export const requireAnyRole = Effect.fn(function*(userId: string, roles: string[]) {
+export const requireAnyRole = Effect.fn(function* (userId: string, roles: string[]) {
 	const db = yield* Database;
 	const rows = yield* db
 		.select({ role: user.role })

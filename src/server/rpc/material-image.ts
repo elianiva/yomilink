@@ -55,9 +55,7 @@ export const uploadMaterialImageRpc = createServerFn({ method: "POST" })
 					}),
 				),
 				Effect.timeout(TIMEOUT_DURATION),
-				Effect.catchTag("TimeoutException", () =>
-					Rpc.err("Request timed out", "TIMEOUT"),
-				),
+				Effect.catchTag("TimeoutException", () => Rpc.err("Request timed out", "TIMEOUT")),
 			),
 		);
 	});

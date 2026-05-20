@@ -6,7 +6,13 @@ import { listTopics, createTopic, CreateTopicInput } from "@/features/analyzer/l
 import { authMiddleware } from "@/middlewares/auth";
 
 import { AppRuntime } from "../app-runtime";
-import { Rpc, TIMEOUT_DURATION, logRpcError, logAndReturnError, logAndReturnDefect } from "../rpc-helper";
+import {
+	Rpc,
+	TIMEOUT_DURATION,
+	logRpcError,
+	logAndReturnError,
+	logAndReturnDefect,
+} from "../rpc-helper";
 
 export const listTopicsRpc = createServerFn()
 	.middleware([authMiddleware])
@@ -19,9 +25,8 @@ export const listTopicsRpc = createServerFn()
 				Effect.catchAll(logAndReturnError("listTopics")),
 				Effect.catchAllDefect(logAndReturnDefect("listTopics")),
 				Effect.timeout(TIMEOUT_DURATION),
-				Effect.catchTag("TimeoutException", () =>
-					Rpc.err("Request timed out", "TIMEOUT"),
-				),)
+				Effect.catchTag("TimeoutException", () => Rpc.err("Request timed out", "TIMEOUT")),
+			),
 		),
 	);
 
@@ -37,9 +42,8 @@ export const createTopicRpc = createServerFn({ method: "POST" })
 				Effect.catchAll(logAndReturnError("createTopic")),
 				Effect.catchAllDefect(logAndReturnDefect("createTopic")),
 				Effect.timeout(TIMEOUT_DURATION),
-				Effect.catchTag("TimeoutException", () =>
-					Rpc.err("Request timed out", "TIMEOUT"),
-				),)
+				Effect.catchTag("TimeoutException", () => Rpc.err("Request timed out", "TIMEOUT")),
+			),
 		),
 	);
 

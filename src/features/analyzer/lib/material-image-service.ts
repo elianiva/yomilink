@@ -1,7 +1,7 @@
 import { Effect, Schema } from "effect";
 
-import { StorageService } from "@/server/storage/storage-service";
 import { NonEmpty } from "@/lib/validation-schemas";
+import { StorageService } from "@/server/storage/storage-service";
 
 class InvalidFileTypeError extends Schema.TaggedError<InvalidFileTypeError>()(
 	"InvalidFileTypeError",

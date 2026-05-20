@@ -49,10 +49,12 @@ function FormTakerPage() {
 
 	const questions: GetStudentFormByIdOutput["questions"] = data?.questions ?? [];
 	const readingMaterialSections = data?.form?.readingMaterialSections ?? [];
+	const materialImages = data?.materialImages ?? [];
 
 	const totalQuestions = questions.length;
 	const hasReadingMaterial =
-		readingMaterialSections != null && readingMaterialSections.length > 0;
+		(readingMaterialSections != null && readingMaterialSections.length > 0) ||
+		materialImages.length > 0;
 	const requiredQuestions = questions.filter((q) => q.required);
 	const answeredRequired = requiredQuestions.every(
 		(q) => answers[q.id] !== undefined && answers[q.id] !== "",
@@ -144,7 +146,10 @@ function FormTakerPage() {
 
 			<div className="flex min-h-0 flex-1">
 				{hasReadingMaterial && (
-					<ReadingMaterialSidebar sections={readingMaterialSections} />
+					<ReadingMaterialSidebar
+						sections={readingMaterialSections}
+						materialImages={materialImages}
+					/>
 				)}
 
 				<QuestionList

@@ -1,12 +1,12 @@
 import { queryOptions, mutationOptions } from "@tanstack/react-query";
 import { createServerFn } from "@tanstack/react-start";
-
 import { Data, Duration, Effect, Schema } from "effect";
 
 import { claimWhitelistEntry } from "@/features/whitelist/lib/whitelist-service.mutations";
 import { getWhitelistEntryByStudentId } from "@/features/whitelist/lib/whitelist-service.queries";
 import { WhitelistAlreadyClaimedError } from "@/features/whitelist/lib/whitelist-service.shared";
 import { Auth } from "@/lib/auth";
+import { RateLimiter } from "@/lib/rate-limiter";
 import { studentIdToAuthEmail } from "@/lib/student-id-auth";
 import { randomString } from "@/lib/utils";
 import { NonEmpty, Password } from "@/lib/validation-schemas";
@@ -15,8 +15,13 @@ import { Database } from "@/server/db/client";
 import { cohortMembers, cohorts } from "@/server/db/schema/auth-schema";
 
 import { AppRuntime } from "../app-runtime";
-import { RateLimiter } from "@/lib/rate-limiter";
-import { Rpc, TIMEOUT_DURATION, logRpcError, logAndReturnError, logAndReturnDefect } from "../rpc-helper";
+import {
+	Rpc,
+	TIMEOUT_DURATION,
+	logRpcError,
+	logAndReturnError,
+	logAndReturnDefect,
+} from "../rpc-helper";
 
 export const JlptLevelSchema = Schema.Union(Schema.Literal("N5", "N4", "N3", "N2", "N1", "None"));
 
@@ -77,7 +82,10 @@ export const signUpRpc = createServerFn({ method: "POST" })
 				const ip = context.clientIp ?? "unknown";
 				const allowed = yield* rateLimiter.check(`signup:${ip}`, 5, Duration.minutes(1));
 				if (!allowed) {
-					return yield* Rpc.err("Too many sign-up attempts. Please try again later.", "RATE_LIMITED");
+					return yield* Rpc.err(
+						"Too many sign-up attempts. Please try again later.",
+						"RATE_LIMITED",
+					);
 				}
 
 				const auth = yield* Auth;
@@ -109,8 +117,7 @@ export const signUpRpc = createServerFn({ method: "POST" })
 								consentGiven: data.consentGiven,
 							},
 						}),
-					catch: (e) =>
-						new SignUpFailedError({ message: getFriendlySignUpError(e) }),
+					catch: (e) => new SignUpFailedError({ message: getFriendlySignUpError(e) }),
 				});
 
 				const { user } = signUpResult;
@@ -141,9 +148,7 @@ export const signUpRpc = createServerFn({ method: "POST" })
 				Effect.catchAll(logAndReturnError("signUp")),
 				Effect.catchAllDefect(logAndReturnDefect("signUp")),
 				Effect.timeout(TIMEOUT_DURATION),
-				Effect.catchTag("TimeoutException", () =>
-					Rpc.err("Request timed out", "TIMEOUT"),
-				),
+				Effect.catchTag("TimeoutException", () => Rpc.err("Request timed out", "TIMEOUT")),
 			),
 		),
 	);
@@ -183,9 +188,7 @@ export const listCohortsRpc = createServerFn()
 				Effect.catchAll(logAndReturnError("listCohorts")),
 				Effect.catchAllDefect(logAndReturnDefect("listCohorts")),
 				Effect.timeout(TIMEOUT_DURATION),
-				Effect.catchTag("TimeoutException", () =>
-					Rpc.err("Request timed out", "TIMEOUT"),
-				),
+				Effect.catchTag("TimeoutException", () => Rpc.err("Request timed out", "TIMEOUT")),
 			),
 		),
 	);

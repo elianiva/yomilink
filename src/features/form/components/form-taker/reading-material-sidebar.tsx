@@ -4,6 +4,7 @@ import { useState } from "react";
 import { ReadingMaterialRenderer } from "@/components/reading-material-renderer";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Switch } from "@/components/ui/switch";
+import type { MaterialImage } from "@/features/form/lib/form-service.shared";
 
 interface ReadingMaterialSectionLike {
 	id: string;
@@ -15,9 +16,13 @@ interface ReadingMaterialSectionLike {
 
 interface ReadingMaterialSidebarProps {
 	sections: readonly ReadingMaterialSectionLike[];
+	materialImages?: readonly MaterialImage[];
 }
 
-export function ReadingMaterialSidebar({ sections }: ReadingMaterialSidebarProps) {
+export function ReadingMaterialSidebar({
+	sections,
+	materialImages = [],
+}: ReadingMaterialSidebarProps) {
 	const [showFurigana, setShowFurigana] = useState(true);
 
 	return (
@@ -34,6 +39,20 @@ export function ReadingMaterialSidebar({ sections }: ReadingMaterialSidebarProps
 			</div>
 			<ScrollArea className="flex-1">
 				<div className="space-y-6 p-6">
+					{materialImages.length > 0 && (
+						<div className="gap-3">
+							{materialImages.map((image) => (
+								<div key={image.id} className="rounded-md border overflow-hidden">
+									<img
+										src={image.url}
+										alt={image.name}
+										className="w-full h-auto object-cover"
+									/>
+								</div>
+							))}
+						</div>
+					)}
+
 					{sections.map((section) => (
 						<div key={section.id} className="border-b pb-6 last:border-none last:pb-0">
 							{section.title && (

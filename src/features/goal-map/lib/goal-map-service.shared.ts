@@ -106,6 +106,17 @@ export const ListGoalMapsByTopicInput = Schema.Struct({
 
 export type ListGoalMapsByTopicInput = typeof ListGoalMapsByTopicInput.Type;
 
+export const MaterialImageSchema = Schema.Struct({
+	id: Schema.String,
+	url: Schema.String,
+	name: Schema.String,
+	size: Schema.Number,
+	type: Schema.String,
+	uploadedAt: Schema.Number,
+});
+
+export type MaterialImage = typeof MaterialImageSchema.Type;
+
 export const DeleteGoalMapInput = Schema.Struct({
 	goalMapId: NonEmpty("Goal map ID"),
 });

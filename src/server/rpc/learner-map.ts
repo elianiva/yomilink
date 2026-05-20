@@ -26,7 +26,13 @@ import {
 import { authMiddleware } from "@/middlewares/auth";
 
 import { AppRuntime } from "../app-runtime";
-import { Rpc, TIMEOUT_DURATION, logRpcError, logAndReturnError, logAndReturnDefect } from "../rpc-helper";
+import {
+	Rpc,
+	TIMEOUT_DURATION,
+	logRpcError,
+	logAndReturnError,
+	logAndReturnDefect,
+} from "../rpc-helper";
 
 export const listStudentAssignmentsRpc = createServerFn()
 	.middleware([authMiddleware])
@@ -39,9 +45,8 @@ export const listStudentAssignmentsRpc = createServerFn()
 				Effect.catchAll(logAndReturnError("listStudentAssignments")),
 				Effect.catchAllDefect(logAndReturnDefect("listStudentAssignments")),
 				Effect.timeout(TIMEOUT_DURATION),
-				Effect.catchTag("TimeoutException", () =>
-					Rpc.err("Request timed out", "TIMEOUT"),
-				),			)
+				Effect.catchTag("TimeoutException", () => Rpc.err("Request timed out", "TIMEOUT")),
+			),
 		),
 	);
 
@@ -60,9 +65,8 @@ export const getAssignmentForStudentRpc = createServerFn()
 				Effect.catchAll(logAndReturnError("getAssignmentForStudent")),
 				Effect.catchAllDefect(logAndReturnDefect("getAssignmentForStudent")),
 				Effect.timeout(TIMEOUT_DURATION),
-				Effect.catchTag("TimeoutException", () =>
-					Rpc.err("Request timed out", "TIMEOUT"),
-				),			)
+				Effect.catchTag("TimeoutException", () => Rpc.err("Request timed out", "TIMEOUT")),
+			),
 		),
 	);
 
@@ -83,9 +87,8 @@ export const saveLearnerMapRpc = createServerFn({ method: "POST" })
 				Effect.catchAll(logAndReturnError("saveLearnerMap")),
 				Effect.catchAllDefect(logAndReturnDefect("saveLearnerMap")),
 				Effect.timeout(TIMEOUT_DURATION),
-				Effect.catchTag("TimeoutException", () =>
-					Rpc.err("Request timed out", "TIMEOUT"),
-				),			)
+				Effect.catchTag("TimeoutException", () => Rpc.err("Request timed out", "TIMEOUT")),
+			),
 		),
 	);
 
@@ -108,9 +111,8 @@ export const submitLearnerMapRpc = createServerFn({ method: "POST" })
 				Effect.catchAll(logAndReturnError("submitLearnerMap")),
 				Effect.catchAllDefect(logAndReturnDefect("submitLearnerMap")),
 				Effect.timeout(TIMEOUT_DURATION),
-				Effect.catchTag("TimeoutException", () =>
-					Rpc.err("Request timed out", "TIMEOUT"),
-				),			)
+				Effect.catchTag("TimeoutException", () => Rpc.err("Request timed out", "TIMEOUT")),
+			),
 		),
 	);
 
@@ -126,9 +128,8 @@ export const getDiagnosisRpc = createServerFn()
 				Effect.catchAll(logAndReturnError("getDiagnosis")),
 				Effect.catchAllDefect(logAndReturnDefect("getDiagnosis")),
 				Effect.timeout(TIMEOUT_DURATION),
-				Effect.catchTag("TimeoutException", () =>
-					Rpc.err("Request timed out", "TIMEOUT"),
-				),			)
+				Effect.catchTag("TimeoutException", () => Rpc.err("Request timed out", "TIMEOUT")),
+			),
 		),
 	);
 
@@ -149,9 +150,8 @@ export const startNewAttemptRpc = createServerFn({ method: "POST" })
 				Effect.catchAll(logAndReturnError("startNewAttempt")),
 				Effect.catchAllDefect(logAndReturnDefect("startNewAttempt")),
 				Effect.timeout(TIMEOUT_DURATION),
-				Effect.catchTag("TimeoutException", () =>
-					Rpc.err("Request timed out", "TIMEOUT"),
-				),			)
+				Effect.catchTag("TimeoutException", () => Rpc.err("Request timed out", "TIMEOUT")),
+			),
 		),
 	);
 
@@ -167,9 +167,8 @@ export const getPeerStatsRpc = createServerFn()
 				Effect.catchAll(logAndReturnError("getPeerStats")),
 				Effect.catchAllDefect(logAndReturnDefect("getPeerStats")),
 				Effect.timeout(TIMEOUT_DURATION),
-				Effect.catchTag("TimeoutException", () =>
-					Rpc.err("Request timed out", "TIMEOUT"),
-				),			)
+				Effect.catchTag("TimeoutException", () => Rpc.err("Request timed out", "TIMEOUT")),
+			),
 		),
 	);
 
@@ -190,9 +189,8 @@ export const submitControlTextRpc = createServerFn({ method: "POST" })
 				Effect.catchAll(logAndReturnError("submitControlText")),
 				Effect.catchAllDefect(logAndReturnDefect("submitControlText")),
 				Effect.timeout(TIMEOUT_DURATION),
-				Effect.catchTag("TimeoutException", () =>
-					Rpc.err("Request timed out", "TIMEOUT"),
-				),			)
+				Effect.catchTag("TimeoutException", () => Rpc.err("Request timed out", "TIMEOUT")),
+			),
 		),
 	);
 

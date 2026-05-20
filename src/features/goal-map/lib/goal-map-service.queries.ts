@@ -9,6 +9,7 @@ import {
 	EdgeSchema,
 	GetGoalMapInput,
 	ListGoalMapsByTopicInput,
+	MaterialImageSchema,
 	NodeSchema,
 } from "./goal-map-service.shared";
 
@@ -42,7 +43,7 @@ export const getGoalMap = Effect.fn("getGoalMap")(function* (input: GetGoalMapIn
 			safeParseJson(row.nodes, [], Schema.Array(NodeSchema)),
 			safeParseJson(row.edges, [], Schema.Array(EdgeSchema)),
 			row.materialImages
-				? safeParseJson(row.materialImages, [], Schema.Array(Schema.String))
+				? safeParseJson(row.materialImages, [], Schema.Array(MaterialImageSchema))
 				: Effect.succeed([]),
 		],
 		{ concurrency: 10 },

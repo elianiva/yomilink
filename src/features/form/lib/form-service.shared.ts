@@ -29,6 +29,17 @@ export const FormAudienceSchema = Schema.Union(
 	...FORM_AUDIENCES.map((audience) => Schema.Literal(audience)),
 );
 
+export const MaterialImageSchema = Schema.Struct({
+	id: Schema.String,
+	url: Schema.String,
+	name: Schema.String,
+	size: Schema.Number,
+	type: Schema.String,
+	uploadedAt: Schema.Number,
+});
+
+export type MaterialImage = typeof MaterialImageSchema.Type;
+
 export const ReadingMaterialSectionSchema = Schema.Struct({
 	id: NonEmpty("Reading material section ID"),
 	title: Schema.optionalWith(Schema.String, { nullable: true }),
@@ -453,6 +464,7 @@ export const GetStudentFormByIdOutputSchema = Schema.Struct({
 	form: FormOutputSchema,
 	questions: Schema.Array(StudentQuestionOutputSchema),
 	submission: Schema.NullOr(StudentFormSubmissionSchema),
+	materialImages: Schema.Array(MaterialImageSchema),
 });
 
 export const ResponseUserSchema = Schema.Struct({

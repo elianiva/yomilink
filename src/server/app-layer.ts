@@ -4,8 +4,8 @@ import { Auth } from "@/lib/auth";
 import { RateLimiter } from "@/lib/rate-limiter";
 
 import { DatabaseLive, DatabaseTest } from "./db/client";
-import { StorageService } from "./storage/storage-service";
 import { LoggerLive } from "./logger";
+import { StorageService } from "./storage/storage-service";
 
 export const AppLayer = Layer.mergeAll(
 	Layer.provideMerge(Auth.Default, DatabaseLive),

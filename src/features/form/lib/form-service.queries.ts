@@ -1,4 +1,4 @@
-import { and, count, desc, eq, inArray } from "drizzle-orm";
+import { and, count, desc, eq, inArray, or } from "drizzle-orm";
 import { Effect, Schema } from "effect";
 
 import { isCorrectMcqAnswer } from "@/features/form/lib/form-scoring";
@@ -10,11 +10,15 @@ import {
 	formProgress,
 	formResponses,
 	forms,
+	goalMaps,
 	questions,
+	texts,
 } from "@/server/db/schema/app-schema";
 import { cohortMembers, user as users } from "@/server/db/schema/auth-schema";
 
 import {
+	MaterialImage,
+	MaterialImageSchema,
 	AssignmentFormRow,
 	FormNotFoundError,
 	GetFormByIdOutputSchema,
@@ -168,6 +172,42 @@ export const getStudentFormById = Effect.fn("getStudentFormById")(function* (
 		Schema.NullOr(ReadingMaterialSections),
 	);
 
+	// Fetch goal map material images linked via assignments
+	const assignmentRows = yield* db
+		.select({ goalMapId: assignments.goalMapId })
+		.from(assignments)
+		.where(
+			or(
+				eq(assignments.preTestFormId, formId),
+				eq(assignments.postTestFormId, formId),
+				eq(assignments.delayedPostTestFormId, formId),
+				eq(assignments.tamFormId, formId),
+			),
+		)
+		.limit(1);
+
+	const materialImages: MaterialImage[] = [];
+	if (assignmentRows.length > 0) {
+		const goalMapId = assignmentRows[0].goalMapId;
+		if (goalMapId) {
+			const goalMapRows = yield* db
+				.select({ images: texts.images })
+				.from(goalMaps)
+				.leftJoin(texts, eq(goalMaps.textId, texts.id))
+				.where(eq(goalMaps.id, goalMapId))
+				.limit(1);
+
+			if (goalMapRows.length > 0 && goalMapRows[0].images) {
+				const parsed = yield* safeParseJson(
+					goalMapRows[0].images,
+					[] as MaterialImage[],
+					Schema.Array(MaterialImageSchema),
+				);
+				materialImages.push(...parsed);
+			}
+		}
+	}
+
 	const form = {
 		id: formRow.id,
 		title: formRow.title,
@@ -259,6 +299,7 @@ export const getStudentFormById = Effect.fn("getStudentFormById")(function* (
 		},
 		questions: mappedQuestions,
 		submission: submission,
+		materialImages,
 	} as GetStudentFormByIdOutput;
 });
 
