@@ -1,4 +1,3 @@
-import { env } from "cloudflare:workers";
 import { Effect, Schema } from "effect";
 
 export class StorageError extends Schema.TaggedError<StorageError>()("StorageError", {
@@ -10,7 +9,9 @@ export class StorageService extends Effect.Service<StorageService>()(
 	"app/StorageService",
 	{
 		effect: Effect.gen(function* () {
-			const getBucket = Effect.sync(() => env.MATERIAL_IMAGES);
+			const getBucket = Effect.promise(() =>
+				import("cloudflare:workers").then(({ env }) => env.MATERIAL_IMAGES),
+			);
 
 			const get = (key: string) =>
 				getBucket.pipe(

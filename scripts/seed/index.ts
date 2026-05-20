@@ -1,6 +1,8 @@
 import { Layer, Logger, Effect } from "effect";
 
-import { AppLayer } from "@/server/app-layer";
+import { Auth } from "@/lib/auth";
+import { RateLimiter } from "@/lib/rate-limiter";
+import { DatabaseLive } from "@/server/db/client";
 
 import {
 	seedCohorts,
@@ -88,6 +90,14 @@ const program = Effect.gen(function* () {
 			"  - Submissions: 5 demo student accounts per material\n" +
 			"  - Whitelist: 47 reserved student IDs\n",
 	);
-}).pipe(Effect.provide(Layer.mergeAll(AppLayer, Logger.pretty)));
+}).pipe(
+	Effect.provide(
+		Layer.mergeAll(
+			Layer.provideMerge(Auth.Default, DatabaseLive),
+			RateLimiter.Default,
+			Logger.pretty,
+		),
+	),
+);
 
 void Effect.runPromise(program);
