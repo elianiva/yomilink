@@ -18,13 +18,13 @@ import {
 	CreateAssignmentInput,
 	DeleteAssignmentInput,
 } from "@/features/assignment/lib/assignment-service.shared";
-import { requireRoleMiddleware } from "@/middlewares/auth";
+import { csrfMiddleware, requireRoleMiddleware } from "@/middlewares/auth";
 
 import { AppRuntime } from "../app-runtime";
 import { Rpc, TIMEOUT_DURATION, logRpcError, logAndReturnError, logAndReturnDefect } from "../rpc-helper";
 
 export const createAssignmentRpc = createServerFn({ method: "POST" })
-	.middleware([requireRoleMiddleware("teacher", "admin")])
+	.middleware([csrfMiddleware, requireRoleMiddleware("teacher", "admin")])
 	.inputValidator((raw) => Schema.decodeUnknownSync(CreateAssignmentInput)(raw))
 	.handler(({ data, context }) =>
 		AppRuntime.runPromise(
@@ -62,7 +62,7 @@ export const listTeacherAssignmentsRpc = createServerFn()
 	);
 
 export const deleteAssignmentRpc = createServerFn({ method: "POST" })
-	.middleware([requireRoleMiddleware("teacher", "admin")])
+	.middleware([csrfMiddleware, requireRoleMiddleware("teacher", "admin")])
 	.inputValidator((raw) => Schema.decodeUnknownSync(DeleteAssignmentInput)(raw))
 	.handler(({ data, context }) =>
 		AppRuntime.runPromise(

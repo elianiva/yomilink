@@ -11,7 +11,7 @@ import {
 	getKitStatus,
 	listGoalMapsWithKits,
 } from "@/features/kit/lib/kit-service";
-import { requireRoleMiddleware } from "@/middlewares/auth";
+import { csrfMiddleware, requireRoleMiddleware } from "@/middlewares/auth";
 
 import { AppRuntime } from "../app-runtime";
 import { Rpc, TIMEOUT_DURATION, logRpcError, logAndReturnError, logAndReturnDefect } from "../rpc-helper";
@@ -70,7 +70,7 @@ export const getKitStatusRpc = createServerFn()
 	);
 
 export const generateKitRpc = createServerFn({ method: "POST" })
-	.middleware([requireRoleMiddleware("teacher", "admin")])
+	.middleware([csrfMiddleware, requireRoleMiddleware("teacher", "admin")])
 	.inputValidator((raw) => Schema.decodeUnknownSync(GenerateKitInput)(raw))
 	.handler(({ data }) =>
 		AppRuntime.runPromise(

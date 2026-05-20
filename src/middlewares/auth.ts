@@ -1,5 +1,5 @@
 import { redirect } from "@tanstack/react-router";
-import { createMiddleware } from "@tanstack/react-start";
+import { createCsrfMiddleware, createMiddleware } from "@tanstack/react-start";
 import { Effect } from "effect";
 
 import { getServerUser } from "@/lib/auth";
@@ -18,11 +18,19 @@ export const authMiddleware = createMiddleware().server(async ({ next, request }
 });
 
 /** Returns null for user if not authenticated */
+/**
+ * CSRF protection middleware for POST server functions.
+ * Checks Sec-Fetch-Site, Origin, or Referer headers.
+ */
+export const csrfMiddleware = createCsrfMiddleware();
+
 export const authMiddlewareOptional = createMiddleware().server(async ({ next, request }) => {
 	const user = await AppRuntime.runPromise(getServerUser(request.headers));
+	const clientIp = request.headers.get("CF-Connecting-IP") ?? undefined;
 	return await next({
 		context: {
 			user,
+			clientIp,
 		},
 	});
 });

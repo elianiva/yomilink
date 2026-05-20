@@ -1,7 +1,7 @@
 import { queryOptions, mutationOptions } from "@tanstack/react-query";
 import { createServerFn } from "@tanstack/react-start";
 
-import { Data, Effect, Schema } from "effect";
+import { Data, Duration, Effect, Schema } from "effect";
 
 import { claimWhitelistEntry } from "@/features/whitelist/lib/whitelist-service.mutations";
 import { getWhitelistEntryByStudentId } from "@/features/whitelist/lib/whitelist-service.queries";
@@ -10,11 +10,12 @@ import { Auth } from "@/lib/auth";
 import { studentIdToAuthEmail } from "@/lib/student-id-auth";
 import { randomString } from "@/lib/utils";
 import { NonEmpty, Password } from "@/lib/validation-schemas";
-import { authMiddlewareOptional } from "@/middlewares/auth";
+import { authMiddlewareOptional, csrfMiddleware } from "@/middlewares/auth";
 import { Database } from "@/server/db/client";
 import { cohortMembers, cohorts } from "@/server/db/schema/auth-schema";
 
 import { AppRuntime } from "../app-runtime";
+import { RateLimiter } from "@/lib/rate-limiter";
 import { Rpc, TIMEOUT_DURATION, logRpcError, logAndReturnError, logAndReturnDefect } from "../rpc-helper";
 
 export const JlptLevelSchema = Schema.Union(Schema.Literal("N5", "N4", "N3", "N2", "N1", "None"));
@@ -67,11 +68,18 @@ function getFriendlySignUpError(err: unknown): string {
 }
 
 export const signUpRpc = createServerFn({ method: "POST" })
-	.middleware([authMiddlewareOptional])
+	.middleware([csrfMiddleware, authMiddlewareOptional])
 	.inputValidator((raw) => Schema.decodeUnknownSync(SignUpInput)(raw))
-	.handler(({ data }) =>
+	.handler(({ data, context }) =>
 		AppRuntime.runPromise(
 			Effect.gen(function* () {
+				const rateLimiter = yield* RateLimiter;
+				const ip = context.clientIp ?? "unknown";
+				const allowed = yield* rateLimiter.check(`signup:${ip}`, 5, Duration.minutes(1));
+				if (!allowed) {
+					return yield* Rpc.err("Too many sign-up attempts. Please try again later.", "RATE_LIMITED");
+				}
+
 				const auth = yield* Auth;
 				const db = yield* Database;
 
