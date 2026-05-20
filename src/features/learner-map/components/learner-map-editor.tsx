@@ -348,6 +348,7 @@ export function LearnerMapEditor() {
 	if (condition === "summarizing") {
 		return (
 			<SummarizingEditor
+				key={assignmentId}
 				assignmentId={assignmentId}
 				assignmentData={assignmentData}
 				isSubmitted={isSubmitted}
@@ -359,7 +360,7 @@ export function LearnerMapEditor() {
 	}
 
 	return (
-		<div className="h-full relative">
+		<div key={assignmentId} className="h-full relative">
 			<div className="absolute top-3 -left-2 z-10 bg-card/70 backdrop-blur-lg border rounded-md px-4 py-2">
 				<h2 className="font-medium">{assignmentData.assignment.title}</h2>
 				{assignmentData.assignment.description && (
