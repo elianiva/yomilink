@@ -35,7 +35,7 @@ nodes:
     - id: "mainichiya"
       type: "text"
       position: { x: 220, y: 400 }
-      data: { label: "毎日屋", color: "yellow" }
+      data: { label: "毎日屋（まいにちや）", color: "yellow" }
 
     - id: "abc"
       type: "text"
@@ -70,7 +70,7 @@ nodes:
     - id: "mainichi-sakana"
       type: "text"
       position: { x: 320, y: 580 }
-      data: { label: "魚が多い" }
+      data: { label: "魚（さかな）が多い" }
 
     - id: "abc-yasui"
       type: "text"
@@ -80,7 +80,7 @@ nodes:
     - id: "abc-niku"
       type: "text"
       position: { x: 720, y: 580 }
-      data: { label: "肉が多い" }
+      data: { label: "肉（にく）が多い" }
 
     - id: "japan-tooi"
       type: "text"
@@ -100,7 +100,7 @@ nodes:
     - id: "watashi-suki"
       type: "text"
       position: { x: 620, y: 760 }
-      data: { label: "ABCストア（好き）", color: "green" }
+      data: { label: "ABCストア（すき）", color: "green" }
 
 edges:
     - id: "e1"

@@ -20,17 +20,17 @@ nodes:
     - id: "kouen"
       type: "text"
       position: { x: 420, y: 250 }
-      data: { label: "公園" }
+      data: { label: "公園（こうえん）" }
 
     - id: "yuubinkyoku"
       type: "text"
       position: { x: 720, y: 250 }
-      data: { label: "郵便局" }
+      data: { label: "郵便局（ゆうびんきょく）" }
 
     - id: "ginkou"
       type: "text"
       position: { x: 920, y: 250 }
-      data: { label: "銀行" }
+      data: { label: "銀行（ぎんこう）" }
 
     - id: "conn-mae"
       type: "connector"
@@ -45,12 +45,12 @@ nodes:
     - id: "toshokan"
       type: "text"
       position: { x: 320, y: 460 }
-      data: { label: "図書館" }
+      data: { label: "図書館（としょかん）" }
 
     - id: "kissaten"
       type: "text"
       position: { x: 520, y: 460 }
-      data: { label: "喫茶店" }
+      data: { label: "喫茶店（きっさてん）" }
 
     - id: "suupaa"
       type: "text"
@@ -65,12 +65,12 @@ nodes:
     - id: "hanaya"
       type: "text"
       position: { x: 720, y: 650 }
-      data: { label: "花屋" }
+      data: { label: "花屋（はなや）" }
 
     - id: "panya"
       type: "text"
       position: { x: 920, y: 650 }
-      data: { label: "パン屋" }
+      data: { label: "パン屋（ぱんや）" }
 
 edges:
     - id: "e1"
