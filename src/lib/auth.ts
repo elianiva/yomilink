@@ -113,18 +113,29 @@ export const AuthUser = Schema.Struct({
 	consentGiven: Schema.optionalWith(Schema.Boolean, { nullable: true }),
 });
 
+const TRANSIENT_AUTH_PATTERNS = [
+	"session expired",
+	"token expired",
+	"invalid token signature",
+	"session not found",
+] as const;
+
+function isTransientAuthError(message: string): boolean {
+	const lower = message.toLowerCase();
+	return TRANSIENT_AUTH_PATTERNS.some((p) => lower.includes(p));
+}
+
 export const getServerUser = Effect.fn("getServerUser")(function* (headers: Headers) {
 	const auth = yield* Auth;
 	const session = yield* Effect.tryPromise(() => auth.api.getSession({ headers })).pipe(
 		Effect.catchTag("UnknownException", (e) => {
 			const message = e instanceof Error ? e.message : String(e);
-			const isTransient =
-				message.toLowerCase().includes("session") ||
-				message.toLowerCase().includes("token") ||
-				message.toLowerCase().includes("not found");
 
-			if (!isTransient) {
-				return Effect.fail(e);
+			if (!isTransientAuthError(message)) {
+				return Effect.logError("Unexpected auth error", {
+					message,
+					error: e,
+				}).pipe(Effect.andThen(Effect.fail(e)));
 			}
 
 			return Effect.logWarning("Session verification failed, treating as unauthenticated", {

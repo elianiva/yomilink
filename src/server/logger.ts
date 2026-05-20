@@ -1,45 +1,45 @@
-import { Cause, HashMap, Logger, LogLevel } from "effect";
+import { Cause, HashMap, Logger } from "effect";
 
-const SentryLogger = Logger.make<unknown, void>(({ logLevel, message, cause, annotations }) => {
-	if (!LogLevel.greaterThanEqual(logLevel, LogLevel.Error)) return;
+// Structured JSON logger for Cloudflare Workers.
+// Outputs JSON lines parseable by wrangler tail.
+// Avoids console.group (no-op in workerd) used by Logger.pretty.
+const JsonLogger = Logger.make<unknown, void>(({ logLevel, message, cause, annotations }) => {
+	const entry: Record<string, unknown> = {
+		level: logLevel.label,
+		message: String(message),
+	};
 
-	const tags: Record<string, string> = {};
 	HashMap.forEach(annotations, (value, key) => {
-		tags[key] = String(value);
+		entry[key] = value;
 	});
 
 	Cause.match(cause, {
-		onEmpty: () => {
-			console.error("[Error]", String(message), tags);
-		},
+		onEmpty: () => () => {},
 		onDie: (defect) => {
-			console.error("[Defect]", String(message), defect, tags);
+			entry.defect = String(defect);
 			return () => {};
 		},
 		onInterrupt: () => {
-			console.error("[Interrupt]", String(message), tags);
+			entry.interrupted = true;
 			return () => {};
 		},
-		onFail: (typedError) => {
-			const exceptionToCapture =
-				typeof typedError === "object" &&
-				typedError !== null &&
-				"cause" in typedError &&
-				typedError.cause instanceof Error
-					? typedError.cause
-					: typedError;
-			console.error("[Failure]", String(message), exceptionToCapture, tags);
+		onFail: (error) => {
+			entry.error = String(error);
 			return () => {};
 		},
 		onSequential: (left, right) => {
-			console.error("[Sequential Errors]", String(message), { left, right }, tags);
+			entry.cause = "sequential";
+			entry.chain = [String(left), String(right)];
 			return () => {};
 		},
 		onParallel: (left, right) => {
-			console.error("[Parallel Errors]", String(message), { left, right }, tags);
+			entry.cause = "parallel";
+			entry.chain = [String(left), String(right)];
 			return () => {};
 		},
 	});
+
+	console.log(JSON.stringify(entry));
 });
 
-export const LoggerLive = Logger.replace(Logger.defaultLogger, SentryLogger);
+export const LoggerLive = Logger.replace(Logger.defaultLogger, JsonLogger);
