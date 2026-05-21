@@ -260,7 +260,7 @@ export function seedForms(teacherId: string) {
 			yield* Effect.log("  Created pre-test form: " + preTestFormTitle);
 		}
 
-		yield* upsertQuestions(preTestFormId, READING_COMPREHENSION_QUESTIONS);
+		yield* upsertQuestions(preTestFormId, READING_COMPREHENSION_QUESTIONS, false);
 
 		const postTestFormId = yield* copyFormWithQuestions({
 			sourceFormId: preTestFormId,
