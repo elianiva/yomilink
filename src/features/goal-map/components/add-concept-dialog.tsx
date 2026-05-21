@@ -84,7 +84,10 @@ function AddConceptDialogImpl({
 							onChange={(e) => setLabel(e.target.value)}
 							placeholder="Enter concept label..."
 							onKeyDown={(e) => {
-								if (e.key === "Enter" && !e.isComposing) {
+								if (
+									e.key === "Enter" &&
+									!(e.nativeEvent as KeyboardEvent).isComposing
+								) {
 									e.preventDefault();
 									handleSubmit();
 								}

@@ -1,4 +1,4 @@
-import { and, eq, inArray, or } from "drizzle-orm";
+import { and, eq, inArray, isNull, or } from "drizzle-orm";
 import { Data, Effect, Schema } from "effect";
 
 import { PerLinkDiagnosisSchema } from "@/features/analyzer/lib/analytics-service.shared";
@@ -103,17 +103,24 @@ export const getAssignmentMembership = Effect.fn("getAssignmentMembership")(func
 	const userCohorts = yield* db
 		.select({ cohortId: cohortMembers.cohortId })
 		.from(cohortMembers)
-		.where(eq(cohortMembers.userId, userId));
+		.where(and(eq(cohortMembers.userId, userId), isNull(cohortMembers.deletedAt)));
 
 	const cohortIds = userCohorts.map((c) => c.cohortId);
 
 	const membershipRows = yield* db
 		.select({ id: assignments.id })
 		.from(assignments)
-		.leftJoin(assignmentTargets, eq(assignmentTargets.assignmentId, assignments.id))
+		.leftJoin(
+			assignmentTargets,
+			and(
+				eq(assignmentTargets.assignmentId, assignments.id),
+				isNull(assignmentTargets.deletedAt),
+			),
+		)
 		.where(
 			and(
 				eq(assignments.id, assignmentId),
+				isNull(assignments.deletedAt),
 				or(
 					eq(assignmentTargets.userId, userId),
 					cohortIds.length > 0
@@ -127,7 +134,7 @@ export const getAssignmentMembership = Effect.fn("getAssignmentMembership")(func
 	const userRows = yield* db
 		.select({ studyGroup: user.studyGroup })
 		.from(user)
-		.where(eq(user.id, userId))
+		.where(and(eq(user.id, userId), isNull(user.deletedAt)))
 		.limit(1);
 
 	return {

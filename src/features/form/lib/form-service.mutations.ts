@@ -1,4 +1,4 @@
-import { and, eq } from "drizzle-orm";
+import { and, eq, isNull } from "drizzle-orm";
 import { Effect } from "effect";
 
 import { randomString } from "@/lib/utils";
@@ -67,7 +67,11 @@ export const updateForm = Effect.fn("updateForm")(function* (
 ) {
 	const db = yield* Database;
 
-	const formRows = yield* db.select().from(forms).where(eq(forms.id, formId)).limit(1);
+	const formRows = yield* db
+		.select()
+		.from(forms)
+		.where(and(eq(forms.id, formId), isNull(forms.deletedAt)))
+		.limit(1);
 
 	const form = formRows[0];
 	if (!form) {
@@ -77,7 +81,7 @@ export const updateForm = Effect.fn("updateForm")(function* (
 	const responseRows = yield* db
 		.select()
 		.from(formResponses)
-		.where(eq(formResponses.formId, formId));
+		.where(and(eq(formResponses.formId, formId), isNull(formResponses.deletedAt)));
 
 	if (responseRows.length > 0) {
 		return yield* new FormHasResponsesError({
@@ -109,7 +113,7 @@ export const updateForm = Effect.fn("updateForm")(function* (
 				readingMaterialSections: normalizedReadingMaterialSections,
 			}),
 		})
-		.where(eq(forms.id, formId));
+		.where(and(eq(forms.id, formId), isNull(forms.deletedAt)));
 
 	return {
 		id: formId,
@@ -125,14 +129,21 @@ export const updateForm = Effect.fn("updateForm")(function* (
 export const deleteForm = Effect.fn("deleteForm")(function* (formId: string) {
 	const db = yield* Database;
 
-	const formRows = yield* db.select().from(forms).where(eq(forms.id, formId)).limit(1);
+	const formRows = yield* db
+		.select()
+		.from(forms)
+		.where(and(eq(forms.id, formId), isNull(forms.deletedAt)))
+		.limit(1);
 
 	const form = formRows[0];
 	if (!form) {
 		return yield* new FormNotFoundError({ formId });
 	}
 
-	yield* db.delete(forms).where(eq(forms.id, formId));
+	yield* db
+		.update(forms)
+		.set({ deletedAt: new Date() })
+		.where(and(eq(forms.id, formId), isNull(forms.deletedAt)));
 
 	return true;
 });
@@ -140,14 +151,21 @@ export const deleteForm = Effect.fn("deleteForm")(function* (formId: string) {
 export const publishForm = Effect.fn("publishForm")(function* (formId: string) {
 	const db = yield* Database;
 
-	const formRows = yield* db.select().from(forms).where(eq(forms.id, formId)).limit(1);
+	const formRows = yield* db
+		.select()
+		.from(forms)
+		.where(and(eq(forms.id, formId), isNull(forms.deletedAt)))
+		.limit(1);
 
 	const form = formRows[0];
 	if (!form) {
 		return yield* new FormNotFoundError({ formId });
 	}
 
-	yield* db.update(forms).set({ status: "published" }).where(eq(forms.id, formId));
+	yield* db
+		.update(forms)
+		.set({ status: "published" })
+		.where(and(eq(forms.id, formId), isNull(forms.deletedAt)));
 
 	return true;
 });
@@ -155,14 +173,21 @@ export const publishForm = Effect.fn("publishForm")(function* (formId: string) {
 export const unpublishForm = Effect.fn("unpublishForm")(function* (formId: string) {
 	const db = yield* Database;
 
-	const formRows = yield* db.select().from(forms).where(eq(forms.id, formId)).limit(1);
+	const formRows = yield* db
+		.select()
+		.from(forms)
+		.where(and(eq(forms.id, formId), isNull(forms.deletedAt)))
+		.limit(1);
 
 	const form = formRows[0];
 	if (!form) {
 		return yield* new FormNotFoundError({ formId });
 	}
 
-	yield* db.update(forms).set({ status: "draft" }).where(eq(forms.id, formId));
+	yield* db
+		.update(forms)
+		.set({ status: "draft" })
+		.where(and(eq(forms.id, formId), isNull(forms.deletedAt)));
 
 	return true;
 });
@@ -170,7 +195,11 @@ export const unpublishForm = Effect.fn("unpublishForm")(function* (formId: strin
 export const cloneForm = Effect.fn("cloneForm")(function* (formId: string, userId: string) {
 	const db = yield* Database;
 
-	const formRows = yield* db.select().from(forms).where(eq(forms.id, formId)).limit(1);
+	const formRows = yield* db
+		.select()
+		.from(forms)
+		.where(and(eq(forms.id, formId), isNull(forms.deletedAt)))
+		.limit(1);
 
 	const originalForm = formRows[0];
 	if (!originalForm) {
@@ -180,7 +209,7 @@ export const cloneForm = Effect.fn("cloneForm")(function* (formId: string, userI
 	const originalQuestions = yield* db
 		.select()
 		.from(questions)
-		.where(eq(questions.formId, formId))
+		.where(and(eq(questions.formId, formId), isNull(questions.deletedAt)))
 		.orderBy(questions.orderIndex);
 
 	const newFormId = randomString();
@@ -218,7 +247,11 @@ export const submitFormResponse = Effect.fn("submitFormResponse")(function* (
 ) {
 	const db = yield* Database;
 
-	const formRows = yield* db.select().from(forms).where(eq(forms.id, data.formId)).limit(1);
+	const formRows = yield* db
+		.select()
+		.from(forms)
+		.where(and(eq(forms.id, data.formId), isNull(forms.deletedAt)))
+		.limit(1);
 
 	const form = formRows[0];
 	if (!form) {
@@ -250,7 +283,13 @@ export const submitFormResponse = Effect.fn("submitFormResponse")(function* (
 	const existingResponse = yield* db
 		.select()
 		.from(formResponses)
-		.where(and(eq(formResponses.formId, data.formId), eq(formResponses.userId, data.userId)))
+		.where(
+			and(
+				eq(formResponses.formId, data.formId),
+				eq(formResponses.userId, data.userId),
+				isNull(formResponses.deletedAt),
+			),
+		)
 		.limit(1);
 
 	if (existingResponse.length > 0) {
@@ -275,7 +314,13 @@ export const submitFormResponse = Effect.fn("submitFormResponse")(function* (
 	const existingProgress = yield* db
 		.select()
 		.from(formProgress)
-		.where(and(eq(formProgress.formId, data.formId), eq(formProgress.userId, data.userId)))
+		.where(
+			and(
+				eq(formProgress.formId, data.formId),
+				eq(formProgress.userId, data.userId),
+				isNull(formProgress.deletedAt),
+			),
+		)
 		.limit(1);
 
 	if (existingProgress.length > 0) {
@@ -304,7 +349,11 @@ export const reorderQuestions = Effect.fn("reorderQuestions")(function* (
 ) {
 	const db = yield* Database;
 
-	const formRows = yield* db.select().from(forms).where(eq(forms.id, input.formId)).limit(1);
+	const formRows = yield* db
+		.select()
+		.from(forms)
+		.where(and(eq(forms.id, input.formId), isNull(forms.deletedAt)))
+		.limit(1);
 
 	const form = formRows[0];
 	if (!form) {
@@ -314,7 +363,7 @@ export const reorderQuestions = Effect.fn("reorderQuestions")(function* (
 	const responseRows = yield* db
 		.select()
 		.from(formResponses)
-		.where(eq(formResponses.formId, input.formId));
+		.where(and(eq(formResponses.formId, input.formId), isNull(formResponses.deletedAt)));
 
 	if (responseRows.length > 0) {
 		return yield* new FormHasResponsesError({
@@ -326,7 +375,7 @@ export const reorderQuestions = Effect.fn("reorderQuestions")(function* (
 	const existingQuestions = yield* db
 		.select()
 		.from(questions)
-		.where(eq(questions.formId, input.formId));
+		.where(and(eq(questions.formId, input.formId), isNull(questions.deletedAt)));
 
 	const existingQuestionIds = new Set(existingQuestions.map((q) => q.id));
 	const providedQuestionIds = new Set(input.questionIds);
@@ -360,7 +409,11 @@ export const reorderQuestions = Effect.fn("reorderQuestions")(function* (
 export const createQuestion = Effect.fn("createQuestion")(function* (data: CreateQuestionInput) {
 	const db = yield* Database;
 
-	const formRows = yield* db.select().from(forms).where(eq(forms.id, data.formId)).limit(1);
+	const formRows = yield* db
+		.select()
+		.from(forms)
+		.where(and(eq(forms.id, data.formId), isNull(forms.deletedAt)))
+		.limit(1);
 
 	const form = formRows[0];
 	if (!form) {
@@ -370,7 +423,7 @@ export const createQuestion = Effect.fn("createQuestion")(function* (data: Creat
 	const responseRows = yield* db
 		.select()
 		.from(formResponses)
-		.where(eq(formResponses.formId, data.formId));
+		.where(and(eq(formResponses.formId, data.formId), isNull(formResponses.deletedAt)));
 
 	if (responseRows.length > 0) {
 		return yield* new FormHasResponsesError({
@@ -382,7 +435,7 @@ export const createQuestion = Effect.fn("createQuestion")(function* (data: Creat
 	const existingQuestions = yield* db
 		.select()
 		.from(questions)
-		.where(eq(questions.formId, data.formId));
+		.where(and(eq(questions.formId, data.formId), isNull(questions.deletedAt)));
 
 	const orderIndex = existingQuestions.length;
 
@@ -407,7 +460,7 @@ export const updateQuestion = Effect.fn("updateQuestion")(function* (data: Updat
 	const questionRows = yield* db
 		.select()
 		.from(questions)
-		.where(eq(questions.id, data.questionId))
+		.where(and(eq(questions.id, data.questionId), isNull(questions.deletedAt)))
 		.limit(1);
 
 	const question = questionRows[0];
@@ -420,7 +473,7 @@ export const updateQuestion = Effect.fn("updateQuestion")(function* (data: Updat
 	const responseRows = yield* db
 		.select()
 		.from(formResponses)
-		.where(eq(formResponses.formId, question.formId));
+		.where(and(eq(formResponses.formId, question.formId), isNull(formResponses.deletedAt)));
 
 	if (responseRows.length > 0) {
 		return yield* new FormHasResponsesError({
@@ -438,7 +491,7 @@ export const updateQuestion = Effect.fn("updateQuestion")(function* (data: Updat
 			...(data.options !== undefined && { options: data.options }),
 			...(data.required !== undefined && { required: data.required }),
 		})
-		.where(eq(questions.id, data.questionId));
+		.where(and(eq(questions.id, data.questionId), isNull(questions.deletedAt)));
 
 	return true;
 });
@@ -449,7 +502,7 @@ export const deleteQuestion = Effect.fn("deleteQuestion")(function* (questionId:
 	const questionRows = yield* db
 		.select()
 		.from(questions)
-		.where(eq(questions.id, questionId))
+		.where(and(eq(questions.id, questionId), isNull(questions.deletedAt)))
 		.limit(1);
 
 	const question = questionRows[0];
@@ -460,7 +513,7 @@ export const deleteQuestion = Effect.fn("deleteQuestion")(function* (questionId:
 	const responseRows = yield* db
 		.select()
 		.from(formResponses)
-		.where(eq(formResponses.formId, question.formId));
+		.where(and(eq(formResponses.formId, question.formId), isNull(formResponses.deletedAt)));
 
 	if (responseRows.length > 0) {
 		return yield* new FormHasResponsesError({
@@ -469,7 +522,10 @@ export const deleteQuestion = Effect.fn("deleteQuestion")(function* (questionId:
 		});
 	}
 
-	yield* db.delete(questions).where(eq(questions.id, questionId));
+	yield* db
+		.update(questions)
+		.set({ deletedAt: new Date() })
+		.where(and(eq(questions.id, questionId), isNull(questions.deletedAt)));
 
 	return true;
 });

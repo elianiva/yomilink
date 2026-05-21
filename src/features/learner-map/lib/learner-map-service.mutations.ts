@@ -1,4 +1,4 @@
-import { and, eq } from "drizzle-orm";
+import { and, eq, isNull } from "drizzle-orm";
 import { Effect, Schema } from "effect";
 
 import { randomString, safeParseJson } from "@/lib/utils";
@@ -38,7 +38,7 @@ export const saveLearnerMap = Effect.fn("saveLearnerMap")(function* (
 			kitId: assignments.kitId,
 		})
 		.from(assignments)
-		.where(eq(assignments.id, data.assignmentId))
+		.where(and(eq(assignments.id, data.assignmentId), isNull(assignments.deletedAt)))
 		.limit(1);
 
 	const assignment = assignmentRows[0];
@@ -51,7 +51,13 @@ export const saveLearnerMap = Effect.fn("saveLearnerMap")(function* (
 	const existingRows = yield* db
 		.select({ id: learnerMaps.id, status: learnerMaps.status })
 		.from(learnerMaps)
-		.where(and(eq(learnerMaps.assignmentId, data.assignmentId), eq(learnerMaps.userId, userId)))
+		.where(
+			and(
+				eq(learnerMaps.assignmentId, data.assignmentId),
+				eq(learnerMaps.userId, userId),
+				isNull(learnerMaps.deletedAt),
+			),
+		)
 		.limit(1);
 
 	const existing = existingRows[0];
@@ -69,7 +75,7 @@ export const saveLearnerMap = Effect.fn("saveLearnerMap")(function* (
 					controlText: data.controlText,
 				}),
 			})
-			.where(eq(learnerMaps.id, existing.id));
+			.where(and(eq(learnerMaps.id, existing.id), isNull(learnerMaps.deletedAt)));
 
 		return true;
 	}
@@ -103,7 +109,11 @@ export const submitLearnerMap = Effect.fn("submitLearnerMap")(function* (
 		.select()
 		.from(learnerMaps)
 		.where(
-			and(eq(learnerMaps.assignmentId, input.assignmentId), eq(learnerMaps.userId, userId)),
+			and(
+				eq(learnerMaps.assignmentId, input.assignmentId),
+				eq(learnerMaps.userId, userId),
+				isNull(learnerMaps.deletedAt),
+			),
 		)
 		.limit(1);
 
@@ -116,7 +126,6 @@ export const submitLearnerMap = Effect.fn("submitLearnerMap")(function* (
 		return yield* new LearnerMapAlreadySubmittedError({ learnerMapId: learnerMap.id });
 	}
 
-	// Fetch assignment to get the correct goalMapId and form unlock configuration
 	const assignmentRows = yield* db
 		.select({
 			goalMapId: assignments.goalMapId,
@@ -125,7 +134,7 @@ export const submitLearnerMap = Effect.fn("submitLearnerMap")(function* (
 			delayedPostTestDelayDays: assignments.delayedPostTestDelayDays,
 		})
 		.from(assignments)
-		.where(eq(assignments.id, input.assignmentId))
+		.where(and(eq(assignments.id, input.assignmentId), isNull(assignments.deletedAt)))
 		.limit(1);
 
 	const assignment = assignmentRows[0];
@@ -133,11 +142,10 @@ export const submitLearnerMap = Effect.fn("submitLearnerMap")(function* (
 		return yield* new AssignmentNotFoundError({ assignmentId: input.assignmentId });
 	}
 
-	// Use assignment's goalMapId for comparison (not learnerMap.goalMapId which may be null for kits)
 	const goalMapRows = yield* db
 		.select({ nodes: goalMaps.nodes, edges: goalMaps.edges })
 		.from(goalMaps)
-		.where(eq(goalMaps.id, assignment.goalMapId))
+		.where(and(eq(goalMaps.id, assignment.goalMapId), isNull(goalMaps.deletedAt)))
 		.limit(1);
 
 	const goalMap = goalMapRows[0];
@@ -165,7 +173,7 @@ export const submitLearnerMap = Effect.fn("submitLearnerMap")(function* (
 	const updatedRow = yield* db
 		.select({ status: learnerMaps.status })
 		.from(learnerMaps)
-		.where(eq(learnerMaps.id, learnerMap.id))
+		.where(and(eq(learnerMaps.id, learnerMap.id), isNull(learnerMaps.deletedAt)))
 		.limit(1);
 
 	if (updatedRow[0]?.status !== "submitted") {
@@ -199,7 +207,11 @@ export const startNewAttempt = Effect.fn("startNewAttempt")(function* (
 		.select()
 		.from(learnerMaps)
 		.where(
-			and(eq(learnerMaps.assignmentId, input.assignmentId), eq(learnerMaps.userId, userId)),
+			and(
+				eq(learnerMaps.assignmentId, input.assignmentId),
+				eq(learnerMaps.userId, userId),
+				isNull(learnerMaps.deletedAt),
+			),
 		)
 		.limit(1);
 
@@ -224,7 +236,7 @@ export const startNewAttempt = Effect.fn("startNewAttempt")(function* (
 	const afterRow = yield* db
 		.select({ status: learnerMaps.status })
 		.from(learnerMaps)
-		.where(eq(learnerMaps.id, existing.id))
+		.where(and(eq(learnerMaps.id, existing.id), isNull(learnerMaps.deletedAt)))
 		.limit(1);
 
 	if (afterRow[0]?.status !== "draft") {
@@ -240,7 +252,6 @@ export const submitControlText = Effect.fn("submitControlText")(function* (
 ) {
 	const db = yield* Database;
 
-	// Verify assignment exists and get form unlock configuration
 	const assignmentRows = yield* db
 		.select({
 			id: assignments.id,
@@ -251,7 +262,7 @@ export const submitControlText = Effect.fn("submitControlText")(function* (
 			delayedPostTestDelayDays: assignments.delayedPostTestDelayDays,
 		})
 		.from(assignments)
-		.where(eq(assignments.id, input.assignmentId))
+		.where(and(eq(assignments.id, input.assignmentId), isNull(assignments.deletedAt)))
 		.limit(1);
 
 	const assignment = assignmentRows[0];
@@ -265,7 +276,11 @@ export const submitControlText = Effect.fn("submitControlText")(function* (
 		.select({ id: learnerMaps.id, status: learnerMaps.status })
 		.from(learnerMaps)
 		.where(
-			and(eq(learnerMaps.assignmentId, input.assignmentId), eq(learnerMaps.userId, userId)),
+			and(
+				eq(learnerMaps.assignmentId, input.assignmentId),
+				eq(learnerMaps.userId, userId),
+				isNull(learnerMaps.deletedAt),
+			),
 		)
 		.limit(1);
 
@@ -287,7 +302,7 @@ export const submitControlText = Effect.fn("submitControlText")(function* (
 		const updatedRow = yield* db
 			.select({ status: learnerMaps.status })
 			.from(learnerMaps)
-			.where(eq(learnerMaps.id, existing.id))
+			.where(and(eq(learnerMaps.id, existing.id), isNull(learnerMaps.deletedAt)))
 			.limit(1);
 
 		if (updatedRow[0]?.status !== "submitted") {

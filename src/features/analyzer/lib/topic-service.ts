@@ -1,3 +1,4 @@
+import { and, eq, isNull } from "drizzle-orm";
 import { Effect, Schema } from "effect";
 
 import { randomString } from "@/lib/utils";
@@ -31,6 +32,7 @@ export const listTopics = Effect.fn("listTopics")(function* () {
 			description: topics.description,
 		})
 		.from(topics)
+		.where(isNull(topics.deletedAt))
 		.orderBy(topics.title);
 
 	return rows;
@@ -44,5 +46,14 @@ export const createTopic = Effect.fn("createTopic")(function* (data: CreateTopic
 		description: data.description,
 	});
 
+	return true;
+});
+
+export const deleteTopic = Effect.fn("deleteTopic")(function* (topicId: string) {
+	const db = yield* Database;
+	yield* db
+		.update(topics)
+		.set({ deletedAt: new Date() })
+		.where(and(eq(topics.id, topicId), isNull(topics.deletedAt)));
 	return true;
 });

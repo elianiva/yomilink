@@ -15,6 +15,7 @@ export const user = sqliteTable("user", {
 		.default(sql`(cast(unixepoch('subsecond') * 1000 as integer))`)
 		.$onUpdate(() => /* @__PURE__ */ new Date())
 		.notNull(),
+	deletedAt: integer("deleted_at", { mode: "timestamp_ms" }),
 	role: text("role"),
 	age: integer("age"),
 	jlptLevel: text("jlpt_level", {
@@ -114,6 +115,7 @@ export const cohorts = sqliteTable("cohorts", {
 		.default(sql`(cast(unixepoch('subsecond') * 1000 as integer))`)
 		.$onUpdate(() => /* @__PURE__ */ new Date())
 		.notNull(),
+	deletedAt: integer("deleted_at", { mode: "timestamp_ms" }),
 });
 
 export const whitelistEntries = sqliteTable(
@@ -134,6 +136,7 @@ export const whitelistEntries = sqliteTable(
 			.default(sql`(cast(unixepoch('subsecond') * 1000 as integer))`)
 			.$onUpdate(() => /* @__PURE__ */ new Date())
 			.notNull(),
+		deletedAt: integer("deleted_at", { mode: "timestamp_ms" }),
 	},
 	(table) => [index("whitelist_entries_claimedUserId_idx").on(table.claimedUserId)],
 );
@@ -154,6 +157,7 @@ export const cohortMembers = sqliteTable(
 		joinedAt: integer("joined_at", { mode: "timestamp_ms" })
 			.default(sql`(cast(unixepoch('subsecond') * 1000 as integer))`)
 			.notNull(),
+		deletedAt: integer("deleted_at", { mode: "timestamp_ms" }),
 	},
 	(table) => [
 		index("cohort_members_cohortId_idx").on(table.cohortId),

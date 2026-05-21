@@ -23,6 +23,7 @@ import { Button } from "@/components/ui/button";
 import { ConceptMapCanvas } from "@/features/kit/components/concept-map-canvas";
 import { SearchNodesPanel } from "@/features/kit/components/search-nodes-panel";
 import { getLayoutedElements } from "@/features/kit/lib/layout";
+import { CanvasOnboardingDialog } from "@/features/learner-map/components/canvas-onboarding-dialog";
 import { LearnerToolbar } from "@/features/learner-map/components/learner-toolbar";
 import { MaterialDialog } from "@/features/learner-map/components/material-dialog";
 import {
@@ -105,6 +106,7 @@ export function LearnerMapEditor() {
 	const [attempt, setAttempt] = useAtom(attemptAtom);
 
 	const [submitDialogOpen, setSubmitDialogOpen] = useState(false);
+	const [onboardingOpen, setOnboardingOpen] = useState(false);
 
 	const isSubmitted = status === "submitted";
 
@@ -148,6 +150,17 @@ export function LearnerMapEditor() {
 	const submitMutation = useRpcMutation(LearnerMapRpc.submitLearnerMap(), {
 		operation: "submit learner map",
 	});
+
+	// Show onboarding on first canvas visit (once per assignment, persisted in localStorage)
+	useEffect(() => {
+		if (assignmentData && condition === "concept_map" && !isSubmitted) {
+			const key = `canvas-onboarding-${assignmentId}`;
+			if (!localStorage.getItem(key)) {
+				setOnboardingOpen(true);
+				localStorage.setItem(key, "1");
+			}
+		}
+	}, [assignmentData, assignmentId, condition, isSubmitted]);
 
 	useEffect(() => {
 		if (assignmentData) {
@@ -393,6 +406,8 @@ export function LearnerMapEditor() {
 				onOpenChange={setMaterialOpen}
 				content={assignmentData.materialText || ""}
 			/>
+			<CanvasOnboardingDialog open={onboardingOpen} onOpenChange={setOnboardingOpen} />
+
 			<AlertDialog open={submitDialogOpen} onOpenChange={setSubmitDialogOpen}>
 				<AlertDialogContent>
 					<AlertDialogHeader>

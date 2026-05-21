@@ -1,4 +1,4 @@
-import { and, desc, eq, inArray, or } from "drizzle-orm";
+import { and, desc, eq, inArray, isNull, or } from "drizzle-orm";
 import { Effect, Schema } from "effect";
 
 import { PerLinkDiagnosisSchema } from "@/features/analyzer/lib/analytics-service.shared";
@@ -8,6 +8,7 @@ import {
 	assignments,
 	assignmentTargets,
 	diagnoses,
+	formProgress,
 	goalMaps,
 	kits,
 	learnerMaps,
@@ -32,7 +33,7 @@ export const listStudentAssignments = Effect.fn("listStudentAssignments")(functi
 	const userCohorts = yield* db
 		.select({ cohortId: cohortMembers.cohortId })
 		.from(cohortMembers)
-		.where(eq(cohortMembers.userId, userId));
+		.where(and(eq(cohortMembers.userId, userId), isNull(cohortMembers.deletedAt)));
 
 	const cohortIds = userCohorts.map((c) => c.cohortId);
 
@@ -55,27 +56,65 @@ export const listStudentAssignments = Effect.fn("listStudentAssignments")(functi
 			learnerMapUpdatedAt: learnerMaps.updatedAt,
 		})
 		.from(assignments)
-		.leftJoin(assignmentTargets, eq(assignmentTargets.assignmentId, assignments.id))
-		.leftJoin(goalMaps, eq(assignments.goalMapId, goalMaps.id))
-		.leftJoin(
-			learnerMaps,
-			and(eq(learnerMaps.assignmentId, assignments.id), eq(learnerMaps.userId, userId)),
-		)
-		.where(
-			or(
-				eq(assignmentTargets.userId, userId),
-				cohortIds.length > 0
-					? inArray(assignmentTargets.cohortId, cohortIds)
-					: eq(assignmentTargets.userId, ""),
+		.innerJoin(
+			assignmentTargets,
+			and(
+				eq(assignmentTargets.assignmentId, assignments.id),
+				isNull(assignmentTargets.deletedAt),
+				or(
+					eq(assignmentTargets.userId, userId),
+					cohortIds.length > 0
+						? inArray(assignmentTargets.cohortId, cohortIds)
+						: eq(assignmentTargets.userId, ""),
+				),
 			),
 		)
+		.leftJoin(goalMaps, and(eq(assignments.goalMapId, goalMaps.id), isNull(goalMaps.deletedAt)))
+		.leftJoin(
+			learnerMaps,
+			and(
+				eq(learnerMaps.assignmentId, assignments.id),
+				eq(learnerMaps.userId, userId),
+				isNull(learnerMaps.deletedAt),
+			),
+		)
+		.where(and(isNull(assignments.deletedAt)))
 		.orderBy(desc(assignments.createdAt));
+
+	const formIds = assignmentsData.flatMap((a) =>
+		[a.preTestFormId, a.postTestFormId].filter((id): id is string => id !== null),
+	);
+
+	const progressRows: Array<typeof formProgress.$inferSelect> =
+		formIds.length > 0
+			? yield* db
+					.select()
+					.from(formProgress)
+					.where(
+						and(
+							inArray(formProgress.formId, formIds),
+							eq(formProgress.userId, userId),
+							isNull(formProgress.deletedAt),
+						),
+					)
+			: [];
+
+	const progressByFormId = new Map(progressRows.map((p) => [p.formId, p]));
 
 	const uniqueAssignments = new Map(
 		assignmentsData.map((row) => [
 			row.id,
 			{
-				...row,
+				id: row.id,
+				title: row.title,
+				description: row.description,
+				goalMapId: row.goalMapId,
+				kitId: row.kitId,
+				preTestFormId: row.preTestFormId,
+				postTestFormId: row.postTestFormId,
+				delayedPostTestFormId: row.delayedPostTestFormId,
+				tamFormId: row.tamFormId,
+				goalMapTitle: row.goalMapTitle,
 				dueAt: row.dueAt?.getTime(),
 				createdAt: row.createdAt?.getTime(),
 				status: row.learnerMapStatus || "not_started",
@@ -85,6 +124,12 @@ export const listStudentAssignments = Effect.fn("listStudentAssignments")(functi
 					row.dueAt.getTime() < Date.now() &&
 					row.learnerMapStatus !== "submitted",
 				lastUpdated: row.learnerMapUpdatedAt?.getTime(),
+				preTestCompleted:
+					!row.preTestFormId ||
+					progressByFormId.get(row.preTestFormId)?.status === "completed",
+				postTestCompleted:
+					!row.postTestFormId ||
+					progressByFormId.get(row.postTestFormId)?.status === "completed",
 			},
 		]),
 	);
@@ -101,7 +146,7 @@ export const getAssignmentForStudent = Effect.fn("getAssignmentForStudent")(func
 	const userRows = yield* db
 		.select({ studyGroup: user.studyGroup })
 		.from(user)
-		.where(eq(user.id, userId))
+		.where(and(eq(user.id, userId), isNull(user.deletedAt)))
 		.limit(1);
 	const studyGroup = userRows[0]?.studyGroup ?? null;
 
@@ -143,13 +188,17 @@ export const getAssignmentForStudent = Effect.fn("getAssignmentForStudent")(func
 			},
 		})
 		.from(assignments)
-		.leftJoin(kits, eq(kits.id, assignments.kitId))
-		.leftJoin(goalMaps, eq(goalMaps.id, assignments.goalMapId))
+		.leftJoin(kits, and(eq(kits.id, assignments.kitId), isNull(kits.deletedAt)))
+		.leftJoin(goalMaps, and(eq(goalMaps.id, assignments.goalMapId), isNull(goalMaps.deletedAt)))
 		.leftJoin(
 			learnerMaps,
-			and(eq(learnerMaps.assignmentId, assignments.id), eq(learnerMaps.userId, userId)),
+			and(
+				eq(learnerMaps.assignmentId, assignments.id),
+				eq(learnerMaps.userId, userId),
+				isNull(learnerMaps.deletedAt),
+			),
 		)
-		.where(eq(assignments.id, input.assignmentId))
+		.where(and(eq(assignments.id, input.assignmentId), isNull(assignments.deletedAt)))
 		.limit(1);
 
 	const result = results[0];
@@ -171,7 +220,7 @@ export const getAssignmentForStudent = Effect.fn("getAssignmentForStudent")(func
 						db
 							.select({ content: texts.content })
 							.from(texts)
-							.where(eq(texts.id, textId))
+							.where(and(eq(texts.id, textId), isNull(texts.deletedAt)))
 							.limit(1)
 							.then((rows) => rows[0]?.content ?? null),
 					)
@@ -238,10 +287,17 @@ export const getDiagnosis = Effect.fn("getDiagnosis")(function* (
 			},
 		})
 		.from(learnerMaps)
-		.innerJoin(assignments, eq(assignments.id, learnerMaps.assignmentId))
+		.innerJoin(
+			assignments,
+			and(eq(assignments.id, learnerMaps.assignmentId), isNull(assignments.deletedAt)),
+		)
 		.leftJoin(diagnoses, eq(diagnoses.learnerMapId, learnerMaps.id))
 		.where(
-			and(eq(learnerMaps.assignmentId, input.assignmentId), eq(learnerMaps.userId, userId)),
+			and(
+				eq(learnerMaps.assignmentId, input.assignmentId),
+				eq(learnerMaps.userId, userId),
+				isNull(learnerMaps.deletedAt),
+			),
 		)
 		.orderBy(desc(diagnoses.createdAt))
 		.limit(1);
@@ -251,8 +307,6 @@ export const getDiagnosis = Effect.fn("getDiagnosis")(function* (
 		return null;
 	}
 
-	// Fetch the goal map from the assignment's goalMapId (not learnerMap's goalMapId)
-	// This ensures kit-based assignments use the correct goal map for diagnosis
 	const goalMapRows = yield* db
 		.select({
 			id: goalMaps.id,
@@ -262,7 +316,7 @@ export const getDiagnosis = Effect.fn("getDiagnosis")(function* (
 			direction: goalMaps.direction,
 		})
 		.from(goalMaps)
-		.where(eq(goalMaps.id, result.assignment.goalMapId))
+		.where(and(eq(goalMaps.id, result.assignment.goalMapId), isNull(goalMaps.deletedAt)))
 		.limit(1);
 
 	const goalMap = goalMapRows[0];
@@ -338,6 +392,7 @@ export const getPeerStats = Effect.fn("getPeerStats")(function* (
 			and(
 				eq(learnerMaps.assignmentId, input.assignmentId),
 				eq(learnerMaps.status, "submitted"),
+				isNull(learnerMaps.deletedAt),
 			),
 		);
 

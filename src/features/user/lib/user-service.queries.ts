@@ -1,4 +1,4 @@
-import { count, eq, ilike, inArray, or, sql } from "drizzle-orm";
+import { and, count, eq, ilike, inArray, isNull, or, sql } from "drizzle-orm";
 import { Effect } from "effect";
 
 import { buildWhereClause, calculateOffset, createFuzzyPattern } from "@/lib/db-query-builder";
@@ -23,7 +23,7 @@ export const listUsers = Effect.fn("listUsers")((input: UserFilterInput) =>
 			const memberIds = yield* db
 				.select({ userId: cohortMembers.userId })
 				.from(cohortMembers)
-				.where(eq(cohortMembers.cohortId, cohortId));
+				.where(and(eq(cohortMembers.cohortId, cohortId), isNull(cohortMembers.deletedAt)));
 
 			if (memberIds.length === 0) {
 				return {
@@ -38,6 +38,7 @@ export const listUsers = Effect.fn("listUsers")((input: UserFilterInput) =>
 		}
 
 		const whereClause = buildWhereClause([
+			isNull(user.deletedAt),
 			search
 				? or(
 						ilike(user.name, createFuzzyPattern(search)),
@@ -135,7 +136,11 @@ export const getUserById = Effect.fn("getUserById")((userId: string) =>
 	Effect.gen(function* () {
 		const db = yield* Database;
 
-		const userRows = yield* db.select().from(user).where(eq(user.id, userId)).limit(1);
+		const userRows = yield* db
+			.select()
+			.from(user)
+			.where(and(eq(user.id, userId), isNull(user.deletedAt)))
+			.limit(1);
 
 		const user_ = userRows[0];
 
@@ -147,7 +152,7 @@ export const getUserById = Effect.fn("getUserById")((userId: string) =>
 			.select({ id: cohorts.id, name: cohorts.name })
 			.from(cohortMembers)
 			.innerJoin(cohorts, eq(cohortMembers.cohortId, cohorts.id))
-			.where(eq(cohortMembers.userId, userId));
+			.where(and(eq(cohortMembers.userId, userId), isNull(cohortMembers.deletedAt)));
 
 		return {
 			...user_,

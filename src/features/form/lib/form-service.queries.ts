@@ -1,4 +1,4 @@
-import { and, count, desc, eq, inArray, or } from "drizzle-orm";
+import { and, count, desc, eq, inArray, isNull, or } from "drizzle-orm";
 import { Effect, Schema } from "effect";
 
 import { isCorrectMcqAnswer } from "@/features/form/lib/form-scoring";
@@ -36,7 +36,11 @@ import {
 export const getFormById = Effect.fn("getFormById")(function* (formId: string) {
 	const db = yield* Database;
 
-	const formRows = yield* db.select().from(forms).where(eq(forms.id, formId)).limit(1);
+	const formRows = yield* db
+		.select()
+		.from(forms)
+		.where(and(eq(forms.id, formId), isNull(forms.deletedAt)))
+		.limit(1);
 
 	const formRow = formRows[0];
 	if (!formRow) {
@@ -46,7 +50,7 @@ export const getFormById = Effect.fn("getFormById")(function* (formId: string) {
 	const questionRows = yield* db
 		.select()
 		.from(questions)
-		.where(eq(questions.formId, formId))
+		.where(and(eq(questions.formId, formId), isNull(questions.deletedAt)))
 		.orderBy(questions.orderIndex);
 	const readingMaterialSections = yield* safeParseJson(
 		formRow.readingMaterialSections,
@@ -110,7 +114,11 @@ export const getStudentFormById = Effect.fn("getStudentFormById")(function* (
 ) {
 	const db = yield* Database;
 
-	const formRows = yield* db.select().from(forms).where(eq(forms.id, formId)).limit(1);
+	const formRows = yield* db
+		.select()
+		.from(forms)
+		.where(and(eq(forms.id, formId), isNull(forms.deletedAt)))
+		.limit(1);
 
 	const formRow = formRows[0];
 	if (!formRow) {
@@ -128,7 +136,13 @@ export const getStudentFormById = Effect.fn("getStudentFormById")(function* (
 	const responseRows = yield* db
 		.select()
 		.from(formResponses)
-		.where(and(eq(formResponses.formId, formId), eq(formResponses.userId, userId)))
+		.where(
+			and(
+				eq(formResponses.formId, formId),
+				eq(formResponses.userId, userId),
+				isNull(formResponses.deletedAt),
+			),
+		)
 		.limit(1);
 
 	const responseRow = responseRows[0] ?? null;
@@ -157,7 +171,7 @@ export const getStudentFormById = Effect.fn("getStudentFormById")(function* (
 	const questionRows = yield* db
 		.select()
 		.from(questions)
-		.where(eq(questions.formId, formId))
+		.where(and(eq(questions.formId, formId), isNull(questions.deletedAt)))
 		.orderBy(questions.orderIndex);
 
 	const rawAnswers = responseRow?.answers;
@@ -177,11 +191,14 @@ export const getStudentFormById = Effect.fn("getStudentFormById")(function* (
 		.select({ goalMapId: assignments.goalMapId })
 		.from(assignments)
 		.where(
-			or(
-				eq(assignments.preTestFormId, formId),
-				eq(assignments.postTestFormId, formId),
-				eq(assignments.delayedPostTestFormId, formId),
-				eq(assignments.tamFormId, formId),
+			and(
+				or(
+					eq(assignments.preTestFormId, formId),
+					eq(assignments.postTestFormId, formId),
+					eq(assignments.delayedPostTestFormId, formId),
+					eq(assignments.tamFormId, formId),
+				),
+				isNull(assignments.deletedAt),
 			),
 		)
 		.limit(1);
@@ -194,7 +211,13 @@ export const getStudentFormById = Effect.fn("getStudentFormById")(function* (
 				.select({ images: texts.images })
 				.from(goalMaps)
 				.leftJoin(texts, eq(goalMaps.textId, texts.id))
-				.where(eq(goalMaps.id, goalMapId))
+				.where(
+					and(
+						eq(goalMaps.id, goalMapId),
+						isNull(goalMaps.deletedAt),
+						isNull(texts.deletedAt),
+					),
+				)
 				.limit(1);
 
 			if (goalMapRows.length > 0 && goalMapRows[0].images) {
@@ -305,7 +328,11 @@ export const getStudentFormById = Effect.fn("getStudentFormById")(function* (
 
 export const listForms = Effect.fn("listForms")(function* () {
 	const db = yield* Database;
-	const formRows = yield* db.select().from(forms).orderBy(forms.createdAt);
+	const formRows = yield* db
+		.select()
+		.from(forms)
+		.where(isNull(forms.deletedAt))
+		.orderBy(forms.createdAt);
 
 	const formIds = formRows.map((f) => f.id);
 
@@ -318,7 +345,9 @@ export const listForms = Effect.fn("listForms")(function* () {
 						count: count(),
 					})
 					.from(formProgress)
-					.where(inArray(formProgress.formId, formIds))
+					.where(
+						and(inArray(formProgress.formId, formIds), isNull(formProgress.deletedAt)),
+					)
 					.groupBy(formProgress.formId, formProgress.status)
 			: [];
 
@@ -369,7 +398,11 @@ export const getFormResponses = Effect.fn("getFormResponses")(function* (
 ) {
 	const db = yield* Database;
 
-	const formRows = yield* db.select().from(forms).where(eq(forms.id, input.formId)).limit(1);
+	const formRows = yield* db
+		.select()
+		.from(forms)
+		.where(and(eq(forms.id, input.formId), isNull(forms.deletedAt)))
+		.limit(1);
 
 	const form = formRows[0];
 	if (!form) {
@@ -379,7 +412,7 @@ export const getFormResponses = Effect.fn("getFormResponses")(function* (
 	const questionRows = yield* db
 		.select()
 		.from(questions)
-		.where(eq(questions.formId, input.formId))
+		.where(and(eq(questions.formId, input.formId), isNull(questions.deletedAt)))
 		.orderBy(questions.orderIndex);
 
 	const questionOptionMap = new Map<
@@ -417,15 +450,15 @@ export const getFormResponses = Effect.fn("getFormResponses")(function* (
 				},
 			})
 			.from(formResponses)
-			.where(eq(formResponses.formId, input.formId))
-			.innerJoin(users, eq(formResponses.userId, users.id))
+			.where(and(eq(formResponses.formId, input.formId), isNull(formResponses.deletedAt)))
+			.innerJoin(users, and(eq(formResponses.userId, users.id), isNull(users.deletedAt)))
 			.orderBy(desc(formResponses.submittedAt))
 			.limit(limit)
 			.offset(offset),
 		db
 			.select({ total: count() })
 			.from(formResponses)
-			.where(eq(formResponses.formId, input.formId)),
+			.where(and(eq(formResponses.formId, input.formId), isNull(formResponses.deletedAt))),
 	]);
 
 	const total = countResult[0]?.total ?? 0;
@@ -487,13 +520,19 @@ export const getStudentForms = Effect.fn("getStudentForms")(function* (userId: s
 	const directAssignmentRows = yield* db
 		.select({ assignmentId: assignmentTargets.assignmentId })
 		.from(assignmentTargets)
-		.where(eq(assignmentTargets.userId, userId));
+		.where(and(eq(assignmentTargets.userId, userId), isNull(assignmentTargets.deletedAt)));
 
 	const cohortAssignmentRows = yield* db
 		.select({ assignmentId: assignmentTargets.assignmentId })
 		.from(assignmentTargets)
-		.innerJoin(cohortMembers, eq(cohortMembers.cohortId, assignmentTargets.cohortId))
-		.where(eq(cohortMembers.userId, userId));
+		.innerJoin(
+			cohortMembers,
+			and(
+				eq(cohortMembers.cohortId, assignmentTargets.cohortId),
+				isNull(cohortMembers.deletedAt),
+			),
+		)
+		.where(and(eq(cohortMembers.userId, userId), isNull(assignmentTargets.deletedAt)));
 
 	const assignmentIds = Array.from(
 		new Set([...directAssignmentRows, ...cohortAssignmentRows].map((row) => row.assignmentId)),
@@ -510,13 +549,15 @@ export const getStudentForms = Effect.fn("getStudentForms")(function* (userId: s
 						tamFormId: assignments.tamFormId,
 					})
 					.from(assignments)
-					.where(inArray(assignments.id, assignmentIds))
+					.where(
+						and(inArray(assignments.id, assignmentIds), isNull(assignments.deletedAt)),
+					)
 			: [];
 
 	const userRows = yield* db
 		.select({ studyGroup: users.studyGroup })
 		.from(users)
-		.where(eq(users.id, userId))
+		.where(and(eq(users.id, userId), isNull(users.deletedAt)))
 		.limit(1);
 	const studyGroup = userRows[0]?.studyGroup ?? null;
 	const assignmentLinkedFormIds = new Set(
@@ -530,7 +571,10 @@ export const getStudentForms = Effect.fn("getStudentForms")(function* (userId: s
 			.filter((formId): formId is string => formId !== null),
 	);
 
-	const publishedForms = yield* db.select().from(forms).where(eq(forms.status, "published"));
+	const publishedForms = yield* db
+		.select()
+		.from(forms)
+		.where(and(eq(forms.status, "published"), isNull(forms.deletedAt)));
 
 	const applicableForms = publishedForms.filter((form) => {
 		const isAssignmentScopedForm =
@@ -549,7 +593,7 @@ export const getStudentForms = Effect.fn("getStudentForms")(function* (userId: s
 	const userProgressRows = yield* db
 		.select()
 		.from(formProgress)
-		.where(eq(formProgress.userId, userId));
+		.where(and(eq(formProgress.userId, userId), isNull(formProgress.deletedAt)));
 
 	const progressMap = new Map(userProgressRows.map((p) => [p.formId, p]));
 	const sortedForms = applicableForms.slice().sort(sortFormsByPriority);

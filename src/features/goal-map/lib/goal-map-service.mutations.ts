@@ -1,4 +1,4 @@
-import { eq } from "drizzle-orm";
+import { and, eq, isNull } from "drizzle-orm";
 import { Effect } from "effect";
 
 import { validateNodes } from "@/features/goal-map/lib/validator";
@@ -26,7 +26,7 @@ export const saveGoalMap = Effect.fn("saveGoalMap")(function* (
 			db
 				.select({ teacherId: goalMaps.teacherId })
 				.from(goalMaps)
-				.where(eq(goalMaps.id, data.goalMapId))
+				.where(and(eq(goalMaps.id, data.goalMapId), isNull(goalMaps.deletedAt)))
 				.get(),
 		);
 		if (goalMap && goalMap.teacherId && goalMap.teacherId !== userId) {
@@ -54,7 +54,7 @@ export const saveGoalMap = Effect.fn("saveGoalMap")(function* (
 		const existingRows = yield* db
 			.select({ textId: goalMaps.textId })
 			.from(goalMaps)
-			.where(eq(goalMaps.id, data.goalMapId))
+			.where(and(eq(goalMaps.id, data.goalMapId), isNull(goalMaps.deletedAt)))
 			.limit(1);
 
 		const existing = existingRows[0];
@@ -70,7 +70,7 @@ export const saveGoalMap = Effect.fn("saveGoalMap")(function* (
 							: null,
 					updatedAt: new Date(),
 				})
-				.where(eq(texts.id, textId as string));
+				.where(and(eq(texts.id, textId as string), isNull(texts.deletedAt)));
 		} else {
 			textId = crypto.randomUUID();
 			yield* db.insert(texts).values({
@@ -102,7 +102,7 @@ export const saveGoalMap = Effect.fn("saveGoalMap")(function* (
 		.insert(goalMaps)
 		.values(payload)
 		.onConflictDoUpdate({
-			where: eq(goalMaps.id, data.goalMapId),
+			where: and(eq(goalMaps.id, data.goalMapId), isNull(goalMaps.deletedAt)),
 			target: goalMaps.id,
 			set: payload,
 		});
@@ -111,7 +111,7 @@ export const saveGoalMap = Effect.fn("saveGoalMap")(function* (
 		const kitRows = yield* db
 			.select({ id: kits.id, layout: kits.layout })
 			.from(kits)
-			.where(eq(kits.goalMapId, data.goalMapId))
+			.where(and(eq(kits.goalMapId, data.goalMapId), isNull(kits.deletedAt)))
 			.limit(1);
 
 		if (data.publish || kitRows[0]) {
@@ -141,7 +141,7 @@ export const saveGoalMap = Effect.fn("saveGoalMap")(function* (
 						edges: kitPayload.edges,
 						textId: kitPayload.textId,
 					})
-					.where(eq(kits.goalMapId, data.goalMapId));
+					.where(and(eq(kits.goalMapId, data.goalMapId), isNull(kits.deletedAt)));
 			} else if (data.publish) {
 				yield* db.insert(kits).values(kitPayload);
 			}
@@ -166,7 +166,7 @@ export const deleteGoalMap = Effect.fn("deleteGoalMap")(function* (
 		db
 			.select({ teacherId: goalMaps.teacherId })
 			.from(goalMaps)
-			.where(eq(goalMaps.id, input.goalMapId))
+			.where(and(eq(goalMaps.id, input.goalMapId), isNull(goalMaps.deletedAt)))
 			.get(),
 	);
 
@@ -181,7 +181,10 @@ export const deleteGoalMap = Effect.fn("deleteGoalMap")(function* (
 		});
 	}
 
-	yield* Effect.tryPromise(() => db.delete(goalMaps).where(eq(goalMaps.id, input.goalMapId)));
+	yield* db
+		.update(goalMaps)
+		.set({ deletedAt: new Date() })
+		.where(and(eq(goalMaps.id, input.goalMapId), isNull(goalMaps.deletedAt)));
 	return true;
 });
 
@@ -199,7 +202,7 @@ export const updateMaterial = Effect.fn("updateMaterial")(function* (
 				title: goalMaps.title,
 			})
 			.from(goalMaps)
-			.where(eq(goalMaps.id, input.goalMapId))
+			.where(and(eq(goalMaps.id, input.goalMapId), isNull(goalMaps.deletedAt)))
 			.limit(1),
 	);
 
@@ -232,7 +235,7 @@ export const updateMaterial = Effect.fn("updateMaterial")(function* (
 							: null,
 					updatedAt: new Date(),
 				})
-				.where(eq(texts.id, existing.textId));
+				.where(and(eq(texts.id, existing.textId), isNull(texts.deletedAt)));
 		} else {
 			textId = crypto.randomUUID();
 			yield* db.insert(texts).values({
@@ -248,14 +251,17 @@ export const updateMaterial = Effect.fn("updateMaterial")(function* (
 			yield* db
 				.update(goalMaps)
 				.set({ textId, updatedAt: new Date() })
-				.where(eq(goalMaps.id, input.goalMapId));
+				.where(and(eq(goalMaps.id, input.goalMapId), isNull(goalMaps.deletedAt)));
 		}
 	} else if (existing.textId) {
-		yield* db.delete(texts).where(eq(texts.id, existing.textId));
+		yield* db
+			.update(texts)
+			.set({ deletedAt: new Date() })
+			.where(and(eq(texts.id, existing.textId), isNull(texts.deletedAt)));
 		yield* db
 			.update(goalMaps)
 			.set({ textId: null, updatedAt: new Date() })
-			.where(eq(goalMaps.id, input.goalMapId));
+			.where(and(eq(goalMaps.id, input.goalMapId), isNull(goalMaps.deletedAt)));
 		textId = null;
 	}
 

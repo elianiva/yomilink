@@ -81,7 +81,10 @@ function AddLinkDialogImpl({
 							onChange={(e) => setLabel(e.target.value)}
 							placeholder='e.g. "is", "causes", "belongs to"'
 							onKeyDown={(e) => {
-								if (e.key === "Enter" && !e.isComposing) {
+								if (
+									e.key === "Enter" &&
+									!(e.nativeEvent as KeyboardEvent).isComposing
+								) {
 									e.preventDefault();
 									handleSubmit();
 								}

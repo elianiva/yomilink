@@ -1,4 +1,4 @@
-import { and, count, eq, inArray } from "drizzle-orm";
+import { and, count, eq, inArray, isNull } from "drizzle-orm";
 import { Effect } from "effect";
 
 import { Database } from "@/server/db/client";
@@ -20,7 +20,11 @@ export const updateUser = Effect.fn("updateUser")(
 		Effect.gen(function* () {
 			const db = yield* Database;
 
-			const existingRows = yield* db.select().from(user).where(eq(user.id, userId)).limit(1);
+			const existingRows = yield* db
+				.select()
+				.from(user)
+				.where(and(eq(user.id, userId), isNull(user.deletedAt)))
+				.limit(1);
 
 			if (existingRows.length === 0) {
 				return yield* new UserNotFoundError({ userId });
@@ -68,7 +72,7 @@ export const updateUserRole = Effect.fn("updateUserRole")(
 			const existingRows = yield* db
 				.select()
 				.from(user)
-				.where(eq(user.id, input.userId))
+				.where(and(eq(user.id, input.userId), isNull(user.deletedAt)))
 				.limit(1);
 
 			const existing = existingRows[0];
@@ -81,7 +85,7 @@ export const updateUserRole = Effect.fn("updateUserRole")(
 				const countRows = yield* db
 					.select({ count: count() })
 					.from(user)
-					.where(eq(user.role, "admin"));
+					.where(and(eq(user.role, "admin"), isNull(user.deletedAt)));
 
 				const adminCount = countRows[0]?.count ?? 0;
 
@@ -92,7 +96,10 @@ export const updateUserRole = Effect.fn("updateUserRole")(
 				}
 			}
 
-			yield* db.update(user).set({ role: input.role }).where(eq(user.id, input.userId));
+			yield* db
+				.update(user)
+				.set({ role: input.role })
+				.where(and(eq(user.id, input.userId), isNull(user.deletedAt)));
 
 			return yield* getUserById(input.userId);
 		}),
@@ -111,7 +118,7 @@ export const banUser = Effect.fn("banUser")((actorId: string, input: BanUserInpu
 		const existingRows = yield* db
 			.select()
 			.from(user)
-			.where(eq(user.id, input.userId))
+			.where(and(eq(user.id, input.userId), isNull(user.deletedAt)))
 			.limit(1);
 
 		const existing = existingRows[0];
@@ -124,7 +131,7 @@ export const banUser = Effect.fn("banUser")((actorId: string, input: BanUserInpu
 			const countRows = yield* db
 				.select({ count: count() })
 				.from(user)
-				.where(eq(user.role, "admin"));
+				.where(and(eq(user.role, "admin"), isNull(user.deletedAt)));
 
 			const adminCount = countRows[0]?.count ?? 0;
 
@@ -142,7 +149,7 @@ export const banUser = Effect.fn("banUser")((actorId: string, input: BanUserInpu
 				banReason: input.reason,
 				banExpires: input.expiresAt ?? null,
 			})
-			.where(eq(user.id, input.userId));
+			.where(and(eq(user.id, input.userId), isNull(user.deletedAt)));
 
 		return yield* getUserById(input.userId);
 	}),
@@ -158,7 +165,11 @@ export const unbanUser = Effect.fn("unbanUser")((actorId: string, userId: string
 			});
 		}
 
-		const existingRows = yield* db.select().from(user).where(eq(user.id, userId)).limit(1);
+		const existingRows = yield* db
+			.select()
+			.from(user)
+			.where(and(eq(user.id, userId), isNull(user.deletedAt)))
+			.limit(1);
 
 		if (existingRows.length === 0) {
 			return yield* new UserNotFoundError({ userId });
@@ -171,9 +182,36 @@ export const unbanUser = Effect.fn("unbanUser")((actorId: string, userId: string
 				banReason: null,
 				banExpires: null,
 			})
-			.where(eq(user.id, userId));
+			.where(and(eq(user.id, userId), isNull(user.deletedAt)));
 
 		return yield* getUserById(userId);
+	}),
+);
+
+export const deleteUser = Effect.fn("deleteUser")((actorId: string, userId: string) =>
+	Effect.gen(function* () {
+		const db = yield* Database;
+
+		if (actorId === userId) {
+			return yield* new CannotModifySelfError({ message: "Cannot delete yourself" });
+		}
+
+		const existingRows = yield* db
+			.select()
+			.from(user)
+			.where(and(eq(user.id, userId), isNull(user.deletedAt)))
+			.limit(1);
+
+		if (existingRows.length === 0) {
+			return yield* new UserNotFoundError({ userId });
+		}
+
+		yield* db
+			.update(user)
+			.set({ deletedAt: new Date() })
+			.where(and(eq(user.id, userId), isNull(user.deletedAt)));
+
+		return true;
 	}),
 );
 
@@ -187,7 +225,7 @@ export const bulkAssignCohort = Effect.fn("bulkAssignCohort")((input: BulkCohort
 			const existing = yield* db
 				.select({ userId: cohortMembers.userId })
 				.from(cohortMembers)
-				.where(eq(cohortMembers.cohortId, cohortId));
+				.where(and(eq(cohortMembers.cohortId, cohortId), isNull(cohortMembers.deletedAt)));
 
 			const existingIds = new Set(existing.map((e) => e.userId));
 			const newIds = userIds.filter((id) => !existingIds.has(id));
@@ -210,7 +248,8 @@ export const bulkAssignCohort = Effect.fn("bulkAssignCohort")((input: BulkCohort
 
 		if (action === "remove") {
 			yield* db
-				.delete(cohortMembers)
+				.update(cohortMembers)
+				.set({ deletedAt: new Date() })
 				.where(
 					and(
 						eq(cohortMembers.cohortId, cohortId),

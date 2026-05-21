@@ -1,10 +1,10 @@
 import { ProgressProvider } from "@bprogress/react";
 import type { QueryClient } from "@tanstack/react-query";
 import { createRootRouteWithContext, HeadContent, Scripts } from "@tanstack/react-router";
-import { lazy, Suspense } from "react";
 
 import { Toaster } from "@/components/ui/sonner";
 
+import { DevTools } from "../components/devtools.tsx";
 import { NotFound } from "../components/not-found";
 import RouteProgress from "../components/progress/route-progress";
 
@@ -17,10 +17,6 @@ interface MyRouterContext {
 
 const isDev = import.meta.env.DEV;
 const disableReactScan = import.meta.env.VITE_DISABLE_REACT_SCAN === "true";
-
-const DevTools = lazy(() =>
-	import("../components/devtools.tsx").then((m) => ({ default: m.DevTools })),
-);
 
 export const Route = createRootRouteWithContext<MyRouterContext>()({
 	head: () => ({
@@ -61,11 +57,7 @@ function RootDocument({ children }: { children: React.ReactNode }) {
 					<RouteProgress />
 					{children}
 					<Toaster position="top-right" richColors />
-					{isDev && (
-						<Suspense fallback={null}>
-							<DevTools />
-						</Suspense>
-					)}
+					{isDev && <DevTools />}
 				</ProgressProvider>
 				<Scripts />
 			</body>

@@ -1,4 +1,4 @@
-import { eq } from "drizzle-orm";
+import { and, eq, isNull } from "drizzle-orm";
 import { Data, Effect, Schema } from "effect";
 
 import { NonEmpty } from "@/lib/validation-schemas";
@@ -33,7 +33,11 @@ export const updateProfile = Effect.fn("updateProfile")(function* (
 ) {
 	const db = yield* Database;
 
-	const existingRows = yield* db.select().from(user).where(eq(user.id, userId)).limit(1);
+	const existingRows = yield* db
+		.select()
+		.from(user)
+		.where(and(eq(user.id, userId), isNull(user.deletedAt)))
+		.limit(1);
 
 	if (existingRows.length === 0) {
 		return yield* new UserNotFoundError({ userId });

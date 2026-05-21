@@ -418,6 +418,8 @@ export function GoalMapEditor() {
 					onSave={() => doSave({ topicId: saveMeta.topicId, name: saveMeta.name })}
 					saving={saving}
 					isNewMap={isNewMap}
+					goalMapId={goalMapId}
+					onDeleted={() => void navigate({ to: "/dashboard/goal-map", replace: true })}
 				/>
 			</div>
 		</div>

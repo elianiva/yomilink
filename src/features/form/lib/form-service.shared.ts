@@ -1,4 +1,4 @@
-import { and, eq, inArray, or } from "drizzle-orm";
+import { and, eq, inArray, isNull, or } from "drizzle-orm";
 import { Data, Effect, Schema } from "effect";
 
 import { NonEmpty } from "@/lib/validation-schemas";
@@ -102,17 +102,25 @@ export const getAccessibleAssignmentIdsForUser = Effect.fn("getAccessibleAssignm
 				and(
 					eq(assignmentTargets.userId, userId),
 					inArray(assignmentTargets.assignmentId, assignmentIds),
+					isNull(assignmentTargets.deletedAt),
 				),
 			);
 
 		const cohortAssignmentRows = yield* db
 			.select({ assignmentId: assignmentTargets.assignmentId })
 			.from(assignmentTargets)
-			.innerJoin(cohortMembers, eq(cohortMembers.cohortId, assignmentTargets.cohortId))
+			.innerJoin(
+				cohortMembers,
+				and(
+					eq(cohortMembers.cohortId, assignmentTargets.cohortId),
+					isNull(cohortMembers.deletedAt),
+				),
+			)
 			.where(
 				and(
 					eq(cohortMembers.userId, userId),
 					inArray(assignmentTargets.assignmentId, assignmentIds),
+					isNull(assignmentTargets.deletedAt),
 				),
 			);
 
@@ -140,18 +148,21 @@ export const resolveFormAccessScope = Effect.fn("resolveFormAccessScope")(functi
 		})
 		.from(assignments)
 		.where(
-			or(
-				eq(assignments.preTestFormId, formId),
-				eq(assignments.postTestFormId, formId),
-				eq(assignments.delayedPostTestFormId, formId),
-				eq(assignments.tamFormId, formId),
+			and(
+				or(
+					eq(assignments.preTestFormId, formId),
+					eq(assignments.postTestFormId, formId),
+					eq(assignments.delayedPostTestFormId, formId),
+					eq(assignments.tamFormId, formId),
+				),
+				isNull(assignments.deletedAt),
 			),
 		);
 
 	const userRows = yield* db
 		.select({ studyGroup: users.studyGroup })
 		.from(users)
-		.where(eq(users.id, userId))
+		.where(and(eq(users.id, userId), isNull(users.deletedAt)))
 		.limit(1);
 	const studyGroup = userRows[0]?.studyGroup ?? null;
 

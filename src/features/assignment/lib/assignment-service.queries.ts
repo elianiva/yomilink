@@ -1,4 +1,4 @@
-import { and, desc, eq, inArray, isNotNull, sql } from "drizzle-orm";
+import { and, desc, eq, inArray, isNull, isNotNull, sql } from "drizzle-orm";
 import { Effect } from "effect";
 
 import { Database } from "@/server/db/client";
@@ -36,7 +36,8 @@ export const listTeacherAssignments = Effect.fn("listTeacherAssignments")(functi
 			goalMapDescription: goalMaps.description,
 		})
 		.from(assignments)
-		.leftJoin(goalMaps, eq(assignments.goalMapId, goalMaps.id))
+		.leftJoin(goalMaps, and(eq(assignments.goalMapId, goalMaps.id), isNull(goalMaps.deletedAt)))
+		.where(isNull(assignments.deletedAt))
 		.orderBy(desc(assignments.createdAt));
 
 	if (rows.length === 0) {
@@ -52,7 +53,12 @@ export const listTeacherAssignments = Effect.fn("listTeacherAssignments")(functi
 			userId: assignmentTargets.userId,
 		})
 		.from(assignmentTargets)
-		.where(inArray(assignmentTargets.assignmentId, assignmentIds));
+		.where(
+			and(
+				inArray(assignmentTargets.assignmentId, assignmentIds),
+				isNull(assignmentTargets.deletedAt),
+			),
+		);
 
 	const cohortIds = Array.from(
 		new Set(
@@ -77,7 +83,7 @@ export const listTeacherAssignments = Effect.fn("listTeacherAssignments")(functi
 			? yield* db
 					.select({ id: cohorts.id, name: cohorts.name })
 					.from(cohorts)
-					.where(inArray(cohorts.id, cohortIds))
+					.where(and(inArray(cohorts.id, cohortIds), isNull(cohorts.deletedAt)))
 			: [];
 
 	const cohortMemberRows =
@@ -85,7 +91,12 @@ export const listTeacherAssignments = Effect.fn("listTeacherAssignments")(functi
 			? yield* db
 					.select({ cohortId: cohortMembers.cohortId, userId: cohortMembers.userId })
 					.from(cohortMembers)
-					.where(inArray(cohortMembers.cohortId, cohortIds))
+					.where(
+						and(
+							inArray(cohortMembers.cohortId, cohortIds),
+							isNull(cohortMembers.deletedAt),
+						),
+					)
 			: [];
 
 	const directUsers =
@@ -93,7 +104,7 @@ export const listTeacherAssignments = Effect.fn("listTeacherAssignments")(functi
 			? yield* db
 					.select({ id: user.id, name: user.name, email: user.email })
 					.from(user)
-					.where(inArray(user.id, directUserIds))
+					.where(and(inArray(user.id, directUserIds), isNull(user.deletedAt)))
 			: [];
 
 	const submittedRows = yield* db
@@ -104,6 +115,7 @@ export const listTeacherAssignments = Effect.fn("listTeacherAssignments")(functi
 				inArray(learnerMaps.assignmentId, assignmentIds),
 				eq(learnerMaps.status, "submitted"),
 				isNotNull(learnerMaps.submittedAt),
+				isNull(learnerMaps.deletedAt),
 			),
 		);
 
@@ -129,7 +141,12 @@ export const listTeacherAssignments = Effect.fn("listTeacherAssignments")(functi
 			? yield* db
 					.select({ formId: formResponses.formId, userId: formResponses.userId })
 					.from(formResponses)
-					.where(inArray(formResponses.formId, formIds))
+					.where(
+						and(
+							inArray(formResponses.formId, formIds),
+							isNull(formResponses.deletedAt),
+						),
+					)
 			: [];
 
 	const cohortById = new Map(cohortRows.map((cohort) => [cohort.id, cohort]));
@@ -278,7 +295,11 @@ export const getAvailableCohorts = Effect.fn("getAvailableCohorts")(function* ()
 			memberCount: sql<number>`COUNT(${cohortMembers.id})`,
 		})
 		.from(cohorts)
-		.leftJoin(cohortMembers, eq(cohortMembers.cohortId, cohorts.id))
+		.leftJoin(
+			cohortMembers,
+			and(eq(cohortMembers.cohortId, cohorts.id), isNull(cohortMembers.deletedAt)),
+		)
+		.where(isNull(cohorts.deletedAt))
 		.groupBy(cohorts.id, cohorts.name, cohorts.description)
 		.orderBy(cohorts.name);
 
@@ -298,6 +319,7 @@ export const getAvailableUsers = Effect.fn("getAvailableUsers")(function* () {
 			role: user.role,
 		})
 		.from(user)
+		.where(isNull(user.deletedAt))
 		.orderBy(user.name);
 
 	return rows;
@@ -314,6 +336,7 @@ export const getTeacherGoalMaps = Effect.fn("getTeacherGoalMaps")(function* () {
 			updatedAt: goalMaps.updatedAt,
 		})
 		.from(goalMaps)
+		.where(isNull(goalMaps.deletedAt))
 		.orderBy(desc(goalMaps.updatedAt));
 
 	return rows.map((row) => ({
@@ -331,7 +354,7 @@ export const getAssignmentByPreTestFormId = Effect.fn("getAssignmentByPreTestFor
 	const rows = yield* db
 		.select()
 		.from(assignments)
-		.where(eq(assignments.preTestFormId, formId))
+		.where(and(eq(assignments.preTestFormId, formId), isNull(assignments.deletedAt)))
 		.limit(1);
 
 	return rows[0] ?? null;
@@ -362,8 +385,8 @@ export const getAssignmentById = Effect.fn("getAssignmentById")(function* (assig
 			goalMapTitle: goalMaps.title,
 		})
 		.from(assignments)
-		.leftJoin(goalMaps, eq(assignments.goalMapId, goalMaps.id))
-		.where(eq(assignments.id, assignmentId))
+		.leftJoin(goalMaps, and(eq(assignments.goalMapId, goalMaps.id), isNull(goalMaps.deletedAt)))
+		.where(and(eq(assignments.id, assignmentId), isNull(assignments.deletedAt)))
 		.limit(1);
 
 	if (rows.length === 0) {
@@ -372,7 +395,6 @@ export const getAssignmentById = Effect.fn("getAssignmentById")(function* (assig
 
 	const assignment = rows[0];
 
-	// Fetch form details for all attached forms
 	const formIds = [
 		assignment.preTestFormId,
 		assignment.postTestFormId,
@@ -391,19 +413,23 @@ export const getAssignmentById = Effect.fn("getAssignmentById")(function* (assig
 						status: forms.status,
 					})
 					.from(forms)
-					.where(inArray(forms.id, formIds))
+					.where(and(inArray(forms.id, formIds), isNull(forms.deletedAt)))
 			: [];
 
 	const formMap = new Map(formDetails.map((f) => [f.id, f]));
 
-	// Fetch assignment targets (cohorts + direct users)
 	const targets = yield* db
 		.select({
 			cohortId: assignmentTargets.cohortId,
 			userId: assignmentTargets.userId,
 		})
 		.from(assignmentTargets)
-		.where(eq(assignmentTargets.assignmentId, assignmentId));
+		.where(
+			and(
+				eq(assignmentTargets.assignmentId, assignmentId),
+				isNull(assignmentTargets.deletedAt),
+			),
+		);
 
 	const targetCohortIds = targets
 		.map((t) => t.cohortId)
@@ -415,7 +441,7 @@ export const getAssignmentById = Effect.fn("getAssignmentById")(function* (assig
 			? yield* db
 					.select({ id: cohorts.id, name: cohorts.name })
 					.from(cohorts)
-					.where(inArray(cohorts.id, targetCohortIds))
+					.where(and(inArray(cohorts.id, targetCohortIds), isNull(cohorts.deletedAt)))
 			: [];
 
 	const cohortMemberRows =
@@ -423,7 +449,12 @@ export const getAssignmentById = Effect.fn("getAssignmentById")(function* (assig
 			? yield* db
 					.select({ cohortId: cohortMembers.cohortId, userId: cohortMembers.userId })
 					.from(cohortMembers)
-					.where(inArray(cohortMembers.cohortId, targetCohortIds))
+					.where(
+						and(
+							inArray(cohortMembers.cohortId, targetCohortIds),
+							isNull(cohortMembers.deletedAt),
+						),
+					)
 			: [];
 
 	const directUserRows =
@@ -431,10 +462,9 @@ export const getAssignmentById = Effect.fn("getAssignmentById")(function* (assig
 			? yield* db
 					.select({ id: user.id, name: user.name, email: user.email })
 					.from(user)
-					.where(inArray(user.id, targetUserIds))
+					.where(and(inArray(user.id, targetUserIds), isNull(user.deletedAt)))
 			: [];
 
-	// Build assigned user set
 	const assignedUserIds = new Set<string>();
 	const membersByCohort = new Map<string, Set<string>>();
 	for (const member of cohortMemberRows) {
@@ -471,7 +501,6 @@ export const getAssignmentById = Effect.fn("getAssignmentById")(function* (assig
 
 	const assignedUsers = directUserRows;
 
-	// Fetch learner maps (submissions)
 	const learnerMapRows = yield* db
 		.select({
 			userId: learnerMaps.userId,
@@ -479,7 +508,7 @@ export const getAssignmentById = Effect.fn("getAssignmentById")(function* (assig
 			submittedAt: learnerMaps.submittedAt,
 		})
 		.from(learnerMaps)
-		.where(eq(learnerMaps.assignmentId, assignmentId));
+		.where(and(eq(learnerMaps.assignmentId, assignmentId), isNull(learnerMaps.deletedAt)));
 
 	const submittedUserIds = new Set(
 		learnerMapRows
@@ -491,13 +520,17 @@ export const getAssignmentById = Effect.fn("getAssignmentById")(function* (assig
 		submittedUserIds.has(id),
 	).length;
 
-	// Fetch form response counts
 	const formResponseRows =
 		formIds.length > 0
 			? yield* db
 					.select({ formId: formResponses.formId, userId: formResponses.userId })
 					.from(formResponses)
-					.where(inArray(formResponses.formId, formIds))
+					.where(
+						and(
+							inArray(formResponses.formId, formIds),
+							isNull(formResponses.deletedAt),
+						),
+					)
 			: [];
 
 	const responsesByFormId = new Map<string, Set<string>>();

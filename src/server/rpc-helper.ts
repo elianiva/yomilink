@@ -4,11 +4,28 @@ import type { RpcError, RpcSuccess } from "@/lib/rpc-types";
 
 export const TIMEOUT_DURATION = Duration.seconds(30);
 
+function extractCauseMessage(error: unknown, depth = 0): string {
+	if (depth > 5) return "(max depth)";
+
+	const message =
+		(error as { message?: string })?.message ??
+		(error as { _tag?: string })?._tag ??
+		String(error);
+
+	const cause = (error as { cause?: unknown })?.cause;
+	if (cause === undefined || cause === null) return message;
+
+	const causeStr = extractCauseMessage(cause, depth + 1);
+	if (causeStr === message) return message;
+	return `${message}: ${causeStr}`;
+}
+
 const formatError = (error: unknown): { message: string; cause?: unknown } => {
 	if (error && typeof error === "object" && "_tag" in error) {
 		const err = error as { _tag: string; message?: string; cause?: unknown };
+		const message = extractCauseMessage(err);
 		return {
-			message: err.message || `${err._tag} error`,
+			message,
 			cause: err.cause !== undefined ? err.cause : error,
 		};
 	}
@@ -55,13 +72,16 @@ export const logAndReturnError =
 // For use with tapError, returns Effect<void> instead of error response
 export const logRpcError =
 	(operationName: string) =>
-	<TError>(error: TError) =>
-		Effect.logError("RPC operation failed", Cause.fail(error)).pipe(
+	<TError>(error: TError) => {
+		const formatted = formatError(error);
+		return Effect.logError("RPC operation failed", Cause.fail(error)).pipe(
 			Effect.annotateLogs({
 				operation: operationName,
 				errorTag: (error as { _tag?: string })._tag ?? "Unknown",
+				errorMessage: formatted.message,
 			}),
 		);
+	};
 
 export const logAndReturnDefect =
 	(operationName: string) =>

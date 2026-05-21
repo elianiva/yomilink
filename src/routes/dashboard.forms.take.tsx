@@ -26,11 +26,12 @@ export const Route = createFileRoute("/dashboard/forms/take")({
 
 type FormTakeSearch = {
 	formId?: string;
+	redirectBack?: string;
 };
 
 function FormTakerPage() {
 	const queryClient = useQueryClient();
-	const { formId } = useSearch({ from: "/dashboard/forms/take" }) as FormTakeSearch;
+	const { formId, redirectBack } = useSearch({ from: "/dashboard/forms/take" }) as FormTakeSearch;
 	const { data: me } = useRpcQuery(ProfileRpc.getMe());
 	const userId = me?.id;
 	const { answers, lastSaved, updateAnswer, clearDraft } = useFormDraft(userId, formId ?? null);
@@ -43,7 +44,12 @@ function FormTakerPage() {
 	const submitMutation = useRpcMutation(FormRpc.submitFormResponse(), {
 		operation: "submit form",
 		onSuccess: async () => {
-			await queryClient.invalidateQueries({ queryKey: FormRpc.forms() });
+			// Invalidate both forms and assignment/learner-map caches
+			// so assignment flow page reflects phase completion immediately
+			await Promise.all([
+				queryClient.invalidateQueries({ queryKey: FormRpc.forms() }),
+				queryClient.invalidateQueries({ queryKey: ["learner-maps"] }),
+			]);
 		},
 	});
 
@@ -82,7 +88,7 @@ function FormTakerPage() {
 		}
 	}, [formId, userId, data?.submission]);
 
-	if (!formId) return <FormNoFormSpecified backTo="/dashboard/forms/student" />;
+	if (!formId) return <FormNoFormSpecified backTo={redirectBack || "/dashboard/forms/student"} />;
 	if (isLoading) {
 		return (
 			<div className="flex items-center justify-center py-12">
@@ -94,7 +100,7 @@ function FormTakerPage() {
 	if (loadError || !data) {
 		return (
 			<FormLoadingError
-				backTo="/dashboard/forms/student"
+				backTo={redirectBack || "/dashboard/forms/student"}
 				message={typeof loadError === "string" ? loadError : undefined}
 			/>
 		);
@@ -105,7 +111,8 @@ function FormTakerPage() {
 
 	if (submission) {
 		const backTo =
-			form.type === "post_test" ? "/dashboard/assignments" : "/dashboard/forms/student";
+			redirectBack ||
+			(form.type === "post_test" ? "/dashboard/assignments" : "/dashboard/forms/student");
 		return (
 			<SubmissionReview
 				title={form.title}

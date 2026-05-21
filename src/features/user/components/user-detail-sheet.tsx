@@ -2,6 +2,14 @@ import { useEffect, useState } from "react";
 
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
+import {
+	Dialog,
+	DialogContent,
+	DialogDescription,
+	DialogFooter,
+	DialogHeader,
+	DialogTitle,
+} from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import {
@@ -28,10 +36,12 @@ type UserDetailSheetProps = {
 	onSave: (userId: string, data: UpdateUserInput) => void;
 	onBan: (userId: string, reason: string) => void;
 	onUnban: (userId: string) => void;
+	onDelete: (userId: string) => void;
 	onRoleChange: (userId: string, role: string) => void;
 	isAdmin: boolean;
 	currentUserId: string;
 	isSaving?: boolean;
+	isDeleting?: boolean;
 };
 
 export function UserDetailSheet({
@@ -41,14 +51,17 @@ export function UserDetailSheet({
 	onSave,
 	onBan,
 	onUnban,
+	onDelete,
 	onRoleChange,
 	isAdmin,
 	currentUserId,
 	isSaving,
+	isDeleting,
 }: UserDetailSheetProps) {
 	const [formData, setFormData] = useState<Partial<UpdateUserInput>>({});
 	const [banReason, setBanReason] = useState("");
 	const [showBanInput, setShowBanInput] = useState(false);
+	const [deleteOpen, setDeleteOpen] = useState(false);
 
 	useEffect(() => {
 		if (user) {
@@ -298,6 +311,14 @@ export function UserDetailSheet({
 									</Button>
 								</div>
 							)}
+							<Button
+								variant="outline"
+								className="text-destructive border-destructive hover:bg-destructive/10"
+								onClick={() => setDeleteOpen(true)}
+								disabled={isDeleting}
+							>
+								Delete User
+							</Button>
 						</div>
 					)}
 				</div>
@@ -312,6 +333,32 @@ export function UserDetailSheet({
 					</Button>
 				</div>
 			</SheetContent>
+
+			<Dialog open={deleteOpen} onOpenChange={setDeleteOpen}>
+				<DialogContent>
+					<DialogHeader>
+						<DialogTitle>Delete User</DialogTitle>
+						<DialogDescription>
+							Are you sure you want to delete this user? This action cannot be undone.
+						</DialogDescription>
+					</DialogHeader>
+					<DialogFooter>
+						<Button variant="outline" onClick={() => setDeleteOpen(false)}>
+							Cancel
+						</Button>
+						<Button
+							variant="destructive"
+							onClick={() => {
+								onDelete(user.id);
+								setDeleteOpen(false);
+							}}
+							disabled={isDeleting}
+						>
+							Delete
+						</Button>
+					</DialogFooter>
+				</DialogContent>
+			</Dialog>
 		</Sheet>
 	);
 }

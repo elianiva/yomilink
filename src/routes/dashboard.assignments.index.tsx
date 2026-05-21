@@ -23,7 +23,7 @@ function AssignmentsPage() {
 	const navigate = useNavigate();
 	const { data: assignments, isLoading } = useRpcQuery(LearnerMapRpc.listStudentAssignments());
 
-	const mappedAssignments: AssignmentListItem[] =
+	const mappedAssignments =
 		assignments?.map((a) => ({
 			id: a.id,
 			title: a.title,
@@ -42,11 +42,10 @@ function AssignmentsPage() {
 		})) ?? [];
 
 	const handleClick = (assignment: AssignmentListItem) => {
-		const path =
-			assignment.status === "submitted"
-				? "/dashboard/learner-map/$assignmentId/result"
-				: "/dashboard/learner-map/$assignmentId";
-		void navigate({ to: path, params: { assignmentId: assignment.id } });
+		void navigate({
+			to: "/dashboard/assignments/$assignmentId",
+			params: { assignmentId: assignment.id },
+		});
 	};
 
 	return (

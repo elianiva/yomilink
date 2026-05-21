@@ -1,8 +1,17 @@
 import { useQueryClient } from "@tanstack/react-query";
+import { Trash2 } from "lucide-react";
 import { useState } from "react";
 
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
+import {
+	Dialog,
+	DialogContent,
+	DialogDescription,
+	DialogFooter,
+	DialogHeader,
+	DialogTitle,
+} from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import {
 	Table,
@@ -19,6 +28,7 @@ import { WhitelistRpc } from "@/server/rpc/whitelist";
 export function WhitelistPanel() {
 	const queryClient = useQueryClient();
 	const [selectedFile, setSelectedFile] = useState<File | null>(null);
+	const [deleteId, setDeleteId] = useState<string | null>(null);
 
 	const { data, isLoading } = useRpcQuery(WhitelistRpc.listUnregistered());
 	const entries = data ?? [];
@@ -30,6 +40,16 @@ export function WhitelistPanel() {
 		onSuccess: () => {
 			void queryClient.invalidateQueries({ queryKey: WhitelistRpc.whitelist() });
 			setSelectedFile(null);
+		},
+	});
+
+	const deleteMutation = useRpcMutation(WhitelistRpc.deleteEntry(), {
+		operation: "delete whitelist entry",
+		showSuccess: true,
+		successMessage: "Whitelist entry deleted",
+		onSuccess: () => {
+			setDeleteId(null);
+			void queryClient.invalidateQueries({ queryKey: WhitelistRpc.whitelist() });
 		},
 	});
 
@@ -77,13 +97,14 @@ export function WhitelistPanel() {
 							<TableHead>Cohort</TableHead>
 							<TableHead>Status</TableHead>
 							<TableHead>Added</TableHead>
+							<TableHead className="w-12" />
 						</TableRow>
 					</TableHeader>
 					<TableBody>
 						{isLoading ? (
 							<TableRow>
 								<TableCell
-									colSpan={5}
+									colSpan={6}
 									className="py-8 text-center text-muted-foreground"
 								>
 									Loading whitelist…
@@ -92,7 +113,7 @@ export function WhitelistPanel() {
 						) : entries.length === 0 ? (
 							<TableRow>
 								<TableCell
-									colSpan={5}
+									colSpan={6}
 									className="py-8 text-center text-muted-foreground"
 								>
 									No unregistered whitelist entries
@@ -108,12 +129,46 @@ export function WhitelistPanel() {
 										<Badge variant="secondary">Pending</Badge>
 									</TableCell>
 									<TableCell>{formatDate(entry.createdAt.getTime())}</TableCell>
+									<TableCell>
+										<Button
+											variant="ghost"
+											size="icon"
+											className="size-8 text-destructive hover:text-destructive hover:bg-destructive/10"
+											onClick={() => setDeleteId(entry.id)}
+										>
+											<Trash2 className="size-4" />
+										</Button>
+									</TableCell>
 								</TableRow>
 							))
 						)}
 					</TableBody>
 				</Table>
 			</div>
+
+			<Dialog open={deleteId !== null} onOpenChange={(v) => !v && setDeleteId(null)}>
+				<DialogContent>
+					<DialogHeader>
+						<DialogTitle>Delete Whitelist Entry</DialogTitle>
+						<DialogDescription>
+							Are you sure you want to delete this whitelist entry? This action cannot
+							be undone.
+						</DialogDescription>
+					</DialogHeader>
+					<DialogFooter>
+						<Button variant="outline" onClick={() => setDeleteId(null)}>
+							Cancel
+						</Button>
+						<Button
+							variant="destructive"
+							onClick={() => deleteId && deleteMutation.mutate({ id: deleteId })}
+							disabled={deleteMutation.isPending}
+						>
+							Delete
+						</Button>
+					</DialogFooter>
+				</DialogContent>
+			</Dialog>
 		</div>
 	);
 }

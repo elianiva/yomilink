@@ -1,4 +1,4 @@
-import { eq } from "drizzle-orm";
+import { and, eq, isNull } from "drizzle-orm";
 import { Effect, Schema } from "effect";
 
 import { GoalMapNotFoundError } from "@/lib/errors";
@@ -21,7 +21,7 @@ export const createAssignment = Effect.fn("createAssignment")(function* (
 	const kitRows = yield* db
 		.select({ id: kits.id, teacherId: kits.teacherId })
 		.from(kits)
-		.where(eq(kits.goalMapId, data.goalMapId))
+		.where(and(eq(kits.goalMapId, data.goalMapId), isNull(kits.deletedAt)))
 		.limit(1);
 	let kit = kitRows[0];
 
@@ -29,7 +29,7 @@ export const createAssignment = Effect.fn("createAssignment")(function* (
 		const gmRows = yield* db
 			.select()
 			.from(goalMaps)
-			.where(eq(goalMaps.id, data.goalMapId))
+			.where(and(eq(goalMaps.id, data.goalMapId), isNull(goalMaps.deletedAt)))
 			.limit(1);
 		const gm = gmRows[0];
 		if (!gm) {
@@ -62,7 +62,10 @@ export const createAssignment = Effect.fn("createAssignment")(function* (
 		});
 		kit = { id: kitId, teacherId: gm.teacherId ?? userId };
 	} else if (data.layout) {
-		yield* db.update(kits).set({ layout: data.layout }).where(eq(kits.id, kit.id));
+		yield* db
+			.update(kits)
+			.set({ layout: data.layout })
+			.where(and(eq(kits.id, kit.id), isNull(kits.deletedAt)));
 	}
 
 	const assignmentId = randomString();
@@ -124,7 +127,7 @@ export const deleteAssignment = Effect.fn("deleteAssignment")(function* (
 	const assignmentRows = yield* db
 		.select({ createdBy: assignments.createdBy })
 		.from(assignments)
-		.where(eq(assignments.id, input.id))
+		.where(and(eq(assignments.id, input.id), isNull(assignments.deletedAt)))
 		.limit(1);
 
 	const assignment = assignmentRows[0];
@@ -132,7 +135,10 @@ export const deleteAssignment = Effect.fn("deleteAssignment")(function* (
 		return yield* new AssignmentNotFoundError({ assignmentId: input.id });
 	}
 
-	yield* db.delete(assignments).where(eq(assignments.id, input.id));
+	yield* db
+		.update(assignments)
+		.set({ deletedAt: new Date() })
+		.where(and(eq(assignments.id, input.id), isNull(assignments.deletedAt)));
 
 	return true;
 });

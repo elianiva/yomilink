@@ -1,4 +1,4 @@
-import { eq } from "drizzle-orm";
+import { and, eq, isNull } from "drizzle-orm";
 import { Effect, Schema } from "effect";
 import Papa from "papaparse";
 
@@ -93,6 +93,17 @@ export const importWhitelistCsv = Effect.fn("importWhitelistCsv")((csvText: stri
 		}
 
 		return { importedCount: rows.length } satisfies WhitelistImportResult;
+	}),
+);
+
+export const deleteWhitelistEntry = Effect.fn("deleteWhitelistEntry")((entryId: string) =>
+	Effect.gen(function* () {
+		const db = yield* Database;
+		yield* db
+			.update(whitelistEntries)
+			.set({ deletedAt: new Date() })
+			.where(and(eq(whitelistEntries.id, entryId), isNull(whitelistEntries.deletedAt)));
+		return true;
 	}),
 );
 

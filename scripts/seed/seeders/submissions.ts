@@ -37,6 +37,7 @@ type UserIdsByEmail = Record<string, string>;
 interface LearnerMapConfig {
 	studentEmail: string;
 	attempt: number;
+	status: "submitted" | "draft";
 	correctEdgeIds: string[];
 	excessiveEdges: Array<{ source: string; target: string }>;
 	expectedScore: number;
@@ -47,15 +48,10 @@ const DEMO_PRETEST_SCORES: ScoresByEmail = {
 	"suzuki@kitbuild.mail": [1, 1, 1, 0, 1, 1, 1, 1, 1, 1, 0, 1, 1, 1, 1, 0, 1, 0, 1, 1],
 	"yamamoto@kitbuild.mail": [1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1],
 	"watanabe@kitbuild.mail": [1, 1, 0, 1, 1, 1, 0, 1, 1, 0, 1, 1, 0, 1, 1, 0, 1, 0, 1, 0],
-	"takahashi@kitbuild.mail": [1, 0, 1, 0, 1, 1, 0, 1, 0, 1, 0, 1, 1, 0, 0, 1, 0, 1, 0, 1],
 };
 
 const DEMO_POSTTEST_SCORES: ScoresByEmail = {
 	"tanaka@kitbuild.mail": [1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1],
-	"suzuki@kitbuild.mail": [1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 0, 1, 1, 1, 1],
-	"yamamoto@kitbuild.mail": [1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1],
-	"watanabe@kitbuild.mail": [1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 0, 1, 1, 1, 1, 1, 1, 1],
-	"takahashi@kitbuild.mail": [1, 1, 1, 1, 1, 1, 1, 0, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 0],
 };
 
 const DEMO_DELAYEDTEST_SCORES: ScoresByEmail = {
@@ -63,13 +59,13 @@ const DEMO_DELAYEDTEST_SCORES: ScoresByEmail = {
 	"suzuki@kitbuild.mail": [1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 0, 1, 1, 1, 1, 1, 1, 1, 1],
 	"yamamoto@kitbuild.mail": [1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1],
 	"watanabe@kitbuild.mail": [1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 0, 1, 1, 1, 1, 1, 1, 1, 1, 0],
-	"takahashi@kitbuild.mail": [1, 1, 1, 1, 0, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 0, 1, 1],
 };
 
 const DEMO_LEARNER_MAP_CONFIGS: LearnerMapConfig[] = [
 	{
 		studentEmail: "tanaka@kitbuild.mail",
 		attempt: 1,
+		status: "submitted",
 		correctEdgeIds: [
 			"e1",
 			"e2",
@@ -92,6 +88,7 @@ const DEMO_LEARNER_MAP_CONFIGS: LearnerMapConfig[] = [
 	{
 		studentEmail: "suzuki@kitbuild.mail",
 		attempt: 1,
+		status: "submitted",
 		correctEdgeIds: [
 			"e1",
 			"e2",
@@ -113,23 +110,10 @@ const DEMO_LEARNER_MAP_CONFIGS: LearnerMapConfig[] = [
 	{
 		studentEmail: "yamamoto@kitbuild.mail",
 		attempt: 1,
+		status: "draft",
 		correctEdgeIds: ["e1", "e2", "e3", "e4", "e5", "e6", "e7", "e8", "e9", "e10", "e11"],
 		excessiveEdges: [{ source: "uchi", target: "suupaa" }],
 		expectedScore: 0.79,
-	},
-	{
-		studentEmail: "watanabe@kitbuild.mail",
-		attempt: 1,
-		correctEdgeIds: ["e1", "e2", "e3", "e4", "e5", "e6", "e7", "e8", "e9", "e10"],
-		excessiveEdges: [{ source: "kouen", target: "yuubinkyoku" }],
-		expectedScore: 0.71,
-	},
-	{
-		studentEmail: "takahashi@kitbuild.mail",
-		attempt: 1,
-		correctEdgeIds: ["e1", "e2", "e3", "e4", "e5", "e6", "e7", "e8"],
-		excessiveEdges: [{ source: "yuubinkyoku", target: "hanaya" }],
-		expectedScore: 0.57,
 	},
 ];
 
@@ -265,10 +249,13 @@ function seedLearnerMapSubmissions(
 				userId,
 				nodes: JSON.stringify(dailyLifeData.nodes),
 				edges: JSON.stringify(learnerEdges),
-				status: "submitted",
+				status: config.status,
 				attempt: config.attempt,
-				submittedAt,
+				submittedAt: config.status === "submitted" ? submittedAt : null,
 			});
+
+			// Skip diagnosis for draft learner maps
+			if (config.status === "draft") continue;
 
 			const learnerEdgesForCompare: Edge[] = [
 				...config.correctEdgeIds

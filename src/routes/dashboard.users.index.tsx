@@ -74,6 +74,17 @@ function UsersPage() {
 		successMessage: "User banned successfully",
 	});
 
+	const deleteUserMutation = useRpcMutation(UserRpc.deleteUser(), {
+		operation: "delete user",
+		showSuccess: true,
+		successMessage: "User deleted",
+		onSuccess: () => {
+			invalidateUsers();
+			setSelectedUser(null);
+			setSheetOpen(false);
+		},
+	});
+
 	const unbanMutation = useRpcMutation(UserRpc.unbanUser(), {
 		operation: "unban user",
 		showSuccess: true,
@@ -119,6 +130,10 @@ function UsersPage() {
 
 	const handleBan = (userId: string, reason: string) => {
 		banMutation.mutate({ userId, reason }, { onSuccess: invalidateUsers });
+	};
+
+	const handleDelete = (userId: string) => {
+		deleteUserMutation.mutate({ userId });
 	};
 
 	const handleUnban = (userId: string) => {
@@ -220,9 +235,11 @@ function UsersPage() {
 						onBan={handleBan}
 						onUnban={handleUnban}
 						onRoleChange={handleRoleChange}
+						onDelete={handleDelete}
 						isAdmin={isAdmin}
 						currentUserId={currentUserId}
 						isSaving={updateMutation.isPending}
+						isDeleting={deleteUserMutation.isPending}
 					/>
 
 					<BulkCohortDialog

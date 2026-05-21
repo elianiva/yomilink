@@ -1,4 +1,4 @@
-import { desc, eq } from "drizzle-orm";
+import { and, desc, eq, isNull } from "drizzle-orm";
 import { Effect, Schema } from "effect";
 
 import { GoalMapNotFoundError } from "@/lib/errors";
@@ -51,7 +51,8 @@ export const listGoalMapsWithKits = Effect.fn("listGoalMapsWithKits")(function* 
 			teacherId: goalMaps.teacherId,
 		})
 		.from(goalMaps)
-		.leftJoin(kits, eq(kits.goalMapId, goalMaps.id))
+		.leftJoin(kits, and(eq(kits.goalMapId, goalMaps.id), isNull(kits.deletedAt)))
+		.where(isNull(goalMaps.deletedAt))
 		.orderBy(desc(goalMaps.updatedAt));
 
 	return rows.map((row) => ({
@@ -72,8 +73,8 @@ export const getKit = Effect.fn("getKit")(function* (input: GetKitInput) {
 			edges: kits.edges,
 		})
 		.from(kits)
-		.leftJoin(goalMaps, eq(kits.goalMapId, goalMaps.id))
-		.where(eq(kits.goalMapId, input.goalMapId))
+		.leftJoin(goalMaps, and(eq(kits.goalMapId, goalMaps.id), isNull(goalMaps.deletedAt)))
+		.where(and(eq(kits.goalMapId, input.goalMapId), isNull(kits.deletedAt)))
 		.limit(1);
 
 	const row = rows[0];
@@ -106,12 +107,12 @@ export const getKitStatus = Effect.fn("getKitStatus")(function* (input: GetKitSt
 				updatedAt: kits.updatedAt,
 			})
 			.from(kits)
-			.where(eq(kits.goalMapId, input.goalMapId))
+			.where(and(eq(kits.goalMapId, input.goalMapId), isNull(kits.deletedAt)))
 			.limit(1),
 		db
 			.select({ updatedAt: goalMaps.updatedAt })
 			.from(goalMaps)
-			.where(eq(goalMaps.id, input.goalMapId))
+			.where(and(eq(goalMaps.id, input.goalMapId), isNull(goalMaps.deletedAt)))
 			.limit(1),
 	]);
 
@@ -138,7 +139,7 @@ export const generateKit = Effect.fn("generateKit")(function* (input: GenerateKi
 	const gmRows = yield* db
 		.select()
 		.from(goalMaps)
-		.where(eq(goalMaps.id, input.goalMapId))
+		.where(and(eq(goalMaps.id, input.goalMapId), isNull(goalMaps.deletedAt)))
 		.limit(1);
 
 	const gm = gmRows[0];
@@ -175,7 +176,7 @@ export const generateKit = Effect.fn("generateKit")(function* (input: GenerateKi
 	const existingRows = yield* db
 		.select({ id: kits.id })
 		.from(kits)
-		.where(eq(kits.goalMapId, input.goalMapId))
+		.where(and(eq(kits.goalMapId, input.goalMapId), isNull(kits.deletedAt)))
 		.limit(1);
 
 	const existing = existingRows[0];
@@ -190,7 +191,7 @@ export const generateKit = Effect.fn("generateKit")(function* (input: GenerateKi
 				edges: payload.edges,
 				textId: payload.textId,
 			})
-			.where(eq(kits.goalMapId, input.goalMapId));
+			.where(and(eq(kits.goalMapId, input.goalMapId), isNull(kits.deletedAt)));
 	} else {
 		yield* db.insert(kits).values(payload);
 	}

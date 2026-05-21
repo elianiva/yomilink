@@ -1,4 +1,4 @@
-import { and, avg, count, desc, eq } from "drizzle-orm";
+import { and, avg, count, desc, eq, isNull } from "drizzle-orm";
 import { Effect, Schema } from "effect";
 
 import {
@@ -46,11 +46,14 @@ export const getTeacherAssignments = Effect.fn("getTeacherAssignments")(function
 			avgScore: avg(diagnoses.score),
 		})
 		.from(assignments)
-		.leftJoin(goalMaps, eq(assignments.goalMapId, goalMaps.id))
-		.leftJoin(kits, eq(assignments.kitId, kits.id))
-		.leftJoin(learnerMaps, eq(learnerMaps.assignmentId, assignments.id))
+		.leftJoin(goalMaps, and(eq(assignments.goalMapId, goalMaps.id), isNull(goalMaps.deletedAt)))
+		.leftJoin(kits, and(eq(assignments.kitId, kits.id), isNull(kits.deletedAt)))
+		.leftJoin(
+			learnerMaps,
+			and(eq(learnerMaps.assignmentId, assignments.id), isNull(learnerMaps.deletedAt)),
+		)
 		.leftJoin(diagnoses, eq(diagnoses.learnerMapId, learnerMaps.id))
-		.where(eq(assignments.createdBy, userId))
+		.where(and(eq(assignments.createdBy, userId), isNull(assignments.deletedAt)))
 		.groupBy(assignments.id, goalMaps.title, kits.id, assignments.createdAt, assignments.dueAt)
 		.orderBy(desc(assignments.createdAt));
 
@@ -83,7 +86,13 @@ export const getAnalyticsForAssignment = Effect.fn("getAnalyticsForAssignment")(
 			dueAt: assignments.dueAt,
 		})
 		.from(assignments)
-		.where(and(eq(assignments.id, input.assignmentId), eq(assignments.createdBy, userId)))
+		.where(
+			and(
+				eq(assignments.id, input.assignmentId),
+				eq(assignments.createdBy, userId),
+				isNull(assignments.deletedAt),
+			),
+		)
 		.limit(1);
 
 	const assignment = assignmentRows[0];
@@ -102,7 +111,7 @@ export const getAnalyticsForAssignment = Effect.fn("getAnalyticsForAssignment")(
 			direction: goalMaps.direction,
 		})
 		.from(goalMaps)
-		.where(eq(goalMaps.id, assignment.goalMapId))
+		.where(and(eq(goalMaps.id, assignment.goalMapId), isNull(goalMaps.deletedAt)))
 		.limit(1);
 
 	const goalMap = goalMapRows[0];
@@ -133,9 +142,9 @@ export const getAnalyticsForAssignment = Effect.fn("getAnalyticsForAssignment")(
 			studyGroup: user.studyGroup,
 		})
 		.from(learnerMaps)
-		.innerJoin(user, eq(learnerMaps.userId, user.id))
+		.innerJoin(user, and(eq(learnerMaps.userId, user.id), isNull(user.deletedAt)))
 		.leftJoin(diagnoses, eq(diagnoses.learnerMapId, learnerMaps.id))
-		.where(eq(learnerMaps.assignmentId, input.assignmentId))
+		.where(and(eq(learnerMaps.assignmentId, input.assignmentId), isNull(learnerMaps.deletedAt)))
 		.orderBy(desc(learnerMaps.attempt), desc(learnerMaps.updatedAt));
 
 	const finalLearners = yield* Effect.all(
@@ -235,8 +244,8 @@ export const getLearnerMapForAnalytics = Effect.fn("getLearnerMapForAnalytics")(
 			userName: user.name,
 		})
 		.from(learnerMaps)
-		.innerJoin(user, eq(learnerMaps.userId, user.id))
-		.where(eq(learnerMaps.id, input.learnerMapId))
+		.innerJoin(user, and(eq(learnerMaps.userId, user.id), isNull(user.deletedAt)))
+		.where(and(eq(learnerMaps.id, input.learnerMapId), isNull(learnerMaps.deletedAt)))
 		.limit(1);
 
 	const learnerMap = learnerMapRows[0];
@@ -255,7 +264,7 @@ export const getLearnerMapForAnalytics = Effect.fn("getLearnerMapForAnalytics")(
 			direction: goalMaps.direction,
 		})
 		.from(goalMaps)
-		.where(eq(goalMaps.id, learnerMap.goalMapId))
+		.where(and(eq(goalMaps.id, learnerMap.goalMapId), isNull(goalMaps.deletedAt)))
 		.limit(1);
 
 	const goalMap = goalMapRows[0];
@@ -346,8 +355,8 @@ export const getLearnerSummaryText = Effect.fn("getLearnerSummaryText")(function
 			controlText: learnerMaps.controlText,
 		})
 		.from(learnerMaps)
-		.innerJoin(user, eq(learnerMaps.userId, user.id))
-		.where(eq(learnerMaps.id, input.learnerMapId))
+		.innerJoin(user, and(eq(learnerMaps.userId, user.id), isNull(user.deletedAt)))
+		.where(and(eq(learnerMaps.id, input.learnerMapId), isNull(learnerMaps.deletedAt)))
 		.limit(1);
 
 	const learnerMap = learnerMapRows[0];

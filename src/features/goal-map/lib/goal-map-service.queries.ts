@@ -1,4 +1,4 @@
-import { desc, eq, isNull } from "drizzle-orm";
+import { and, desc, eq, isNull } from "drizzle-orm";
 import { Effect, Schema } from "effect";
 
 import { safeParseJson } from "@/lib/utils";
@@ -30,9 +30,9 @@ export const getGoalMap = Effect.fn("getGoalMap")(function* (input: GetGoalMapIn
 			materialImages: texts.images,
 		})
 		.from(goalMaps)
-		.leftJoin(kits, eq(kits.goalMapId, goalMaps.id))
-		.leftJoin(texts, eq(goalMaps.textId, texts.id))
-		.where(eq(goalMaps.id, input.goalMapId))
+		.leftJoin(kits, and(eq(kits.goalMapId, goalMaps.id), isNull(kits.deletedAt)))
+		.leftJoin(texts, and(eq(goalMaps.textId, texts.id), isNull(texts.deletedAt)))
+		.where(and(eq(goalMaps.id, input.goalMapId), isNull(goalMaps.deletedAt)))
 		.limit(1);
 
 	const row = rows[0];
@@ -78,7 +78,7 @@ export const listGoalMaps = Effect.fn("listGoalMaps")(function* (userId: string)
 			updatedAt: goalMaps.updatedAt,
 		})
 		.from(goalMaps)
-		.where(eq(goalMaps.teacherId, userId))
+		.where(and(eq(goalMaps.teacherId, userId), isNull(goalMaps.deletedAt)))
 		.orderBy(desc(goalMaps.updatedAt));
 
 	return yield* Effect.all(
@@ -125,9 +125,17 @@ export const listGoalMapsByTopic = Effect.fn("listGoalMapsByTopic")(function* (
 		.leftJoin(kits, eq(kits.goalMapId, goalMaps.id));
 
 	if (input.topicId) {
-		query.where(eq(goalMaps.topicId, input.topicId));
+		query.where(
+			and(
+				eq(goalMaps.topicId, input.topicId),
+				isNull(goalMaps.deletedAt),
+				isNull(kits.deletedAt),
+			),
+		);
 	} else {
-		query.where(isNull(goalMaps.topicId));
+		query.where(
+			and(isNull(goalMaps.topicId), isNull(goalMaps.deletedAt), isNull(kits.deletedAt)),
+		);
 	}
 
 	const rows = yield* query.orderBy(desc(goalMaps.updatedAt));

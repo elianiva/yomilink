@@ -2,8 +2,13 @@ import { mutationOptions, queryOptions } from "@tanstack/react-query";
 import { createServerFn } from "@tanstack/react-start";
 import { Effect, Schema } from "effect";
 
-import { listTopics, createTopic, CreateTopicInput } from "@/features/analyzer/lib/topic-service";
-import { authMiddleware } from "@/middlewares/auth";
+import {
+	deleteTopic,
+	listTopics,
+	createTopic,
+	CreateTopicInput,
+} from "@/features/analyzer/lib/topic-service";
+import { authMiddleware, requireRoleMiddleware } from "@/middlewares/auth";
 
 import { AppRuntime } from "../app-runtime";
 import {
@@ -24,6 +29,25 @@ export const listTopicsRpc = createServerFn()
 				Effect.tapError(logRpcError("listTopics")),
 				Effect.catchAll(logAndReturnError("listTopics")),
 				Effect.catchAllDefect(logAndReturnDefect("listTopics")),
+				Effect.timeout(TIMEOUT_DURATION),
+				Effect.catchTag("TimeoutException", () => Rpc.err("Request timed out", "TIMEOUT")),
+			),
+		),
+	);
+
+export const deleteTopicRpc = createServerFn({ method: "POST" })
+	.middleware([requireRoleMiddleware("teacher", "admin")])
+	.inputValidator((raw) =>
+		Schema.decodeUnknownSync(Schema.Struct({ topicId: Schema.String }))(raw),
+	)
+	.handler(({ data }) =>
+		AppRuntime.runPromise(
+			deleteTopic(data.topicId).pipe(
+				Effect.map(Rpc.ok),
+				Effect.withSpan("deleteTopic"),
+				Effect.tapError(logRpcError("deleteTopic")),
+				Effect.catchAll(logAndReturnError("deleteTopic")),
+				Effect.catchAllDefect(logAndReturnDefect("deleteTopic")),
 				Effect.timeout(TIMEOUT_DURATION),
 				Effect.catchTag("TimeoutException", () => Rpc.err("Request timed out", "TIMEOUT")),
 			),
@@ -58,5 +82,10 @@ export const TopicRpc = {
 		mutationOptions({
 			mutationKey: [...TopicRpc.topics()],
 			mutationFn: (data: CreateTopicInput) => createTopicRpc({ data }),
+		}),
+	deleteTopic: () =>
+		mutationOptions({
+			mutationKey: [...TopicRpc.topics(), "delete"],
+			mutationFn: (data: { topicId: string }) => deleteTopicRpc({ data }),
 		}),
 };

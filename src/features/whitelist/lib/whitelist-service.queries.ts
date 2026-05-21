@@ -1,4 +1,4 @@
-import { desc, eq, isNull } from "drizzle-orm";
+import { and, desc, eq, isNull } from "drizzle-orm";
 import { Effect } from "effect";
 
 import { normalizeStudentId } from "@/lib/student-id-auth";
@@ -27,7 +27,12 @@ export const getWhitelistEntryByStudentId = Effect.fn("getWhitelistEntryByStuden
 				})
 				.from(whitelistEntries)
 				.leftJoin(cohorts, eq(whitelistEntries.cohortId, cohorts.id))
-				.where(eq(whitelistEntries.studentId, normalizedStudentId))
+				.where(
+					and(
+						eq(whitelistEntries.studentId, normalizedStudentId),
+						isNull(whitelistEntries.deletedAt),
+					),
+				)
 				.limit(1);
 
 			const row = rows[0];
@@ -55,7 +60,7 @@ export const listUnregisteredWhitelistEntries = Effect.fn("listUnregisteredWhite
 			})
 			.from(whitelistEntries)
 			.leftJoin(cohorts, eq(whitelistEntries.cohortId, cohorts.id))
-			.where(isNull(whitelistEntries.claimedUserId))
+			.where(and(isNull(whitelistEntries.claimedUserId), isNull(whitelistEntries.deletedAt)))
 			.orderBy(desc(whitelistEntries.createdAt));
 
 		return rows as WhitelistEntryWithCohort[];

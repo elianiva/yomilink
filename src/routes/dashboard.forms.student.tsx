@@ -28,27 +28,28 @@ type StudentForm = {
 	} | null;
 };
 
+/** Only standalone forms (questionnaires, registration) visible here.
+ *  Pre/post/delayed/tam are accessed through the assignment flow. */
+const STANDALONE_TYPES = new Set(["questionnaire", "registration"]);
+
 function StudentFormsPage() {
 	const navigate = useNavigate();
 	const { data: forms = [], isLoading: isLoadingForms } = useRpcQuery(FormRpc.getStudentForms());
 
 	const compareTitles = (a: StudentForm, b: StudentForm) => a.title.localeCompare(b.title);
 
-	const availableForms = forms.filter((f) => f.unlockStatus === "available").sort(compareTitles);
-	const completedForms = forms.filter((f) => f.unlockStatus === "completed").sort(compareTitles);
+	const standalone = forms.filter((f) => STANDALONE_TYPES.has(f.type));
+	const availableForms = standalone
+		.filter((f) => f.unlockStatus === "available")
+		.sort(compareTitles);
+	const completedForms = standalone
+		.filter((f) => f.unlockStatus === "completed")
+		.sort(compareTitles);
 
 	const getTypeLabel = (type: string) => {
 		switch (type) {
-			case "pre_test":
-				return "Pre-Test";
-			case "post_test":
-				return "Post-Test";
-			case "delayed_test":
-				return "Delayed-Test";
 			case "registration":
 				return "Registration";
-			case "tam":
-				return "TAM Questionnaire";
 			case "questionnaire":
 				return "Questionnaire";
 			default:

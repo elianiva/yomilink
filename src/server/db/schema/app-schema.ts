@@ -11,6 +11,7 @@ const timestamps = {
 		.default(sql`(cast(unixepoch('subsecond') * 1000 as integer))`)
 		.$onUpdate(() => new Date())
 		.notNull(),
+	deletedAt: integer("deleted_at", { mode: "timestamp_ms" }),
 };
 
 export const texts = sqliteTable("texts", {
@@ -364,6 +365,7 @@ export const forms = sqliteTable(
 			.notNull()
 			.default("draft"),
 		readingMaterialSections: text("reading_material_sections", { mode: "json" }),
+		unlockConditions: text("unlock_conditions"),
 		createdBy: text("created_by").notNull(),
 		...timestamps,
 	},

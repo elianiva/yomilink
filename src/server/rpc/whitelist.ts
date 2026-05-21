@@ -3,6 +3,7 @@ import { createServerFn } from "@tanstack/react-start";
 import { Effect, Schema } from "effect";
 
 import {
+	deleteWhitelistEntry,
 	importWhitelistCsv,
 	listUnregisteredWhitelist,
 } from "@/features/whitelist/lib/whitelist-service.mutations";
@@ -58,6 +59,23 @@ export const listUnregisteredWhitelistRpc = createServerFn()
 		),
 	);
 
+export const deleteWhitelistEntryRpc = createServerFn({ method: "POST" })
+	.middleware([requireRoleMiddleware("admin")])
+	.inputValidator((raw) => Schema.decodeUnknownSync(Schema.Struct({ id: Schema.String }))(raw))
+	.handler(({ data }) =>
+		AppRuntime.runPromise(
+			deleteWhitelistEntry(data.id).pipe(
+				Effect.map(Rpc.ok),
+				Effect.withSpan("deleteWhitelistEntry"),
+				Effect.tapError(logRpcError("deleteWhitelistEntry")),
+				Effect.catchAll(logAndReturnError("deleteWhitelistEntry")),
+				Effect.catchAllDefect(logAndReturnDefect("deleteWhitelistEntry")),
+				Effect.timeout(TIMEOUT_DURATION),
+				Effect.catchTag("TimeoutException", () => Rpc.err("Request timed out", "TIMEOUT")),
+			),
+		),
+	);
+
 export const importWhitelistCsvRpc = createServerFn({ method: "POST" })
 	.middleware([requireRoleMiddleware("admin")])
 	.inputValidator((raw) => Schema.decodeUnknownSync(WhitelistImportInput)(raw))
@@ -94,5 +112,10 @@ export const WhitelistRpc = {
 		mutationOptions({
 			mutationKey: [...WhitelistRpc.whitelist(), "importCsv"],
 			mutationFn: (data: { csvText: string }) => importWhitelistCsvRpc({ data }),
+		}),
+	deleteEntry: () =>
+		mutationOptions({
+			mutationKey: [...WhitelistRpc.whitelist(), "delete"],
+			mutationFn: (data: { id: string }) => deleteWhitelistEntryRpc({ data }),
 		}),
 };

@@ -3,6 +3,7 @@ import { createServerFn } from "@tanstack/react-start";
 import { Effect, Schema } from "effect";
 
 import {
+	deleteUser,
 	updateUser,
 	updateUserRole,
 	banUser,
@@ -161,6 +162,29 @@ export const unbanUserRpc = createServerFn({ method: "POST" })
 		),
 	);
 
+export const deleteUserRpc = createServerFn({ method: "POST" })
+	.middleware([requireRoleMiddleware("admin")])
+	.inputValidator((raw) =>
+		Schema.decodeUnknownSync(Schema.Struct({ userId: Schema.String }))(raw),
+	)
+	.handler(({ data, context }) =>
+		AppRuntime.runPromise(
+			deleteUser(context.user.id, data.userId).pipe(
+				Effect.map(Rpc.ok),
+				Effect.withSpan("deleteUser"),
+				Effect.tapError(logRpcError("deleteUser")),
+				Effect.catchTags({
+					UserNotFoundError: () => Rpc.notFound("User"),
+					CannotModifySelfError: (e) => Rpc.err(e.message),
+				}),
+				Effect.catchAll(logAndReturnError("deleteUser")),
+				Effect.catchAllDefect(logAndReturnDefect("deleteUser")),
+				Effect.timeout(TIMEOUT_DURATION),
+				Effect.catchTag("TimeoutException", () => Rpc.err("Request timed out", "TIMEOUT")),
+			),
+		),
+	);
+
 export const bulkAssignCohortRpc = createServerFn({ method: "POST" })
 	.middleware([requireRoleMiddleware("teacher", "admin")])
 	.inputValidator((raw) => Schema.decodeUnknownSync(BulkCohortAssignInput)(raw))
@@ -215,5 +239,10 @@ export const UserRpc = {
 		mutationOptions({
 			mutationKey: [...UserRpc.users(), "bulkCohort"],
 			mutationFn: (data: BulkCohortAssignInput) => bulkAssignCohortRpc({ data }),
+		}),
+	deleteUser: () =>
+		mutationOptions({
+			mutationKey: [...UserRpc.users(), "delete"],
+			mutationFn: (data: { userId: string }) => deleteUserRpc({ data }),
 		}),
 };
