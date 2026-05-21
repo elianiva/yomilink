@@ -143,6 +143,20 @@ describe("classifyEdges", () => {
 		expect(result).toHaveLength(2);
 		expect(result.every((e) => e.type === "correct")).toBe(true);
 	});
+
+	it("treats reversed direction as same edge", () => {
+		const goalEdges: Edge[] = [
+			{ id: "e1", source: "c1", target: "l1" },
+		];
+		const learnerEdges: Edge[] = [
+			{ id: "e2", source: "l1", target: "c1" },
+		];
+
+		const result = classifyEdges(goalEdges, learnerEdges);
+
+		expect(result).toHaveLength(1);
+		expect(result[0].type).toBe("correct");
+	});
 });
 
 describe("getEdgeStyleByType", () => {

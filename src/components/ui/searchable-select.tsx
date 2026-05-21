@@ -48,13 +48,9 @@ export function SearchableSelect({
 	searchPlaceholder = "Search...",
 }: SearchableSelectProps) {
 	const [open, setOpen] = useState(false);
-	const [search, setSearch] = useState("");
 
 	const grouped = groupOptions(options);
 	const sortedGroups = Array.from(grouped.entries()).sort(([a], [b]) => a.localeCompare(b));
-
-	const filterOption = (opt: SearchableSelectOption) =>
-		opt.label.toLowerCase().includes(search.toLowerCase());
 
 	const selectedOption = options.find((opt) => opt.id === value);
 
@@ -75,20 +71,16 @@ export function SearchableSelect({
 			</PopoverTrigger>
 			<PopoverContent id="searchable-select-listbox" className="w-[400px] p-0" align="start">
 				<Command>
-					<CommandInput
-						className="w-full"
-						placeholder={searchPlaceholder}
-						value={search}
-						onValueChange={setSearch}
-					/>
+					<CommandInput className="w-full" placeholder={searchPlaceholder} />
 					<CommandList>
 						<CommandEmpty>No options found.</CommandEmpty>
 						{sortedGroups.length === 1 ? (
 							<CommandGroup>
-								{sortedGroups[0][1].filter(filterOption).map((option) => (
+								{sortedGroups[0][1].map((option) => (
 									<CommandItem
 										key={option.id}
 										value={option.id}
+										keywords={[option.label]}
 										onSelect={() => {
 											onChange(option.id);
 											setOpen(false);
@@ -113,14 +105,13 @@ export function SearchableSelect({
 							</CommandGroup>
 						) : (
 							sortedGroups.map(([group, opts]) => {
-								const filtered = opts.filter(filterOption);
-								if (filtered.length === 0) return null;
 								return (
 									<CommandGroup key={group} heading={group || "No Cohort"}>
-										{filtered.map((option) => (
+										{opts.map((option) => (
 											<CommandItem
 												key={option.id}
 												value={option.id}
+												keywords={[option.label]}
 												onSelect={() => {
 													onChange(option.id);
 													setOpen(false);

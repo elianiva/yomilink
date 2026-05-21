@@ -127,7 +127,8 @@ export const EdgeClassificationSchema = Schema.Struct({
 });
 
 function edgeKey(source: string, target: string): string {
-	return `${source}|${target}`;
+	const [a, b] = source < target ? [source, target] : [target, source];
+	return `${a}|${b}`;
 }
 
 export function classifyEdges(
