@@ -22,16 +22,8 @@ const program = Effect.gen(function* () {
 	yield* seedWhitelistEntries();
 
 	const { goalMapIdsByTitle, goalMapDataByTitle } = yield* seedGoalMaps(teacherId);
-	const {
-		tamFormId,
-		preTestFormId,
-		postTestFormId,
-		delayedTestFormId,
-		tamFormIdDoko,
-		preTestFormIdDoko,
-		postTestFormIdDoko,
-		delayedTestFormIdDoko,
-	} = yield* seedForms(teacherId);
+	const { tamFormId, preTestFormId, postTestFormId, delayedTestFormId } =
+		yield* seedForms(teacherId);
 
 	const demoData = yield* seedDemoData(
 		userIdsByEmail,
@@ -43,10 +35,6 @@ const program = Effect.gen(function* () {
 			preTestFormId,
 			postTestFormId,
 			delayedTestFormId,
-			tamFormIdDoko,
-			preTestFormIdDoko,
-			postTestFormIdDoko,
-			delayedTestFormIdDoko,
 		},
 	);
 
@@ -62,17 +50,6 @@ const program = Effect.gen(function* () {
 		demoData.demoKitId,
 		demoData.dailyLifeData,
 		{ preTestFormId, postTestFormId, delayedTestFormId },
-		{
-			assignmentId: demoData.dokoAssignmentId,
-			goalMapId: demoData.dokoGoalMapId,
-			kitId: demoData.dokoKitId,
-			data: demoData.dokoData,
-			formIds: {
-				preTestFormId: preTestFormIdDoko,
-				postTestFormId: postTestFormIdDoko,
-				delayedTestFormId: delayedTestFormIdDoko,
-			},
-		},
 	);
 
 	yield* Effect.log(
@@ -84,10 +61,10 @@ const program = Effect.gen(function* () {
 			"  Teacher: dicha@kitbuild.mail / dicha12345\n" +
 			"Created:\n" +
 			"  - Cohorts: 2A Business Administration, 2B Business Administration\n" +
-			"  - Kits: わたしのうち, どこが いちばん いいですか\n" +
-			"  - Assignments: 2 demo assignments\n" +
-			"  - Forms: pre-test, post-test, delayed-test, TAM, feedback (both materials)\n" +
-			"  - Submissions: 5 demo student accounts per material\n" +
+			"  - Kits: わたしのうち\n" +
+			"  - Assignments: 1 demo assignment\n" +
+			"  - Forms: pre-test, post-test, delayed-test, TAM, feedback\n" +
+			"  - Submissions: 5 demo student accounts\n" +
 			"  - Whitelist: 47 reserved student IDs\n",
 	);
 }).pipe(

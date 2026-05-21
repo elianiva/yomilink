@@ -145,12 +145,8 @@ describe("classifyEdges", () => {
 	});
 
 	it("treats reversed direction as same edge", () => {
-		const goalEdges: Edge[] = [
-			{ id: "e1", source: "c1", target: "l1" },
-		];
-		const learnerEdges: Edge[] = [
-			{ id: "e2", source: "l1", target: "c1" },
-		];
+		const goalEdges: Edge[] = [{ id: "e1", source: "c1", target: "l1" }];
+		const learnerEdges: Edge[] = [{ id: "e2", source: "l1", target: "c1" }];
 
 		const result = classifyEdges(goalEdges, learnerEdges);
 

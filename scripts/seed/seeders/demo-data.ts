@@ -22,10 +22,6 @@ export function seedDemoData(
 		preTestFormId: string;
 		postTestFormId: string;
 		delayedTestFormId: string;
-		tamFormIdDoko?: string;
-		preTestFormIdDoko?: string;
-		postTestFormIdDoko?: string;
-		delayedTestFormIdDoko?: string;
 	},
 ) {
 	return Effect.gen(function* () {
@@ -231,28 +227,12 @@ export function seedDemoData(
 			return null;
 		}
 
-		const dokoSet = yield* createDemoSet(
-			"どこが いちばん いいですか",
-			"どこが いちばん いいですか Demo Assignment",
-			"Demo assignment for supermarket comparison reading material.",
-			{
-				tamFormId: testFormIds?.tamFormIdDoko ?? null,
-				preTestFormId: testFormIds?.preTestFormIdDoko ?? null,
-				postTestFormId: testFormIds?.postTestFormIdDoko ?? null,
-				delayedTestFormId: testFormIds?.delayedTestFormIdDoko ?? null,
-			},
-		);
-		if (!dokoSet) {
-			yield* Effect.log("どこが いちばん いいですか goal map not found!");
-			return null;
-		}
-
 		const demoAssignmentId = dailyLifeSet.demoAssignmentId;
 		const demoKitId = dailyLifeSet.demoKitId;
 		const goalMapId = dailyLifeSet.goalMapId;
 		const goalMapData = dailyLifeSet.goalMapData;
 		yield* Effect.log("Linking assignment to cohorts...");
-		for (const assignmentId of [dailyLifeSet.demoAssignmentId, dokoSet.demoAssignmentId]) {
+		for (const assignmentId of [dailyLifeSet.demoAssignmentId]) {
 			for (const cohortId of cohortIds) {
 				const existingTarget = yield* db
 					.select()
@@ -281,10 +261,6 @@ export function seedDemoData(
 			demoAssignmentId,
 			dailyLifeGoalMapId: goalMapId,
 			dailyLifeData: goalMapData,
-			dokoKitId: dokoSet.demoKitId,
-			dokoAssignmentId: dokoSet.demoAssignmentId,
-			dokoGoalMapId: dokoSet.goalMapId,
-			dokoData: dokoSet.goalMapData,
 		};
 	});
 }
