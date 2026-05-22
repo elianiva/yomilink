@@ -1,6 +1,8 @@
 import { useEffect, useState } from "react";
 import type * as React from "react";
 
+import { cn } from "@/lib/utils";
+
 interface CountdownTimerProps {
 	targetDate: Date | string | number;
 	onComplete?: () => void;
@@ -110,7 +112,7 @@ export function CountdownTimer({
 	}
 
 	return (
-		<div className={`countdown-timer flex items-center gap-1 ${className}`}>
+		<div className={cn("countdown-timer flex items-center gap-1", className)}>
 			<span className="text-muted-foreground text-sm">Unlocks in:</span>
 			<div className="flex items-center gap-1">
 				{parts.reduce<React.ReactNode[]>((acc, part) => {

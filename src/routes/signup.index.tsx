@@ -12,6 +12,7 @@ import { useAppForm } from "@/features/auth/components/use-app-form";
 import { steps, SignUpSchema } from "@/features/auth/types";
 import { useRpcMutation, useRpcQuery } from "@/hooks/use-rpc-query";
 import { extractFormErrorMessages } from "@/lib/form-error-messages";
+import { cn } from "@/lib/utils";
 import { signUpMachine } from "@/machines/signup.machine";
 import { AuthRpc, type SignUpInput } from "@/server/rpc/auth";
 import { getMe } from "@/server/rpc/profile";
@@ -282,37 +283,40 @@ function SignUpPage() {
 								<div key={step.id} className="flex items-center">
 									{index > 0 && (
 										<div
-											className={
+											className={cn(
+												"w-full h-0.5 mx-2 mb-10",
 												snapshot.context.completed.includes(index - 1)
-													? "w-full h-0.5 mx-2 mb-10 bg-primary"
-													: "w-full h-0.5 mx-2 mb-10 bg-muted"
-											}
+													? "bg-primary"
+													: "bg-muted",
+											)}
 										/>
 									)}
 									<div
-										className={
-											isPending
-												? "flex flex-col items-center opacity-50"
-												: "flex flex-col items-center"
-										}
+										className={cn(
+											"flex flex-col items-center",
+											isPending && "opacity-50",
+										)}
 									>
 										<div
-											className={
-												isActive
-													? "size-10 rounded-full flex items-center justify-center bg-primary text-primary-foreground ring-4 ring-primary/10"
-													: isCompleted
-														? "size-10 rounded-full flex items-center justify-center bg-primary/80 text-primary-foreground"
-														: "size-10 rounded-full flex items-center justify-center bg-muted text-muted-foreground"
-											}
+											className={cn(
+												"size-10 rounded-full flex items-center justify-center",
+												isActive &&
+													"bg-primary text-primary-foreground ring-4 ring-primary/10",
+												isCompleted &&
+													!isActive &&
+													"bg-primary/80 text-primary-foreground",
+												!isActive &&
+													!isCompleted &&
+													"bg-muted text-muted-foreground",
+											)}
 										>
 											<StepIcon className="size-5" />
 										</div>
 										<span
-											className={
-												isActive
-													? "text-xs mt-2 font-medium text-primary"
-													: "text-xs mt-2 font-medium text-muted-foreground"
-											}
+											className={cn(
+												"text-xs mt-2 font-medium",
+												isActive ? "text-primary" : "text-muted-foreground",
+											)}
 										>
 											{step.title}
 										</span>

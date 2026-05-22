@@ -12,6 +12,7 @@ import {
 	SidebarMenuSubButton,
 	SidebarMenuSubItem,
 } from "@/components/ui/sidebar";
+import { cn } from "@/lib/utils";
 
 type NavItem = {
 	title: string;
@@ -77,11 +78,11 @@ export function NavMain({ items }: NavMainProps) {
 							<SidebarMenuButton
 								asChild
 								tooltip={item.title}
-								className={
+								className={cn(
 									isActive
 										? "bg-primary hover:bg-primary hover:text-white text-white font-medium"
-										: "hover:bg-primary hover:text-white"
-								}
+										: "hover:bg-primary hover:text-white",
+								)}
 							>
 								<Link to={item.url} preload="intent">
 									{item.icon && <item.icon />}

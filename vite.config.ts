@@ -83,10 +83,7 @@ export default defineConfig({
 
 	ssr: {
 		optimizeDeps: {
-			include: [
-				"@tanstack/react-start",
-				"@tanstack/start-client-core",
-			],
+			include: ["@tanstack/react-start", "@tanstack/start-client-core"],
 		},
 	},
 

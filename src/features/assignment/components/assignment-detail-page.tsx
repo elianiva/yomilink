@@ -17,6 +17,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Progress } from "@/components/ui/progress";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { cn } from "@/lib/utils";
 
 interface FormInfo {
 	id: string;
@@ -472,14 +473,17 @@ function FormCard({ form, label, variant, submitted, total, children }: FormCard
 		<div className="flex flex-col p-4 rounded-lg border bg-card">
 			<div className="flex items-start gap-3">
 				<div
-					className={`p-2 rounded-md ${
-						variant === "primary" ? "bg-primary/10" : "bg-muted"
-					}`}
+					className={cn(
+						"p-2 rounded-md",
+						variant === "primary" && "bg-primary/10",
+						variant !== "primary" && "bg-muted",
+					)}
 				>
 					<FileTextIcon
-						className={`size-4 ${
-							variant === "primary" ? "text-primary" : "text-muted-foreground"
-						}`}
+						className={cn(
+							"size-4",
+							variant === "primary" ? "text-primary" : "text-muted-foreground",
+						)}
 					/>
 				</div>
 				<div className="flex-1 min-w-0">

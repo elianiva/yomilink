@@ -20,6 +20,7 @@ import {
 	DialogHeader,
 	DialogTitle,
 } from "@/components/ui/dialog";
+import { cn } from "@/lib/utils";
 
 interface CanvasOnboardingDialogProps {
 	open: boolean;
@@ -114,13 +115,12 @@ export function CanvasOnboardingDialog({ open, onOpenChange }: CanvasOnboardingD
 						{STEPS.map((_, i) => (
 							<div
 								key={i}
-								className={`size-1.5 rounded-full transition-all ${
-									i === step
-										? "w-4 bg-primary"
-										: i < step
-											? "bg-primary/40"
-											: "bg-muted-foreground/20"
-								}`}
+								className={cn(
+									"size-1.5 rounded-full transition-all",
+									i === step && "w-4 bg-primary",
+									i < step && "bg-primary/40",
+									i > step && "bg-muted-foreground/20",
+								)}
 							/>
 						))}
 					</div>

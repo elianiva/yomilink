@@ -14,6 +14,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Guard } from "@/features/auth/components/Guard";
 import { useRpcQuery } from "@/hooks/use-rpc-query";
+import { cn } from "@/lib/utils";
 import { LearnerMapRpc } from "@/server/rpc/learner-map";
 
 const routeApi = getRouteApi("/dashboard/assignments/$assignmentId/");
@@ -214,12 +215,16 @@ function AssignmentFlowPage() {
 					<Fragment key={phase.id}>
 						<div className="flex items-center gap-2">
 							<div
-								className={`flex size-8 items-center justify-center rounded-full text-xs font-medium transition-colors ${phase.status === "completed"
-										? "bg-primary text-primary-foreground"
-										: phase.status === "active"
-											? "bg-primary/10 text-primary border border-primary/30"
-											: "bg-muted text-muted-foreground"
-									}`}
+								className={cn(
+									"flex size-8 items-center justify-center rounded-full text-xs font-medium transition-colors",
+									phase.status === "completed" &&
+										"bg-primary text-primary-foreground",
+									phase.status === "active" &&
+										"bg-primary/10 text-primary border border-primary/30",
+									phase.status !== "completed" &&
+										phase.status !== "active" &&
+										"bg-muted text-muted-foreground",
+								)}
 							>
 								{phase.status === "completed" ? (
 									<CheckCircleIcon className="size-4" />
@@ -228,18 +233,22 @@ function AssignmentFlowPage() {
 								)}
 							</div>
 							<span
-								className={`text-sm ${phase.status === "active"
+								className={cn(
+									"text-sm",
+									phase.status === "active"
 										? "font-medium text-foreground"
-										: "text-muted-foreground"
-									}`}
+										: "text-muted-foreground",
+								)}
 							>
 								{phase.label}
 							</span>
 						</div>
 						{i < visiblePhases.length - 1 && (
 							<div
-								className={`h-px w-8 mx-2 ${phase.status === "completed" ? "bg-primary/40" : "bg-border"
-									}`}
+								className={cn(
+									"h-px w-8 mx-2",
+									phase.status === "completed" ? "bg-primary/40" : "bg-border",
+								)}
 							/>
 						)}
 					</Fragment>
@@ -258,16 +267,21 @@ function AssignmentFlowPage() {
 					return (
 						<Card
 							key={phase.id}
-							className={`transition-all ${isActive ? "ring-1 ring-primary/30 border-primary/20" : ""
-								} ${isLocked ? "opacity-50" : ""}`}
+							className={cn(
+								"transition-all",
+								isActive && "ring-1 ring-primary/30 border-primary/20",
+								isLocked && "opacity-50",
+							)}
 						>
 							<CardContent className="p-4 py-0">
 								<div className="flex items-start gap-4">
 									<div
-										className={`flex size-10 shrink-0 items-center justify-center rounded-lg ${isCompleted || isActive
+										className={cn(
+											"flex size-10 shrink-0 items-center justify-center rounded-lg",
+											isCompleted || isActive
 												? "bg-primary/10 text-primary"
-												: "bg-muted text-muted-foreground"
-											}`}
+												: "bg-muted text-muted-foreground",
+										)}
 									>
 										{isCompleted ? (
 											<CheckCircle2Icon className="size-5" />

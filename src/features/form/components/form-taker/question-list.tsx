@@ -4,6 +4,7 @@ import { Button } from "@/components/ui/button";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { QuestionRenderer } from "@/features/form/components/form-renderer/question-renderer";
 import type { GetStudentFormByIdOutput } from "@/features/form/lib/form-service.shared";
+import { cn } from "@/lib/utils";
 
 type Question = GetStudentFormByIdOutput["questions"][number];
 
@@ -35,7 +36,7 @@ export function QuestionList({
 	return (
 		<div className="flex flex-col flex-1 min-h-0 min-w-0">
 			<ScrollArea className="flex-1">
-				<div className={`${centered ? "mx-auto max-w-2xl" : ""} p-6 pb-32`}>
+				<div className={cn("p-6 pb-32", centered && "mx-auto max-w-2xl")}>
 					{questions.map((question, index) => (
 						<div key={question.id} className="py-6">
 							<div className="mb-4 flex items-start gap-3">

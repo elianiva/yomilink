@@ -3,6 +3,7 @@ import { useMemo, useState } from "react";
 import { ErrorCard } from "@/components/ui/error-card";
 import { Skeleton } from "@/components/ui/skeleton";
 import { useRpcQuery } from "@/hooks/use-rpc-query";
+import { cn } from "@/lib/utils";
 import { AnalyticsRpc } from "@/server/rpc/analytics";
 
 import type { LearnerAnalytics } from "../lib/analytics-service.shared";
@@ -79,10 +80,10 @@ export function AnalyticsSummaryPanel({
 					<button
 						type="button"
 						key={learner.learnerMapId}
-						className={[
+						className={cn(
 							"w-full text-left px-3 py-2 border-b text-sm hover:bg-muted/50",
-							effectiveLearnerMapId === learner.learnerMapId ? "bg-muted" : "",
-						].join(" ")}
+							effectiveLearnerMapId === learner.learnerMapId && "bg-muted",
+						)}
 						onClick={() => setActiveLearnerMapId(learner.learnerMapId)}
 					>
 						<div className="font-medium truncate">{learner.userName}</div>

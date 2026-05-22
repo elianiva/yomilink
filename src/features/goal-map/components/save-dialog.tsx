@@ -19,6 +19,7 @@ import {
 	SelectValue,
 } from "@/components/ui/select";
 import { Textarea } from "@/components/ui/textarea";
+import { cn } from "@/lib/utils";
 
 export type SaveMeta = { topicId: string; name: string; description?: string };
 
@@ -171,7 +172,13 @@ export function WarningsPanel({
 
 	return (
 		<div
-			className={`rounded-md border ${tone.border} ${tone.bg} ${tone.text} p-3 text-sm ${className ?? ""}`}
+			className={cn(
+				"rounded-md border p-3 text-sm",
+				tone.border,
+				tone.bg,
+				tone.text,
+				className,
+			)}
 		>
 			<div className="flex items-center justify-between mb-1">
 				<div className="font-medium">{tone.title}</div>
