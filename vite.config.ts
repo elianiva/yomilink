@@ -81,6 +81,15 @@ export default defineConfig({
 		],
 	},
 
+	ssr: {
+		optimizeDeps: {
+			include: [
+				"@tanstack/react-start",
+				"@tanstack/start-client-core",
+			],
+		},
+	},
+
 	plugins: [
 		cloudflare({ viteEnvironment: { name: "ssr" } }),
 		tailwindcss(),

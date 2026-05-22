@@ -40,44 +40,95 @@ interface PhaseConfig {
 	};
 }
 
+type AssignmentData = {
+	preTestFormId: string | null;
+	preTestCompleted: boolean;
+	postTestFormId: string | null;
+	postTestCompleted: boolean;
+	status: string;
+};
+
+function makeFormAction(
+	formId: string | null,
+	completed: boolean,
+	activeLabel: string,
+	backToFlow: string,
+	navigate: ReturnType<typeof useNavigate>,
+) {
+	if (!formId) return null;
+	return {
+		label: completed ? "View Result" : activeLabel,
+		fn: () =>
+			navigate({ to: "/dashboard/forms/take", search: { formId, redirectBack: backToFlow } }),
+	};
+}
+
 function getPhases(
-	assignment: NonNullable<typeof assignments>[number],
+	assignment: AssignmentData,
 	navigate: ReturnType<typeof useNavigate>,
 	backToFlow: string,
 	assignmentId: string,
 ): PhaseConfig[] {
-	function formAction(formId: string | null, completed: boolean, activeLabel: string) {
-		if (!formId) return null;
+	function preTestStatus() {
+		if (!assignment.preTestFormId) return "skipped";
+		if (assignment.preTestCompleted) return "completed";
+		return "active";
+	}
+
+	function kitbuildingStatus() {
+		if (assignment.preTestFormId && !assignment.preTestCompleted) return "locked";
+		if (assignment.status === "submitted") return "completed";
+		return "active";
+	}
+
+	function postTestStatus() {
+		if (!assignment.postTestFormId) return "skipped";
+		if (assignment.status !== "submitted") return "locked";
+		if (assignment.postTestCompleted) return "completed";
+		return "active";
+	}
+
+	function preTestAction() {
+		if (!assignment.preTestFormId) return null;
+		return makeFormAction(
+			assignment.preTestFormId,
+			assignment.preTestCompleted,
+			"Take Pre-Test",
+			backToFlow,
+			navigate,
+		);
+	}
+
+	function kitbuildingAction() {
+		if (assignment.preTestFormId && !assignment.preTestCompleted) return null;
+		if (assignment.status === "submitted") {
+			return {
+				label: "View Results",
+				fn: () =>
+					navigate({
+						to: "/dashboard/learner-map/$assignmentId/result",
+						params: { assignmentId },
+					}),
+			};
+		}
 		return {
-			label: completed ? "View Result" : activeLabel,
+			label: assignment.status === "draft" ? "Continue Building" : "Start Building",
 			fn: () =>
-				navigate({
-					to: "/dashboard/forms/take",
-					search: { formId, redirectBack: backToFlow },
-				}),
+				navigate({ to: "/dashboard/learner-map/$assignmentId", params: { assignmentId } }),
 		};
 	}
 
-	const preTestStatus = !assignment.preTestFormId
-		? "skipped"
-		: assignment.preTestCompleted
-			? "completed"
-			: "active";
-
-	const kitbuildingStatus =
-		preTestStatus === "active"
-			? "locked"
-			: assignment.status === "submitted"
-				? "completed"
-				: "active";
-
-	const postTestStatus = !assignment.postTestFormId
-		? "skipped"
-		: kitbuildingStatus !== "completed"
-			? "locked"
-			: assignment.postTestCompleted
-				? "completed"
-				: "active";
+	function postTestAction() {
+		if (!assignment.postTestFormId) return null;
+		if (assignment.status !== "submitted") return null;
+		return makeFormAction(
+			assignment.postTestFormId,
+			assignment.postTestCompleted,
+			"Take Post-Test",
+			backToFlow,
+			navigate,
+		);
+	}
 
 	return [
 		{
@@ -85,60 +136,24 @@ function getPhases(
 			label: "Pre-Test",
 			description: "Baseline knowledge assessment before the activity",
 			icon: FlaskConicalIcon,
-			status: preTestStatus,
-			action:
-				preTestStatus !== "skipped"
-					? formAction(
-						assignment.preTestFormId,
-						assignment.preTestCompleted,
-						"Take Pre-Test",
-					)
-					: null,
+			status: preTestStatus(),
+			action: preTestAction(),
 		},
 		{
 			id: "kitbuilding",
 			label: "Kitbuilding",
 			description: "Build your concept map by arranging and connecting the provided concepts",
 			icon: MapIcon,
-			status: kitbuildingStatus,
-			action:
-				kitbuildingStatus === "locked"
-					? null
-					: kitbuildingStatus === "completed"
-						? {
-							label: "View Results",
-							fn: () =>
-								navigate({
-									to: "/dashboard/learner-map/$assignmentId/result",
-									params: { assignmentId },
-								}),
-						}
-						: {
-							label:
-								assignment.status === "draft"
-									? "Continue Building"
-									: "Start Building",
-							fn: () =>
-								navigate({
-									to: "/dashboard/learner-map/$assignmentId",
-									params: { assignmentId },
-								}),
-						},
+			status: kitbuildingStatus(),
+			action: kitbuildingAction(),
 		},
 		{
 			id: "post-test",
 			label: "Post-Test",
 			description: "Knowledge assessment after completing the activity",
 			icon: FileTextIcon,
-			status: postTestStatus,
-			action:
-				postTestStatus !== "skipped" && postTestStatus !== "locked"
-					? formAction(
-						assignment.postTestFormId,
-						assignment.postTestCompleted,
-						"Take Post-Test",
-					)
-					: null,
+			status: postTestStatus(),
+			action: postTestAction(),
 		},
 	];
 }
@@ -246,7 +261,7 @@ function AssignmentFlowPage() {
 							className={`transition-all ${isActive ? "ring-1 ring-primary/30 border-primary/20" : ""
 								} ${isLocked ? "opacity-50" : ""}`}
 						>
-							<CardContent className="p-4">
+							<CardContent className="p-4 py-0">
 								<div className="flex items-start gap-4">
 									<div
 										className={`flex size-10 shrink-0 items-center justify-center rounded-lg ${isCompleted || isActive
@@ -293,7 +308,7 @@ function AssignmentFlowPage() {
 											>
 												{phase.action.label}
 												{isActive && (
-													<ChevronRightIcon className="size-4 ml-1" />
+													<ChevronRightIcon className="size-4" />
 												)}
 											</Button>
 										)}

@@ -1,5 +1,6 @@
+import { useMachine } from "@xstate/react";
 import { UserIcon, UsersIcon } from "lucide-react";
-import { SubmitEvent, useReducer } from "react";
+import { SubmitEvent } from "react";
 
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -9,95 +10,11 @@ import { SearchableSelect } from "@/components/ui/searchable-select";
 import { Textarea } from "@/components/ui/textarea";
 import { useRpcMutation, useRpcQuery } from "@/hooks/use-rpc-query";
 import { parseDateInput } from "@/lib/date-utils";
+import { assignmentWizardMachine } from "@/machines/assignment-wizard.machine";
 import { AssignmentRpc } from "@/server/rpc/assignment";
 import { FormRpc } from "@/server/rpc/form";
 
 import { FormSelect } from "./form-select";
-
-type FormState = {
-	currentStep: number;
-	basic: { title: string; description: string };
-	config: { goalMapId: string; startDate: string; endDate: string };
-	procedure: {
-		preTestFormId: string;
-		postTestFormId: string;
-		delayedPostTestFormId: string;
-		delayedPostTestDelayDays: number;
-		tamFormId: string;
-	};
-	assignment: { selectedCohorts: string[]; selectedUsers: string[] };
-};
-
-type FormAction =
-	| { type: "SET_STEP"; step: number }
-	| { type: "SET_BASIC"; field: keyof FormState["basic"]; value: string }
-	| { type: "SET_CONFIG"; field: keyof FormState["config"]; value: string }
-	| {
-			type: "SET_PROCEDURE";
-			field: keyof FormState["procedure"];
-			value: string | number;
-	  }
-	| { type: "TOGGLE_COHORT"; cohortId: string }
-	| { type: "TOGGLE_USER"; userId: string }
-	| { type: "RESET" };
-
-const initialState: FormState = {
-	currentStep: 0,
-	basic: { title: "", description: "" },
-	config: { goalMapId: "", startDate: "", endDate: "" },
-	procedure: {
-		preTestFormId: "",
-		postTestFormId: "",
-		delayedPostTestFormId: "",
-		delayedPostTestDelayDays: 7,
-		tamFormId: "",
-	},
-	assignment: { selectedCohorts: [], selectedUsers: [] },
-};
-
-function formReducer(state: FormState, action: FormAction): FormState {
-	switch (action.type) {
-		case "SET_STEP":
-			return { ...state, currentStep: action.step };
-		case "SET_BASIC":
-			return {
-				...state,
-				basic: { ...state.basic, [action.field]: action.value },
-			};
-		case "SET_CONFIG":
-			return {
-				...state,
-				config: { ...state.config, [action.field]: action.value },
-			};
-		case "SET_PROCEDURE":
-			return {
-				...state,
-				procedure: { ...state.procedure, [action.field]: action.value },
-			};
-		case "TOGGLE_COHORT": {
-			const cohorts = state.assignment.selectedCohorts.includes(action.cohortId)
-				? state.assignment.selectedCohorts.filter((id) => id !== action.cohortId)
-				: [...state.assignment.selectedCohorts, action.cohortId];
-			return {
-				...state,
-				assignment: { ...state.assignment, selectedCohorts: cohorts },
-			};
-		}
-		case "TOGGLE_USER": {
-			const users = state.assignment.selectedUsers.includes(action.userId)
-				? state.assignment.selectedUsers.filter((id) => id !== action.userId)
-				: [...state.assignment.selectedUsers, action.userId];
-			return {
-				...state,
-				assignment: { ...state.assignment, selectedUsers: users },
-			};
-		}
-		case "RESET":
-			return initialState;
-		default:
-			return state;
-	}
-}
 
 interface CreateAssignmentFormProps {
 	onSuccess: () => void;
@@ -124,12 +41,16 @@ const steps = [
 ];
 
 export function CreateAssignmentForm({ onSuccess, onCancel }: CreateAssignmentFormProps) {
-	const [state, dispatch] = useReducer(formReducer, initialState);
+	const [snapshot, send] = useMachine(assignmentWizardMachine);
 
 	const { data: goalMaps } = useRpcQuery(AssignmentRpc.getTeacherGoalMaps());
 	const { data: cohorts } = useRpcQuery(AssignmentRpc.getAvailableCohorts());
 	const { data: users } = useRpcQuery(AssignmentRpc.getAvailableUsers());
 	const { data: forms } = useRpcQuery(FormRpc.listForms());
+
+	const ctx = snapshot.context;
+	const step = ctx.currentStep;
+	const isSubmitting = snapshot.matches("submitting");
 
 	const createMutation = useRpcMutation(AssignmentRpc.createAssignment(), {
 		operation: "create assignment",
@@ -137,55 +58,39 @@ export function CreateAssignmentForm({ onSuccess, onCancel }: CreateAssignmentFo
 		successMessage: "Assignment created successfully",
 	});
 
-	const canProceedNext = () => {
-		switch (state.currentStep) {
-			case 0:
-				return state.basic.title.trim().length > 0;
-			case 1:
-				return state.config.goalMapId.length > 0;
-			case 2:
-				// Step 3 (Procedure): Pre-test is required, post-test is recommended
-				return state.procedure.preTestFormId.length > 0;
-			case 3:
-				return (
-					state.assignment.selectedCohorts.length > 0 ||
-					state.assignment.selectedUsers.length > 0
-				);
-			default:
-				return false;
-		}
-	};
-
 	const handleSubmit = (e: SubmitEvent) => {
 		e.preventDefault();
 
-		if (!state.basic.title.trim() || !state.config.goalMapId) {
+		if (!ctx.basic.title.trim() || !ctx.config.goalMapId) {
 			return;
 		}
 
 		createMutation.mutate(
 			{
-				title: state.basic.title.trim(),
-				cohortIds: state.assignment.selectedCohorts,
-				description: state.basic.description.trim() || undefined,
-				goalMapId: state.config.goalMapId,
+				title: ctx.basic.title.trim(),
+				cohortIds: ctx.assignment.selectedCohorts,
+				description: ctx.basic.description.trim() || undefined,
+				goalMapId: ctx.config.goalMapId,
 				layout: "random",
-				startDate: parseDateInput(state.config.startDate) ?? Date.now(),
-				endDate: parseDateInput(state.config.endDate),
-				userIds: state.assignment.selectedUsers,
-				preTestFormId: state.procedure.preTestFormId,
-				postTestFormId: state.procedure.postTestFormId || undefined,
-				delayedPostTestFormId: state.procedure.delayedPostTestFormId || undefined,
-				delayedPostTestDelayDays: state.procedure.delayedPostTestDelayDays,
-				tamFormId: state.procedure.tamFormId || undefined,
+				startDate: parseDateInput(ctx.config.startDate) ?? Date.now(),
+				endDate: parseDateInput(ctx.config.endDate),
+				userIds: ctx.assignment.selectedUsers,
+				preTestFormId: ctx.procedure.preTestFormId,
+				postTestFormId: ctx.procedure.postTestFormId || undefined,
+				delayedPostTestFormId: ctx.procedure.delayedPostTestFormId || undefined,
+				delayedPostTestDelayDays: ctx.procedure.delayedPostTestDelayDays,
+				tamFormId: ctx.procedure.tamFormId || undefined,
 			},
-			{ onSuccess },
+			{
+				onSuccess: () => {
+					send({ type: "SUCCESS" });
+					onSuccess();
+				},
+			},
 		);
 	};
 
-	const isSubmitting = createMutation.isPending;
-	const currentStepData = steps[state.currentStep];
-
+	const currentStepData = steps[step];
 	const formOptions = {
 		goalMaps: goalMaps ?? [],
 		cohorts: cohorts ?? [],
@@ -193,7 +98,6 @@ export function CreateAssignmentForm({ onSuccess, onCancel }: CreateAssignmentFo
 		forms: forms ?? [],
 	};
 
-	// TODO: properly fix the type so we don't have to do this
 	const formsWithDesc = formOptions.forms.map((f) => ({
 		...f,
 		description: f.description ?? "No description",
@@ -207,19 +111,15 @@ export function CreateAssignmentForm({ onSuccess, onCancel }: CreateAssignmentFo
 
 	return (
 		<form onSubmit={handleSubmit} className="space-y-4">
-			{state.currentStep === 0 && (
+			{snapshot.matches("basicInfo") && (
 				<div className="space-y-4">
 					<div className="space-y-2">
 						<Label htmlFor="title">Title *</Label>
 						<Input
 							id="title"
-							value={state.basic.title}
+							value={ctx.basic.title}
 							onChange={(e) =>
-								dispatch({
-									type: "SET_BASIC",
-									field: "title",
-									value: e.target.value,
-								})
+								send({ type: "SET_BASIC", field: "title", value: e.target.value })
 							}
 							placeholder="e.g., Photosynthesis Concept Map"
 							required
@@ -229,9 +129,9 @@ export function CreateAssignmentForm({ onSuccess, onCancel }: CreateAssignmentFo
 						<Label htmlFor="description">Description</Label>
 						<Textarea
 							id="description"
-							value={state.basic.description}
+							value={ctx.basic.description}
 							onChange={(e) =>
-								dispatch({
+								send({
 									type: "SET_BASIC",
 									field: "description",
 									value: e.target.value,
@@ -244,14 +144,14 @@ export function CreateAssignmentForm({ onSuccess, onCancel }: CreateAssignmentFo
 				</div>
 			)}
 
-			{state.currentStep === 1 && (
+			{snapshot.matches("config") && (
 				<div className="space-y-4">
 					<div className="space-y-2">
 						<Label htmlFor="goalMap">Goal Map *</Label>
 						<SearchableSelect
-							value={state.config.goalMapId}
+							value={ctx.config.goalMapId}
 							onChange={(v) =>
-								dispatch({ type: "SET_CONFIG", field: "goalMapId", value: v })
+								send({ type: "SET_CONFIG", field: "goalMapId", value: v })
 							}
 							options={formOptions.goalMaps.map((gm) => ({
 								id: gm.id,
@@ -268,9 +168,9 @@ export function CreateAssignmentForm({ onSuccess, onCancel }: CreateAssignmentFo
 							<Input
 								id="startDate"
 								type="datetime-local"
-								value={state.config.startDate}
+								value={ctx.config.startDate}
 								onChange={(e) =>
-									dispatch({
+									send({
 										type: "SET_CONFIG",
 										field: "startDate",
 										value: e.target.value,
@@ -286,9 +186,9 @@ export function CreateAssignmentForm({ onSuccess, onCancel }: CreateAssignmentFo
 							<Input
 								id="endDate"
 								type="datetime-local"
-								value={state.config.endDate}
+								value={ctx.config.endDate}
 								onChange={(e) =>
-									dispatch({
+									send({
 										type: "SET_CONFIG",
 										field: "endDate",
 										value: e.target.value,
@@ -301,24 +201,20 @@ export function CreateAssignmentForm({ onSuccess, onCancel }: CreateAssignmentFo
 				</div>
 			)}
 
-			{state.currentStep === 2 && (
+			{snapshot.matches("procedure") && (
 				<div className="space-y-4">
 					<FormSelect
 						id="preTest"
 						label="Pre-Test *"
-						value={state.procedure.preTestFormId}
+						value={ctx.procedure.preTestFormId}
 						onChange={(v) =>
-							dispatch({
-								type: "SET_PROCEDURE",
-								field: "preTestFormId",
-								value: v,
-							})
+							send({ type: "SET_PROCEDURE", field: "preTestFormId", value: v })
 						}
 						forms={pretestForms}
 						placeholder="Select a pre-test form (required)"
 						required
 					/>
-					{state.procedure.preTestFormId === "" && (
+					{ctx.procedure.preTestFormId === "" && (
 						<p className="text-xs text-amber-600">
 							Pre-test is required by default for all assignments.
 						</p>
@@ -326,13 +222,9 @@ export function CreateAssignmentForm({ onSuccess, onCancel }: CreateAssignmentFo
 					<FormSelect
 						id="postTest"
 						label="Post-Test"
-						value={state.procedure.postTestFormId}
+						value={ctx.procedure.postTestFormId}
 						onChange={(v) =>
-							dispatch({
-								type: "SET_PROCEDURE",
-								field: "postTestFormId",
-								value: v,
-							})
+							send({ type: "SET_PROCEDURE", field: "postTestFormId", value: v })
 						}
 						forms={posttestForms}
 						placeholder="Select a post-test form"
@@ -340,9 +232,9 @@ export function CreateAssignmentForm({ onSuccess, onCancel }: CreateAssignmentFo
 					<FormSelect
 						id="delayedPostTest"
 						label="Delayed Post-Test"
-						value={state.procedure.delayedPostTestFormId}
+						value={ctx.procedure.delayedPostTestFormId}
 						onChange={(v) =>
-							dispatch({
+							send({
 								type: "SET_PROCEDURE",
 								field: "delayedPostTestFormId",
 								value: v,
@@ -356,9 +248,9 @@ export function CreateAssignmentForm({ onSuccess, onCancel }: CreateAssignmentFo
 						<Input
 							id="delayedPostTestDelayDays"
 							type="number"
-							value={state.procedure.delayedPostTestDelayDays}
+							value={ctx.procedure.delayedPostTestDelayDays}
 							onChange={(e) =>
-								dispatch({
+								send({
 									type: "SET_PROCEDURE",
 									field: "delayedPostTestDelayDays",
 									value: Number(e.target.value),
@@ -369,9 +261,9 @@ export function CreateAssignmentForm({ onSuccess, onCancel }: CreateAssignmentFo
 					<FormSelect
 						id="tamSurvey"
 						label="Questionnaires"
-						value={state.procedure.tamFormId}
+						value={ctx.procedure.tamFormId}
 						onChange={(v) =>
-							dispatch({ type: "SET_PROCEDURE", field: "tamFormId", value: v })
+							send({ type: "SET_PROCEDURE", field: "tamFormId", value: v })
 						}
 						forms={questionnaireForms}
 						placeholder="Select a questionnaire form"
@@ -379,7 +271,7 @@ export function CreateAssignmentForm({ onSuccess, onCancel }: CreateAssignmentFo
 				</div>
 			)}
 
-			{state.currentStep === 3 && (
+			{snapshot.matches("assignment") && (
 				<div className="space-y-4">
 					<div className="space-y-2">
 						<Label className="flex items-center gap-2">
@@ -396,11 +288,11 @@ export function CreateAssignmentForm({ onSuccess, onCancel }: CreateAssignmentFo
 										>
 											<input
 												type="checkbox"
-												checked={state.assignment.selectedCohorts.includes(
+												checked={ctx.assignment.selectedCohorts.includes(
 													cohort.id,
 												)}
 												onChange={() =>
-													dispatch({
+													send({
 														type: "TOGGLE_COHORT",
 														cohortId: cohort.id,
 													})
@@ -436,14 +328,11 @@ export function CreateAssignmentForm({ onSuccess, onCancel }: CreateAssignmentFo
 										>
 											<input
 												type="checkbox"
-												checked={state.assignment.selectedUsers.includes(
+												checked={ctx.assignment.selectedUsers.includes(
 													user.id,
 												)}
 												onChange={() =>
-													dispatch({
-														type: "TOGGLE_USER",
-														userId: user.id,
-													})
+													send({ type: "TOGGLE_USER", userId: user.id })
 												}
 												className="rounded"
 											/>
@@ -461,8 +350,8 @@ export function CreateAssignmentForm({ onSuccess, onCancel }: CreateAssignmentFo
 							)}
 						</div>
 					</div>
-					{state.assignment.selectedCohorts.length === 0 &&
-						state.assignment.selectedUsers.length === 0 && (
+					{ctx.assignment.selectedCohorts.length === 0 &&
+						ctx.assignment.selectedUsers.length === 0 && (
 							<p className="text-sm text-amber-600">
 								Please select at least one cohort or user to assign this to.
 							</p>
@@ -473,11 +362,11 @@ export function CreateAssignmentForm({ onSuccess, onCancel }: CreateAssignmentFo
 			<div className="space-y-2 pt-4 border-t">
 				<div className="flex items-center justify-between text-xs text-muted-foreground">
 					<span>
-						Step {state.currentStep + 1} of {steps.length}
+						Step {step + 1} of {steps.length}
 					</span>
 					<span>{currentStepData.title}</span>
 				</div>
-				<Progress value={((state.currentStep + 1) / steps.length) * 100} />
+				<Progress value={((step + 1) / steps.length) * 100} />
 			</div>
 
 			<div className="flex gap-2 w-full justify-end">
@@ -485,24 +374,18 @@ export function CreateAssignmentForm({ onSuccess, onCancel }: CreateAssignmentFo
 					type="button"
 					variant="outline"
 					onClick={
-						state.currentStep === 0
-							? onCancel
-							: () => dispatch({ type: "SET_STEP", step: state.currentStep - 1 })
+						snapshot.matches("basicInfo") ? onCancel : () => send({ type: "BACK" })
 					}
 				>
-					{state.currentStep === 0 ? "Cancel" : "Previous"}
+					{snapshot.matches("basicInfo") ? "Cancel" : "Previous"}
 				</Button>
-				{state.currentStep < steps.length - 1 ? (
-					<Button
-						type="button"
-						onClick={() => dispatch({ type: "SET_STEP", step: state.currentStep + 1 })}
-						disabled={!canProceedNext()}
-					>
+				{!snapshot.matches("assignment") ? (
+					<Button type="button" onClick={() => send({ type: "NEXT" })}>
 						Next
 					</Button>
 				) : (
-					<Button type="submit" disabled={isSubmitting || !canProceedNext()}>
-						{createMutation.isPending ? "Creating..." : "Create Assignment"}
+					<Button type="submit" disabled={isSubmitting}>
+						{isSubmitting ? "Creating..." : "Create Assignment"}
 					</Button>
 				)}
 			</div>

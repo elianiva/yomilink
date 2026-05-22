@@ -1,10 +1,11 @@
 import { useQueryClient } from "@tanstack/react-query";
 import { useNavigate, getRouteApi } from "@tanstack/react-router";
+import { useMachine } from "@xstate/react";
 import type { Connection, NodeMouseHandler } from "@xyflow/react";
-import { ReactFlowProvider, useReactFlow } from "@xyflow/react";
+import { applyNodeChanges, applyEdgeChanges, ReactFlowProvider, useReactFlow } from "@xyflow/react";
 
 import "@xyflow/react/dist/style.css";
-import { useAtom, useSetAtom } from "jotai";
+import type { EdgeChange, NodeChange } from "@xyflow/react";
 import { AlertCircle, BookOpenIcon } from "lucide-react";
 import { useCallback, useEffect, useState } from "react";
 
@@ -26,67 +27,16 @@ import { getLayoutedElements } from "@/features/kit/lib/layout";
 import { CanvasOnboardingDialog } from "@/features/learner-map/components/canvas-onboarding-dialog";
 import { LearnerToolbar } from "@/features/learner-map/components/learner-toolbar";
 import { MaterialDialog } from "@/features/learner-map/components/material-dialog";
-import {
-	assignmentAtom,
-	attemptAtom,
-	contextMenuAtom,
-	lastSavedSnapshotAtom,
-	learnerEdgesAtom,
-	learnerMapIdAtom,
-	learnerNodesAtom,
-	materialDialogOpenAtom,
-	searchOpenAtom,
-	submissionStatusAtom,
-} from "@/features/learner-map/lib/atoms";
-import { arrangeNodesByType } from "@/features/learner-map/lib/grid-layout";
-import { useGraphChangeHandlers } from "@/hooks/use-graph-change-handlers";
+import type { Node, Edge } from "@/features/learner-map/lib/comparator";
 import { useHistory } from "@/hooks/use-history";
 import { useRpcMutation, useRpcQuery } from "@/hooks/use-rpc-query";
 import { toast } from "@/lib/error-toast";
 import { areNodesConnected, isValidConnection } from "@/lib/react-flow-types";
+import { learnerMapMachine } from "@/machines/learner-map.machine";
+import type { Condition } from "@/machines/learner-map.machine";
 import { LearnerMapRpc } from "@/server/rpc/learner-map";
 
 const routeApi = getRouteApi("/dashboard/learner-map/$assignmentId/");
-
-type ConnectionParams = { source: string; target: string };
-
-type AssignmentSummaryData = {
-	assignment: {
-		id: string;
-		title: string;
-		description: string | null;
-		readingMaterial: string | null;
-		timeLimitMinutes: number | null;
-		goalMapId: string;
-		kitId: string;
-		dueAt: number | undefined;
-		preTestFormId: string | null;
-		postTestFormId: string | null;
-		delayedPostTestFormId: string | null;
-		delayedPostTestDelayDays: number | null;
-		tamFormId: string | null;
-	};
-	learnerMap: {
-		id: string;
-		nodes: readonly unknown[];
-		edges: readonly unknown[];
-		status: string;
-		attempt: number;
-		controlText: string | null;
-	} | null;
-	kit: { id: string; nodes: readonly unknown[]; edges: readonly unknown[] };
-	materialText: string | null;
-	studyGroup: string | null;
-};
-
-type SummarizingEditorProps = {
-	assignmentId: string;
-	assignmentData: AssignmentSummaryData | null;
-	isSubmitted: boolean;
-	setStatus: (value: "draft" | "submitted" | "not_started" | "graded") => void;
-	lastSavedSnapshot: string | null;
-	setLastSavedSnapshot: (s: string) => void;
-};
 
 export function LearnerMapEditor() {
 	const { assignmentId } = routeApi.useParams();
@@ -94,55 +44,28 @@ export function LearnerMapEditor() {
 	const queryClient = useQueryClient();
 	const { zoomIn: rfZoomIn, zoomOut: rfZoomOut, fitView } = useReactFlow();
 
-	const [nodes, setNodes] = useAtom(learnerNodesAtom);
-	const [edges, setEdges] = useAtom(learnerEdgesAtom);
-	const [searchOpen, setSearchOpen] = useAtom(searchOpenAtom);
-	const [materialOpen, setMaterialOpen] = useAtom(materialDialogOpenAtom);
-	const [, setContextMenu] = useAtom(contextMenuAtom);
-	const [lastSavedSnapshot, setLastSavedSnapshot] = useAtom(lastSavedSnapshotAtom);
-	const setAssignment = useSetAtom(assignmentAtom);
-	const setLearnerMapId = useSetAtom(learnerMapIdAtom);
-	const [status, setStatus] = useAtom(submissionStatusAtom);
-	const [attempt, setAttempt] = useAtom(attemptAtom);
+	const [snapshot, send] = useMachine(learnerMapMachine);
 
-	const [submitDialogOpen, setSubmitDialogOpen] = useState(false);
-	const [onboardingOpen, setOnboardingOpen] = useState(false);
-
-	const isSubmitted = status === "submitted";
-
-	const { onNodesChange: onNodesChangeBase, onEdgesChange } = useGraphChangeHandlers(
-		setNodes,
-		setEdges,
-		{
-			disabled: isSubmitted,
-		},
-	);
-
-	// Filter out select changes to prevent node edit/delete toolbar — students should not edit/delete nodes
-	const onNodesChange: typeof onNodesChangeBase = useCallback(
-		(changes) => {
-			onNodesChangeBase(
-				changes.filter((c): c is (typeof changes)[number] => c.type !== "select"),
-			);
-		},
-		[onNodesChangeBase],
-	);
-
-	const { undo, redo, canUndo, canRedo } = useHistory(nodes, edges, {
-		maxSnapshots: 50,
-		disabled: isSubmitted,
-	});
+	const isSubmitted =
+		snapshot.matches({ conceptMap: "submitted" }) ||
+		snapshot.matches({ summarizing: "submitted" });
 
 	const { data: assignmentData, isLoading } = useRpcQuery(
 		LearnerMapRpc.getAssignmentForStudent({ assignmentId }),
 	);
 
-	const condition =
+	const condition: Condition =
 		assignmentData?.studyGroup === "experiment"
 			? "concept_map"
 			: assignmentData?.studyGroup === "control"
 				? "summarizing"
 				: null;
+
+	useEffect(() => {
+		if (assignmentData) {
+			send({ type: "LOADED", data: assignmentData, condition });
+		}
+	}, [assignmentData, condition, send]);
 
 	const saveMutation = useRpcMutation(LearnerMapRpc.saveLearnerMap(), {
 		operation: "save learner map",
@@ -151,7 +74,12 @@ export function LearnerMapEditor() {
 		operation: "submit learner map",
 	});
 
-	// Show onboarding on first canvas visit (once per assignment, persisted in localStorage)
+	const context = snapshot.context;
+	const nodes = context.nodes;
+	const edges = context.edges;
+
+	const [onboardingOpen, setOnboardingOpen] = useState(false);
+
 	useEffect(() => {
 		if (assignmentData && condition === "concept_map" && !isSubmitted) {
 			const key = `canvas-onboarding-${assignmentId}`;
@@ -162,64 +90,19 @@ export function LearnerMapEditor() {
 		}
 	}, [assignmentData, assignmentId, condition, isSubmitted]);
 
+	const isConceptMapDrafting = snapshot.matches({ conceptMap: "drafting" });
 	useEffect(() => {
-		if (assignmentData) {
-			setAssignment(assignmentData.assignment);
-		}
-	}, [assignmentData, setAssignment]);
-
-	useEffect(() => {
-		if (!assignmentData) return;
-
-		if (assignmentData.learnerMap) {
-			setNodes([...assignmentData.learnerMap.nodes]);
-			setEdges([...assignmentData.learnerMap.edges]);
-			setLearnerMapId(assignmentData.learnerMap.id);
-			setStatus(assignmentData.learnerMap.status);
-			setAttempt(assignmentData.learnerMap.attempt);
-			setLastSavedSnapshot(
-				condition === "summarizing"
-					? assignmentData.learnerMap.controlText || ""
-					: JSON.stringify({
-							nodes: assignmentData.learnerMap.nodes,
-							edges: assignmentData.learnerMap.edges,
-						}),
-			);
-		} else {
-			const arrangedNodes = arrangeNodesByType([...assignmentData.kit.nodes]);
-			setNodes(arrangedNodes);
-			setEdges([]);
-			setStatus("not_started");
-			setAttempt(0);
-			setLastSavedSnapshot(
-				condition === "summarizing"
-					? ""
-					: JSON.stringify({ nodes: arrangedNodes, edges: [] }),
-			);
-		}
-	}, [
-		assignmentData,
-		condition,
-		setNodes,
-		setEdges,
-		setLearnerMapId,
-		setStatus,
-		setAttempt,
-		setLastSavedSnapshot,
-	]);
-
-	useEffect(() => {
-		if (isSubmitted) return;
+		if (!isConceptMapDrafting) return;
 
 		const timer = setTimeout(() => {
 			const currentSnapshot = JSON.stringify({ nodes, edges });
-			if (currentSnapshot !== lastSavedSnapshot) {
+			if (currentSnapshot !== context.lastSavedSnapshot) {
 				saveMutation.mutate({
 					assignmentId,
 					nodes: JSON.stringify(nodes),
 					edges: JSON.stringify(edges),
 				});
-				setLastSavedSnapshot(currentSnapshot);
+				send({ type: "SAVE" });
 			}
 		}, 3000);
 		return () => clearTimeout(timer);
@@ -227,19 +110,52 @@ export function LearnerMapEditor() {
 		nodes,
 		edges,
 		assignmentId,
-		isSubmitted,
-		lastSavedSnapshot,
+		isConceptMapDrafting,
+		context.lastSavedSnapshot,
 		saveMutation,
-		setLastSavedSnapshot,
+		send,
 	]);
 
-	const onNodeClick: NodeMouseHandler = useCallback((_event, _node) => {
-		// Node edit/delete is reserved for teachers
-	}, []);
+	const handleSaveThenSubmit = async () => {
+		const saveResult = await saveMutation.mutateAsync({
+			assignmentId,
+			nodes: JSON.stringify(nodes),
+			edges: JSON.stringify(edges),
+		});
 
-	const onPaneClick = useCallback(() => {
-		setContextMenu(null);
-	}, [setContextMenu]);
+		if (!saveResult.success) return;
+		send({ type: "SAVE" });
+
+		const submitResult = await submitMutation.mutateAsync({ assignmentId });
+
+		if (submitResult.success) {
+			send({ type: "SUBMIT_DONE" });
+			void queryClient.invalidateQueries({ queryKey: LearnerMapRpc.learnerMaps() });
+			void navigate({ to: `/dashboard/learner-map/${assignmentId}/result` });
+			toast.success("Map submitted successfully");
+		} else {
+			send({ type: "SUBMIT_ERROR" });
+		}
+	};
+
+	const onNodesChange = useCallback(
+		(changes: NodeChange<Node>[]) => {
+			if (isSubmitted) return;
+			const filtered = changes.filter((c) => c.type !== "select");
+			const next = applyNodeChanges(filtered, nodes);
+			send({ type: "SET_NODES", nodes: next });
+		},
+		[nodes, isSubmitted, send],
+	);
+
+	const onEdgesChange = useCallback(
+		(changes: EdgeChange<Edge>[]) => {
+			if (isSubmitted) return;
+			const next = applyEdgeChanges(changes, edges);
+			send({ type: "SET_EDGES", edges: next });
+		},
+		[edges, isSubmitted, send],
+	);
 
 	const onConnect = useCallback(
 		(params: Connection) => {
@@ -261,17 +177,13 @@ export function LearnerMapEditor() {
 				style: { stroke: "#16a34a", strokeWidth: 3 },
 			};
 
-			setEdges((eds) => [...eds, newEdge]);
+			send({ type: "SET_EDGES", edges: [...edges, newEdge] });
 		},
-		[nodes, edges, setEdges, isSubmitted],
+		[nodes, edges, isSubmitted, send],
 	);
 
-	const onConnectEnd = useCallback(() => {
-		setContextMenu(null);
-	}, [setContextMenu]);
-
 	const isValidConnectionHandler = useCallback(
-		(params: ConnectionParams) => {
+		(params: { source: string; target: string }) => {
 			if (isSubmitted) return false;
 			if (params.source === params.target) return false;
 			if (areNodesConnected(edges, params.source, params.target)) return false;
@@ -281,6 +193,11 @@ export function LearnerMapEditor() {
 		},
 		[nodes, edges, isSubmitted],
 	);
+
+	const { undo, redo, canUndo, canRedo } = useHistory(nodes, edges, {
+		maxSnapshots: 50,
+		disabled: isSubmitted,
+	});
 
 	const zoomIn = () => void rfZoomIn();
 	const zoomOut = () => void rfZoomOut();
@@ -293,48 +210,26 @@ export function LearnerMapEditor() {
 			edges,
 			"LR",
 		);
-		setNodes(layoutedNodes);
-		setEdges(layoutedEdges);
+		send({ type: "SET_NODES", nodes: layoutedNodes });
+		send({ type: "SET_EDGES", edges: layoutedEdges });
 		setTimeout(() => void fitView({ padding: 0.2 }), 50);
 	};
 
 	const selectNode = (nodeId: string) => {
 		const node = nodes.find((n) => n.id === nodeId);
 		if (node) {
-			void fitView({
-				nodes: [node],
-				padding: 0.5,
-				duration: 500,
-			});
-		}
-		setSearchOpen(false);
-	};
-
-	const handleSubmit = async () => {
-		const saveResult = await saveMutation.mutateAsync({
-			assignmentId,
-			nodes: JSON.stringify(nodes),
-			edges: JSON.stringify(edges),
-		});
-
-		if (!saveResult.success) return;
-
-		const submitResult = await submitMutation.mutateAsync({ assignmentId });
-
-		if (submitResult.success) {
-			setSubmitDialogOpen(false);
-			setStatus("submitted");
-			void queryClient.invalidateQueries({
-				queryKey: LearnerMapRpc.learnerMaps(),
-			});
-			void navigate({
-				to: `/dashboard/learner-map/${assignmentId}/result`,
-			});
-			toast.success("Map submitted successfully");
+			void fitView({ nodes: [node], padding: 0.5, duration: 500 });
 		}
 	};
 
-	if (isLoading) {
+	const [searchOpen, setSearchOpen] = useState(false);
+	const [materialOpen, setMaterialOpen] = useState(false);
+	const [submitDialogOpen, setSubmitDialogOpen] = useState(false);
+
+	const onNodeClick: NodeMouseHandler = useCallback(() => {}, []);
+	const onPaneClick = useCallback(() => {}, []);
+
+	if (isLoading || snapshot.matches("loading")) {
 		return (
 			<div className="h-full flex items-center justify-center">
 				<div className="text-muted-foreground">Loading assignment…</div>
@@ -342,32 +237,32 @@ export function LearnerMapEditor() {
 		);
 	}
 
-	if (!assignmentData) {
+	if (snapshot.matches("error") || !assignmentData || !condition) {
 		return (
 			<div className="h-full flex items-center justify-center">
-				<div className="text-muted-foreground">Assignment not found</div>
+				<div className="text-muted-foreground">
+					{!condition ? "Assignment group not assigned" : "Assignment not found"}
+				</div>
 			</div>
 		);
 	}
 
-	if (!condition) {
-		return (
-			<div className="h-full flex items-center justify-center">
-				<div className="text-muted-foreground">Assignment group not assigned</div>
-			</div>
-		);
-	}
-
-	if (condition === "summarizing") {
+	if (snapshot.matches("summarizing")) {
 		return (
 			<SummarizingEditor
-				key={assignmentId}
 				assignmentId={assignmentId}
-				assignmentData={assignmentData}
+				controlText={context.controlText}
 				isSubmitted={isSubmitted}
-				setStatus={setStatus}
-				lastSavedSnapshot={lastSavedSnapshot}
-				setLastSavedSnapshot={setLastSavedSnapshot}
+				isSubmitting={snapshot.matches({ summarizing: "submitting" })}
+				lastSavedSnapshot={context.lastSavedSnapshot}
+				assignmentTitle={assignmentData.assignment.title}
+				assignmentDescription={assignmentData.assignment.description}
+				materialText={assignmentData.materialText || ""}
+				onControlTextChange={(text) => send({ type: "SET_CONTROL_TEXT", text })}
+				onSubmitDone={() => {
+					send({ type: "CONTROL_SUBMIT_DONE" });
+					void queryClient.invalidateQueries({ queryKey: LearnerMapRpc.learnerMaps() });
+				}}
 			/>
 		);
 	}
@@ -381,8 +276,8 @@ export function LearnerMapEditor() {
 						{assignmentData.assignment.description}
 					</p>
 				)}
-				{attempt > 0 && (
-					<p className="text-xs text-muted-foreground mt-1">Attempt {attempt}</p>
+				{context.attempt > 0 && (
+					<p className="text-xs text-muted-foreground mt-1">Attempt {context.attempt}</p>
 				)}
 			</div>
 			{!isSubmitted && (
@@ -415,13 +310,14 @@ export function LearnerMapEditor() {
 						<AlertDialogDescription>
 							Your concept map will be compared against the teacher&apos;s goal map.
 							You&apos;ll see your results immediately after submission.
-							{attempt > 0 && " You can try again after viewing your results."}
+							{context.attempt > 0 &&
+								" You can try again after viewing your results."}
 						</AlertDialogDescription>
 					</AlertDialogHeader>
 					<AlertDialogFooter>
 						<AlertDialogCancel>Cancel</AlertDialogCancel>
 						<AlertDialogAction
-							onClick={handleSubmit}
+							onClick={handleSaveThenSubmit}
 							disabled={submitMutation.isPending}
 						>
 							{submitMutation.isPending ? "Submitting..." : "Submit"}
@@ -436,7 +332,7 @@ export function LearnerMapEditor() {
 					onNodesChange={onNodesChange}
 					onEdgesChange={onEdgesChange}
 					onConnect={onConnect}
-					onConnectEnd={onConnectEnd}
+					onConnectEnd={() => {}}
 					isValidConnection={isValidConnectionHandler}
 					onNodeClick={onNodeClick}
 					onPaneClick={onPaneClick}
@@ -470,20 +366,32 @@ export function LearnerMapEditor() {
 	);
 }
 
+interface SummarizingEditorProps {
+	assignmentId: string;
+	controlText: string;
+	isSubmitted: boolean;
+	isSubmitting: boolean;
+	lastSavedSnapshot: string | null;
+	assignmentTitle: string;
+	assignmentDescription: string | null;
+	materialText: string;
+	onControlTextChange: (text: string) => void;
+	onSubmitDone: () => void;
+}
+
 function SummarizingEditor({
 	assignmentId,
-	assignmentData,
+	controlText,
 	isSubmitted,
-	setStatus,
+	isSubmitting,
 	lastSavedSnapshot,
-	setLastSavedSnapshot,
+	assignmentTitle,
+	assignmentDescription,
+	materialText,
+	onControlTextChange,
+	onSubmitDone,
 }: SummarizingEditorProps) {
-	if (!assignmentData) return null;
-
 	const queryClient = useQueryClient();
-	const [controlText, setControlText] = useState(assignmentData.learnerMap?.controlText || "");
-
-	const materialText = assignmentData.materialText || "";
 
 	const saveMutation = useRpcMutation(LearnerMapRpc.saveLearnerMap(), {
 		operation: "save summary draft",
@@ -497,19 +405,11 @@ function SummarizingEditor({
 		if (isSubmitted) return;
 		if (controlText !== lastSavedSnapshot) {
 			const timer = setTimeout(() => {
-				saveMutation.mutate({ assignmentId, controlText: controlText });
-				setLastSavedSnapshot(controlText);
+				saveMutation.mutate({ assignmentId, controlText });
 			}, 3000);
 			return () => clearTimeout(timer);
 		}
-	}, [
-		controlText,
-		isSubmitted,
-		lastSavedSnapshot,
-		saveMutation,
-		assignmentId,
-		setLastSavedSnapshot,
-	]);
+	}, [controlText, isSubmitted, lastSavedSnapshot, saveMutation, assignmentId]);
 
 	const handleSummarySubmit = async () => {
 		if (!controlText.trim()) {
@@ -521,28 +421,20 @@ function SummarizingEditor({
 			text: controlText,
 		});
 		if (result.success) {
-			setLastSavedSnapshot(controlText);
-			setStatus("submitted");
-			void queryClient.invalidateQueries({
-				queryKey: LearnerMapRpc.learnerMaps(),
-			});
+			onSubmitDone();
+			void queryClient.invalidateQueries({ queryKey: LearnerMapRpc.learnerMaps() });
 		}
 	};
 
 	return (
 		<div className="h-full flex flex-col">
-			{/* Header */}
 			<div className="px-6 py-4 border-b">
-				<h1 className="font-medium text-lg">{assignmentData.assignment.title}</h1>
-				{assignmentData.assignment.description && (
-					<p className="text-sm text-muted-foreground">
-						{assignmentData.assignment.description}
-					</p>
+				<h1 className="font-medium text-lg">{assignmentTitle}</h1>
+				{assignmentDescription && (
+					<p className="text-sm text-muted-foreground">{assignmentDescription}</p>
 				)}
 			</div>
-			{/* Split View */}
 			<div className="flex-1 flex overflow-hidden">
-				{/* Left - Editor */}
 				<div className="flex-1 flex flex-col min-w-0">
 					<div className="px-6 py-3 border-b bg-muted/30">
 						<h2 className="text-sm font-medium">Your Summary</h2>
@@ -566,20 +458,16 @@ function SummarizingEditor({
 									: "No reading material provided. Write your response here..."
 							}
 							value={controlText}
-							onChange={(e) => setControlText(e.target.value)}
-							disabled={isSubmitted || submitControlTextMutation.isPending}
+							onChange={(e) => onControlTextChange(e.target.value)}
+							disabled={isSubmitted || isSubmitting}
 						/>
 					</div>
 					<div className="px-6 py-4 border-t flex justify-end gap-3">
 						<Button
 							onClick={handleSummarySubmit}
-							disabled={
-								isSubmitted ||
-								submitControlTextMutation.isPending ||
-								!controlText.trim()
-							}
+							disabled={isSubmitted || isSubmitting || !controlText.trim()}
 						>
-							{submitControlTextMutation.isPending
+							{isSubmitting
 								? "Submitting..."
 								: isSubmitted
 									? "Submitted"
@@ -587,7 +475,6 @@ function SummarizingEditor({
 						</Button>
 					</div>
 				</div>
-				{/* Right - Reading Material */}
 				<div className="w-[45%] min-w-[350px] flex flex-col border-l bg-muted/10">
 					<div className="px-6 py-3 border-b bg-muted/30 flex items-center gap-2">
 						<BookOpenIcon className="size-4" />

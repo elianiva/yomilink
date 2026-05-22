@@ -1,7 +1,7 @@
 import { useStore } from "@tanstack/react-form";
 import { createFileRoute, Link, redirect, useNavigate } from "@tanstack/react-router";
+import { useMachine } from "@xstate/react";
 import { Schema } from "effect";
-import { useReducer } from "react";
 
 import { Button } from "@/components/ui/button";
 import { AcademicStep } from "@/features/auth/components/academic-step";
@@ -12,6 +12,7 @@ import { useAppForm } from "@/features/auth/components/use-app-form";
 import { steps, SignUpSchema } from "@/features/auth/types";
 import { useRpcMutation, useRpcQuery } from "@/hooks/use-rpc-query";
 import { extractFormErrorMessages } from "@/lib/form-error-messages";
+import { signUpMachine } from "@/machines/signup.machine";
 import { AuthRpc, type SignUpInput } from "@/server/rpc/auth";
 import { getMe } from "@/server/rpc/profile";
 import { WhitelistRpc } from "@/server/rpc/whitelist";
@@ -36,18 +37,6 @@ type SignUpStepSnapshot = {
 	};
 };
 
-type SignUpMachineState = {
-	step: number;
-	completed: Set<number>;
-	error: string | null;
-};
-
-type SignUpMachineEvent =
-	| { type: "next" }
-	| { type: "previous" }
-	| { type: "setError"; message: string }
-	| { type: "clearError" };
-
 type SelectOption = { id: string; label: string };
 
 type StepRenderProps = {
@@ -59,48 +48,6 @@ type StepRenderProps = {
 };
 
 type FormSubscribeState = { errors: unknown };
-
-function createSignUpMachineState(): SignUpMachineState {
-	return {
-		step: 0,
-		completed: new Set<number>(),
-		error: null,
-	};
-}
-
-function signUpMachineReducer(
-	state: SignUpMachineState,
-	event: SignUpMachineEvent,
-): SignUpMachineState {
-	switch (event.type) {
-		case "next": {
-			const nextStep = Math.min(state.step + 1, signupSteps.length - 1);
-			return {
-				step: nextStep,
-				completed: new Set(state.completed).add(state.step),
-				error: null,
-			};
-		}
-		case "previous":
-			return {
-				...state,
-				step: Math.max(state.step - 1, 0),
-				error: null,
-			};
-		case "setError":
-			return {
-				...state,
-				error: event.message,
-			};
-		case "clearError":
-			return {
-				...state,
-				error: null,
-			};
-		default:
-			return state;
-	}
-}
 
 type WhitelistEntry = { studentId: string; cohortId: string | null };
 
@@ -125,7 +72,6 @@ function selectSignUpStepSnapshot(
 	const { studentId, password, confirmPassword, age, jlptLevel, cohortId } =
 		state.values as FormSnapshotValues;
 
-	// Derive effective cohortId: form value falls back to whitelist mapping
 	const whitelistCohortId = studentId
 		? whitelistEntries.find((e) => e.studentId === studentId)?.cohortId
 		: null;
@@ -220,11 +166,7 @@ export const Route = createFileRoute("/signup/")({
 
 function SignUpPage() {
 	const navigate = useNavigate();
-	const [machine, dispatch] = useReducer(
-		signUpMachineReducer,
-		undefined,
-		createSignUpMachineState,
-	);
+	const [snapshot, send] = useMachine(signUpMachine);
 
 	const { data: whitelistData, isLoading: whitelistLoading } = useRpcQuery(
 		WhitelistRpc.listUnregistered(),
@@ -273,28 +215,27 @@ function SignUpPage() {
 			onSubmit: Schema.standardSchemaV1(SignUpSchema),
 		},
 		onSubmit: ({ value }) => {
-			dispatch({ type: "clearError" });
+			send({ type: "CLEAR_ERROR" });
 
 			const selectedWhitelist = whitelistEntries.find(
 				(entry) => entry.studentId === value.studentId,
 			);
 			if (!selectedWhitelist) {
-				dispatch({
-					type: "setError",
+				send({
+					type: "SET_ERROR",
 					message: "Please select a reserved account from the whitelist.",
 				});
 				return;
 			}
 			if (!value.consentGiven) {
-				dispatch({ type: "setError", message: "Consent is required." });
+				send({ type: "SET_ERROR", message: "Consent is required." });
 				return;
 			}
 
-			// Derive effective cohortId: form selection falls back to whitelist mapping
 			const effectiveCohortId = value.cohortId || selectedWhitelist.cohortId;
 			if (!effectiveCohortId) {
-				dispatch({
-					type: "setError",
+				send({
+					type: "SET_ERROR",
 					message: "No cohort assigned. Please contact your teacher.",
 				});
 				return;
@@ -315,7 +256,6 @@ function SignUpPage() {
 		},
 	});
 
-	// Derive effective cohort from whitelist when form cohortId is empty
 	const currentStudentId = useStore(form.store, (state) => state.values.studentId);
 	const formCohortId = useStore(form.store, (state) => state.values.cohortId);
 	const whitelistEntry = currentStudentId
@@ -324,7 +264,7 @@ function SignUpPage() {
 	const preselectedCohortName =
 		whitelistEntry?.cohortId && !formCohortId ? whitelistEntry.cohortName : null;
 
-	const currentStep = machine.step;
+	const currentStep = snapshot.context.step;
 	const currentStepMeta = signupSteps[currentStep];
 
 	return (
@@ -334,7 +274,7 @@ function SignUpPage() {
 					<div className="flex items-center justify-between mb-4 max-w-xs mx-auto">
 						{signupSteps.map((step, index) => {
 							const StepIcon = step.icon;
-							const isCompleted = machine.completed.has(index);
+							const isCompleted = snapshot.context.completed.includes(index);
 							const isActive = index === currentStep;
 							const isPending = index > currentStep;
 
@@ -343,7 +283,7 @@ function SignUpPage() {
 									{index > 0 && (
 										<div
 											className={
-												machine.completed.has(index - 1)
+												snapshot.context.completed.includes(index - 1)
 													? "w-full h-0.5 mx-2 mb-10 bg-primary"
 													: "w-full h-0.5 mx-2 mb-10 bg-muted"
 											}
@@ -396,9 +336,9 @@ function SignUpPage() {
 						</div>
 					</div>
 
-					{machine.error ? (
+					{snapshot.context.error ? (
 						<div className="rounded-md border border-destructive/40 bg-destructive/10 px-3 py-2 text-sm text-destructive">
-							{machine.error}
+							{snapshot.context.error}
 						</div>
 					) : null}
 
@@ -432,7 +372,7 @@ function SignUpPage() {
 										preselectedCohortName,
 										onLastFieldSubmit:
 											currentStep < signupSteps.length - 1
-												? () => dispatch({ type: "next" })
+												? () => send({ type: "NEXT" })
 												: undefined,
 									})}
 								</div>
@@ -442,7 +382,7 @@ function SignUpPage() {
 									<Button
 										type="button"
 										variant="outline"
-										onClick={() => dispatch({ type: "previous" })}
+										onClick={() => send({ type: "PREVIOUS" })}
 									>
 										Previous
 									</Button>
@@ -456,14 +396,13 @@ function SignUpPage() {
 											selectSignUpStepSnapshot(state, whitelistEntries)
 										}
 									>
-										{(snapshot) => {
-											const canProceed =
-												signupSteps[currentStep].guard(snapshot);
+										{(snap) => {
+											const canProceed = signupSteps[currentStep].guard(snap);
 
 											return (
 												<Button
 													type="button"
-													onClick={() => dispatch({ type: "next" })}
+													onClick={() => send({ type: "NEXT" })}
 													disabled={!canProceed}
 												>
 													Next

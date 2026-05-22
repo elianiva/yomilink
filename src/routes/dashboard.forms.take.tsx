@@ -1,5 +1,6 @@
 import { useQueryClient } from "@tanstack/react-query";
 import { createFileRoute, useSearch } from "@tanstack/react-router";
+import { useMachine } from "@xstate/react";
 import { Loader2 } from "lucide-react";
 import { useEffect, useRef } from "react";
 
@@ -15,8 +16,8 @@ import {
 	SubmissionReview,
 } from "@/features/form/components/form-taker";
 import { useFormDraft } from "@/features/form/components/form-taker/use-form-draft";
-import type { GetStudentFormByIdOutput } from "@/features/form/lib/form-service.shared";
 import { useRpcMutation, useRpcQuery } from "@/hooks/use-rpc-query";
+import { formTakerMachine } from "@/machines/form-taker.machine";
 import { FormRpc } from "@/server/rpc/form";
 import { ProfileRpc } from "@/server/rpc/profile";
 
@@ -34,7 +35,11 @@ function FormTakerPage() {
 	const { formId, redirectBack } = useSearch({ from: "/dashboard/forms/take" }) as FormTakeSearch;
 	const { data: me } = useRpcQuery(ProfileRpc.getMe());
 	const userId = me?.id;
-	const { answers, lastSaved, updateAnswer, clearDraft } = useFormDraft(userId, formId ?? null);
+	const {
+		answers: draftAnswers,
+		updateAnswer: updateDraft,
+		clearDraft,
+	} = useFormDraft(userId, formId ?? null);
 
 	const { data, isLoading, error, rpcError } = useRpcQuery({
 		...FormRpc.getStudentFormById(formId ?? ""),
@@ -44,18 +49,21 @@ function FormTakerPage() {
 	const submitMutation = useRpcMutation(FormRpc.submitFormResponse(), {
 		operation: "submit form",
 		onSuccess: async () => {
-			// Invalidate both forms and assignment/learner-map caches
-			// so assignment flow page reflects phase completion immediately
+			send({ type: "SUBMIT_DONE" });
 			await Promise.all([
 				queryClient.invalidateQueries({ queryKey: FormRpc.forms() }),
 				queryClient.invalidateQueries({ queryKey: ["learner-maps"] }),
 			]);
 		},
+		onError: () => send({ type: "SUBMIT_ERROR" }),
 	});
 
-	const questions: GetStudentFormByIdOutput["questions"] = data?.questions ?? [];
-	const readingMaterialSections = data?.form?.readingMaterialSections ?? [];
-	const materialImages = data?.materialImages ?? [];
+	const [snapshot, send] = useMachine(formTakerMachine);
+
+	const questions = snapshot.context.questions;
+	const readingMaterialSections = snapshot.context.form?.readingMaterialSections ?? [];
+	const materialImages = snapshot.context.materialImages;
+	const answers = snapshot.matches("submitted") ? {} : draftAnswers;
 
 	const totalQuestions = questions.length;
 	const hasReadingMaterial =
@@ -72,6 +80,22 @@ function FormTakerPage() {
 
 	const startTimeRef = useRef<number>(Date.now());
 
+	// Sync query result into machine
+	useEffect(() => {
+		if (!data || snapshot.matches("loading") === false) return;
+		send({ type: "FORM.LOADED", data });
+	}, [data, snapshot]);
+	useEffect(() => {
+		const loadError = error || rpcError;
+		if (loadError && snapshot.matches("loading")) {
+			send({
+				type: "FORM.LOAD_ERROR",
+				error: typeof loadError === "string" ? loadError : "Failed to load form",
+			});
+		}
+	}, [error, rpcError, snapshot]);
+
+	// Track start time
 	useEffect(() => {
 		if (!formId || !userId) return;
 		const key = `form-start-${userId}-${formId}`;
@@ -82,34 +106,61 @@ function FormTakerPage() {
 			startTimeRef.current = Date.now();
 			localStorage.setItem(key, String(startTimeRef.current));
 		}
-
-		if (data?.submission) {
+		if (snapshot.matches("submitted")) {
 			localStorage.removeItem(key);
 		}
-	}, [formId, userId, data?.submission]);
+	}, [formId, userId, snapshot]);
+
+	const handleAnswer = (questionId: string, value: string | number) => {
+		send({ type: "ANSWER", questionId, value });
+		updateDraft(questionId, value);
+	};
+
+	const handleSubmit = () => {
+		if (!answeredRequired || !formId || !userId) return;
+		const timeSpentSeconds = Math.round((Date.now() - startTimeRef.current) / 1000);
+		clearDraft();
+		localStorage.removeItem(`form-start-${userId}-${formId}`);
+		const stringAnswers: Record<string, string> = Object.fromEntries(
+			Object.entries(answers).map(([k, v]) => [k, String(v)]),
+		);
+		send({ type: "SUBMIT" });
+		submitMutation.mutate({ formId, answers: stringAnswers, timeSpentSeconds });
+	};
 
 	if (!formId) return <FormNoFormSpecified backTo={redirectBack || "/dashboard/forms/student"} />;
-	if (isLoading) {
-		return (
-			<div className="flex items-center justify-center py-12">
-				<Loader2 className="size-8 animate-spin text-muted-foreground" />
-			</div>
-		);
+
+	if (snapshot.matches("loading")) {
+		if (isLoading) {
+			return (
+				<div className="flex items-center justify-center py-12">
+					<Loader2 className="size-8 animate-spin text-muted-foreground" />
+				</div>
+			);
+		}
+		const loadError = error || rpcError;
+		if (loadError || !data) {
+			return (
+				<FormLoadingError
+					backTo={redirectBack || "/dashboard/forms/student"}
+					message={typeof loadError === "string" ? loadError : undefined}
+				/>
+			);
+		}
 	}
-	const loadError = error || rpcError;
-	if (loadError || !data) {
+
+	if (snapshot.matches("error")) {
 		return (
 			<FormLoadingError
 				backTo={redirectBack || "/dashboard/forms/student"}
-				message={typeof loadError === "string" ? loadError : undefined}
+				message={snapshot.context.error ?? undefined}
 			/>
 		);
 	}
 
-	const form = data.form;
-	const submission = data.submission;
-
-	if (submission) {
+	if (snapshot.matches("submitted")) {
+		const form = snapshot.context.form!;
+		const submission = snapshot.context.submission!;
 		const backTo =
 			redirectBack ||
 			(form.type === "post_test" ? "/dashboard/assignments" : "/dashboard/forms/student");
@@ -124,30 +175,23 @@ function FormTakerPage() {
 		);
 	}
 
-	const handleSubmit = () => {
-		if (!answeredRequired || !formId || !userId) return;
-		const timeSpentSeconds = Math.round((Date.now() - startTimeRef.current) / 1000);
-		clearDraft();
-		localStorage.removeItem(`form-start-${userId}-${formId}`);
-		const stringAnswers: Record<string, string> = Object.fromEntries(
-			Object.entries(answers).map(([k, v]) => [k, String(v)]),
-		);
-		submitMutation.mutate({ formId, answers: stringAnswers, timeSpentSeconds });
-	};
-
-	if (submitMutation.isPending || (submitMutation.isSuccess && !submission))
+	if (snapshot.matches("submitting")) {
 		return <FormSubmittedSuccess />;
-	if (totalQuestions === 0)
+	}
+
+	if (totalQuestions === 0) {
+		const form = snapshot.context.form!;
 		return <FormNoQuestions title={form.title} description={form.description ?? undefined} />;
+	}
 
 	return (
 		<div className="flex h-full min-h-0 flex-col -mx-6 overflow-hidden">
 			<FormHeaderBar
-				title={form.title}
-				description={form.description ?? undefined}
+				title={snapshot.context.form!.title}
+				description={snapshot.context.form!.description ?? undefined}
 				answeredCount={answeredCount}
 				totalQuestions={totalQuestions}
-				lastSaved={lastSaved}
+				lastSaved={null}
 			/>
 			<FormProgressBar progress={progress} />
 
@@ -162,10 +206,10 @@ function FormTakerPage() {
 				<QuestionList
 					questions={questions}
 					answers={answers}
-					onAnswerChange={updateAnswer}
+					onAnswerChange={handleAnswer}
 					requiredQuestions={requiredQuestions}
 					answeredRequired={answeredRequired}
-					isPending={submitMutation.isPending}
+					isPending={snapshot.matches("submitting")}
 					onSubmit={handleSubmit}
 					centered={!hasReadingMaterial}
 				/>
