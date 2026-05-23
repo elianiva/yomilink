@@ -1,64 +1,10 @@
 import { atom } from "jotai";
 
-import type { Edge, Node } from "@/features/learner-map/lib/comparator";
-import type {
-	ContextMenuState as LibContextMenuState,
-	ConnectionModeState as LibConnectionModeState,
-} from "@/lib/react-flow-types";
+import type { ContextMenuState as LibContextMenuState } from "@/lib/react-flow-types";
 
-export const nodesAtom = atom<Node[]>([]);
-export const edgesAtom = atom<Edge[]>([]);
-
-export const graphStateAtom = atom((get) => ({
-	nodes: get(nodesAtom),
-	edges: get(edgesAtom),
-}));
-
-export const conceptDialogOpenAtom = atom(false);
-export const linkDialogOpenAtom = atom(false);
-export const searchDialogOpenAtom = atom(false);
-export const searchOpenAtom = searchDialogOpenAtom;
-
-export const materialDialogOpenAtom = atom(false);
-export const importDialogOpenAtom = materialDialogOpenAtom;
-
-export interface UploadedImage {
-	readonly id: string;
-	readonly url: string;
-	readonly name: string;
-	readonly type: string;
-	readonly size: number;
-	readonly uploadedAt: number;
-}
-
-export interface ImageDraft {
-	readonly url: string;
-	readonly caption?: string;
-}
-
-export const imageDraftAtom = atom<ImageDraft | null>(null);
-export const imagesAtom = atom<UploadedImage[]>([]);
-
-export const materialTextAtom = atom("");
-
-export interface HistoryEntry {
-	readonly nodes: Node[];
-	readonly edges: Edge[];
-}
-
-export const historyAtom = atom<HistoryEntry[]>([{ nodes: [], edges: [] }]);
-export { historyAtom as historyAtomWithPointer };
-
-export const historyPointerAtom = atom(0);
-export { historyPointerAtom as historyPointer };
-
-export const isApplyingHistoryAtom = atom(false);
-
+// ── Canvas UI state (needed by kit components) ────────────
 export type ContextMenuState = LibContextMenuState;
 export const contextMenuAtom = atom<ContextMenuState>(null);
-
-export type ConnectionModeState = LibConnectionModeState;
-export const connectionModeAtom = atom<ConnectionModeState>(null);
 
 export interface EditNodeData {
 	readonly id: string;
@@ -70,4 +16,22 @@ export interface EditNodeData {
 export type EditNodeState = EditNodeData | null;
 
 export const editNodeAtom = atom<EditNodeState>(null);
-export { editNodeAtom as editNode };
+
+// ── Dialog state ──────────────────────────────────────────
+export const conceptDialogOpenAtom = atom(false);
+export const linkDialogOpenAtom = atom(false);
+export const searchOpenAtom = atom(false);
+export const materialDialogOpenAtom = atom(false);
+
+// ── Material state ────────────────────────────────────────
+export interface UploadedImage {
+	readonly id: string;
+	readonly url: string;
+	readonly name: string;
+	readonly type: string;
+	readonly size: number;
+	readonly uploadedAt: number;
+}
+
+export const imagesAtom = atom<UploadedImage[]>([]);
+export const materialTextAtom = atom("");

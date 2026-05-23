@@ -1,5 +1,12 @@
 import { setup, assign, assertEvent } from "xstate";
 
+import {
+	recordSnapshot,
+	canUndo,
+	canRedo,
+	type GraphContext,
+	type GraphEvent,
+} from "@/features/kit/lib/graph-machine";
 import type { Edge, Node } from "@/features/learner-map/lib/comparator";
 
 export type Condition = "concept_map" | "summarizing" | null;
@@ -36,8 +43,7 @@ export interface AssignmentSummaryData {
 export type LearnerMapEvent =
 	| { type: "LOADED"; data: AssignmentSummaryData; condition: Condition }
 	| { type: "LOAD_ERROR" }
-	| { type: "SET_NODES"; nodes: Node[] }
-	| { type: "SET_EDGES"; edges: Edge[] }
+	| GraphEvent
 	| { type: "SET_CONTROL_TEXT"; text: string }
 	| { type: "SAVE" }
 	| { type: "SAVE_DONE" }
@@ -48,11 +54,9 @@ export type LearnerMapEvent =
 	| { type: "CONTROL_SUBMIT_DONE" }
 	| { type: "CONTROL_SUBMIT_ERROR" };
 
-export interface LearnerMapContext {
+interface FullContext extends GraphContext {
 	assignmentData: AssignmentSummaryData | null;
 	condition: Condition;
-	nodes: Node[];
-	edges: Edge[];
 	controlText: string;
 	learnerMapId: string | null;
 	attempt: number;
@@ -61,7 +65,7 @@ export interface LearnerMapContext {
 
 export const learnerMapMachine = setup({
 	types: {
-		context: {} as LearnerMapContext,
+		context: {} as FullContext,
 		events: {} as LearnerMapEvent,
 	},
 	actions: {
@@ -113,6 +117,17 @@ export const learnerMapMachine = setup({
 				}
 				return JSON.stringify({ nodes: event.data.kit.nodes, edges: [] });
 			},
+			history: ({ event }) => {
+				assertEvent(event, "LOADED");
+				const nodes = event.data.learnerMap
+					? ([...event.data.learnerMap.nodes] as Node[])
+					: ([...event.data.kit.nodes] as Node[]);
+				const edges = event.data.learnerMap
+					? ([...event.data.learnerMap.edges] as Edge[])
+					: [];
+				return [{ nodes, edges }];
+			},
+			pointer: () => 0,
 		}),
 		setControlText: assign({
 			controlText: ({ event }) => {
@@ -128,18 +143,48 @@ export const learnerMapMachine = setup({
 				return JSON.stringify({ nodes: context.nodes, edges: context.edges });
 			},
 		}),
-		setNodes: assign({
+		recordAndSetNodes: assign({
+			history: ({ context, event }) => {
+				assertEvent(event, "SET_NODES");
+				return recordSnapshot(context, {
+					nodes: event.nodes,
+					edges: context.edges,
+				});
+			},
+			pointer: ({ context }) => context.pointer + 1,
 			nodes: ({ event }) => {
 				assertEvent(event, "SET_NODES");
 				return event.nodes;
 			},
 		}),
-		setEdges: assign({
+		recordAndSetEdges: assign({
+			history: ({ context, event }) => {
+				assertEvent(event, "SET_EDGES");
+				return recordSnapshot(context, {
+					nodes: context.nodes,
+					edges: event.edges,
+				});
+			},
+			pointer: ({ context }) => context.pointer + 1,
 			edges: ({ event }) => {
 				assertEvent(event, "SET_EDGES");
 				return event.edges;
 			},
 		}),
+		undo: assign({
+			pointer: ({ context }) => context.pointer - 1,
+			nodes: ({ context }) => context.history[context.pointer - 1].nodes,
+			edges: ({ context }) => context.history[context.pointer - 1].edges,
+		}),
+		redo: assign({
+			pointer: ({ context }) => context.pointer + 1,
+			nodes: ({ context }) => context.history[context.pointer + 1].nodes,
+			edges: ({ context }) => context.history[context.pointer + 1].edges,
+		}),
+	},
+	guards: {
+		canUndo: ({ context }) => canUndo(context),
+		canRedo: ({ context }) => canRedo(context),
 	},
 }).createMachine({
 	id: "learner-map",
@@ -147,12 +192,14 @@ export const learnerMapMachine = setup({
 	context: {
 		assignmentData: null,
 		condition: null,
-		nodes: [],
-		edges: [],
 		controlText: "",
 		learnerMapId: null,
 		attempt: 0,
 		lastSavedSnapshot: null,
+		nodes: [],
+		edges: [],
+		history: [{ nodes: [], edges: [] }],
+		pointer: 0,
 	},
 	states: {
 		loading: {
@@ -182,10 +229,18 @@ export const learnerMapMachine = setup({
 				drafting: {
 					on: {
 						SET_NODES: {
-							actions: "setNodes",
+							actions: "recordAndSetNodes",
 						},
 						SET_EDGES: {
-							actions: "setEdges",
+							actions: "recordAndSetEdges",
+						},
+						UNDO: {
+							guard: "canUndo",
+							actions: "undo",
+						},
+						REDO: {
+							guard: "canRedo",
+							actions: "redo",
 						},
 						SAVE: {
 							actions: "setLastSavedSnapshot",

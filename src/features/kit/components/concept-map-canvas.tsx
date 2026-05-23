@@ -43,14 +43,14 @@ export type ConceptMapCanvasProps = {
 	children?: React.ReactNode;
 };
 
-const NODE_TYPES = {
+const NODE_TYPES = Object.freeze({
 	text: TextNode,
 	connector: ConnectorNode,
-};
+});
 
-const EDGE_TYPES = {
+const EDGE_TYPES = Object.freeze({
 	floating: FloatingEdge,
-};
+});
 
 /**
  * Unified concept map canvas used by both GoalMapEditor and LearnerMapEditor.
@@ -144,10 +144,14 @@ export function ConceptMapCanvas({
 		[fitView],
 	);
 
+	const reactFlowStyle = useMemo(() => ({ touchAction: "none" as const }), []);
+
+	const nodeContextValue = useMemo(() => ({ readOnly: !!readOnly }), [readOnly]);
+
 	return (
-		<NodeContext.Provider value={{ readOnly: !!readOnly }}>
+		<NodeContext.Provider value={nodeContextValue}>
 			<ReactFlow
-				style={{ touchAction: "none" }}
+				style={reactFlowStyle}
 				ref={refCallback}
 				nodes={nodes}
 				edges={edges}

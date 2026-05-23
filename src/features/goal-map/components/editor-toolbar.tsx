@@ -53,6 +53,8 @@ import {
 export type EditorToolbarProps = {
 	onUndo: () => void;
 	onRedo: () => void;
+	canUndo: boolean;
+	canRedo: boolean;
 	onZoomIn: () => void;
 	onZoomOut: () => void;
 	onFit: () => void;
@@ -71,6 +73,8 @@ const tooltipHandle = createTooltipHandle();
 function EditorToolbarImpl({
 	onUndo,
 	onRedo,
+	canUndo,
+	canRedo,
 	onZoomIn,
 	onZoomOut,
 	onFit,
@@ -155,8 +159,8 @@ function EditorToolbarImpl({
 			<NavigationButtons
 				onUndo={onUndo}
 				onRedo={onRedo}
-				canUndo={true}
-				canRedo={true}
+				canUndo={canUndo}
+				canRedo={canRedo}
 				handle={tooltipHandle}
 				disabled={false}
 			/>
@@ -263,8 +267,8 @@ function EditorToolbarImpl({
 			<NavigationButtons
 				onUndo={onUndo}
 				onRedo={onRedo}
-				canUndo={true}
-				canRedo={true}
+				canUndo={canUndo}
+				canRedo={canRedo}
 				handle={tooltipHandle}
 				disabled={false}
 			/>

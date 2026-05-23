@@ -23,13 +23,14 @@ import {
 import { Button } from "@/components/ui/button";
 import { ConceptMapCanvas } from "@/features/kit/components/concept-map-canvas";
 import { SearchNodesPanel } from "@/features/kit/components/search-nodes-panel";
+import { filterSelectChanges } from "@/features/kit/lib/graph-machine";
 import { getLayoutedElements } from "@/features/kit/lib/layout";
 import { CanvasOnboardingDialog } from "@/features/learner-map/components/canvas-onboarding-dialog";
 import { LearnerToolbar } from "@/features/learner-map/components/learner-toolbar";
 import { MaterialDialog } from "@/features/learner-map/components/material-dialog";
 import type { Node, Edge } from "@/features/learner-map/lib/comparator";
-import { useHistory } from "@/hooks/use-history";
 import { useRpcMutation, useRpcQuery } from "@/hooks/use-rpc-query";
+import { useStableSerializedValue } from "@/hooks/use-stable-serialized-value";
 import { toast } from "@/lib/error-toast";
 import { areNodesConnected, isValidConnection } from "@/lib/react-flow-types";
 import { learnerMapMachine } from "@/machines/learner-map.machine";
@@ -37,6 +38,8 @@ import type { Condition } from "@/machines/learner-map.machine";
 import { LearnerMapRpc } from "@/server/rpc/learner-map";
 
 const routeApi = getRouteApi("/dashboard/learner-map/$assignmentId/");
+
+const noop = () => {};
 
 export function LearnerMapEditor() {
 	const { assignmentId } = routeApi.useParams();
@@ -75,8 +78,9 @@ export function LearnerMapEditor() {
 	});
 
 	const context = snapshot.context;
-	const nodes = context.nodes;
-	const edges = context.edges;
+
+	const nodes = useStableSerializedValue(context.nodes);
+	const edges = useStableSerializedValue(context.edges);
 
 	const [onboardingOpen, setOnboardingOpen] = useState(false);
 
@@ -90,20 +94,21 @@ export function LearnerMapEditor() {
 		}
 	}, [assignmentData, assignmentId, condition, isSubmitted]);
 
+	// Debounced auto-save: saves 3s after the last change.
 	const isConceptMapDrafting = snapshot.matches({ conceptMap: "drafting" });
 	useEffect(() => {
 		if (!isConceptMapDrafting) return;
 
+		const currentSnapshot = JSON.stringify({ nodes, edges });
+		if (currentSnapshot === context.lastSavedSnapshot) return;
+
 		const timer = setTimeout(() => {
-			const currentSnapshot = JSON.stringify({ nodes, edges });
-			if (currentSnapshot !== context.lastSavedSnapshot) {
-				saveMutation.mutate({
-					assignmentId,
-					nodes: JSON.stringify(nodes),
-					edges: JSON.stringify(edges),
-				});
-				send({ type: "SAVE" });
-			}
+			saveMutation.mutate({
+				assignmentId,
+				nodes: JSON.stringify(nodes),
+				edges: JSON.stringify(edges),
+			});
+			send({ type: "SAVE" });
 		}, 3000);
 		return () => clearTimeout(timer);
 	}, [
@@ -116,7 +121,7 @@ export function LearnerMapEditor() {
 		send,
 	]);
 
-	const handleSaveThenSubmit = async () => {
+	const handleSaveThenSubmit = useCallback(async () => {
 		const saveResult = await saveMutation.mutateAsync({
 			assignmentId,
 			nodes: JSON.stringify(nodes),
@@ -136,13 +141,12 @@ export function LearnerMapEditor() {
 		} else {
 			send({ type: "SUBMIT_ERROR" });
 		}
-	};
+	}, [nodes, edges, assignmentId, saveMutation, submitMutation, queryClient, navigate, send]);
 
 	const onNodesChange = useCallback(
 		(changes: NodeChange<Node>[]) => {
 			if (isSubmitted) return;
-			const filtered = changes.filter((c) => c.type !== "select");
-			const next = applyNodeChanges(filtered, nodes);
+			const next = applyNodeChanges(filterSelectChanges(changes), nodes);
 			send({ type: "SET_NODES", nodes: next });
 		},
 		[nodes, isSubmitted, send],
@@ -194,16 +198,17 @@ export function LearnerMapEditor() {
 		[nodes, edges, isSubmitted],
 	);
 
-	const { undo, redo, canUndo, canRedo } = useHistory(nodes, edges, {
-		maxSnapshots: 50,
-		disabled: isSubmitted,
-	});
+	const handleUndo = useCallback(() => send({ type: "UNDO" }), [send]);
+	const handleRedo = useCallback(() => send({ type: "REDO" }), [send]);
 
-	const zoomIn = () => void rfZoomIn();
-	const zoomOut = () => void rfZoomOut();
-	const fit = () => void fitView({ padding: 0.2 });
+	const canUndo = context.pointer > 0;
+	const canRedo = context.pointer < context.history.length - 1;
 
-	const autoLayout = () => {
+	const zoomIn = useCallback(() => void rfZoomIn(), [rfZoomIn]);
+	const zoomOut = useCallback(() => void rfZoomOut(), [rfZoomOut]);
+	const fit = useCallback(() => void fitView({ padding: 0.2 }), [fitView]);
+
+	const autoLayout = useCallback(() => {
 		if (isSubmitted) return;
 		const { nodes: layoutedNodes, edges: layoutedEdges } = getLayoutedElements(
 			nodes,
@@ -213,14 +218,17 @@ export function LearnerMapEditor() {
 		send({ type: "SET_NODES", nodes: layoutedNodes });
 		send({ type: "SET_EDGES", edges: layoutedEdges });
 		setTimeout(() => void fitView({ padding: 0.2 }), 50);
-	};
+	}, [nodes, edges, isSubmitted, send, fitView]);
 
-	const selectNode = (nodeId: string) => {
-		const node = nodes.find((n) => n.id === nodeId);
-		if (node) {
-			void fitView({ nodes: [node], padding: 0.5, duration: 500 });
-		}
-	};
+	const selectNode = useCallback(
+		(nodeId: string) => {
+			const node = nodes.find((n) => n.id === nodeId);
+			if (node) {
+				void fitView({ nodes: [node], padding: 0.5, duration: 500 });
+			}
+		},
+		[nodes, fitView],
+	);
 
 	const [searchOpen, setSearchOpen] = useState(false);
 	const [materialOpen, setMaterialOpen] = useState(false);
@@ -228,6 +236,20 @@ export function LearnerMapEditor() {
 
 	const onNodeClick: NodeMouseHandler = useCallback(() => {}, []);
 	const onPaneClick = useCallback(() => {}, []);
+
+	const handleSearchOpen = useCallback(() => setSearchOpen(true), []);
+	const handleSearchClose = useCallback(() => setSearchOpen(false), []);
+	const handleMaterialOpen = useCallback(() => setMaterialOpen(true), []);
+	const handleSubmitOpen = useCallback(() => setSubmitDialogOpen(true), []);
+
+	const handleControlTextChange = useCallback(
+		(text: string) => send({ type: "SET_CONTROL_TEXT", text }),
+		[send],
+	);
+	const handleSummarizingSubmitDone = useCallback(() => {
+		send({ type: "CONTROL_SUBMIT_DONE" });
+		void queryClient.invalidateQueries({ queryKey: LearnerMapRpc.learnerMaps() });
+	}, [send, queryClient]);
 
 	if (isLoading || snapshot.matches("loading")) {
 		return (
@@ -258,11 +280,8 @@ export function LearnerMapEditor() {
 				assignmentTitle={assignmentData.assignment.title}
 				assignmentDescription={assignmentData.assignment.description}
 				materialText={assignmentData.materialText || ""}
-				onControlTextChange={(text) => send({ type: "SET_CONTROL_TEXT", text })}
-				onSubmitDone={() => {
-					send({ type: "CONTROL_SUBMIT_DONE" });
-					void queryClient.invalidateQueries({ queryKey: LearnerMapRpc.learnerMaps() });
-				}}
+				onControlTextChange={handleControlTextChange}
+				onSubmitDone={handleSummarizingSubmitDone}
 			/>
 		);
 	}
@@ -325,14 +344,14 @@ export function LearnerMapEditor() {
 					</AlertDialogFooter>
 				</AlertDialogContent>
 			</AlertDialog>
-			<div className="bg-card relative h-full overflow-hidden -mx-6 border-t-[0.5px]">
+			<div className="bg-card relative h-full overflow-hidden -mx-6 -mt-4">
 				<ConceptMapCanvas
 					nodes={nodes}
 					edges={edges}
 					onNodesChange={onNodesChange}
 					onEdgesChange={onEdgesChange}
 					onConnect={onConnect}
-					onConnectEnd={() => {}}
+					onConnectEnd={noop}
 					isValidConnection={isValidConnectionHandler}
 					onNodeClick={onNodeClick}
 					onPaneClick={onPaneClick}
@@ -341,20 +360,20 @@ export function LearnerMapEditor() {
 					<SearchNodesPanel
 						open={searchOpen}
 						nodes={nodes}
-						onClose={() => setSearchOpen(false)}
+						onClose={handleSearchClose}
 						onSelectNode={selectNode}
 					/>
 				</ConceptMapCanvas>
 				<LearnerToolbar
-					onUndo={undo}
-					onRedo={redo}
+					onUndo={handleUndo}
+					onRedo={handleRedo}
 					onZoomIn={zoomIn}
 					onZoomOut={zoomOut}
 					onFit={fit}
-					onSearch={() => setSearchOpen(true)}
-					onMaterial={() => setMaterialOpen(true)}
+					onSearch={handleSearchOpen}
+					onMaterial={handleMaterialOpen}
 					onAutoLayout={autoLayout}
-					onSubmit={() => setSubmitDialogOpen(true)}
+					onSubmit={handleSubmitOpen}
 					canUndo={canUndo}
 					canRedo={canRedo}
 					isSubmitting={submitMutation.isPending}

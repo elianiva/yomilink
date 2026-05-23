@@ -1,4 +1,5 @@
 import { BookOpenIcon, LayoutGridIcon, MoreHorizontal, SearchIcon, SendIcon } from "lucide-react";
+import { memo } from "react";
 
 import { NavigationButtons, ZoomButtons } from "@/components/toolbar/toolbar-groups";
 import { Button } from "@/components/ui/button";
@@ -35,7 +36,7 @@ interface LearnerToolbarProps {
 
 const tooltipHandle = createTooltipHandle();
 
-export function LearnerToolbar({
+const LearnerToolbar = memo(function LearnerToolbar({
 	onUndo,
 	onRedo,
 	onZoomIn,
@@ -192,4 +193,6 @@ export function LearnerToolbar({
 			</div>
 		</TooltipProvider>
 	);
-}
+});
+
+export { LearnerToolbar };

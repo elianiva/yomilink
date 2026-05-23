@@ -85,7 +85,11 @@ function FormTakerPage() {
 	// Sync query result into machine
 	useEffect(() => {
 		if (!data) return;
-		if (snapshot.matches("loading") || snapshot.matches("submitting") || snapshot.matches("submitted")) {
+		if (
+			snapshot.matches("loading") ||
+			snapshot.matches("submitting") ||
+			snapshot.matches("submitted")
+		) {
 			send({ type: "FORM.LOADED", data });
 		}
 	}, [data, snapshot]);
