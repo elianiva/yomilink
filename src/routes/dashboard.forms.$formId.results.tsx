@@ -106,16 +106,18 @@ function FormResultsPage() {
 			/>
 
 			<Tabs value={activeTab} onValueChange={(v) => setActiveTab(v as typeof activeTab)}>
-				<TabsList variant="line">
-					<TabsTrigger value="individual" className="gap-2">
-						<List className="size-4" />
-						Individual
-					</TabsTrigger>
-					<TabsTrigger value="aggregated" className="gap-2">
-						<Users className="size-4" />
-						Aggregated
-					</TabsTrigger>
-				</TabsList>
+				<div className="overflow-x-auto">
+					<TabsList variant="line">
+						<TabsTrigger value="individual" className="gap-2">
+							<List className="size-4" />
+							Individual
+						</TabsTrigger>
+						<TabsTrigger value="aggregated" className="gap-2">
+							<Users className="size-4" />
+							Aggregated
+						</TabsTrigger>
+					</TabsList>
+				</div>
 
 				<TabsContent value="individual" className="mt-6">
 					<IndividualResponsesTable

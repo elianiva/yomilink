@@ -276,7 +276,7 @@ export function MetricsContent({ assignmentId }: MetricsContentProps) {
 						<CardDescription>Learners per score range</CardDescription>
 					</CardHeader>
 					<CardContent>
-						<ChartContainer config={chartConfig} className="h-[260px]">
+						<ChartContainer config={chartConfig} className="h-[200px] md:h-[260px]">
 							<ResponsiveContainer width="100%" height="100%">
 								<BarChart
 									data={Object.entries(metrics.scoreDistribution).map(
@@ -304,7 +304,7 @@ export function MetricsContent({ assignmentId }: MetricsContentProps) {
 						<CardDescription>Submitted vs Draft</CardDescription>
 					</CardHeader>
 					<CardContent>
-						<ChartContainer config={chartConfig} className="h-[260px]">
+						<ChartContainer config={chartConfig} className="h-[200px] md:h-[260px]">
 							<ResponsiveContainer width="100%" height="100%">
 								<PieChart>
 									<ChartTooltip content={<ChartTooltipContent />} />
@@ -331,7 +331,7 @@ export function MetricsContent({ assignmentId }: MetricsContentProps) {
 						<CardDescription>Per learner</CardDescription>
 					</CardHeader>
 					<CardContent>
-						<ChartContainer config={chartConfig} className="h-[260px]">
+						<ChartContainer config={chartConfig} className="h-[200px] md:h-[260px]">
 							<ResponsiveContainer width="100%" height="100%">
 								<BarChart data={metrics.edgeTypeData} layout="vertical">
 									<CartesianGrid horizontal={false} strokeDasharray="3 3" />
@@ -361,7 +361,7 @@ export function MetricsContent({ assignmentId }: MetricsContentProps) {
 						<CardDescription>By attempt count</CardDescription>
 					</CardHeader>
 					<CardContent>
-						<ChartContainer config={chartConfig} className="h-[260px]">
+						<ChartContainer config={chartConfig} className="h-[200px] md:h-[260px]">
 							<ResponsiveContainer width="100%" height="100%">
 								<BarChart
 									data={Object.entries(metrics.attemptDistribution).map(

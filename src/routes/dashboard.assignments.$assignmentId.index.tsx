@@ -192,42 +192,41 @@ function AssignmentFlowPage() {
 	const isComplete = phases.every((p) => p.status === "completed" || p.status === "skipped");
 
 	return (
-		<div className="space-y-8 max-w-2xl mx-auto pb-8">
-			<div className="space-y-2">
-				<Button variant="ghost" size="sm" asChild className="-ml-2">
-					<Link to="/dashboard/assignments">
-						<ArrowLeftIcon className="size-4 mr-1" />
-						My Assignments
-					</Link>
-				</Button>
-				<div>
-					<h1 className="text-xl font-medium">{assignment.title}</h1>
-					{assignment.description && (
-						<p className="text-sm text-muted-foreground mt-1">
-							{assignment.description}
-						</p>
-					)}
-				</div>
+		<div className="space-y-4 max-w-2xl mx-auto">
+			<Button variant="secondary" size="sm" asChild className="-ml-2">
+				<Link to="/dashboard/assignments">
+					<ArrowLeftIcon className="size-4" />
+					My Assignments
+				</Link>
+			</Button>
+			<div>
+				<h1 className="text-xl font-medium">{assignment.title}</h1>
+				{assignment.description && (
+					<p className="text-sm text-muted-foreground mt-1">{assignment.description}</p>
+				)}
 			</div>
 
+			{/* Stepper - responsive */}
 			<div className="flex items-center justify-center gap-0">
 				{visiblePhases.map((phase, i) => (
 					<Fragment key={phase.id}>
-						<div className="flex items-center gap-2">
+						<div className="flex flex-col items-center gap-2">
 							<div
 								className={cn(
-									"flex size-8 items-center justify-center rounded-full text-xs font-medium transition-colors",
-									phase.status === "completed" &&
-										"bg-primary text-primary-foreground",
-									phase.status === "active" &&
-										"bg-primary/10 text-primary border border-primary/30",
-									phase.status !== "completed" &&
-										phase.status !== "active" &&
-										"bg-muted text-muted-foreground",
+									"flex size-8 items-center justify-center rounded-full text-sm font-medium transition-colors",
+									{
+										"bg-primary text-primary-foreground":
+											phase.status === "completed",
+										"bg-primary/10 text-primary border border-primary/30":
+											phase.status === "active",
+										"bg-muted text-muted-foreground":
+											phase.status !== "completed" &&
+											phase.status !== "active",
+									},
 								)}
 							>
 								{phase.status === "completed" ? (
-									<CheckCircleIcon className="size-4" />
+									<CheckCircle2Icon className="size-4" />
 								) : (
 									i + 1
 								)}
@@ -246,7 +245,7 @@ function AssignmentFlowPage() {
 						{i < visiblePhases.length - 1 && (
 							<div
 								className={cn(
-									"h-px w-8 mx-2",
+									"h-px w-12 mx-2 -translate-y-3",
 									phase.status === "completed" ? "bg-primary/40" : "bg-border",
 								)}
 							/>
@@ -268,13 +267,13 @@ function AssignmentFlowPage() {
 						<Card
 							key={phase.id}
 							className={cn(
-								"transition-all",
+								"transition-all py-4",
 								isActive && "ring-1 ring-primary/30 border-primary/20",
 								isLocked && "opacity-50",
 							)}
 						>
-							<CardContent className="p-4 py-0">
-								<div className="flex items-start gap-4">
+							<CardContent className="p-4 py-0 flex max-sm:flex-col md:items-start justify-between gap-4">
+								<div className="flex gap-4">
 									<div
 										className={cn(
 											"flex size-10 shrink-0 items-center justify-center rounded-lg",
@@ -313,20 +312,19 @@ function AssignmentFlowPage() {
 											{phase.description}
 										</p>
 									</div>
-									<div className="shrink-0">
-										{phase.action && (
-											<Button
-												variant={isActive ? "default" : "outline"}
-												size="sm"
-												onClick={phase.action.fn}
-											>
-												{phase.action.label}
-												{isActive && (
-													<ChevronRightIcon className="size-4" />
-												)}
-											</Button>
-										)}
-									</div>
+								</div>
+								<div className="shrink-0">
+									{phase.action && (
+										<Button
+											className="w-full"
+											variant={isActive ? "default" : "outline"}
+											size="sm"
+											onClick={phase.action.fn}
+										>
+											{phase.action.label}
+											{isActive && <ChevronRightIcon className="size-4" />}
+										</Button>
+									)}
 								</div>
 							</CardContent>
 						</Card>
@@ -348,22 +346,5 @@ function AssignmentFlowPage() {
 				</Card>
 			)}
 		</div>
-	);
-}
-
-function CheckCircleIcon({ className }: { className?: string }) {
-	return (
-		<svg
-			xmlns="http://www.w3.org/2000/svg"
-			viewBox="0 0 24 24"
-			fill="currentColor"
-			className={className}
-		>
-			<path
-				fillRule="evenodd"
-				d="M2.25 12c0-5.385 4.365-9.75 9.75-9.75s9.75 4.365 9.75 9.75-4.365 9.75-9.75 9.75S2.25 17.385 2.25 12zm13.36-1.814a.75.75 0 10-1.22-.872l-3.236 4.53L9.53 12.22a.75.75 0 00-1.06 1.06l2.25 2.25a.75.75 0 001.14-.094l3.75-5.25z"
-				clipRule="evenodd"
-			/>
-		</svg>
 	);
 }

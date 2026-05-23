@@ -27,36 +27,39 @@ export function EditorContent({
 			<div className="lg:col-span-2 space-y-6">
 				{/* Form Content Card */}
 				<div className="rounded-lg border bg-card p-6">
-					<div className="flex items-center justify-between mb-4">
+					<div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 mb-4">
 						<h2 className="text-lg font-medium">Questions</h2>
 						{hasForm && (
-							<div className="flex items-center gap-2">
+							<div className="flex items-center gap-2 w-full sm:w-auto">
 								<Button
 									variant="outline"
 									size="sm"
 									onClick={() => onAddQuestion("mcq")}
 									disabled={isPending}
+									className="flex-1 sm:flex-initial"
 								>
-									<Plus className="mr-1 size-4" />
-									MCQ
+									<Plus className="size-4 sm:mr-1" />
+									<span className="hidden sm:inline">MCQ</span>
 								</Button>
 								<Button
 									variant="outline"
 									size="sm"
 									onClick={() => onAddQuestion("likert")}
 									disabled={isPending}
+									className="flex-1 sm:flex-initial"
 								>
-									<Plus className="mr-1 size-4" />
-									Likert
+									<Plus className="size-4 sm:mr-1" />
+									<span className="hidden sm:inline">Likert</span>
 								</Button>
 								<Button
 									variant="outline"
 									size="sm"
 									onClick={() => onAddQuestion("text")}
 									disabled={isPending}
+									className="flex-1 sm:flex-initial"
 								>
-									<Plus className="mr-1 size-4" />
-									Text
+									<Plus className="size-4 sm:mr-1" />
+									<span className="hidden sm:inline">Text</span>
 								</Button>
 							</div>
 						)}

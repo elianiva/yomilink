@@ -43,7 +43,7 @@ export function McqRenderer({ question, value, onChange, disabled = false }: Mcq
 	};
 
 	return (
-		<div className="space-y-3" data-testid="mcq-renderer">
+		<div className="space-y-1.5" data-testid="mcq-renderer">
 			{displayOptions.map((option, index) => {
 				const isSelected = value === option.id;
 				return (
@@ -54,7 +54,7 @@ export function McqRenderer({ question, value, onChange, disabled = false }: Mcq
 						disabled={disabled}
 						data-testid={`mcq-option-${index}`}
 						className={cn(
-							"w-full rounded-xl border p-4 text-left transition-all duration-200 cursor-pointer",
+							"w-full rounded-lg border py-2 pl-3 pr-3 text-left transition-all duration-200 cursor-pointer",
 							"hover:border-primary/50 hover:bg-primary/5",
 							"focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2",
 							isSelected
@@ -64,25 +64,25 @@ export function McqRenderer({ question, value, onChange, disabled = false }: Mcq
 								"opacity-60 cursor-not-allowed hover:border-border hover:bg-card",
 						)}
 					>
-						<div className="flex items-center gap-3">
+						<div className="flex items-center gap-2.5">
 							<div
 								className={cn(
-									"flex size-6 shrink-0 items-center justify-center rounded-full border-2 transition-colors",
+									"flex size-5 shrink-0 items-center justify-center rounded-full border-2 transition-colors",
 									isSelected
-										? "border-current bg-current text-primary-foreground"
+										? "border-current bg-current text-background"
 										: "border-muted-foreground",
 								)}
 							>
-								{isSelected && <Check className="size-4 text-primary" />}
+								{isSelected && <Check className="size-3 text-primary" />}
 							</div>
-							<span className="flex-1 font-medium">{option.text}</span>
+							<span className="flex-1 text-sm">{option.text}</span>
 						</div>
 					</button>
 				);
 			})}
 
 			{question.required && !value && (
-				<p className="text-sm text-destructive" data-testid="required-warning">
+				<p className="text-xs text-destructive" data-testid="required-warning">
 					Please select an answer to continue
 				</p>
 			)}

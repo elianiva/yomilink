@@ -161,7 +161,7 @@ export function LearnerMapResult() {
 
 	return (
 		<TooltipProvider delay={300}>
-			<section className="relative h-full overflow-hidden -mx-6 border-t-[0.5px]">
+			<section className="relative h-full overflow-hidden -mx-4 md:-mx-6 border-t-[0.5px]">
 				<div className="absolute inset-0 bg-[radial-gradient(circle_at_top,rgba(0,0,0,0.03),transparent_55%)]">
 					<AnalyticsCanvas
 						goalMap={{
@@ -183,12 +183,12 @@ export function LearnerMapResult() {
 				</div>
 
 				{assignment.postTestFormId && !postTestCompleted && (
-					<div className="absolute top-12 left-0 right-0 z-20 pointer-events-auto bg-primary/5 border-b border-primary/20 px-4 py-2 flex items-center gap-3">
-						<FileTextIcon className="size-4 text-primary shrink-0" />
+					<div className="absolute top-12 left-0 right-0 z-20 pointer-events-auto bg-primary/5 border-b border-primary/20 px-4 py-2 flex flex-col sm:flex-row items-start sm:items-center gap-2 sm:gap-3">
+						<FileTextIcon className="size-4 text-primary shrink-0 hidden sm:inline" />
 						<p className="text-sm font-medium text-foreground flex-1">
 							Your map has been submitted. Complete the post-test to finish.
 						</p>
-						<Button asChild size="sm" className="shrink-0 gap-1.5">
+						<Button asChild size="sm" className="shrink-0 gap-1.5 w-full sm:w-auto">
 							<Link
 								to="/dashboard/forms/take"
 								search={{
@@ -242,7 +242,7 @@ export function LearnerMapResult() {
 						/>
 					</div>
 
-					<div className="absolute top-14 right-3 w-80 bg-card/30 backdrop-blur-lg border rounded-lg shadow-sm pointer-events-auto max-h-[calc(100vh-8rem)] overflow-y-auto">
+					<div className="absolute top-14 right-2 sm:right-3 w-[85vw] sm:w-72 bg-card/30 backdrop-blur-lg border rounded-lg shadow-sm pointer-events-auto max-h-[calc(100vh-8rem)] overflow-y-auto">
 						<div className="border-b-[0.5px] px-3 py-2.5 flex items-center gap-2 sticky top-0 bg-inherit">
 							<div className="flex items-center gap-1.5 text-sm">
 								<span className="text-muted-foreground">Score</span>

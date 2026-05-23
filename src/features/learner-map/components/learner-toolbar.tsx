@@ -1,7 +1,13 @@
-import { BookOpenIcon, LayoutGridIcon, SearchIcon, SendIcon } from "lucide-react";
+import { BookOpenIcon, LayoutGridIcon, MoreHorizontal, SearchIcon, SendIcon } from "lucide-react";
 
 import { NavigationButtons, ZoomButtons } from "@/components/toolbar/toolbar-groups";
 import { Button } from "@/components/ui/button";
+import {
+	DropdownMenu,
+	DropdownMenuContent,
+	DropdownMenuItem,
+	DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
 import { Separator } from "@/components/ui/separator";
 import {
 	createTooltipHandle,
@@ -47,7 +53,7 @@ export function LearnerToolbar({
 }: LearnerToolbarProps) {
 	return (
 		<TooltipProvider delay={300}>
-			<div className="absolute bottom-4 left-1/2 z-10 flex -translate-x-1/2 items-center gap-1.5 rounded-xl border bg-white/90 p-1.5 shadow-lg backdrop-blur-sm">
+			<div className="absolute bottom-4 left-1/2 z-10 flex -translate-x-1/2 items-center gap-1.5 rounded-xl border bg-white/90 p-1.5 shadow-lg backdrop-blur-sm h-10 sm:h-auto">
 				<NavigationButtons
 					onUndo={onUndo}
 					onRedo={onRedo}
@@ -66,33 +72,10 @@ export function LearnerToolbar({
 					handle={tooltipHandle}
 				/>
 
-				<Separator orientation="vertical" className="h-5 mx-0.5" />
+				{/* Desktop actions */}
+				<div className="hidden sm:flex items-center gap-1.5">
+					<Separator orientation="vertical" className="h-5 mx-0.5" />
 
-				<TooltipTrigger
-					handle={tooltipHandle}
-					render={
-						<Button variant="ghost" size="icon" className="size-8" onClick={onSearch} />
-					}
-					payload="Search Nodes"
-				>
-					<SearchIcon className="size-4" />
-				</TooltipTrigger>
-				<TooltipTrigger
-					handle={tooltipHandle}
-					render={
-						<Button
-							variant="ghost"
-							size="icon"
-							className="size-8"
-							onClick={onAutoLayout}
-							disabled={isSubmitted}
-						/>
-					}
-					payload="Auto Layout"
-				>
-					<LayoutGridIcon className="size-4" />
-				</TooltipTrigger>
-				{hasMaterial && (
 					<TooltipTrigger
 						handle={tooltipHandle}
 						render={
@@ -100,34 +83,111 @@ export function LearnerToolbar({
 								variant="ghost"
 								size="icon"
 								className="size-8"
-								onClick={onMaterial}
+								onClick={onSearch}
 							/>
 						}
-						payload="View Reading Material"
+						payload="Search Nodes"
 					>
-						<BookOpenIcon className="size-4" />
+						<SearchIcon className="size-4" />
 					</TooltipTrigger>
-				)}
-
-				<Separator orientation="vertical" className="h-5 mx-0.5" />
-
-				<TooltipTrigger
-					handle={tooltipHandle}
-					render={
-						<Button
-							size="sm"
-							className="gap-1.5"
-							onClick={onSubmit}
-							disabled={isSubmitting || isSubmitted}
+					<TooltipTrigger
+						handle={tooltipHandle}
+						render={
+							<Button
+								variant="ghost"
+								size="icon"
+								className="size-8"
+								onClick={onAutoLayout}
+								disabled={isSubmitted}
+							/>
+						}
+						payload="Auto Layout"
+					>
+						<LayoutGridIcon className="size-4" />
+					</TooltipTrigger>
+					{hasMaterial && (
+						<TooltipTrigger
+							handle={tooltipHandle}
+							render={
+								<Button
+									variant="ghost"
+									size="icon"
+									className="size-8"
+									onClick={onMaterial}
+								/>
+							}
+							payload="View Reading Material"
 						>
-							<SendIcon className="size-4" />
-							{isSubmitting ? "Submitting..." : isSubmitted ? "Submitted" : "Submit"}
-						</Button>
-					}
-					payload={
-						isSubmitted ? "Already submitted" : "Submit your concept map for grading"
-					}
-				/>
+							<BookOpenIcon className="size-4" />
+						</TooltipTrigger>
+					)}
+
+					<Separator orientation="vertical" className="h-5 mx-0.5" />
+
+					<TooltipTrigger
+						handle={tooltipHandle}
+						render={
+							<Button
+								size="sm"
+								className="gap-1.5"
+								onClick={onSubmit}
+								disabled={isSubmitting || isSubmitted}
+							>
+								<SendIcon className="size-4" />
+								{isSubmitting
+									? "Submitting..."
+									: isSubmitted
+										? "Submitted"
+										: "Submit"}
+							</Button>
+						}
+						payload={
+							isSubmitted
+								? "Already submitted"
+								: "Submit your concept map for grading"
+						}
+					/>
+				</div>
+
+				{/* Mobile overflow */}
+				<div className="sm:hidden flex items-center gap-1.5">
+					<Separator orientation="vertical" className="h-5 mx-0.5" />
+
+					<DropdownMenu>
+						<DropdownMenuTrigger asChild>
+							<Button variant="ghost" size="icon" className="size-8">
+								<MoreHorizontal className="size-4" />
+							</Button>
+						</DropdownMenuTrigger>
+						<DropdownMenuContent align="center" side="top" className="w-44">
+							<DropdownMenuItem onClick={onSearch}>
+								<SearchIcon className="size-4 mr-2" />
+								Search Nodes
+							</DropdownMenuItem>
+							<DropdownMenuItem onClick={onAutoLayout} disabled={isSubmitted}>
+								<LayoutGridIcon className="size-4 mr-2" />
+								Auto Layout
+							</DropdownMenuItem>
+							{hasMaterial && (
+								<DropdownMenuItem onClick={onMaterial}>
+									<BookOpenIcon className="size-4 mr-2" />
+									Reading Material
+								</DropdownMenuItem>
+							)}
+						</DropdownMenuContent>
+					</DropdownMenu>
+
+					<Button
+						size="sm"
+						className="gap-1"
+						onClick={onSubmit}
+						disabled={isSubmitting || isSubmitted}
+					>
+						<SendIcon className="size-4" />
+						{isSubmitting ? "Submitting..." : isSubmitted ? "Submitted" : "Submit"}
+					</Button>
+				</div>
+
 				<TooltipContent handle={tooltipHandle} />
 			</div>
 		</TooltipProvider>

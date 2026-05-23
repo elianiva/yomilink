@@ -46,17 +46,19 @@ function FormTakerPage() {
 		enabled: !!formId,
 	});
 
-	const submitMutation = useRpcMutation(FormRpc.submitFormResponse(), {
-		operation: "submit form",
-		onSuccess: async () => {
-			send({ type: "SUBMIT_DONE" });
-			await Promise.all([
-				queryClient.invalidateQueries({ queryKey: FormRpc.forms() }),
-				queryClient.invalidateQueries({ queryKey: ["learner-maps"] }),
-			]);
+	const submitMutation = useRpcMutation(
+		{
+			...FormRpc.submitFormResponse(),
+			onSuccess: () => {
+				queryClient.invalidateQueries({ queryKey: FormRpc.forms() });
+				queryClient.invalidateQueries({ queryKey: ["learner-maps"] });
+				send({ type: "SUBMIT_DONE" });
+			},
 		},
-		onError: () => send({ type: "SUBMIT_ERROR" }),
-	});
+		{
+			operation: "submit form",
+		},
+	);
 
 	const [snapshot, send] = useMachine(formTakerMachine);
 
@@ -82,8 +84,10 @@ function FormTakerPage() {
 
 	// Sync query result into machine
 	useEffect(() => {
-		if (!data || snapshot.matches("loading") === false) return;
-		send({ type: "FORM.LOADED", data });
+		if (!data) return;
+		if (snapshot.matches("loading") || snapshot.matches("submitting") || snapshot.matches("submitted")) {
+			send({ type: "FORM.LOADED", data });
+		}
 	}, [data, snapshot]);
 	useEffect(() => {
 		const loadError = error || rpcError;
@@ -147,6 +151,11 @@ function FormTakerPage() {
 				/>
 			);
 		}
+		return (
+			<div className="flex items-center justify-center py-12">
+				<Loader2 className="size-8 animate-spin text-muted-foreground" />
+			</div>
+		);
 	}
 
 	if (snapshot.matches("error")) {
@@ -185,7 +194,7 @@ function FormTakerPage() {
 	}
 
 	return (
-		<div className="flex h-full min-h-0 flex-col -mx-6 overflow-hidden">
+		<div className="flex h-full min-h-0 flex-col -mx-4 md:-mx-6 overflow-hidden">
 			<FormHeaderBar
 				title={snapshot.context.form!.title}
 				description={snapshot.context.form!.description ?? undefined}
@@ -195,7 +204,32 @@ function FormTakerPage() {
 			/>
 			<FormProgressBar progress={progress} />
 
-			<div className="flex min-h-0 flex-1">
+			{/* Mobile: top/bottom split — reading material on top, questions below */}
+			<div className="md:hidden flex flex-col min-h-0 flex-1">
+				{hasReadingMaterial && (
+					<div className="flex flex-col min-h-0 max-h-[45%] border-b">
+						<ReadingMaterialSidebar
+							sections={readingMaterialSections}
+							materialImages={materialImages}
+						/>
+					</div>
+				)}
+				<div className="flex flex-col min-h-0 flex-1">
+					<QuestionList
+						questions={questions}
+						answers={answers}
+						onAnswerChange={handleAnswer}
+						requiredQuestions={requiredQuestions}
+						answeredRequired={answeredRequired}
+						isPending={snapshot.matches("submitting")}
+						onSubmit={handleSubmit}
+						centered={!hasReadingMaterial}
+					/>
+				</div>
+			</div>
+
+			{/* Desktop: left/right split */}
+			<div className="hidden md:flex min-h-0 flex-1">
 				{hasReadingMaterial && (
 					<ReadingMaterialSidebar
 						sections={readingMaterialSections}

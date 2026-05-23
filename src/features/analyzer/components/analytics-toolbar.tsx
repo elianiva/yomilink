@@ -92,7 +92,7 @@ export function AnalyticsToolbar({
 						disabled={!selectedAssignmentId || exportMutation.isPending}
 					>
 						<Download className="size-4" />
-						Export CSV
+						<span className="hidden sm:inline">Export CSV</span>
 					</Button>
 					<Button
 						variant="outline"
@@ -102,7 +102,7 @@ export function AnalyticsToolbar({
 						disabled={!selectedAssignmentId || exportMutation.isPending}
 					>
 						<Download className="size-4" />
-						Export JSON
+						<span className="hidden sm:inline">Export JSON</span>
 					</Button>
 
 					<ToolbarButton

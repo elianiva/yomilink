@@ -196,12 +196,12 @@ function AnalyticsPage() {
 						<>
 							{selectedLearners.length > 0 && (
 								<SelectedLearnerStats
-									className="absolute top-16 left-3 bg-card/30 backdrop-blur-lg border rounded-lg shadow-sm px-3 py-2 pointer-events-auto"
+									className="absolute top-16 left-2 sm:left-3 bg-card/30 backdrop-blur-lg border rounded-lg shadow-sm px-2 sm:px-3 py-2 pointer-events-auto max-w-[45vw] sm:max-w-none"
 									selectedLearners={selectedLearners}
 								/>
 							)}
 							<AnalyticsControls
-								className="absolute bottom-3 left-3 bg-card/30 backdrop-blur-lg border rounded-lg shadow-lg pointer-events-auto max-w-64"
+								className="absolute bottom-3 left-2 sm:left-3 right-2 sm:right-auto bg-card/30 backdrop-blur-lg border rounded-lg shadow-lg pointer-events-auto max-w-full sm:max-w-64"
 								visibility={visibility}
 								onChange={handleVisibilityChange}
 							/>

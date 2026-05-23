@@ -197,7 +197,7 @@ function UsersPage() {
 							/>
 
 							{totalPages > 1 && (
-								<div className="flex items-center justify-between">
+								<div className="flex flex-col sm:flex-row items-center justify-between gap-2">
 									<p className="text-sm text-muted-foreground">
 										Showing {users.length} of {total} users
 									</p>
@@ -210,7 +210,7 @@ function UsersPage() {
 										>
 											Previous
 										</Button>
-										<span className="text-sm">
+										<span className="text-sm hidden sm:inline">
 											Page {page} of {totalPages}
 										</span>
 										<Button

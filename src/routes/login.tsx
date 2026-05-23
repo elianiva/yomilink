@@ -100,8 +100,8 @@ function LoginPage() {
 	});
 
 	return (
-		<div className="min-h-screen bg-white flex flex-col items-center justify-center p-6">
-			<div className="w-full max-w-md rounded-2xl border border-border/60 bg-white shadow-sm p-8 space-y-6">
+		<div className="min-h-screen bg-white flex flex-col items-center justify-center p-4 md:p-6">
+			<div className="w-full max-w-md rounded-2xl border border-border/60 bg-white shadow-sm p-6 md:p-8 space-y-6">
 				<div className="flex items-center gap-3">
 					<div className="size-9 rounded-lg bg-primary/90 ring-4 ring-primary/10 flex items-center justify-center text-primary-foreground font-bold">
 						Y

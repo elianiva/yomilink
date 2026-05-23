@@ -43,21 +43,21 @@ export function LikertRenderer({
 	};
 
 	return (
-		<div className="space-y-6" data-testid="likert-renderer">
-			<div className="space-y-2">
-				<div className="flex items-center justify-between text-sm text-muted-foreground">
-					<span className="font-medium">{getLowLabel()}</span>
-					<span className="font-medium">{getHighLabel()}</span>
+		<div className="space-y-3" data-testid="likert-renderer">
+			<div className="space-y-1.5">
+				<div className="flex items-center justify-between text-xs text-muted-foreground">
+					<span>{getLowLabel()}</span>
+					<span>{getHighLabel()}</span>
 				</div>
 
-				<div className="flex gap-2">
+				<div className="flex gap-1.5">
 					{scalePoints.map((scaleValue) => {
 						const isSelected = value === scaleValue;
 						return (
 							<label
 								key={scaleValue}
 								className={cn(
-									"relative flex size-12 cursor-pointer flex-1 items-center justify-center rounded-lg border-2 font-semibold transition-all duration-200",
+									"relative flex h-10 cursor-pointer flex-1 items-center justify-center rounded-md border-2 text-sm font-semibold transition-all duration-200",
 									"hover:border-primary/50 hover:bg-primary/5",
 									isSelected
 										? "border-primary bg-primary text-primary-foreground"
@@ -84,7 +84,7 @@ export function LikertRenderer({
 			</div>
 
 			{question.required && !value && (
-				<p className="text-sm text-destructive" data-testid="required-warning">
+				<p className="text-xs text-destructive" data-testid="required-warning">
 					Please select an answer to continue
 				</p>
 			)}

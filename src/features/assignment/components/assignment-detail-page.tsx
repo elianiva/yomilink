@@ -222,12 +222,14 @@ export function AssignmentDetailPage({ assignment }: AssignmentDetailPageProps) 
 			)}
 
 			<Tabs defaultValue="overview" className="space-y-4">
-				<TabsList>
-					<TabsTrigger value="overview">Overview</TabsTrigger>
-					<TabsTrigger value="forms">Forms</TabsTrigger>
-					<TabsTrigger value="students">Students</TabsTrigger>
-					<TabsTrigger value="settings">Settings</TabsTrigger>
-				</TabsList>
+				<div className="overflow-x-auto -mx-4 md:mx-0">
+					<TabsList className="px-4 md:px-0 w-max md:w-auto">
+						<TabsTrigger value="overview">Overview</TabsTrigger>
+						<TabsTrigger value="forms">Forms</TabsTrigger>
+						<TabsTrigger value="students">Students</TabsTrigger>
+						<TabsTrigger value="settings">Settings</TabsTrigger>
+					</TabsList>
+				</div>
 
 				<TabsContent value="overview" className="space-y-4">
 					<Card>
@@ -331,92 +333,160 @@ export function AssignmentDetailPage({ assignment }: AssignmentDetailPageProps) 
 						</CardHeader>
 						<CardContent>
 							{assignment.totalStudents > 0 ? (
-								<div className="overflow-x-auto">
-									<table className="w-full text-sm">
-										<thead>
-											<tr className="border-b">
-												<th className="text-left py-2 pr-4 font-medium text-muted-foreground">
-													Student
-												</th>
-												<th className="text-left py-2 px-4 font-medium text-muted-foreground">
-													Submission
-												</th>
-												<th className="text-left py-2 pl-4 font-medium text-muted-foreground">
-													Forms
-												</th>
-											</tr>
-										</thead>
-										<tbody>
-											{assignment.assignedUsers.length > 0 ? (
-												assignment.assignedUsers.map((u) => {
-													const lm = assignment.learnerMaps.find(
-														(l) => l.userId === u.id,
-													);
-													const submitted =
-														lm?.status === "submitted" &&
-														lm?.submittedAt !== null;
-													return (
-														<tr
-															key={u.id}
-															className="border-b last:border-0"
+								<div>
+									{/* Table - desktop */}
+									<div className="hidden md:block overflow-x-auto">
+										<table className="w-full text-sm">
+											<thead>
+												<tr className="border-b">
+													<th className="text-left py-2 pr-4 font-medium text-muted-foreground">
+														Student
+													</th>
+													<th className="text-left py-2 px-4 font-medium text-muted-foreground">
+														Submission
+													</th>
+													<th className="text-left py-2 pl-4 font-medium text-muted-foreground">
+														Forms
+													</th>
+												</tr>
+											</thead>
+											<tbody>
+												{assignment.assignedUsers.length > 0 ? (
+													assignment.assignedUsers.map((u) => {
+														const lm = assignment.learnerMaps.find(
+															(l) => l.userId === u.id,
+														);
+														const submitted =
+															lm?.status === "submitted" &&
+															lm?.submittedAt !== null;
+														return (
+															<tr
+																key={u.id}
+																className="border-b last:border-0"
+															>
+																<td className="py-2.5 pr-4">
+																	<div className="truncate max-w-[200px]">
+																		{u.name}
+																	</div>
+																</td>
+																<td className="py-2.5 px-4">
+																	{submitted ? (
+																		<Badge className="text-xs gap-1">
+																			<CheckCircle2Icon className="size-3" />
+																			Submitted
+																		</Badge>
+																	) : (
+																		<Badge
+																			variant="secondary"
+																			className="text-xs gap-1"
+																		>
+																			<CircleIcon className="size-3" />
+																			Pending
+																		</Badge>
+																	)}
+																</td>
+																<td className="py-2.5 pl-4">
+																	<div className="flex gap-1.5 flex-wrap">
+																		{assignment.preTestForm && (
+																			<Badge
+																				variant="outline"
+																				className="text-xs"
+																			>
+																				Pre
+																			</Badge>
+																		)}
+																		{assignment.postTestForm && (
+																			<Badge
+																				variant="outline"
+																				className="text-xs"
+																			>
+																				Post
+																			</Badge>
+																		)}
+																	</div>
+																</td>
+															</tr>
+														);
+													})
+												) : (
+													<tr>
+														<td
+															colSpan={3}
+															className="py-6 text-center text-sm text-muted-foreground"
 														>
-															<td className="py-2.5 pr-4">
-																<div className="truncate max-w-[200px]">
-																	{u.name}
-																</div>
-															</td>
-															<td className="py-2.5 px-4">
-																{submitted ? (
-																	<Badge className="text-xs gap-1">
-																		<CheckCircle2Icon className="size-3" />
-																		Submitted
-																	</Badge>
-																) : (
+															Student details are loaded through
+															cohort assignments.
+														</td>
+													</tr>
+												)}
+											</tbody>
+										</table>
+									</div>
+
+									{/* Cards - mobile */}
+									<div className="md:hidden space-y-2">
+										{assignment.assignedUsers.length > 0 ? (
+											assignment.assignedUsers.map((u) => {
+												const lm = assignment.learnerMaps.find(
+													(l) => l.userId === u.id,
+												);
+												const submitted =
+													lm?.status === "submitted" &&
+													lm?.submittedAt !== null;
+												return (
+													<div
+														key={u.id}
+														className="flex items-center justify-between p-3 rounded-lg border"
+													>
+														<div className="min-w-0 flex-1">
+															<p className="text-sm font-medium truncate">
+																{u.name}
+															</p>
+															<div className="flex flex-wrap gap-1 mt-1">
+																{assignment.preTestForm && (
 																	<Badge
-																		variant="secondary"
-																		className="text-xs gap-1"
+																		variant="outline"
+																		className="text-[10px] h-4 px-1"
 																	>
-																		<CircleIcon className="size-3" />
-																		Pending
+																		Pre
 																	</Badge>
 																)}
-															</td>
-															<td className="py-2.5 pl-4">
-																<div className="flex gap-1.5 flex-wrap">
-																	{assignment.preTestForm && (
-																		<Badge
-																			variant="outline"
-																			className="text-xs"
-																		>
-																			Pre
-																		</Badge>
-																	)}
-																	{assignment.postTestForm && (
-																		<Badge
-																			variant="outline"
-																			className="text-xs"
-																		>
-																			Post
-																		</Badge>
-																	)}
-																</div>
-															</td>
-														</tr>
-													);
-												})
-											) : (
-												<tr>
-													<td
-														colSpan={3}
-														className="py-6 text-center text-sm text-muted-foreground"
-													>
-														Student details are loaded through cohort
-														assignments.
-													</td>
-												</tr>
-											)}
-										</tbody>
-									</table>
+																{assignment.postTestForm && (
+																	<Badge
+																		variant="outline"
+																		className="text-[10px] h-4 px-1"
+																	>
+																		Post
+																	</Badge>
+																)}
+															</div>
+														</div>
+														<div>
+															{submitted ? (
+																<Badge className="text-xs gap-1">
+																	<CheckCircle2Icon className="size-3" />
+																	Submitted
+																</Badge>
+															) : (
+																<Badge
+																	variant="secondary"
+																	className="text-xs gap-1"
+																>
+																	<CircleIcon className="size-3" />
+																	Pending
+																</Badge>
+															)}
+														</div>
+													</div>
+												);
+											})
+										) : (
+											<p className="text-sm text-muted-foreground text-center py-4">
+												Student details are loaded through cohort
+												assignments.
+											</p>
+										)}
+									</div>
 								</div>
 							) : (
 								<p className="text-sm text-muted-foreground">

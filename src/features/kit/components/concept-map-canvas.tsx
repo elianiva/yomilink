@@ -147,6 +147,7 @@ export function ConceptMapCanvas({
 	return (
 		<NodeContext.Provider value={{ readOnly: !!readOnly }}>
 			<ReactFlow
+				style={{ touchAction: "none" }}
 				ref={refCallback}
 				nodes={nodes}
 				edges={edges}

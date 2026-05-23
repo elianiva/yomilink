@@ -269,10 +269,59 @@ function SignUpPage() {
 	const currentStepMeta = signupSteps[currentStep];
 
 	return (
-		<div className="min-h-screen bg-white flex items-center justify-center p-6">
+		<div className="min-h-screen bg-white flex items-center justify-center p-4 md:p-6">
 			<div className="w-full max-w-lg">
+				{/* Stepper — full version on desktop, dots on mobile */}
 				<div className="mb-8">
-					<div className="flex items-center justify-between mb-4 max-w-xs mx-auto">
+					{/* Mobile: simple dot stepper */}
+					<div className="flex items-center justify-center gap-3 md:hidden">
+						{signupSteps.map((step, index) => {
+							const StepIcon = step.icon;
+							const isCompleted = snapshot.context.completed.includes(index);
+							const isActive = index === currentStep;
+							return (
+								<div key={step.id} className="flex items-center">
+									{index > 0 && (
+										<div
+											className={cn(
+												"w-6 h-0.5 -mt-6",
+												snapshot.context.completed.includes(index - 1)
+													? "bg-primary"
+													: "bg-muted",
+											)}
+										/>
+									)}
+									<div className="flex flex-col items-center">
+										<div
+											className={cn(
+												"size-8 rounded-full flex items-center justify-center transition-colors",
+												isActive &&
+													"bg-primary text-primary-foreground ring-4 ring-primary/10",
+												isCompleted &&
+													!isActive &&
+													"bg-primary/80 text-primary-foreground",
+												!isActive &&
+													!isCompleted &&
+													"bg-muted text-muted-foreground",
+											)}
+										>
+											<StepIcon className="size-4" />
+										</div>
+										<span
+											className={cn(
+												"text-[10px] mt-1.5 font-medium",
+												isActive ? "text-primary" : "text-muted-foreground",
+											)}
+										>
+											{step.title}
+										</span>
+									</div>
+								</div>
+							);
+						})}
+					</div>
+					{/* Desktop: full stepper with connector lines */}
+					<div className="hidden md:flex items-center justify-between mb-4 max-w-xs mx-auto">
 						{signupSteps.map((step, index) => {
 							const StepIcon = step.icon;
 							const isCompleted = snapshot.context.completed.includes(index);
@@ -327,7 +376,7 @@ function SignUpPage() {
 					</div>
 				</div>
 
-				<div className="rounded-2xl border border-border/60 bg-white shadow-sm overflow-hidden h-150 flex flex-col p-8 gap-y-6">
+				<div className="rounded-2xl border border-border/60 bg-white shadow-sm overflow-hidden flex flex-col p-6 md:p-8 gap-y-6">
 					<div className="flex items-center gap-3">
 						<div className="size-9 rounded-lg bg-primary/90 ring-4 ring-primary/10 flex items-center justify-center text-primary-foreground font-bold">
 							KB

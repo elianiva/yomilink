@@ -49,6 +49,15 @@ export function SubmissionReview({
 	backTo,
 	type,
 }: SubmissionReviewProps) {
+	if (!submission) {
+		return (
+			<div className="container mx-auto max-w-2xl px-4 py-8">
+				<Card className="p-6 text-center text-muted-foreground">
+					Submission submitted successfully. You may need to refresh the page.
+				</Card>
+			</div>
+		);
+	}
 	const scorePercentage = submission.score === null ? null : Math.round(submission.score * 100);
 
 	return (

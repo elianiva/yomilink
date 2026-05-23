@@ -1,7 +1,8 @@
-import { EyeIcon } from "lucide-react";
+import { ChevronRight, EyeIcon, Clock, CalendarDays, Trophy } from "lucide-react";
 import { useState } from "react";
 
 import { Button } from "@/components/ui/button";
+import { Card, CardContent } from "@/components/ui/card";
 import {
 	Table,
 	TableBody,
@@ -84,49 +85,91 @@ export function IndividualResponsesTable({
 		return `${Math.round(score * 100)}%`;
 	};
 
+	const mobileCard = (response: FormResponse) => (
+		<Card
+			key={response.id}
+			className="cursor-pointer"
+			onClick={() => setSelectedResponse(response)}
+		>
+			<CardContent className="p-4">
+				<div className="flex items-start justify-between gap-3">
+					<div className="min-w-0 flex-1 space-y-2">
+						<div className="font-medium truncate">
+							{response.user.name ?? "Unknown"}
+						</div>
+						<div className="text-xs text-muted-foreground truncate">
+							{response.user.email}
+						</div>
+						<div className="flex flex-wrap gap-x-4 gap-y-1 text-xs text-muted-foreground">
+							<span className="flex items-center gap-1">
+								<CalendarDays className="size-3" />
+								{formatResponseDate(response.submittedAt)}
+							</span>
+							<span className="flex items-center gap-1">
+								<Clock className="size-3" />
+								{formatTimeSpent(response.timeSpentSeconds)}
+							</span>
+							<span className="flex items-center gap-1">
+								<Trophy className="size-3" />
+								{formatScore(response.score)}
+							</span>
+						</div>
+					</div>
+					<ChevronRight className="size-4 text-muted-foreground shrink-0 mt-1" />
+				</div>
+			</CardContent>
+		</Card>
+	);
+
 	return (
-		<>
-			<Table>
-				<TableHeader>
-					<TableRow>
-						<TableHead>Student</TableHead>
-						<TableHead>Submitted</TableHead>
-						<TableHead>Time Spent</TableHead>
-						<TableHead>Score</TableHead>
-						<TableHead className="text-right">Actions</TableHead>
-					</TableRow>
-				</TableHeader>
-				<TableBody>
-					{displayResponses.map((response) => (
-						<TableRow key={response.id}>
-							<TableCell className="font-medium">
-								<div>
-									<div>{response.user.name ?? "Unknown"}</div>
-									<div className="text-xs text-muted-foreground">
-										{response.user.email}
-									</div>
-								</div>
-							</TableCell>
-							<TableCell>{formatResponseDate(response.submittedAt)}</TableCell>
-							<TableCell>{formatTimeSpent(response.timeSpentSeconds)}</TableCell>
-							<TableCell>{formatScore(response.score)}</TableCell>
-							<TableCell className="text-right">
-								<Button
-									variant="ghost"
-									size="sm"
-									onClick={() => setSelectedResponse(response)}
-								>
-									<EyeIcon className="size-4" />
-									<span className="ml-2">View</span>
-								</Button>
-							</TableCell>
+		<div>
+			{/* Desktop table */}
+			<div className="hidden md:block">
+				<Table>
+					<TableHeader>
+						<TableRow>
+							<TableHead>Student</TableHead>
+							<TableHead>Submitted</TableHead>
+							<TableHead>Time Spent</TableHead>
+							<TableHead>Score</TableHead>
+							<TableHead className="text-right">Actions</TableHead>
 						</TableRow>
-					))}
-				</TableBody>
-			</Table>
+					</TableHeader>
+					<TableBody>
+						{displayResponses.map((response) => (
+							<TableRow key={response.id}>
+								<TableCell className="font-medium">
+									<div>
+										<div>{response.user.name ?? "Unknown"}</div>
+										<div className="text-xs text-muted-foreground">
+											{response.user.email}
+										</div>
+									</div>
+								</TableCell>
+								<TableCell>{formatResponseDate(response.submittedAt)}</TableCell>
+								<TableCell>{formatTimeSpent(response.timeSpentSeconds)}</TableCell>
+								<TableCell>{formatScore(response.score)}</TableCell>
+								<TableCell className="text-right">
+									<Button
+										variant="ghost"
+										size="sm"
+										onClick={() => setSelectedResponse(response)}
+									>
+										<EyeIcon className="size-4" />
+										<span className="ml-2">View</span>
+									</Button>
+								</TableCell>
+							</TableRow>
+						))}
+					</TableBody>
+				</Table>
+			</div>
+
+			{/* Mobile cards */}
+			<div className="md:hidden space-y-2">{displayResponses.map(mobileCard)}</div>
 
 			{pagination.totalPages > 1 && (
-				<div className="flex items-center justify-between mt-4">
+				<div className="flex flex-col sm:flex-row items-center justify-between gap-2 mt-4">
 					<div className="text-sm text-muted-foreground">
 						Page {pagination.page} of {pagination.totalPages} ({pagination.total}{" "}
 						responses)
@@ -150,6 +193,6 @@ export function IndividualResponsesTable({
 					onOpenChange={(open) => !open && setSelectedResponse(null)}
 				/>
 			)}
-		</>
+		</div>
 	);
 }

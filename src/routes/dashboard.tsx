@@ -25,9 +25,9 @@ function DashboardLayout() {
 	return (
 		<SidebarProvider>
 			<AppSidebar className="border-none" />
-			<SidebarInset className="p-2 pl-0 bg-background">
-				<main className="bg-card h-full max-h-[calc(100svh-16px)] rounded-xl flex flex-col overflow-hidden shadow-sm border border-border/50">
-					<header className="flex h-14 shrink-0 items-center gap-2 transition-[width,height] ease-linear group-has-data-[collapsible=icon]/sidebar-wrapper:h-12">
+			<SidebarInset className="p-0 md:p-2 md:pl-0 bg-background">
+				<main className="bg-card h-dvh md:h-full md:max-h-[calc(100svh-16px)] md:rounded-xl flex flex-col overflow-hidden md:shadow-sm md:border md:border-border/50">
+					<header className="flex h-14 shrink-0 items-center gap-2 transition-[width,height] ease-linear group-has-data-[collapsible=icon]/sidebar-wrapper:h-12 border-b-[0.5px]">
 						<div className="flex items-center gap-2 px-4">
 							<SidebarTrigger className="-ml-1 interactive-sm" />
 							<Separator
@@ -36,7 +36,7 @@ function DashboardLayout() {
 							/>
 						</div>
 					</header>
-					<div className="flex-1 min-h-0 px-6 overflow-auto">
+					<div className="flex-1 min-h-0 px-4 pt-4 md:px-6 overflow-auto">
 						<Outlet />
 					</div>
 				</main>

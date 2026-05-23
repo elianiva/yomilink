@@ -49,16 +49,17 @@ function AssignmentsPage() {
 	};
 
 	return (
-		<div className="space-y-6">
+		<div className="space-y-4">
 			<PageHeader
 				icon={BookOpenIcon}
 				title="My Assignments"
 				description="View and complete your assigned concept maps"
 			/>
-
 			{isLoading ? (
-				<div className="flex items-center justify-center">
-					<Skeleton className="h-24 rounded-lg" />
+				<div className="space-y-4 items-center justify-center h-full">
+					{Array.from({ length: 4 }).map((_, i) => (
+						<Skeleton key={i} className="h-24 w-full rounded-lg" />
+					))}
 				</div>
 			) : (
 				<AssignmentList

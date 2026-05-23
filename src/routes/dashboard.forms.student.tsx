@@ -62,7 +62,7 @@ function StudentFormsPage() {
 
 		return (
 			<Card key={form.id} className="py-4">
-				<CardContent className="px-4 flex items-start justify-between gap-4">
+				<CardContent className="px-4 flex max-sm:flex-col md:items-start justify-between gap-4">
 					<div className="min-w-0 space-y-1">
 						<p className="font-medium leading-tight">{form.title}</p>
 						{form.description && (
@@ -124,7 +124,7 @@ function StudentFormsPage() {
 				)
 			) : (
 				<Tabs defaultValue="available">
-					<TabsList>
+					<TabsList className="max-sm:w-full">
 						<TabsTrigger value="available">
 							Available ({availableForms.length})
 						</TabsTrigger>

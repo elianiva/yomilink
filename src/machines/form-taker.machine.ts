@@ -92,6 +92,10 @@ export const formTakerMachine = setup({
 		},
 		submitting: {
 			on: {
+				"FORM.LOADED": {
+					target: "checkSubmission",
+					actions: "setFormData",
+				},
 				SUBMIT_DONE: {
 					target: "submitted",
 				},
@@ -100,7 +104,14 @@ export const formTakerMachine = setup({
 				},
 			},
 		},
-		submitted: {},
+		submitted: {
+			on: {
+				"FORM.LOADED": {
+					target: "checkSubmission",
+					actions: "setFormData",
+				},
+			},
+		},
 		error: {},
 	},
 });

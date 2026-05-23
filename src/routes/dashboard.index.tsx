@@ -69,9 +69,9 @@ function DashboardHome() {
 	};
 
 	return (
-		<div className="grid grid-cols-1 lg:grid-cols-[280px_1fr] gap-0 h-full overflow-hidden border-t-[0.5px] bg-card -mx-6">
-			{/* Topic sidebar */}
-			<div className="overflow-y-auto p-4 border-r border-border/50">
+		<div className="grid grid-cols-1 lg:grid-cols-[280px_1fr] gap-0 h-full overflow-hidden border-t-[0.5px] bg-card -mx-4 md:-mx-6">
+			{/* Topic sidebar - desktop */}
+			<div className="hidden lg:block overflow-y-auto p-4 border-r border-border/50">
 				<div className="flex items-center justify-between mb-3">
 					<h3 className="font-medium text-sm text-muted-foreground uppercase tracking-wider">
 						Topics
@@ -114,6 +114,30 @@ function DashboardHome() {
 								</button>
 							))}
 				</div>
+			</div>
+
+			{/* Topic chips - mobile */}
+			<div className="lg:hidden overflow-x-auto p-3 pb-0 flex gap-2">
+				{topicsLoading
+					? Array.from({ length: 4 }).map((_, i) => (
+							<Skeleton key={i} className="h-8 w-24 rounded-full shrink-0" />
+						))
+					: topics.map((topic) => (
+							<button
+								type="button"
+								key={topic.id}
+								onClick={() => setSelectedTopic(topic)}
+								className={cn(
+									"cursor-pointer shrink-0 px-3 py-1.5 rounded-full text-sm font-medium transition-colors",
+									selectedTopic?.id === topic.id
+										? "bg-primary text-primary-foreground"
+										: "bg-muted text-muted-foreground hover:bg-muted/80",
+								)}
+							>
+								{topic.title}
+							</button>
+						))}
+				<NewTopicDialog />
 			</div>
 
 			{/* Goal maps area */}

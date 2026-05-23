@@ -79,6 +79,7 @@ const STEPS = [
 
 export function CanvasOnboardingDialog({ open, onOpenChange }: CanvasOnboardingDialogProps) {
 	const [step, setStep] = useState(0);
+	const isFirst = step === 0;
 	const isLast = step === STEPS.length - 1;
 
 	const handleNext = () => {
@@ -87,6 +88,15 @@ export function CanvasOnboardingDialog({ open, onOpenChange }: CanvasOnboardingD
 			setStep(0);
 		} else {
 			setStep((s) => s + 1);
+		}
+	};
+
+	const handlePrevious = () => {
+		if (isFirst) {
+			onOpenChange(false);
+			setStep(0);
+		} else {
+			setStep((s) => s - 1);
 		}
 	};
 
@@ -105,13 +115,13 @@ export function CanvasOnboardingDialog({ open, onOpenChange }: CanvasOnboardingD
 						{current.icon}
 						<DialogTitle className="text-base">{current.title}</DialogTitle>
 					</div>
-					<DialogDescription className="text-sm leading-relaxed">
+					<DialogDescription className="leading-relaxed">
 						{current.description}
 					</DialogDescription>
 				</DialogHeader>
 
-				<div className="flex items-center justify-between py-2">
-					<div className="flex gap-1.5">
+				<div className="space-y-2">
+					<div className="flex gap-1.5 justify-center">
 						{STEPS.map((_, i) => (
 							<div
 								key={i}
@@ -124,25 +134,37 @@ export function CanvasOnboardingDialog({ open, onOpenChange }: CanvasOnboardingD
 							/>
 						))}
 					</div>
-					<span className="text-xs text-muted-foreground tabular-nums">
+					<p className="text-xs text-muted-foreground tabular-nums text-center">
 						{step + 1} of {STEPS.length}
-					</span>
+					</p>
 				</div>
 
 				<DialogFooter className="gap-2">
 					<Button variant="ghost" size="sm" onClick={handleSkip}>
 						Skip tour
 					</Button>
-					<Button size="sm" onClick={handleNext}>
-						{isLast ? (
-							<>
-								<CheckCircle2Icon className="size-4" />
-								Got it
-							</>
-						) : (
-							"Next"
+					<div className="flex items-center gap-2">
+						{!isFirst && (
+							<Button
+								variant="secondary"
+								size="sm"
+								onClick={handlePrevious}
+								className="flex-1"
+							>
+								Back
+							</Button>
 						)}
-					</Button>
+						<Button size="sm" onClick={handleNext} className="flex-1">
+							{isLast ? (
+								<>
+									<CheckCircle2Icon className="size-4" />
+									Got it
+								</>
+							) : (
+								"Next"
+							)}
+						</Button>
+					</div>
 				</DialogFooter>
 			</DialogContent>
 		</Dialog>

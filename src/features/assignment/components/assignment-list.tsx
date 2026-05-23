@@ -228,138 +228,128 @@ function TeacherCard({
 	return (
 		<Card
 			className={cn(
-				"group relative overflow-hidden border border-stone-200 shadow-none transition-all duration-200 py-0",
+				"group relative w-full overflow-hidden border border-stone-200 shadow-none transition-all duration-200 py-4",
 				onClick &&
 					"interactive hover:border-primary/40 hover:shadow-sm hover:bg-stone-50/50",
 				"bg-white",
 			)}
 			onClick={onClick ? handleClick : undefined}
 		>
-			<CardContent className="p-3">
-				<div className="flex items-start gap-3">
-					<div className="flex size-9 shrink-0 items-center justify-center rounded-md border border-stone-200 bg-stone-50 text-stone-500">
-						<MapIcon className="size-4" />
+			<CardContent className="px-4 flex max-sm:flex-col md:items-start justify-between gap-4">
+				<div className="min-w-0 space-y-1">
+					<div className="flex items-center gap-2 flex-wrap">
+						<h3 className="truncate font-medium text-stone-800">{assignment.title}</h3>
+						<span
+							className={cn(
+								"inline-flex items-center gap-1.5 px-2 py-0.5 rounded-full text-xs font-medium border shrink-0",
+								statusCfg.badge,
+							)}
+						>
+							<span className={cn("size-1.5 rounded-full", statusCfg.dot)} />
+							{statusCfg.label}
+						</span>
 					</div>
 
-					<div className="min-w-0 flex-1">
-						<div className="flex items-center gap-2 flex-wrap">
-							<h3 className="truncate font-medium text-stone-800">
-								{assignment.title}
-							</h3>
-							<span
-								className={cn(
-									"inline-flex items-center gap-1.5 px-2 py-0.5 rounded-full text-xs font-medium border shrink-0",
-									statusCfg.badge,
-								)}
-							>
-								<span className={cn("size-1.5 rounded-full", statusCfg.dot)} />
-								{statusCfg.label}
-							</span>
-						</div>
-
-						{assignment.description && (
-							<p className="truncate text-sm text-stone-500 mt-1">
-								{assignment.description}
-							</p>
-						)}
-
-						<div className="mt-1.5 flex flex-wrap items-center gap-2">
-							<span className="text-xs text-stone-600">
-								{assignment.goalMapTitle ?? "No goal map"}
-							</span>
-							<span className="text-stone-300">·</span>
-							<span className="flex items-center gap-1 text-xs text-stone-500">
-								<CalendarIcon className="size-3" />
-								{formatDueDate(assignment.dueAt)}
-							</span>
-							<span className="text-stone-300">·</span>
-							<span className="text-xs text-stone-400">
-								{(assignment.assignedCohortCount ?? 0) > 0 && (
-									<>
-										{assignment.assignedCohortCount} cohort
-										{(assignment.assignedCohortCount ?? 0) > 1 ? "s" : ""}
-									</>
-								)}
-								{(assignment.assignedCohortCount ?? 0) > 0 &&
-									(assignment.assignedDirectUserCount ?? 0) > 0 && <>, </>}
-								{(assignment.assignedDirectUserCount ?? 0) > 0 && (
-									<>
-										{assignment.assignedDirectUserCount} direct user
-										{(assignment.assignedDirectUserCount ?? 0) > 1 ? "s" : ""}
-									</>
-								)}
-							</span>
-						</div>
-
-						<div className="mt-3 flex flex-wrap items-center gap-4">
-							<div className="flex items-center gap-2">
-								<UsersIcon className="size-3.5 text-stone-400" />
-								<div className="flex items-baseline gap-1">
-									<span className="text-sm font-medium text-stone-700">
-										{assignment.submittedStudents ?? 0}
-									</span>
-									<span className="text-sm text-stone-400">
-										/{assignment.totalStudents ?? 0}
-									</span>
-								</div>
-								<ProgressBar
-									current={assignment.submittedStudents ?? 0}
-									total={assignment.totalStudents ?? 0}
-								/>
-							</div>
-
-							{attachedForms.length > 0 && (
-								<div className="hidden sm:flex items-center gap-3 pl-3 border-l border-stone-200">
-									{formConfigs.map((form) =>
-										form.hasForm ? (
-											<div
-												key={form.key}
-												className="flex items-center gap-1.5"
-												title={`${form.label}: ${form.submitted ?? 0}/${form.total ?? 0}`}
-											>
-												<span className="text-stone-400">{form.icon}</span>
-												<span className="text-xs text-stone-500">
-													{form.submitted ?? 0}/{form.total ?? 0}
-												</span>
-											</div>
-										) : null,
-									)}
-								</div>
-							)}
-						</div>
-					</div>
-
-					{(onViewDetails || onDelete) && (
-						<div className="flex items-center gap-1.5 shrink-0">
-							{onViewDetails && (
-								<Button
-									variant="outline"
-									size="sm"
-									onClick={(e) => {
-										e.stopPropagation();
-										onViewDetails(assignment);
-									}}
-								>
-									<Pencil className="size-3.5 mr-1" />
-									Edit
-								</Button>
-							)}
-							{onDelete && (
-								<Button
-									variant="destructive"
-									size="sm"
-									onClick={(e) => {
-										e.stopPropagation();
-										onDelete(assignment.id);
-									}}
-								>
-									<Trash2 className="size-3.5 mr-1" />
-									Delete
-								</Button>
-							)}
-						</div>
+					{assignment.description && (
+						<p className="truncate text-sm text-stone-500">{assignment.description}</p>
 					)}
+
+					<div className="flex flex-wrap items-center gap-x-2 gap-y-1 text-xs">
+						<span className="text-stone-600">
+							{assignment.goalMapTitle ?? "No goal map"}
+						</span>
+						<span className="text-stone-300">·</span>
+						<span className="flex items-center gap-1 text-stone-500">
+							<CalendarIcon className="size-3" />
+							{formatDueDate(assignment.dueAt)}
+						</span>
+						<span className="text-stone-300">·</span>
+						<span className="text-stone-400">
+							{(assignment.assignedCohortCount ?? 0) > 0 && (
+								<>
+									{assignment.assignedCohortCount} cohort
+									{(assignment.assignedCohortCount ?? 0) > 1 ? "s" : ""}
+								</>
+							)}
+							{(assignment.assignedCohortCount ?? 0) > 0 &&
+								(assignment.assignedDirectUserCount ?? 0) > 0 && <>, </>}
+							{(assignment.assignedDirectUserCount ?? 0) > 0 && (
+								<>
+									{assignment.assignedDirectUserCount} direct user
+									{(assignment.assignedDirectUserCount ?? 0) > 1 ? "s" : ""}
+								</>
+							)}
+						</span>
+					</div>
+
+					<div className="flex flex-wrap items-center gap-x-3 gap-y-2">
+						<div className="flex items-center gap-2">
+							<UsersIcon className="size-3.5 shrink-0 text-stone-400" />
+							<div className="flex items-baseline gap-1">
+								<span className="text-sm font-medium text-stone-700">
+									{assignment.submittedStudents ?? 0}
+								</span>
+								<span className="text-sm text-stone-400">
+									/{assignment.totalStudents ?? 0}
+								</span>
+							</div>
+							<ProgressBar
+								current={assignment.submittedStudents ?? 0}
+								total={assignment.totalStudents ?? 0}
+							/>
+						</div>
+
+						{attachedForms.length > 0 && (
+							<div className="hidden sm:flex items-center gap-3 pl-3 border-l border-stone-200">
+								{formConfigs.map((form) =>
+									form.hasForm ? (
+										<div
+											key={form.key}
+											className="flex items-center gap-1.5"
+											title={`${form.label}: ${form.submitted ?? 0}/${form.total ?? 0}`}
+										>
+											<span className="text-stone-400">{form.icon}</span>
+											<span className="text-xs text-stone-500">
+												{form.submitted ?? 0}/{form.total ?? 0}
+											</span>
+										</div>
+									) : null,
+								)}
+							</div>
+						)}
+					</div>
 				</div>
+
+				{(onViewDetails || onDelete) && (
+					<div className="flex items-center gap-1.5 shrink-0 max-sm:self-end">
+						{onViewDetails && (
+							<Button
+								variant="outline"
+								size="sm"
+								onClick={(e) => {
+									e.stopPropagation();
+									onViewDetails(assignment);
+								}}
+							>
+								<Pencil className="size-3.5 mr-1" />
+								Edit
+							</Button>
+						)}
+						{onDelete && (
+							<Button
+								variant="destructive"
+								size="sm"
+								onClick={(e) => {
+									e.stopPropagation();
+									onDelete(assignment.id);
+								}}
+							>
+								<Trash2 className="size-3.5 mr-1" />
+								Delete
+							</Button>
+						)}
+					</div>
+				)}
 			</CardContent>
 		</Card>
 	);
@@ -376,76 +366,70 @@ function StudentCard({
 	const statusCfg = studentStatusConfig[status];
 
 	return (
-		<Card className="relative border border-stone-200 bg-white py-2">
-			<CardContent className="p-3">
-				<div className="flex items-start gap-3">
-					<div className="flex size-9 shrink-0 items-center justify-center rounded-md border border-stone-200 bg-stone-50 text-stone-500">
-						<MapIcon className="size-4" />
-					</div>
-
-					<div className="min-w-0 flex-1">
-						<div className="flex items-center gap-2 flex-wrap">
-							<h3 className="truncate font-medium text-stone-800">
-								{assignment.title}
-							</h3>
-							<span
-								className={cn(
-									"inline-flex items-center gap-1.5 px-2 py-0.5 rounded-full text-xs font-medium border shrink-0",
-									statusCfg.badge,
-								)}
-							>
-								<span className={cn("size-1.5 rounded-full", statusCfg.dot)} />
-								{statusCfg.label}
-							</span>
-						</div>
-
-						{assignment.description && (
-							<p className="truncate text-sm text-stone-500 mt-1">
-								{assignment.description}
-							</p>
-						)}
-
-						<div className="mt-1.5 flex flex-wrap items-center gap-2">
-							<span className="text-xs text-stone-600">
-								{assignment.goalMapTitle ?? "No goal map"}
-							</span>
-							<span className="text-stone-300">·</span>
-							<span className="flex items-center gap-1 text-xs text-stone-500">
-								<CalendarIcon className="size-3" />
-								{formatDueDate(assignment.dueAt)}
-							</span>
-							{(assignment.attempt ?? 0) > 0 && (
-								<>
-									<span className="text-stone-300">·</span>
-									<span className="text-xs text-stone-400">
-										Attempt {assignment.attempt}
-									</span>
-								</>
+		<Card className="relative w-full border border-stone-200 bg-white py-4">
+			<CardContent className="px-4 flex max-sm:flex-col md:items-start justify-between gap-4">
+				<div className="min-w-0 space-y-1">
+					<div className="flex items-center gap-2 flex-wrap">
+						<h3 className="truncate font-medium text-stone-800 leading-none">
+							{assignment.title}
+						</h3>
+						<span
+							className={cn(
+								"inline-flex items-center gap-1.5 px-2 py-0.5 rounded-full text-xs font-medium border shrink-0",
+								statusCfg.badge,
 							)}
-						</div>
+						>
+							<span className={cn("size-1.5 rounded-full", statusCfg.dot)} />
+							{statusCfg.label}
+						</span>
 					</div>
 
-					<div className="flex items-center">
-						{status === "submitted" ? (
-							<Button
-								variant="outline"
-								size="sm"
-								onClick={() => onClick?.(assignment)}
-							>
-								<FileTextIcon className="size-3.5 mr-1" />
-								Show Result
-							</Button>
-						) : (
-							<Button
-								variant="default"
-								size="sm"
-								onClick={() => onClick?.(assignment)}
-							>
-								<PlayIcon className="size-3.5 mr-1" />
-								Start
-							</Button>
+					{assignment.description && (
+						<p className="line-clamp-2 text-sm text-stone-500">
+							{assignment.description}
+						</p>
+					)}
+
+					<div className="flex flex-wrap items-center gap-x-2 gap-y-1 text-xs">
+						<span className="text-stone-600">
+							{assignment.goalMapTitle ?? "No goal map"}
+						</span>
+						<span className="text-stone-300">·</span>
+						<span className="flex items-center gap-1 text-stone-500">
+							<CalendarIcon className="size-3" />
+							{formatDueDate(assignment.dueAt)}
+						</span>
+						{(assignment.attempt ?? 0) > 0 && (
+							<>
+								<span className="text-stone-300">·</span>
+								<span className="text-stone-400">Attempt {assignment.attempt}</span>
+							</>
 						)}
 					</div>
+				</div>
+
+				<div className="flex items-center shrink-0">
+					{status === "submitted" ? (
+						<Button
+							variant="outline"
+							size="sm"
+							onClick={() => onClick?.(assignment)}
+							className="w-full"
+						>
+							<FileTextIcon className="size-3.5 mr-1" />
+							Show Result
+						</Button>
+					) : (
+						<Button
+							variant="default"
+							size="sm"
+							onClick={() => onClick?.(assignment)}
+							className="w-full"
+						>
+							<PlayIcon className="size-3.5 mr-1" />
+							Start
+						</Button>
+					)}
 				</div>
 			</CardContent>
 		</Card>
@@ -482,7 +466,7 @@ export function AssignmentList({
 	}
 
 	return (
-		<div className={cn("grid gap-2", className)}>
+		<div className={cn("space-y-2 w-full", className)}>
 			{assignments.map((assignment) =>
 				viewMode === "teacher" ? (
 					<TeacherCard

@@ -50,7 +50,7 @@ export function FormBuilderTabs({
 				onValueChange={(v) => onEditorModeChange(v as EditorMode)}
 				className="w-full"
 			>
-				<TabsList className="grid w-fit grid-cols-2">
+				<TabsList className="grid grid-cols-2 w-full sm:w-fit">
 					<TabsTrigger value="edit">Edit</TabsTrigger>
 					<TabsTrigger value="preview">Preview</TabsTrigger>
 				</TabsList>
