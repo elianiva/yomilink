@@ -25,7 +25,6 @@ export interface AssignmentSummaryData {
 		postTestFormId: string | null;
 		delayedPostTestFormId: string | null;
 		delayedPostTestDelayDays: number | null;
-		tamFormId: string | null;
 	};
 	learnerMap: {
 		id: string;

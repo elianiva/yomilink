@@ -88,16 +88,18 @@ function AdminFormsPage() {
 		void navigate({ to: "/dashboard/forms/builder" });
 	};
 
-	const mappedForms: FormListItem[] = forms.map((form) => ({
-		id: form.id,
-		title: form.title,
-		description: form.description ?? undefined,
-		type: form.type,
-		status: form.status,
-		createdAt: form.createdAt,
-		updatedAt: form.updatedAt,
-		stats: form.stats,
-	}));
+	const mappedForms: FormListItem[] = forms
+		.filter((f) => f.type !== "tam")
+		.map((form) => ({
+			id: form.id,
+			title: form.title,
+			description: form.description ?? undefined,
+			type: form.type as FormListItem["type"],
+			status: form.status,
+			createdAt: form.createdAt,
+			updatedAt: form.updatedAt,
+			stats: form.stats,
+		}));
 
 	const compareTitles = (a: FormListItem, b: FormListItem) => a.title.localeCompare(b.title);
 

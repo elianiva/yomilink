@@ -8,7 +8,6 @@ export type WizardFields = {
 		postTestFormId: string;
 		delayedPostTestFormId: string;
 		delayedPostTestDelayDays: number;
-		tamFormId: string;
 	};
 	assignment: { selectedCohorts: string[]; selectedUsers: string[] };
 };
@@ -37,7 +36,6 @@ const initialFields: WizardFields = {
 		postTestFormId: "",
 		delayedPostTestFormId: "",
 		delayedPostTestDelayDays: 7,
-		tamFormId: "",
 	},
 	assignment: { selectedCohorts: [], selectedUsers: [] },
 };

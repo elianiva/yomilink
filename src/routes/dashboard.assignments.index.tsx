@@ -40,7 +40,6 @@ function AssignmentsPage() {
 			preTestFormId: a.preTestFormId,
 			postTestFormId: a.postTestFormId,
 			delayedPostTestFormId: a.delayedPostTestFormId,
-			tamFormId: a.tamFormId,
 		})) ?? [];
 
 	const handleClick = (assignment: AssignmentListItem) => {

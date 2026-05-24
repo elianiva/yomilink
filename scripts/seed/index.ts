@@ -22,8 +22,7 @@ const program = Effect.gen(function* () {
 	yield* seedWhitelistEntries();
 
 	const { goalMapIdsByTitle, goalMapDataByTitle } = yield* seedGoalMaps(teacherId);
-	const { tamFormId, preTestFormId, postTestFormId, delayedTestFormId } =
-		yield* seedForms(teacherId);
+	const { preTestFormId, postTestFormId, delayedTestFormId } = yield* seedForms(teacherId);
 
 	const demoData = yield* seedDemoData(
 		userIdsByEmail,
@@ -31,7 +30,6 @@ const program = Effect.gen(function* () {
 		goalMapIdsByTitle,
 		goalMapDataByTitle,
 		{
-			tamFormId,
 			preTestFormId,
 			postTestFormId,
 			delayedTestFormId,
@@ -60,11 +58,11 @@ const program = Effect.gen(function* () {
 			"  Teacher: helmy@kitbuild.mail / helmy12345\n" +
 			"  Teacher: dicha@kitbuild.mail / dicha12345\n" +
 			"Created:\n" +
-			"  - Cohorts: 2A Business Administration, 2B Business Administration\n" +
+			"  - Cohorts: 2A Marketing Management, 2B Marketing Management\n" +
 			"  - Kits: わたしのうち\n" +
 			"  - Assignments: 1 demo assignment\n" +
-			"  - Forms: pre-test, post-test, delayed-test, TAM, feedback\n" +
-			"  - Submissions: 5 demo student accounts\n" +
+			"  - Forms: pre-test, post-test, delayed-test, questionnaire, feedback\n" +
+			"  - Submissions: 1 demo student account (tanaka)\n" +
 			"  - Whitelist: 47 reserved student IDs\n",
 	);
 }).pipe(

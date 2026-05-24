@@ -18,7 +18,6 @@ export function seedDemoData(
 		{ nodes: unknown[]; edges: Array<{ id: string; source: string; target: string }> }
 	>,
 	testFormIds?: {
-		tamFormId: string;
 		preTestFormId: string;
 		postTestFormId: string;
 		delayedTestFormId: string;
@@ -29,7 +28,7 @@ export function seedDemoData(
 
 		yield* Effect.log("--- Creating Demo Data ---");
 
-		const cohortNames = ["2A Business Administration", "2B Business Administration"];
+		const cohortNames = ["2B Marketing Management", "2A Marketing Management"];
 		const cohortIds: string[] = [];
 
 		for (const cohortName of cohortNames) {
@@ -100,7 +99,6 @@ export function seedDemoData(
 				assignmentTitle: string,
 				description: string,
 				formIds: {
-					tamFormId: string | null;
 					preTestFormId: string | null;
 					postTestFormId: string | null;
 					delayedTestFormId: string | null;
@@ -183,7 +181,6 @@ export function seedDemoData(
 								preTestFormId: formIds.preTestFormId,
 								postTestFormId: formIds.postTestFormId,
 								delayedPostTestFormId: formIds.delayedTestFormId,
-								tamFormId: formIds.tamFormId,
 								createdBy: teacherId,
 							})
 							.where(eq(assignments.id, demoAssignmentId));
@@ -202,7 +199,6 @@ export function seedDemoData(
 							preTestFormId: formIds.preTestFormId,
 							postTestFormId: formIds.postTestFormId,
 							delayedPostTestFormId: formIds.delayedTestFormId,
-							tamFormId: formIds.tamFormId,
 							createdBy: teacherId,
 						});
 					}
@@ -216,7 +212,6 @@ export function seedDemoData(
 			"わたしのうち Demo Assignment",
 			"Demo assignment for the わたしのうち reading passage about a quiet neighborhood.",
 			{
-				tamFormId: testFormIds?.tamFormId ?? null,
 				preTestFormId: testFormIds?.preTestFormId ?? null,
 				postTestFormId: testFormIds?.postTestFormId ?? null,
 				delayedTestFormId: testFormIds?.delayedTestFormId ?? null,

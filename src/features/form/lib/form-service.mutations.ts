@@ -90,7 +90,7 @@ export const updateForm = Effect.fn("updateForm")(function* (
 		});
 	}
 
-	const nextType = data.type ?? form.type;
+	const nextType = (data.type ?? form.type) as FormType;
 	const nextAudience = normalizeFormAudience(nextType, data.audience ?? form.audience);
 	const normalizedReadingMaterialSections =
 		data.readingMaterialSections === undefined
@@ -273,7 +273,7 @@ export const submitFormResponse = Effect.fn("submitFormResponse")(function* (
 
 	if (
 		shouldExcludeForm(
-			{ id: form.id, type: form.type, audience: form.audience },
+			{ id: form.id, type: form.type as FormType, audience: form.audience },
 			formAccessScope.studyGroup,
 		)
 	) {

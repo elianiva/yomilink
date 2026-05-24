@@ -21,7 +21,6 @@ export const CreateAssignmentInput = Schema.Struct({
 	delayedPostTestDelayDays: Schema.optionalWith(Schema.Number, {
 		nullable: true,
 	}),
-	tamFormId: Schema.optionalWith(Schema.String, { nullable: true }),
 });
 
 export type CreateAssignmentInput = typeof CreateAssignmentInput.Type;

@@ -17,7 +17,7 @@ type StudentForm = {
 	id: string;
 	title: string;
 	description: string | null;
-	type: "pre_test" | "post_test" | "delayed_test" | "registration" | "tam" | "questionnaire";
+	type: "pre_test" | "post_test" | "delayed_test" | "registration" | "questionnaire";
 	audience: "all" | "experiment" | "control";
 	unlockStatus: "available" | "completed";
 	isUnlocked: boolean;
@@ -29,12 +29,16 @@ type StudentForm = {
 };
 
 /** Only standalone forms (questionnaires, registration) visible here.
- *  Pre/post/delayed/tam are accessed through the assignment flow. */
+ *  Pre/post/delayed tests are accessed through the assignment flow. */
 const STANDALONE_TYPES = new Set(["questionnaire", "registration"]);
 
 function StudentFormsPage() {
 	const navigate = useNavigate();
-	const { data: forms = [], isLoading: isLoadingForms } = useRpcQuery(FormRpc.getStudentForms());
+	const { data: rawForms = [], isLoading: isLoadingForms } = useRpcQuery(
+		FormRpc.getStudentForms(),
+	);
+
+	const forms = rawForms.filter((f): f is StudentForm => f.type !== "tam") as StudentForm[];
 
 	const compareTitles = (a: StudentForm, b: StudentForm) => a.title.localeCompare(b.title);
 

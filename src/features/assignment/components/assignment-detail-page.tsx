@@ -51,11 +51,9 @@ export interface AssignmentDetailPageProps {
 		preTestFormId: string | null;
 		postTestFormId: string | null;
 		delayedPostTestFormId: string | null;
-		tamFormId: string | null;
 		preTestForm: FormInfo | null;
 		postTestForm: FormInfo | null;
 		delayedPostTestForm: FormInfo | null;
-		tamForm: FormInfo | null;
 		delayedPostTestDelayDays: number | null;
 		createdAt: Date;
 		updatedAt: Date;
@@ -67,7 +65,6 @@ export interface AssignmentDetailPageProps {
 		preTestSubmitted: number | null;
 		postTestSubmitted: number | null;
 		delayedPostTestSubmitted: number | null;
-		tamSubmitted: number | null;
 	};
 }
 
@@ -297,19 +294,9 @@ export function AssignmentDetailPage({ assignment }: AssignmentDetailPageProps) 
 										)}
 									</FormCard>
 								)}
-								{assignment.tamForm && (
-									<FormCard
-										form={assignment.tamForm}
-										label="Questionnaire"
-										variant="secondary"
-										submitted={assignment.tamSubmitted}
-										total={assignment.totalStudents}
-									/>
-								)}
 								{!assignment.preTestForm &&
 									!assignment.postTestForm &&
-									!assignment.delayedPostTestForm &&
-									!assignment.tamForm && (
+									!assignment.delayedPostTestForm && (
 										<p className="text-sm text-muted-foreground md:col-span-2">
 											No forms attached to this assignment
 										</p>
@@ -516,9 +503,7 @@ export function AssignmentDetailPage({ assignment }: AssignmentDetailPageProps) 
 								</div>
 								<div className="space-y-2">
 									<p className="text-sm font-medium">Questionnaire</p>
-									<p className="text-sm text-muted-foreground">
-										{assignment.tamForm ? "Enabled" : "Not configured"}
-									</p>
+									<p className="text-sm text-muted-foreground"></p>
 								</div>
 							</div>
 						</CardContent>

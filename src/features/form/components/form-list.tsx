@@ -6,13 +6,7 @@ import { Card, CardContent } from "@/components/ui/card";
 import { formatRelativeTime } from "@/lib/date-utils";
 import { cn } from "@/lib/utils";
 
-export type FormType =
-	| "pre_test"
-	| "post_test"
-	| "delayed_test"
-	| "registration"
-	| "tam"
-	| "questionnaire";
+export type FormType = "pre_test" | "post_test" | "delayed_test" | "registration" | "questionnaire";
 export type FormStatus = "draft" | "published";
 
 export interface FormListItem {
@@ -39,7 +33,7 @@ const formTypeIcons: Record<FormType, React.ReactNode> = {
 	post_test: <FileText className="size-4" />,
 	delayed_test: <Clock className="size-4" />,
 	registration: <FileText className="size-4" />,
-	tam: <BarChart3 className="size-4" />,
+
 	questionnaire: <FileText className="size-4" />,
 };
 
@@ -48,7 +42,7 @@ const formTypeLabels: Record<FormType, string> = {
 	post_test: "Post-test",
 	delayed_test: "Delayed",
 	registration: "Registration",
-	tam: "TAM Questionnaire",
+
 	questionnaire: "Questionnaire",
 };
 

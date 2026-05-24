@@ -11,13 +11,7 @@ import {
 } from "@/components/ui/select";
 import { Textarea } from "@/components/ui/textarea";
 
-export type FormType =
-	| "pre_test"
-	| "post_test"
-	| "delayed_test"
-	| "registration"
-	| "tam"
-	| "questionnaire";
+export type FormType = "pre_test" | "post_test" | "delayed_test" | "registration" | "questionnaire";
 export type FormAudience = "all" | "experiment" | "control";
 export type FormStatus = "draft" | "published";
 
@@ -40,7 +34,7 @@ const formTypeLabels: Record<FormType, string> = {
 	post_test: "Post-Test",
 	delayed_test: "Delayed-Test",
 	registration: "Registration",
-	tam: "TAM Questionnaire",
+
 	questionnaire: "Questionnaire",
 };
 
@@ -51,7 +45,7 @@ const formTypeDescriptions: Record<FormType, string> = {
 	post_test: "Assessment after assignment completion",
 	delayed_test: "Assessment of memory retention (typically 1 week later)",
 	registration: "Initial user registration form",
-	tam: "Technology Acceptance Model questionnaire",
+
 	questionnaire: "General questionnaire visible to all students",
 };
 
@@ -85,12 +79,7 @@ export function FormMetadataEditor({
 		onChange({
 			...metadata,
 			type: nextType,
-			audience:
-				nextType === "questionnaire"
-					? metadata.audience
-					: nextType === "tam"
-						? "experiment"
-						: "all",
+			audience: nextType === "questionnaire" ? metadata.audience : "all",
 		});
 	};
 
@@ -186,7 +175,7 @@ export function FormMetadataEditor({
 				</Select>
 				{metadata.type !== "questionnaire" && (
 					<p className="text-xs text-muted-foreground">
-						Tests are visible to all students. TAM is fixed to experiment group.
+						Tests are visible to all students.
 					</p>
 				)}
 			</div>

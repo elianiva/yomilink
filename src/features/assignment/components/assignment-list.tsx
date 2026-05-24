@@ -32,7 +32,7 @@ export interface AssignmentListItem {
 	preTestSubmitted?: number | null;
 	postTestSubmitted?: number | null;
 	delayedPostTestSubmitted?: number | null;
-	tamSubmitted?: number | null;
+
 	// Student view fields
 	status?: "not_started" | "draft" | "submitted";
 	preTestCompleted?: boolean;
@@ -44,7 +44,6 @@ export interface AssignmentListItem {
 	preTestFormId?: string | null;
 	postTestFormId?: string | null;
 	delayedPostTestFormId?: string | null;
-	tamFormId?: string | null;
 }
 
 type ViewMode = "teacher" | "student";
@@ -162,7 +161,7 @@ const studentPhaseConfig: Record<StudentPhase, { label: string; dot: string; bad
 };
 
 interface FormConfig {
-	key: "pre" | "post" | "delayed" | "tam";
+	key: "pre" | "post" | "delayed";
 	label: string;
 	icon: React.ReactNode;
 	hasForm: boolean;

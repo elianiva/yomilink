@@ -1,7 +1,7 @@
 {
 	"version": "6",
 	"dialect": "sqlite",
-	"id": "7edba2bc-f980-4852-8e4f-1bac6fa638d7",
+	"id": "2e67aa5c-9a29-4929-866f-ee990da1e8eb",
 	"prevId": "00000000-0000-0000-0000-000000000000",
 	"tables": {
 		"assignment_targets": {
@@ -50,6 +50,13 @@
 					"notNull": true,
 					"autoincrement": false,
 					"default": "(cast(unixepoch('subsecond') * 1000 as integer))"
+				},
+				"deleted_at": {
+					"name": "deleted_at",
+					"type": "integer",
+					"primaryKey": false,
+					"notNull": false,
+					"autoincrement": false
 				}
 			},
 			"indexes": {
@@ -226,6 +233,13 @@
 					"notNull": true,
 					"autoincrement": false,
 					"default": "(cast(unixepoch('subsecond') * 1000 as integer))"
+				},
+				"deleted_at": {
+					"name": "deleted_at",
+					"type": "integer",
+					"primaryKey": false,
+					"notNull": false,
+					"autoincrement": false
 				}
 			},
 			"indexes": {
@@ -252,7 +266,7 @@
 					"tableTo": "goal_maps",
 					"columnsFrom": ["goal_map_id"],
 					"columnsTo": ["id"],
-					"onDelete": "no action",
+					"onDelete": "cascade",
 					"onUpdate": "no action"
 				},
 				"assignments_kit_id_kits_id_fk": {
@@ -261,7 +275,7 @@
 					"tableTo": "kits",
 					"columnsFrom": ["kit_id"],
 					"columnsTo": ["id"],
-					"onDelete": "no action",
+					"onDelete": "cascade",
 					"onUpdate": "no action"
 				},
 				"assignments_pre_test_form_id_forms_id_fk": {
@@ -270,7 +284,7 @@
 					"tableTo": "forms",
 					"columnsFrom": ["pre_test_form_id"],
 					"columnsTo": ["id"],
-					"onDelete": "no action",
+					"onDelete": "set null",
 					"onUpdate": "no action"
 				},
 				"assignments_post_test_form_id_forms_id_fk": {
@@ -279,7 +293,7 @@
 					"tableTo": "forms",
 					"columnsFrom": ["post_test_form_id"],
 					"columnsTo": ["id"],
-					"onDelete": "no action",
+					"onDelete": "set null",
 					"onUpdate": "no action"
 				},
 				"assignments_delayed_post_test_form_id_forms_id_fk": {
@@ -288,7 +302,7 @@
 					"tableTo": "forms",
 					"columnsFrom": ["delayed_post_test_form_id"],
 					"columnsTo": ["id"],
-					"onDelete": "no action",
+					"onDelete": "set null",
 					"onUpdate": "no action"
 				},
 				"assignments_tam_form_id_forms_id_fk": {
@@ -297,7 +311,7 @@
 					"tableTo": "forms",
 					"columnsFrom": ["tam_form_id"],
 					"columnsTo": ["id"],
-					"onDelete": "no action",
+					"onDelete": "set null",
 					"onUpdate": "no action"
 				}
 			},
@@ -372,6 +386,13 @@
 					"notNull": true,
 					"autoincrement": false,
 					"default": "(cast(unixepoch('subsecond') * 1000 as integer))"
+				},
+				"deleted_at": {
+					"name": "deleted_at",
+					"type": "integer",
+					"primaryKey": false,
+					"notNull": false,
+					"autoincrement": false
 				}
 			},
 			"indexes": {
@@ -393,7 +414,7 @@
 					"tableTo": "goal_maps",
 					"columnsFrom": ["goal_map_id"],
 					"columnsTo": ["id"],
-					"onDelete": "no action",
+					"onDelete": "cascade",
 					"onUpdate": "no action"
 				},
 				"diagnoses_learner_map_id_learner_maps_id_fk": {
@@ -402,7 +423,7 @@
 					"tableTo": "learner_maps",
 					"columnsFrom": ["learner_map_id"],
 					"columnsTo": ["id"],
-					"onDelete": "no action",
+					"onDelete": "cascade",
 					"onUpdate": "no action"
 				}
 			},
@@ -471,6 +492,13 @@
 					"notNull": true,
 					"autoincrement": false,
 					"default": "(cast(unixepoch('subsecond') * 1000 as integer))"
+				},
+				"deleted_at": {
+					"name": "deleted_at",
+					"type": "integer",
+					"primaryKey": false,
+					"notNull": false,
+					"autoincrement": false
 				}
 			},
 			"indexes": {
@@ -492,7 +520,7 @@
 					"tableTo": "learner_maps",
 					"columnsFrom": ["learner_map_id"],
 					"columnsTo": ["id"],
-					"onDelete": "no action",
+					"onDelete": "cascade",
 					"onUpdate": "no action"
 				},
 				"feedback_goal_map_id_goal_maps_id_fk": {
@@ -501,7 +529,7 @@
 					"tableTo": "goal_maps",
 					"columnsFrom": ["goal_map_id"],
 					"columnsTo": ["id"],
-					"onDelete": "no action",
+					"onDelete": "cascade",
 					"onUpdate": "no action"
 				}
 			},
@@ -570,6 +598,13 @@
 					"notNull": true,
 					"autoincrement": false,
 					"default": "(cast(unixepoch('subsecond') * 1000 as integer))"
+				},
+				"deleted_at": {
+					"name": "deleted_at",
+					"type": "integer",
+					"primaryKey": false,
+					"notNull": false,
+					"autoincrement": false
 				}
 			},
 			"indexes": {
@@ -591,7 +626,7 @@
 					"tableTo": "forms",
 					"columnsFrom": ["form_id"],
 					"columnsTo": ["id"],
-					"onDelete": "no action",
+					"onDelete": "cascade",
 					"onUpdate": "no action"
 				},
 				"form_progress_user_id_user_id_fk": {
@@ -600,7 +635,7 @@
 					"tableTo": "user",
 					"columnsFrom": ["user_id"],
 					"columnsTo": ["id"],
-					"onDelete": "no action",
+					"onDelete": "cascade",
 					"onUpdate": "no action"
 				}
 			},
@@ -668,6 +703,13 @@
 					"notNull": true,
 					"autoincrement": false,
 					"default": "(cast(unixepoch('subsecond') * 1000 as integer))"
+				},
+				"deleted_at": {
+					"name": "deleted_at",
+					"type": "integer",
+					"primaryKey": false,
+					"notNull": false,
+					"autoincrement": false
 				}
 			},
 			"indexes": {
@@ -680,6 +722,11 @@
 					"name": "form_responses_userId_idx",
 					"columns": ["user_id"],
 					"isUnique": false
+				},
+				"form_responses_form_user_unique": {
+					"name": "form_responses_form_user_unique",
+					"columns": ["form_id", "user_id"],
+					"isUnique": true
 				}
 			},
 			"foreignKeys": {
@@ -689,7 +736,7 @@
 					"tableTo": "forms",
 					"columnsFrom": ["form_id"],
 					"columnsTo": ["id"],
-					"onDelete": "no action",
+					"onDelete": "cascade",
 					"onUpdate": "no action"
 				},
 				"form_responses_user_id_user_id_fk": {
@@ -698,7 +745,7 @@
 					"tableTo": "user",
 					"columnsFrom": ["user_id"],
 					"columnsTo": ["id"],
-					"onDelete": "no action",
+					"onDelete": "cascade",
 					"onUpdate": "no action"
 				}
 			},
@@ -738,6 +785,14 @@
 					"autoincrement": false,
 					"default": "'registration'"
 				},
+				"audience": {
+					"name": "audience",
+					"type": "text",
+					"primaryKey": false,
+					"notNull": true,
+					"autoincrement": false,
+					"default": "'all'"
+				},
 				"status": {
 					"name": "status",
 					"type": "text",
@@ -745,6 +800,13 @@
 					"notNull": true,
 					"autoincrement": false,
 					"default": "'draft'"
+				},
+				"reading_material_sections": {
+					"name": "reading_material_sections",
+					"type": "text",
+					"primaryKey": false,
+					"notNull": false,
+					"autoincrement": false
 				},
 				"unlock_conditions": {
 					"name": "unlock_conditions",
@@ -775,6 +837,13 @@
 					"notNull": true,
 					"autoincrement": false,
 					"default": "(cast(unixepoch('subsecond') * 1000 as integer))"
+				},
+				"deleted_at": {
+					"name": "deleted_at",
+					"type": "integer",
+					"primaryKey": false,
+					"notNull": false,
+					"autoincrement": false
 				}
 			},
 			"indexes": {
@@ -879,6 +948,13 @@
 					"notNull": true,
 					"autoincrement": false,
 					"default": "(cast(unixepoch('subsecond') * 1000 as integer))"
+				},
+				"deleted_at": {
+					"name": "deleted_at",
+					"type": "integer",
+					"primaryKey": false,
+					"notNull": false,
+					"autoincrement": false
 				}
 			},
 			"indexes": {
@@ -905,7 +981,7 @@
 					"tableTo": "texts",
 					"columnsFrom": ["text_id"],
 					"columnsTo": ["id"],
-					"onDelete": "no action",
+					"onDelete": "set null",
 					"onUpdate": "no action"
 				},
 				"goal_maps_topic_id_topics_id_fk": {
@@ -913,104 +989,6 @@
 					"tableFrom": "goal_maps",
 					"tableTo": "topics",
 					"columnsFrom": ["topic_id"],
-					"columnsTo": ["id"],
-					"onDelete": "no action",
-					"onUpdate": "no action"
-				}
-			},
-			"compositePrimaryKeys": {},
-			"uniqueConstraints": {},
-			"checkConstraints": {}
-		},
-		"kit_sets": {
-			"name": "kit_sets",
-			"columns": {
-				"id": {
-					"name": "id",
-					"type": "text",
-					"primaryKey": true,
-					"notNull": true,
-					"autoincrement": false
-				},
-				"kit_id": {
-					"name": "kit_id",
-					"type": "text",
-					"primaryKey": false,
-					"notNull": true,
-					"autoincrement": false
-				},
-				"set_id": {
-					"name": "set_id",
-					"type": "text",
-					"primaryKey": false,
-					"notNull": true,
-					"autoincrement": false
-				},
-				"order": {
-					"name": "order",
-					"type": "integer",
-					"primaryKey": false,
-					"notNull": true,
-					"autoincrement": false
-				},
-				"text_id": {
-					"name": "text_id",
-					"type": "text",
-					"primaryKey": false,
-					"notNull": false,
-					"autoincrement": false
-				},
-				"instructions": {
-					"name": "instructions",
-					"type": "text",
-					"primaryKey": false,
-					"notNull": false,
-					"autoincrement": false
-				},
-				"created_at": {
-					"name": "created_at",
-					"type": "integer",
-					"primaryKey": false,
-					"notNull": true,
-					"autoincrement": false,
-					"default": "(cast(unixepoch('subsecond') * 1000 as integer))"
-				},
-				"updated_at": {
-					"name": "updated_at",
-					"type": "integer",
-					"primaryKey": false,
-					"notNull": true,
-					"autoincrement": false,
-					"default": "(cast(unixepoch('subsecond') * 1000 as integer))"
-				}
-			},
-			"indexes": {
-				"kit_sets_kitId_idx": {
-					"name": "kit_sets_kitId_idx",
-					"columns": ["kit_id"],
-					"isUnique": false
-				},
-				"kit_sets_textId_idx": {
-					"name": "kit_sets_textId_idx",
-					"columns": ["text_id"],
-					"isUnique": false
-				}
-			},
-			"foreignKeys": {
-				"kit_sets_kit_id_kits_id_fk": {
-					"name": "kit_sets_kit_id_kits_id_fk",
-					"tableFrom": "kit_sets",
-					"tableTo": "kits",
-					"columnsFrom": ["kit_id"],
-					"columnsTo": ["id"],
-					"onDelete": "no action",
-					"onUpdate": "no action"
-				},
-				"kit_sets_text_id_texts_id_fk": {
-					"name": "kit_sets_text_id_texts_id_fk",
-					"tableFrom": "kit_sets",
-					"tableTo": "texts",
-					"columnsFrom": ["text_id"],
 					"columnsTo": ["id"],
 					"onDelete": "no action",
 					"onUpdate": "no action"
@@ -1119,6 +1097,13 @@
 					"notNull": true,
 					"autoincrement": false,
 					"default": "(cast(unixepoch('subsecond') * 1000 as integer))"
+				},
+				"deleted_at": {
+					"name": "deleted_at",
+					"type": "integer",
+					"primaryKey": false,
+					"notNull": false,
+					"autoincrement": false
 				}
 			},
 			"indexes": {
@@ -1150,7 +1135,7 @@
 					"tableTo": "goal_maps",
 					"columnsFrom": ["goal_map_id"],
 					"columnsTo": ["id"],
-					"onDelete": "no action",
+					"onDelete": "cascade",
 					"onUpdate": "no action"
 				},
 				"kits_text_id_texts_id_fk": {
@@ -1159,7 +1144,7 @@
 					"tableTo": "texts",
 					"columnsFrom": ["text_id"],
 					"columnsTo": ["id"],
-					"onDelete": "no action",
+					"onDelete": "set null",
 					"onUpdate": "no action"
 				}
 			},
@@ -1264,6 +1249,13 @@
 					"notNull": true,
 					"autoincrement": false,
 					"default": "(cast(unixepoch('subsecond') * 1000 as integer))"
+				},
+				"deleted_at": {
+					"name": "deleted_at",
+					"type": "integer",
+					"primaryKey": false,
+					"notNull": false,
+					"autoincrement": false
 				}
 			},
 			"indexes": {
@@ -1286,6 +1278,11 @@
 					"name": "learner_maps_userId_idx",
 					"columns": ["user_id"],
 					"isUnique": false
+				},
+				"learner_maps_assignment_user_attempt_unique": {
+					"name": "learner_maps_assignment_user_attempt_unique",
+					"columns": ["assignment_id", "user_id", "attempt"],
+					"isUnique": true
 				}
 			},
 			"foreignKeys": {
@@ -1295,7 +1292,7 @@
 					"tableTo": "assignments",
 					"columnsFrom": ["assignment_id"],
 					"columnsTo": ["id"],
-					"onDelete": "no action",
+					"onDelete": "cascade",
 					"onUpdate": "no action"
 				},
 				"learner_maps_goal_map_id_goal_maps_id_fk": {
@@ -1304,7 +1301,7 @@
 					"tableTo": "goal_maps",
 					"columnsFrom": ["goal_map_id"],
 					"columnsTo": ["id"],
-					"onDelete": "no action",
+					"onDelete": "cascade",
 					"onUpdate": "no action"
 				},
 				"learner_maps_kit_id_kits_id_fk": {
@@ -1313,7 +1310,7 @@
 					"tableTo": "kits",
 					"columnsFrom": ["kit_id"],
 					"columnsTo": ["id"],
-					"onDelete": "no action",
+					"onDelete": "cascade",
 					"onUpdate": "no action"
 				}
 			},
@@ -1389,6 +1386,13 @@
 					"notNull": true,
 					"autoincrement": false,
 					"default": "(cast(unixepoch('subsecond') * 1000 as integer))"
+				},
+				"deleted_at": {
+					"name": "deleted_at",
+					"type": "integer",
+					"primaryKey": false,
+					"notNull": false,
+					"autoincrement": false
 				}
 			},
 			"indexes": {
@@ -1466,6 +1470,13 @@
 					"notNull": true,
 					"autoincrement": false,
 					"default": "(cast(unixepoch('subsecond') * 1000 as integer))"
+				},
+				"deleted_at": {
+					"name": "deleted_at",
+					"type": "integer",
+					"primaryKey": false,
+					"notNull": false,
+					"autoincrement": false
 				}
 			},
 			"indexes": {},
@@ -1513,6 +1524,13 @@
 					"notNull": true,
 					"autoincrement": false,
 					"default": "(cast(unixepoch('subsecond') * 1000 as integer))"
+				},
+				"deleted_at": {
+					"name": "deleted_at",
+					"type": "integer",
+					"primaryKey": false,
+					"notNull": false,
+					"autoincrement": false
 				}
 			},
 			"indexes": {},
@@ -1678,6 +1696,13 @@
 					"notNull": true,
 					"autoincrement": false,
 					"default": "(cast(unixepoch('subsecond') * 1000 as integer))"
+				},
+				"deleted_at": {
+					"name": "deleted_at",
+					"type": "integer",
+					"primaryKey": false,
+					"notNull": false,
+					"autoincrement": false
 				}
 			},
 			"indexes": {
@@ -1755,6 +1780,13 @@
 					"notNull": true,
 					"autoincrement": false,
 					"default": "(cast(unixepoch('subsecond') * 1000 as integer))"
+				},
+				"deleted_at": {
+					"name": "deleted_at",
+					"type": "integer",
+					"primaryKey": false,
+					"notNull": false,
+					"autoincrement": false
 				}
 			},
 			"indexes": {},
@@ -1920,6 +1952,13 @@
 					"autoincrement": false,
 					"default": "(cast(unixepoch('subsecond') * 1000 as integer))"
 				},
+				"deleted_at": {
+					"name": "deleted_at",
+					"type": "integer",
+					"primaryKey": false,
+					"notNull": false,
+					"autoincrement": false
+				},
 				"role": {
 					"name": "role",
 					"type": "text",
@@ -1997,6 +2036,14 @@
 					"primaryKey": false,
 					"notNull": false,
 					"autoincrement": false
+				},
+				"consent_given": {
+					"name": "consent_given",
+					"type": "integer",
+					"primaryKey": false,
+					"notNull": false,
+					"autoincrement": false,
+					"default": false
 				}
 			},
 			"indexes": {
@@ -2067,6 +2114,116 @@
 				}
 			},
 			"foreignKeys": {},
+			"compositePrimaryKeys": {},
+			"uniqueConstraints": {},
+			"checkConstraints": {}
+		},
+		"whitelist_entries": {
+			"name": "whitelist_entries",
+			"columns": {
+				"id": {
+					"name": "id",
+					"type": "text",
+					"primaryKey": true,
+					"notNull": true,
+					"autoincrement": false
+				},
+				"student_id": {
+					"name": "student_id",
+					"type": "text",
+					"primaryKey": false,
+					"notNull": true,
+					"autoincrement": false
+				},
+				"name": {
+					"name": "name",
+					"type": "text",
+					"primaryKey": false,
+					"notNull": true,
+					"autoincrement": false
+				},
+				"cohort_id": {
+					"name": "cohort_id",
+					"type": "text",
+					"primaryKey": false,
+					"notNull": false,
+					"autoincrement": false
+				},
+				"claimed_user_id": {
+					"name": "claimed_user_id",
+					"type": "text",
+					"primaryKey": false,
+					"notNull": false,
+					"autoincrement": false
+				},
+				"claimed_at": {
+					"name": "claimed_at",
+					"type": "integer",
+					"primaryKey": false,
+					"notNull": false,
+					"autoincrement": false
+				},
+				"created_at": {
+					"name": "created_at",
+					"type": "integer",
+					"primaryKey": false,
+					"notNull": true,
+					"autoincrement": false,
+					"default": "(cast(unixepoch('subsecond') * 1000 as integer))"
+				},
+				"updated_at": {
+					"name": "updated_at",
+					"type": "integer",
+					"primaryKey": false,
+					"notNull": true,
+					"autoincrement": false,
+					"default": "(cast(unixepoch('subsecond') * 1000 as integer))"
+				},
+				"deleted_at": {
+					"name": "deleted_at",
+					"type": "integer",
+					"primaryKey": false,
+					"notNull": false,
+					"autoincrement": false
+				}
+			},
+			"indexes": {
+				"whitelist_entries_student_id_unique": {
+					"name": "whitelist_entries_student_id_unique",
+					"columns": ["student_id"],
+					"isUnique": true
+				},
+				"whitelist_entries_claimed_user_id_unique": {
+					"name": "whitelist_entries_claimed_user_id_unique",
+					"columns": ["claimed_user_id"],
+					"isUnique": true
+				},
+				"whitelist_entries_claimedUserId_idx": {
+					"name": "whitelist_entries_claimedUserId_idx",
+					"columns": ["claimed_user_id"],
+					"isUnique": false
+				}
+			},
+			"foreignKeys": {
+				"whitelist_entries_cohort_id_cohorts_id_fk": {
+					"name": "whitelist_entries_cohort_id_cohorts_id_fk",
+					"tableFrom": "whitelist_entries",
+					"tableTo": "cohorts",
+					"columnsFrom": ["cohort_id"],
+					"columnsTo": ["id"],
+					"onDelete": "set null",
+					"onUpdate": "no action"
+				},
+				"whitelist_entries_claimed_user_id_user_id_fk": {
+					"name": "whitelist_entries_claimed_user_id_user_id_fk",
+					"tableFrom": "whitelist_entries",
+					"tableTo": "user",
+					"columnsFrom": ["claimed_user_id"],
+					"columnsTo": ["id"],
+					"onDelete": "set null",
+					"onUpdate": "no action"
+				}
+			},
 			"compositePrimaryKeys": {},
 			"uniqueConstraints": {},
 			"checkConstraints": {}

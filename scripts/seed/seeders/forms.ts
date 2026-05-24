@@ -1,4 +1,4 @@
-import { eq } from "drizzle-orm";
+import { and, eq, isNull } from "drizzle-orm";
 import { Effect } from "effect";
 
 import type { ReadingMaterialSection } from "@/features/form/lib/form-service.shared";
@@ -138,7 +138,7 @@ export function seedForms(teacherId: string) {
 		const existingTamForm = yield* db
 			.select()
 			.from(forms)
-			.where(eq(forms.title, tamFormTitle))
+			.where(and(eq(forms.title, tamFormTitle), isNull(forms.deletedAt)))
 			.limit(1);
 
 		let tamFormId: string;
@@ -149,7 +149,7 @@ export function seedForms(teacherId: string) {
 				.set({
 					description:
 						"Technology Acceptance Model questionnaire about Kit-Build — 10 Likert-scale questions on usefulness and ease of use.",
-					type: "tam",
+					type: "questionnaire",
 					audience: "experiment",
 					status: "published",
 					readingMaterialSections: null,
@@ -164,7 +164,7 @@ export function seedForms(teacherId: string) {
 				title: tamFormTitle,
 				description:
 					"Technology Acceptance Model questionnaire about Kit-Build — 10 Likert-scale questions on usefulness and ease of use.",
-				type: "tam",
+				type: "questionnaire",
 				audience: "experiment",
 				status: "published",
 				readingMaterialSections: null,
@@ -179,7 +179,7 @@ export function seedForms(teacherId: string) {
 		const existingFeedbackForm = yield* db
 			.select()
 			.from(forms)
-			.where(eq(forms.title, feedbackFormTitle))
+			.where(and(eq(forms.title, feedbackFormTitle), isNull(forms.deletedAt)))
 			.limit(1);
 
 		let feedbackFormId: string;
@@ -266,7 +266,7 @@ export function seedForms(teacherId: string) {
 			sourceFormId: preTestFormId,
 			title: "「わたしのうち」 Post-Test",
 			description:
-				"20 multiple-choice questions about わたしのうち (4 options each) — same as the pre-test.",
+				"10 multiple-choice questions about わたしのうち (4 options each) — same as the pre-test.",
 			type: "post_test",
 			audience: "all",
 			readingMaterialSections: readingComprehensionReadingMaterialSections,
@@ -277,7 +277,7 @@ export function seedForms(teacherId: string) {
 			sourceFormId: preTestFormId,
 			title: "「わたしのうち」 Delayed-Test",
 			description:
-				"20 multiple-choice questions about わたしのうち (4 options each) — same as the pre-test.",
+				"10 multiple-choice questions about わたしのうち (4 options each) — same as the pre-test.",
 			type: "delayed_test",
 			audience: "all",
 			readingMaterialSections: readingComprehensionReadingMaterialSections,
@@ -285,7 +285,6 @@ export function seedForms(teacherId: string) {
 		}).pipe(Effect.map((result) => result.formId));
 
 		return {
-			tamFormId,
 			feedbackFormId,
 			preTestFormId,
 			postTestFormId,

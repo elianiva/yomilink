@@ -12,7 +12,6 @@ export const FORM_TYPES = [
 	"post_test",
 	"delayed_test",
 	"registration",
-	"tam",
 	"questionnaire",
 ] as const;
 
@@ -53,7 +52,6 @@ export type ReadingMaterialSection = typeof ReadingMaterialSectionSchema.Type;
 export const ReadingMaterialSections = Schema.Array(ReadingMaterialSectionSchema);
 
 export function normalizeFormAudience(type: FormType, audience: FormAudience): FormAudience {
-	if (type === "tam") return "experiment";
 	if (
 		type === "pre_test" ||
 		type === "post_test" ||
@@ -80,7 +78,6 @@ export type AssignmentFormRow = {
 	preTestFormId: string | null;
 	postTestFormId: string | null;
 	delayedPostTestFormId: string | null;
-	tamFormId: string | null;
 };
 
 export type FormAccessScope = {
@@ -144,7 +141,6 @@ export const resolveFormAccessScope = Effect.fn("resolveFormAccessScope")(functi
 			preTestFormId: assignments.preTestFormId,
 			postTestFormId: assignments.postTestFormId,
 			delayedPostTestFormId: assignments.delayedPostTestFormId,
-			tamFormId: assignments.tamFormId,
 		})
 		.from(assignments)
 		.where(
@@ -153,7 +149,6 @@ export const resolveFormAccessScope = Effect.fn("resolveFormAccessScope")(functi
 					eq(assignments.preTestFormId, formId),
 					eq(assignments.postTestFormId, formId),
 					eq(assignments.delayedPostTestFormId, formId),
-					eq(assignments.tamFormId, formId),
 				),
 				isNull(assignments.deletedAt),
 			),
@@ -426,7 +421,6 @@ export const FormOutputSchema = Schema.Struct({
 		Schema.Literal("post_test"),
 		Schema.Literal("delayed_test"),
 		Schema.Literal("registration"),
-		Schema.Literal("tam"),
 		Schema.Literal("questionnaire"),
 	),
 	audience: FormAudienceSchema,
@@ -529,7 +523,6 @@ export const FORM_TYPE_PRIORITY: Record<FormType, number> = {
 	registration: -1, // Completed during sign-up, not shown in dashboard
 	pre_test: 0,
 	post_test: 1,
-	tam: 2,
 	questionnaire: 2,
 	delayed_test: 3,
 };

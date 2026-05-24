@@ -17,7 +17,7 @@ export interface FormData {
 	id: string;
 	title: string;
 	description?: string;
-	type: "pre_test" | "post_test" | "delayed_test" | "registration" | "tam" | "questionnaire";
+	type: "pre_test" | "post_test" | "delayed_test" | "registration" | "questionnaire";
 	audience: "all" | "experiment" | "control";
 	status: "draft" | "published";
 	readingMaterialSections?:

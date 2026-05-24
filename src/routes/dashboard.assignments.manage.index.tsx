@@ -53,11 +53,9 @@ function ManageAssignmentsPage() {
 				preTestFormId: a.preTestFormId,
 				postTestFormId: a.postTestFormId,
 				delayedPostTestFormId: a.delayedPostTestFormId,
-				tamFormId: a.tamFormId,
 				preTestSubmitted: a.preTestSubmitted ?? null,
 				postTestSubmitted: a.postTestSubmitted ?? null,
 				delayedPostTestSubmitted: a.delayedPostTestSubmitted ?? null,
-				tamSubmitted: a.tamSubmitted ?? null,
 				assignedCohortCount: a.assignedCohorts?.length ?? 0,
 				assignedDirectUserCount: a.assignedUsers?.length ?? 0,
 			}))

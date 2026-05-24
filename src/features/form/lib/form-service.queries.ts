@@ -160,7 +160,7 @@ export const getStudentFormById = Effect.fn("getStudentFormById")(function* (
 
 		if (
 			shouldExcludeForm(
-				{ id: formRow.id, type: formRow.type, audience: formRow.audience },
+				{ id: formRow.id, type: formRow.type as FormType, audience: formRow.audience },
 				formAccessScope.studyGroup,
 			)
 		) {
@@ -196,7 +196,6 @@ export const getStudentFormById = Effect.fn("getStudentFormById")(function* (
 					eq(assignments.preTestFormId, formId),
 					eq(assignments.postTestFormId, formId),
 					eq(assignments.delayedPostTestFormId, formId),
-					eq(assignments.tamFormId, formId),
 				),
 				isNull(assignments.deletedAt),
 			),
@@ -546,7 +545,6 @@ export const getStudentForms = Effect.fn("getStudentForms")(function* (userId: s
 						preTestFormId: assignments.preTestFormId,
 						postTestFormId: assignments.postTestFormId,
 						delayedPostTestFormId: assignments.delayedPostTestFormId,
-						tamFormId: assignments.tamFormId,
 					})
 					.from(assignments)
 					.where(
@@ -566,7 +564,6 @@ export const getStudentForms = Effect.fn("getStudentForms")(function* (userId: s
 				assignment.preTestFormId,
 				assignment.postTestFormId,
 				assignment.delayedPostTestFormId,
-				assignment.tamFormId,
 			])
 			.filter((formId): formId is string => formId !== null),
 	);
@@ -578,16 +575,13 @@ export const getStudentForms = Effect.fn("getStudentForms")(function* (userId: s
 
 	const applicableForms = publishedForms.filter((form) => {
 		const isAssignmentScopedForm =
-			form.type === "pre_test" ||
-			form.type === "post_test" ||
-			form.type === "delayed_test" ||
-			form.type === "tam";
+			form.type === "pre_test" || form.type === "post_test" || form.type === "delayed_test";
 
 		if (isAssignmentScopedForm && !assignmentLinkedFormIds.has(form.id)) {
 			return false;
 		}
 
-		return !shouldExcludeForm(form, studyGroup);
+		return !shouldExcludeForm(form as Parameters<typeof shouldExcludeForm>[0], studyGroup);
 	});
 
 	const userProgressRows = yield* db
@@ -596,7 +590,14 @@ export const getStudentForms = Effect.fn("getStudentForms")(function* (userId: s
 		.where(and(eq(formProgress.userId, userId), isNull(formProgress.deletedAt)));
 
 	const progressMap = new Map(userProgressRows.map((p) => [p.formId, p]));
-	const sortedForms = applicableForms.slice().sort(sortFormsByPriority);
+	const sortedForms = applicableForms
+		.slice()
+		.sort((a, b) =>
+			sortFormsByPriority(
+				a as Parameters<typeof sortFormsByPriority>[0],
+				b as Parameters<typeof sortFormsByPriority>[0],
+			),
+		);
 
 	return sortedForms.map((form) => {
 		const progress = progressMap.get(form.id);

@@ -1,1 +1,0 @@
-ALTER TABLE `user` ADD `consent_given` integer DEFAULT false;

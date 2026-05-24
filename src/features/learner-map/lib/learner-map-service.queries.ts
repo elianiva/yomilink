@@ -48,7 +48,6 @@ export const listStudentAssignments = Effect.fn("listStudentAssignments")(functi
 			preTestFormId: assignments.preTestFormId,
 			postTestFormId: assignments.postTestFormId,
 			delayedPostTestFormId: assignments.delayedPostTestFormId,
-			tamFormId: assignments.tamFormId,
 			createdAt: assignments.createdAt,
 			goalMapTitle: goalMaps.title,
 			learnerMapStatus: learnerMaps.status,
@@ -113,7 +112,6 @@ export const listStudentAssignments = Effect.fn("listStudentAssignments")(functi
 				preTestFormId: row.preTestFormId,
 				postTestFormId: row.postTestFormId,
 				delayedPostTestFormId: row.delayedPostTestFormId,
-				tamFormId: row.tamFormId,
 				goalMapTitle: row.goalMapTitle,
 				dueAt: row.dueAt?.getTime(),
 				createdAt: row.createdAt?.getTime(),
@@ -167,7 +165,6 @@ export const getAssignmentForStudent = Effect.fn("getAssignmentForStudent")(func
 				postTestFormId: assignments.postTestFormId,
 				delayedPostTestFormId: assignments.delayedPostTestFormId,
 				delayedPostTestDelayDays: assignments.delayedPostTestDelayDays,
-				tamFormId: assignments.tamFormId,
 			},
 			kit: {
 				id: kits.id,
@@ -276,7 +273,6 @@ export const getDiagnosis = Effect.fn("getDiagnosis")(function* (
 				goalMapId: assignments.goalMapId,
 				title: assignments.title,
 				postTestFormId: assignments.postTestFormId,
-				tamFormId: assignments.tamFormId,
 			},
 			diagnosis: {
 				id: diagnoses.id,
@@ -358,7 +354,6 @@ export const getDiagnosis = Effect.fn("getDiagnosis")(function* (
 		assignment: {
 			title: result.assignment.title,
 			postTestFormId: result.assignment.postTestFormId,
-			tamFormId: result.assignment.tamFormId,
 		},
 		diagnosis: result.diagnosis
 			? {

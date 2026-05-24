@@ -24,12 +24,12 @@ nodes:
 
     - id: "yuubinkyoku"
       type: "text"
-      position: { x: 720, y: 250 }
+      position: { x: 620, y: 250 }
       data: { label: "郵便局（ゆうびんきょく）" }
 
     - id: "ginkou"
       type: "text"
-      position: { x: 920, y: 250 }
+      position: { x: 820, y: 250 }
       data: { label: "銀行（ぎんこう）" }
 
     - id: "conn-mae"
@@ -39,7 +39,7 @@ nodes:
 
     - id: "conn-aida"
       type: "connector"
-      position: { x: 820, y: 340 }
+      position: { x: 720, y: 340 }
       data: { label: "の間に" }
 
     - id: "toshokan"
@@ -54,22 +54,22 @@ nodes:
 
     - id: "suupaa"
       type: "text"
-      position: { x: 820, y: 460 }
+      position: { x: 720, y: 460 }
       data: { label: "スーパー" }
 
     - id: "conn-naka"
       type: "connector"
-      position: { x: 820, y: 550 }
+      position: { x: 720, y: 550 }
       data: { label: "の中に" }
 
     - id: "hanaya"
       type: "text"
-      position: { x: 720, y: 650 }
+      position: { x: 620, y: 650 }
       data: { label: "花屋（はなや）" }
 
     - id: "panya"
       type: "text"
-      position: { x: 920, y: 650 }
+      position: { x: 820, y: 650 }
       data: { label: "パン屋（ぱんや）" }
 
 edges:

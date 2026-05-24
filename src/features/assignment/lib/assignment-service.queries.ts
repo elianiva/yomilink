@@ -29,7 +29,6 @@ export const listTeacherAssignments = Effect.fn("listTeacherAssignments")(functi
 			postTestFormId: assignments.postTestFormId,
 			delayedPostTestFormId: assignments.delayedPostTestFormId,
 			delayedPostTestDelayDays: assignments.delayedPostTestDelayDays,
-			tamFormId: assignments.tamFormId,
 			createdAt: assignments.createdAt,
 			updatedAt: assignments.updatedAt,
 			goalMapTitle: goalMaps.title,
@@ -122,12 +121,7 @@ export const listTeacherAssignments = Effect.fn("listTeacherAssignments")(functi
 	const formIds = Array.from(
 		new Set(
 			rows.reduce<string[]>((acc, row) => {
-				const ids = [
-					row.preTestFormId,
-					row.postTestFormId,
-					row.delayedPostTestFormId,
-					row.tamFormId,
-				];
+				const ids = [row.preTestFormId, row.postTestFormId, row.delayedPostTestFormId];
 				for (const id of ids) {
 					if (id !== null) acc.push(id);
 				}
@@ -257,13 +251,6 @@ export const listTeacherAssignments = Effect.fn("listTeacherAssignments")(functi
 					).has(assignedUserId),
 				).length
 			: null;
-		const tamSubmitted = row.tamFormId
-			? Array.from(assignedUserIds).filter((assignedUserId) =>
-					(responsesByFormId.get(row.tamFormId ?? "") ?? new Set<string>()).has(
-						assignedUserId,
-					),
-				).length
-			: null;
 
 		return {
 			...row,
@@ -279,7 +266,6 @@ export const listTeacherAssignments = Effect.fn("listTeacherAssignments")(functi
 			preTestSubmitted,
 			postTestSubmitted,
 			delayedPostTestSubmitted,
-			tamSubmitted,
 		};
 	});
 });
@@ -377,7 +363,6 @@ export const getAssignmentById = Effect.fn("getAssignmentById")(function* (assig
 			preTestFormId: assignments.preTestFormId,
 			postTestFormId: assignments.postTestFormId,
 			delayedPostTestFormId: assignments.delayedPostTestFormId,
-			tamFormId: assignments.tamFormId,
 			delayedPostTestDelayDays: assignments.delayedPostTestDelayDays,
 			createdBy: assignments.createdBy,
 			createdAt: assignments.createdAt,
@@ -399,7 +384,6 @@ export const getAssignmentById = Effect.fn("getAssignmentById")(function* (assig
 		assignment.preTestFormId,
 		assignment.postTestFormId,
 		assignment.delayedPostTestFormId,
-		assignment.tamFormId,
 	].filter((id): id is string => id !== null);
 
 	const formDetails =
@@ -561,7 +545,6 @@ export const getAssignmentById = Effect.fn("getAssignmentById")(function* (assig
 		delayedPostTestForm: assignment.delayedPostTestFormId
 			? (formMap.get(assignment.delayedPostTestFormId) ?? null)
 			: null,
-		tamForm: assignment.tamFormId ? (formMap.get(assignment.tamFormId) ?? null) : null,
 		totalStudents,
 		submittedStudents,
 		assignedCohorts,
@@ -574,6 +557,5 @@ export const getAssignmentById = Effect.fn("getAssignmentById")(function* (assig
 		preTestSubmitted: countFormResponses(assignment.preTestFormId),
 		postTestSubmitted: countFormResponses(assignment.postTestFormId),
 		delayedPostTestSubmitted: countFormResponses(assignment.delayedPostTestFormId),
-		tamSubmitted: countFormResponses(assignment.tamFormId),
 	};
 });

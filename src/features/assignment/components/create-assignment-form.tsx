@@ -79,7 +79,6 @@ export function CreateAssignmentForm({ onSuccess, onCancel }: CreateAssignmentFo
 				postTestFormId: ctx.procedure.postTestFormId || undefined,
 				delayedPostTestFormId: ctx.procedure.delayedPostTestFormId || undefined,
 				delayedPostTestDelayDays: ctx.procedure.delayedPostTestDelayDays,
-				tamFormId: ctx.procedure.tamFormId || undefined,
 			},
 			{
 				onSuccess: () => {
@@ -105,9 +104,7 @@ export function CreateAssignmentForm({ onSuccess, onCancel }: CreateAssignmentFo
 	const pretestForms = formsWithDesc.filter((f) => f.type === "pre_test");
 	const posttestForms = formsWithDesc.filter((f) => f.type === "post_test");
 	const delayedtestForms = formsWithDesc.filter((f) => f.type === "delayed_test");
-	const questionnaireForms = formsWithDesc.filter(
-		(f) => f.type === "tam" || f.type === "questionnaire",
-	);
+	const questionnaireForms = formsWithDesc.filter((f) => f.type === "questionnaire");
 
 	return (
 		<form onSubmit={handleSubmit} className="space-y-4">
@@ -258,16 +255,6 @@ export function CreateAssignmentForm({ onSuccess, onCancel }: CreateAssignmentFo
 							}
 						/>
 					</div>
-					<FormSelect
-						id="tamSurvey"
-						label="Questionnaires"
-						value={ctx.procedure.tamFormId}
-						onChange={(v) =>
-							send({ type: "SET_PROCEDURE", field: "tamFormId", value: v })
-						}
-						forms={questionnaireForms}
-						placeholder="Select a questionnaire form"
-					/>
 				</div>
 			)}
 
