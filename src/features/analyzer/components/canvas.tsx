@@ -2,6 +2,7 @@ import { ReactFlowProvider, useReactFlow } from "@xyflow/react";
 import { ZoomIn, ZoomOut } from "lucide-react";
 import { useCallback, useMemo } from "react";
 
+import { Button } from "@/components/ui/button";
 import { useAnalyticsEdges } from "@/features/analyzer/lib/use-analytics-edges";
 
 import "@xyflow/react/dist/style.css";
@@ -110,30 +111,30 @@ function AnalyticsCanvasInner({
 	return (
 		<div className="flex-1 h-full relative">
 			<div className="absolute bottom-4 right-4 z-10 flex flex-col gap-2">
-				<button
-					type="button"
-					className="size-8 flex items-center justify-center rounded-md border bg-background shadow-sm hover:bg-accent"
+				<Button
+					className="size-10"
+					variant="floating"
 					onClick={() => zoomIn()}
 					title="Zoom In"
 				>
 					<ZoomIn className="size-4" />
-				</button>
-				<button
-					type="button"
-					className="size-8 flex items-center justify-center rounded-md border bg-background shadow-sm hover:bg-accent"
+				</Button>
+				<Button
+					className="size-10"
+					variant="floating"
 					onClick={() => zoomOut()}
 					title="Zoom Out"
 				>
 					<ZoomOut className="size-4" />
-				</button>
-				<button
-					type="button"
-					className="size-8 flex items-center justify-center rounded-md border bg-background shadow-sm hover:bg-accent"
+				</Button>
+				<Button
+					className="size-10"
+					variant="floating"
 					onClick={() => fitView()}
 					title="Fit View"
 				>
 					<span className="text-xs font-semibold">Fit</span>
-				</button>
+				</Button>
 			</div>
 			<ConceptMapCanvas
 				nodes={nodes}

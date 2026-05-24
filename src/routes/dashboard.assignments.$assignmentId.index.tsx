@@ -192,7 +192,7 @@ function AssignmentFlowPage() {
 	const isComplete = phases.every((p) => p.status === "completed" || p.status === "skipped");
 
 	return (
-		<div className="space-y-4 max-w-2xl mx-auto">
+		<div className="space-y-4 max-w-2xl mx-auto py-4">
 			<Button variant="secondary" size="sm" asChild className="-ml-2">
 				<Link to="/dashboard/assignments">
 					<ArrowLeftIcon className="size-4" />

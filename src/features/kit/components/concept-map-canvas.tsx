@@ -174,7 +174,10 @@ export function ConceptMapCanvas({
 				elementsSelectable={!readOnly}
 				fitView
 			>
-				<MiniMap />
+				{/* Hidden on mobile to free canvas space */}
+				<div className="hidden sm:block">
+					<MiniMap />
+				</div>
 				<Background gap={16} />
 				{children}
 			</ReactFlow>

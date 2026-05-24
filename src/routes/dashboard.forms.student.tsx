@@ -107,7 +107,7 @@ function StudentFormsPage() {
 	};
 
 	return (
-		<div className="space-y-4">
+		<div className="space-y-4 py-4">
 			<PageHeader
 				icon={FileTextIcon}
 				title="My Forms"

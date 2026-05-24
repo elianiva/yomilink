@@ -49,7 +49,7 @@ function AssignmentsPage() {
 	};
 
 	return (
-		<div className="space-y-4">
+		<div className="space-y-4 py-4">
 			<PageHeader
 				icon={BookOpenIcon}
 				title="My Assignments"

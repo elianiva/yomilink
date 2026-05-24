@@ -237,6 +237,8 @@ body {
 	--shadow-lg: var(--shadow-lg);
 	--shadow-xl: var(--shadow-xl);
 	--shadow-2xl: var(--shadow-2xl);
+
+	--animate-slide-up: slide-up 0.25s ease-out;
 }
 
 @layer base {
@@ -267,5 +269,14 @@ body {
 
 	.interactive-sm {
 		@apply transition-transform duration-75 active:scale-[0.97];
+	}
+}
+
+@keyframes slide-up {
+	from {
+		transform: translateY(100%);
+	}
+	to {
+		transform: translateY(0);
 	}
 }

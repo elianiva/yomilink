@@ -1,34 +1,27 @@
 import { useQueryClient } from "@tanstack/react-query";
 import { Link, getRouteApi, useNavigate } from "@tanstack/react-router";
-import { ArrowLeftIcon, FileTextIcon, RefreshCwIcon, ArrowRightIcon } from "lucide-react";
+import { ArrowLeftIcon, BarChart3Icon, RefreshCwIcon, SlidersHorizontalIcon } from "lucide-react";
 import { useCallback, useMemo, useState } from "react";
 
 import { ToolbarButton } from "@/components/toolbar/toolbar-button";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { Separator } from "@/components/ui/separator";
+import { ButtonGroup } from "@/components/ui/button-group";
 import { createTooltipHandle, TooltipContent, TooltipProvider } from "@/components/ui/tooltip";
 import { AnalyticsControls } from "@/features/analyzer/components/analytics-controls";
 import { AnalyticsCanvas } from "@/features/analyzer/components/canvas";
-import { DiagnosisStats } from "@/features/learner-map/components/diagnosis/diagnosis-stats";
 import { classifyEdges } from "@/features/learner-map/lib/comparator";
+import type { VisibilityState } from "@/features/learner-map/lib/visibility";
 import { useRpcMutation, useRpcQuery } from "@/hooks/use-rpc-query";
 import { AnalyticsRpc } from "@/server/rpc/analytics";
 import { FormRpc } from "@/server/rpc/form";
 import { LearnerMapRpc } from "@/server/rpc/learner-map";
 
-const routeApi = getRouteApi("/dashboard/learner-map/$assignmentId/result");
+import { ResultControlsPanel } from "./result-controls-panel";
+import { ResultMobileOverlay } from "./result-mobile-overlay";
+import { ResultSidePanel } from "./result-side-panel";
 
-interface VisibilityState {
-	showGoalMap: boolean;
-	showLearnerMap: boolean;
-	showCorrectEdges: boolean;
-	showMissingEdges: boolean;
-	showExcessiveEdges: boolean;
-	showNeutralEdges: boolean;
-	consolidatedView: boolean;
-	showNamesOnHover: boolean;
-}
+const routeApi = getRouteApi("/dashboard/learner-map/$assignmentId/result");
 
 export function LearnerMapResult() {
 	const { assignmentId } = routeApi.useParams();
@@ -46,6 +39,9 @@ export function LearnerMapResult() {
 		consolidatedView: true,
 		showNamesOnHover: true,
 	});
+
+	const [mobileSidePanelOpen, setMobileSidePanelOpen] = useState(false);
+	const [mobileControlsOpen, setMobileControlsOpen] = useState(false);
 
 	const handleVisibilityChange = useCallback((updates: Partial<VisibilityState>) => {
 		setVisibility((prev) => ({ ...prev, ...updates }));
@@ -159,9 +155,17 @@ export function LearnerMapResult() {
 	const hasEdgeDetails = totalGoalEdges > 0 || correctEdges.length + excessiveEdges.length > 0;
 	const scorePercentage = totalGoalEdges > 0 ? Math.round((diagnosis.score ?? 0) * 100) : 0;
 
+	const postTestLinkProps = {
+		to: "/dashboard/forms/take" as const,
+		search: {
+			formId: assignment.postTestFormId!,
+			redirectBack: `/dashboard/assignments/${assignmentId}`,
+		},
+	};
+
 	return (
 		<TooltipProvider delay={300}>
-			<section className="relative h-full overflow-hidden -mx-4 md:-mx-6 border-t-[0.5px]">
+			<section className="relative h-full overflow-hidden -mx-4 md:-mx-6">
 				<div className="absolute inset-0 bg-[radial-gradient(circle_at_top,rgba(0,0,0,0.03),transparent_55%)]">
 					<AnalyticsCanvas
 						goalMap={{
@@ -183,18 +187,19 @@ export function LearnerMapResult() {
 				</div>
 
 				<div className="absolute inset-0 z-10 pointer-events-none">
-					<div className="border-b-[0.5px] pointer-events-auto bg-background/70 backdrop-blur supports-[backdrop-filter]:bg-background/50">
+					{/* Top toolbar */}
+					<div className="border-b-[0.5px] pointer-events-auto bg-background/70 backdrop-blur supports-backdrop-filter:bg-background/50">
 						<div className="h-12 px-3 flex items-center gap-2">
-							<h1 className="text-sm font-medium">
+							<h1 className="text-sm font-medium truncate">
 								{assignment.title || "Assignment Results"}
 							</h1>
-							<Badge variant="outline" className="text-[11px] h-5 px-1.5">
+							<Badge variant="outline" className="text-[11px] h-5 px-1.5 shrink-0">
 								Attempt {learnerMap.attempt}
 							</Badge>
-							<Badge className="bg-emerald-600 text-white text-[11px] h-5 px-1.5">
+							<Badge className="bg-emerald-600 text-white text-[11px] h-5 px-1.5 shrink-0">
 								Submitted
 							</Badge>
-							<div className="ml-auto flex items-center gap-1.5">
+							<div className="ml-auto flex items-center gap-1.5 shrink-0">
 								<ToolbarButton
 									icon={ArrowLeftIcon}
 									label="Back to assignments"
@@ -214,102 +219,81 @@ export function LearnerMapResult() {
 						</div>
 					</div>
 
-					<div className="absolute bottom-3 left-3 pointer-events-auto bg-card/30 backdrop-blur-lg border rounded-lg shadow-lg max-w-64">
-						<AnalyticsControls
-							visibility={visibility}
-							onChange={handleVisibilityChange}
-							showDisplayOptions={false}
-						/>
-					</div>
-
-					<div className="absolute top-14 right-2 sm:right-3 w-[85vw] sm:w-72 bg-card/30 backdrop-blur-lg border rounded-lg shadow-sm pointer-events-auto max-h-[calc(100vh-8rem)] overflow-y-auto">
-						<div className="border-b-[0.5px] px-3 py-2.5 flex items-center gap-2 sticky top-0 bg-inherit">
-							<div className="flex items-center gap-1.5 text-sm">
-								<span className="text-muted-foreground">Score</span>
-								<span className="font-semibold">{scorePercentage}%</span>
-							</div>
-							<Separator orientation="vertical" className="h-4" />
-							<div className="flex items-center gap-2 text-xs">
-								<span className="inline-flex items-center gap-1 text-muted-foreground">
-									<span className="size-2 rounded-full bg-[var(--edge-correct)]" />
-									{correctEdges.length}
-								</span>
-								<span className="inline-flex items-center gap-1 text-muted-foreground">
-									<span className="size-2 rounded-full bg-[var(--edge-missing)]" />
-									{missingEdges.length}
-								</span>
-								<span className="inline-flex items-center gap-1 text-muted-foreground">
-									<span className="size-2 rounded-full bg-[var(--edge-excessive)]" />
-									{excessiveEdges.length}
-								</span>
-							</div>
-						</div>
-						<div className="p-3">
-							<DiagnosisStats
-								correct={correctEdges.length}
-								missing={missingEdges.length}
-								excessive={excessiveEdges.length}
-								total={totalGoalEdges}
-								score={diagnosis.score ?? 0}
+					{/* Desktop panels */}
+					<div className="hidden sm:block">
+						<div className="absolute bottom-3 left-3 pointer-events-auto">
+							<ResultControlsPanel
+								visibility={visibility}
+								onChange={handleVisibilityChange}
 							/>
 						</div>
-						{!hasEdgeDetails && (
-							<>
-								<Separator />
-								<div className="p-3 text-sm text-muted-foreground">
-									No edge-level data came through for this result. If this should
-									show a map, the source data may be empty or malformed.
-								</div>
-							</>
-						)}
-						{"summary" in diagnosis && diagnosis.summary && (
-							<>
-								<Separator />
-								<div className="p-3 space-y-2">
-									<p className="text-sm font-medium">Summary</p>
-									<p className="text-sm text-muted-foreground">
-										{diagnosis.summary}
-									</p>
-								</div>
-							</>
-						)}
-						{assignment.postTestFormId && (
-							<>
-								<Separator />
-								<div className="p-3 space-y-2.5">
-									<div className="flex items-center gap-2">
-										<div className="rounded-md bg-primary p-1.5">
-											<FileTextIcon className="size-4 text-primary-foreground" />
-										</div>
-										<p className="text-sm font-medium text-foreground">
-											{postTestCompleted ? "Completed" : "Next step required"}
-										</p>
-										{postTestCompleted && (
-											<Badge className="bg-emerald-600 text-white">
-												Done
-											</Badge>
-										)}
-									</div>
-									<p className="text-sm text-muted-foreground">
-										{postTestDescription}
-									</p>
-									<Button asChild className="w-full gap-2" size="lg">
-										<Link
-											to="/dashboard/forms/take"
-											search={{
-												formId: assignment.postTestFormId,
-												redirectBack: `/dashboard/assignments/${assignmentId}`,
-											}}
-										>
-											{postTestButtonLabel}
-										</Link>
-									</Button>
-								</div>
-							</>
-						)}
+						<div className="absolute top-14 right-3 pointer-events-auto">
+							<ResultSidePanel
+								correctEdges={correctEdges.length}
+								missingEdges={missingEdges.length}
+								excessiveEdges={excessiveEdges.length}
+								totalGoalEdges={totalGoalEdges}
+								score={diagnosis.score ?? 0}
+								hasEdgeDetails={hasEdgeDetails}
+								postTestFormId={assignment.postTestFormId}
+								postTestCompleted={postTestCompleted}
+								postTestButtonLabel={postTestButtonLabel}
+								postTestDescription={postTestDescription}
+								postTestLinkProps={postTestLinkProps}
+							/>
+						</div>
+					</div>
+
+					{/* Mobile floating action buttons */}
+					<div className="sm:hidden absolute bottom-3 inset-x-0 flex items-center justify-center pointer-events-auto">
+						<ButtonGroup>
+							<Button variant="floating" onClick={() => setMobileControlsOpen(true)}>
+								<SlidersHorizontalIcon className="size-4" />
+								<span className="text-xs">Controls</span>
+							</Button>
+							<Button variant="floating" onClick={() => setMobileSidePanelOpen(true)}>
+								<BarChart3Icon className="size-4" />
+								<span className="text-xs">Results</span>
+							</Button>
+						</ButtonGroup>
 					</div>
 				</div>
 			</section>
+
+			{/* Mobile overlay: controls */}
+			<ResultMobileOverlay
+				open={mobileControlsOpen}
+				onClose={() => setMobileControlsOpen(false)}
+				title="Visibility Controls"
+			>
+				<AnalyticsControls
+					visibility={visibility}
+					onChange={handleVisibilityChange}
+					showDisplayOptions={false}
+				/>
+			</ResultMobileOverlay>
+
+			{/* Mobile overlay: side panel */}
+			<ResultMobileOverlay
+				open={mobileSidePanelOpen}
+				onClose={() => setMobileSidePanelOpen(false)}
+				title="Results &amp; Details"
+			>
+				<ResultSidePanel
+					correctEdges={correctEdges.length}
+					missingEdges={missingEdges.length}
+					excessiveEdges={excessiveEdges.length}
+					totalGoalEdges={totalGoalEdges}
+					score={diagnosis.score ?? 0}
+					hasEdgeDetails={hasEdgeDetails}
+					postTestFormId={assignment.postTestFormId}
+					postTestCompleted={postTestCompleted}
+					postTestButtonLabel={postTestButtonLabel}
+					postTestDescription={postTestDescription}
+					postTestLinkProps={postTestLinkProps}
+				/>
+			</ResultMobileOverlay>
+
 			<TooltipContent handle={tooltipHandle} />
 		</TooltipProvider>
 	);

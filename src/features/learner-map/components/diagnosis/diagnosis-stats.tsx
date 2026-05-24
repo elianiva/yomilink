@@ -6,11 +6,14 @@ interface DiagnosisStatsProps {
 	score: number;
 }
 
-function StatPill({ label, value }: { label: string; value: number }) {
+function StatPill({ label, value, dotColor }: { label: string; value: number; dotColor: string }) {
 	return (
 		<div className="flex items-center justify-between gap-2 first:rounded-l-sm last:rounded-r-sm first:border-r-0 last:border-l-0 border border-border/60 bg-background py-1 px-2">
-			<span className="text-[11px] font-medium uppercase tracking-wide text-muted-foreground">
-				{label}
+			<span className="flex items-center gap-1.5">
+				<span className={`size-2 rounded-full ${dotColor}`} />
+				<span className="text-[11px] font-medium uppercase tracking-wide text-muted-foreground">
+					{label}
+				</span>
 			</span>
 			<span className="text-sm font-semibold tabular-nums">{value}</span>
 		</div>
@@ -46,13 +49,9 @@ export function DiagnosisStats({ correct, missing, excessive, total, score }: Di
 			</div>
 
 			<div className="mt-2 grid grid-cols-3">
-				<StatPill label="Correct" value={correct} />
-				<StatPill label="Missing" value={missing} />
-				<StatPill label="Extra" value={excessive} />
-			</div>
-
-			<div className="mt-1 flex items-center justify-between gap-2 text-[11px] text-muted-foreground">
-				{hasEdges ? `${correct}/${total} matched` : "No edges"}
+				<StatPill label="Correct" value={correct} dotColor="bg-edge-correct" />
+				<StatPill label="Missing" value={missing} dotColor="bg-edge-missing" />
+				<StatPill label="Extra" value={excessive} dotColor="bg-edge-excessive" />
 			</div>
 		</div>
 	);

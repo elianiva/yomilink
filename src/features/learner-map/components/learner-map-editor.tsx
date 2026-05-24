@@ -39,7 +39,7 @@ import { LearnerMapRpc } from "@/server/rpc/learner-map";
 
 const routeApi = getRouteApi("/dashboard/learner-map/$assignmentId/");
 
-const noop = () => { };
+const noop = () => {};
 
 export function LearnerMapEditor() {
 	const { assignmentId } = routeApi.useParams();
@@ -235,8 +235,8 @@ export function LearnerMapEditor() {
 	const [materialOpen, setMaterialOpen] = useState(false);
 	const [submitDialogOpen, setSubmitDialogOpen] = useState(false);
 
-	const onNodeClick: NodeMouseHandler = useCallback(() => { }, []);
-	const onPaneClick = useCallback(() => { }, []);
+	const onNodeClick: NodeMouseHandler = useCallback(() => {}, []);
+	const onPaneClick = useCallback(() => {}, []);
 
 	const handleSearchOpen = useCallback(() => setSearchOpen(true), []);
 	const handleSearchClose = useCallback(() => setSearchOpen(false), []);
@@ -304,52 +304,52 @@ export function LearnerMapEditor() {
 			)}
 			{infoOpen && (
 				<div className="absolute top-3 right-3 z-20 bg-card/70 backdrop-blur-lg border rounded-md px-4 py-2 w-56 space-y-2 animate-in fade-in">
-				<div className="flex items-start justify-between gap-2">
-					<div className="min-w-0 flex-1">
-						<h2 className="font-medium text-sm leading-tight truncate">
-							{assignmentData.assignment.title}
-						</h2>
-						{assignmentData.assignment.description && (
-							<p className="text-xs text-muted-foreground mt-0.5 line-clamp-2">
-								{assignmentData.assignment.description}
-							</p>
-						)}
-						{context.attempt > 0 && (
-							<p className="text-xs text-muted-foreground mt-0.5">
-								Attempt {context.attempt}
-							</p>
-						)}
-					</div>
-					<Button
-						variant="ghost"
-						size="icon"
-						onClick={handleToggleInfo}
-						className="size-5"
-						title="Hide info"
-					>
-						<X className="size-3" />
-					</Button>
-				</div>
-				{!isSubmitted && (
-					<>
-						<hr className="border-t" />
-						<div>
-							<div className="flex items-center justify-between text-xs mb-1">
-								<span className="text-muted-foreground">Progress</span>
-								<span className="font-medium">{edges.length} connections</span>
-							</div>
-							<div className="w-full h-2 bg-muted rounded-full overflow-hidden">
-								<div
-									className="h-full bg-primary transition-all duration-300"
-									style={{
-										width: `${Math.min((edges.length / 10) * 100, 100)}%`,
-									}}
-								/>
-							</div>
+					<div className="flex items-start justify-between gap-2">
+						<div className="min-w-0 flex-1">
+							<h2 className="font-medium text-sm leading-tight truncate">
+								{assignmentData.assignment.title}
+							</h2>
+							{assignmentData.assignment.description && (
+								<p className="text-xs text-muted-foreground mt-0.5 line-clamp-2">
+									{assignmentData.assignment.description}
+								</p>
+							)}
+							{context.attempt > 0 && (
+								<p className="text-xs text-muted-foreground mt-0.5">
+									Attempt {context.attempt}
+								</p>
+							)}
 						</div>
-					</>
-				)}
-			</div>
+						<Button
+							variant="ghost"
+							size="icon"
+							onClick={handleToggleInfo}
+							className="size-5"
+							title="Hide info"
+						>
+							<X className="size-3" />
+						</Button>
+					</div>
+					{!isSubmitted && (
+						<>
+							<hr className="border-t" />
+							<div>
+								<div className="flex items-center justify-between text-xs mb-1">
+									<span className="text-muted-foreground">Progress</span>
+									<span className="font-medium">{edges.length} connections</span>
+								</div>
+								<div className="w-full h-2 bg-muted rounded-full overflow-hidden">
+									<div
+										className="h-full bg-primary transition-all duration-300"
+										style={{
+											width: `${Math.min((edges.length / 10) * 100, 100)}%`,
+										}}
+									/>
+								</div>
+							</div>
+						</>
+					)}
+				</div>
 			)}
 			<MaterialDialog
 				open={materialOpen}
@@ -380,7 +380,7 @@ export function LearnerMapEditor() {
 					</AlertDialogFooter>
 				</AlertDialogContent>
 			</AlertDialog>
-			<div className="bg-card relative h-full overflow-hidden -mx-6 -mt-4">
+			<div className="bg-card relative h-full overflow-hidden -mx-6">
 				<ConceptMapCanvas
 					nodes={nodes}
 					edges={edges}
