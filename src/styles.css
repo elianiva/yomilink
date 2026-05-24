@@ -280,3 +280,31 @@ body {
 		transform: translateY(0);
 	}
 }
+
+.edge-pulse {
+	animation: edge-pulse 2s ease-in-out infinite;
+}
+
+@keyframes edge-pulse {
+	0%,
+	100% {
+		opacity: 1;
+	}
+	50% {
+		opacity: 0.4;
+	}
+}
+
+.react-flow__renderer,
+.react-flow__viewport {
+	will-change: transform;
+}
+
+@keyframes slide-up {
+	from {
+		transform: translateY(100%);
+	}
+	to {
+		transform: translateY(0);
+	}
+}

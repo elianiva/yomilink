@@ -155,7 +155,6 @@ export function classifyEdges(
 			id: `missing-${m.source}-${m.target}`,
 			source: m.source,
 			target: m.target,
-			animated: true,
 			style: { strokeDasharray: "5,5", opacity: 0.5 },
 		},
 		type: "missing" as const,

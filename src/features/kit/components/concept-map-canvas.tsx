@@ -5,7 +5,7 @@ import type {
 	NodeChange,
 	NodeMouseHandler,
 } from "@xyflow/react";
-import { Background, ConnectionMode, MiniMap, ReactFlow, useReactFlow } from "@xyflow/react";
+import { ConnectionMode, ReactFlow, useReactFlow } from "@xyflow/react";
 import { useCallback, useMemo } from "react";
 
 import type { Node, Edge } from "@/features/learner-map/lib/comparator";
@@ -173,12 +173,8 @@ export function ConceptMapCanvas({
 				nodesConnectable={!readOnly}
 				elementsSelectable={!readOnly}
 				fitView
+				onlyRenderVisibleElements
 			>
-				{/* Hidden on mobile to free canvas space */}
-				<div className="hidden sm:block">
-					<MiniMap />
-				</div>
-				<Background gap={16} />
 				{children}
 			</ReactFlow>
 		</NodeContext.Provider>

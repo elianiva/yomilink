@@ -4,9 +4,13 @@ type NodeWithMeasured = Node & {
 	measured?: { width?: number; height?: number };
 };
 
-/**
- * Get the center point of a node
- */
+type EdgeGeometry = {
+	sx: number;
+	sy: number;
+	tx: number;
+	ty: number;
+};
+
 function getNodeCenter(node: InternalNode | NodeWithMeasured): {
 	x: number;
 	y: number;
@@ -29,10 +33,6 @@ function getNodeCenter(node: InternalNode | NodeWithMeasured): {
 	};
 }
 
-/**
- * Calculate the intersection point between a line (from node center to a target point)
- * and the node's rectangular boundary.
- */
 function getNodeIntersection(
 	node: InternalNode | NodeWithMeasured,
 	targetPoint: { x: number; y: number },
@@ -57,7 +57,6 @@ function getNodeIntersection(
 	const dx = targetPoint.x - nodeCenter.x;
 	const dy = targetPoint.y - nodeCenter.y;
 
-	// Handle case where points are the same
 	if (dx === 0 && dy === 0) {
 		return { x: nodeCenter.x, y: nodeCenter.y - h };
 	}
@@ -69,11 +68,9 @@ function getNodeIntersection(
 	let intersectY: number;
 
 	if (slope <= nodeSlope) {
-		// Intersection is on left or right edge
 		intersectX = dx > 0 ? posX + width : posX;
 		intersectY = nodeCenter.y + (dy * w) / Math.abs(dx);
 	} else {
-		// Intersection is on top or bottom edge
 		intersectX = nodeCenter.x + (dx * h) / Math.abs(dy);
 		intersectY = dy > 0 ? posY + height : posY;
 	}
@@ -83,17 +80,13 @@ function getNodeIntersection(
 
 /**
  * Get the edge parameters (start and end points) for a floating edge
- * connecting two nodes.
+ * connecting two nodes. Accepts both InternalNode (reactive) and
+ * plain Node (static/pre-computed).
  */
 export function getEdgeParams(
 	source: InternalNode | NodeWithMeasured,
 	target: InternalNode | NodeWithMeasured,
-): {
-	sx: number;
-	sy: number;
-	tx: number;
-	ty: number;
-} {
+): EdgeGeometry {
 	const sourceCenter = getNodeCenter(source);
 	const targetCenter = getNodeCenter(target);
 
@@ -109,17 +102,13 @@ export function getEdgeParams(
 }
 
 /**
- * Get floating edge params when one end is a fixed point (used during connection dragging)
+ * Get floating edge params when one end is a fixed point (used during connection dragging).
+ * Only called transiently — no performance concern.
  */
 export function getEdgeParamsFromSourceToPoint(
 	source: InternalNode | NodeWithMeasured,
 	targetPoint: { x: number; y: number },
-): {
-	sx: number;
-	sy: number;
-	tx: number;
-	ty: number;
-} {
+): EdgeGeometry {
 	const sourceIntersection = getNodeIntersection(source, targetPoint);
 
 	return {
@@ -130,19 +119,13 @@ export function getEdgeParamsFromSourceToPoint(
 	};
 }
 
-function getQuadraticControlPoint({
+export function getQuadraticControlPoint({
 	sx,
 	sy,
 	tx,
 	ty,
 	curveOffset,
-}: {
-	sx: number;
-	sy: number;
-	tx: number;
-	ty: number;
-	curveOffset: number;
-}) {
+}: EdgeGeometry & { curveOffset: number }) {
 	const dx = tx - sx;
 	const dy = ty - sy;
 	const length = Math.sqrt(dx * dx + dy * dy);
@@ -163,38 +146,13 @@ function getQuadraticControlPoint({
 	};
 }
 
-export function getQuadraticCurvePath({
-	sx,
-	sy,
-	tx,
-	ty,
-	curveOffset,
-}: {
-	sx: number;
-	sy: number;
-	tx: number;
-	ty: number;
-	curveOffset: number;
-}) {
-	const { cx, cy } = getQuadraticControlPoint({ sx, sy, tx, ty, curveOffset });
-	return `M ${sx},${sy} Q ${cx},${cy} ${tx},${ty}`;
+export function getQuadraticCurvePath(params: EdgeGeometry & { curveOffset: number }): string {
+	const { cx, cy } = getQuadraticControlPoint(params);
+	return `M ${params.sx},${params.sy} Q ${cx},${cy} ${params.tx},${params.ty}`;
 }
 
-export function getQuadraticCurvePoint({
-	sx,
-	sy,
-	tx,
-	ty,
-	curveOffset,
-	t,
-}: {
-	sx: number;
-	sy: number;
-	tx: number;
-	ty: number;
-	curveOffset: number;
-	t: number;
-}) {
+export function getQuadraticCurvePoint(params: EdgeGeometry & { curveOffset: number; t: number }) {
+	const { sx, sy, tx, ty, curveOffset, t } = params;
 	const { cx, cy } = getQuadraticControlPoint({ sx, sy, tx, ty, curveOffset });
 	const oneMinusT = 1 - t;
 

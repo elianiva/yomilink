@@ -16,12 +16,23 @@ import {
 	TooltipViewport,
 	createTooltipHandle,
 } from "@/components/ui/tooltip";
+import { cn } from "@/lib/utils";
 
 import {
 	getEdgeParams,
 	getQuadraticCurvePoint,
 	getQuadraticCurvePath,
 } from "../lib/floating-edge-utils";
+
+type FloatingEdgeData = Record<string, unknown> & {
+	badge?: string;
+	curveOffset?: number;
+	badgeT?: number;
+	useCurvedPath?: boolean;
+	createdBy?: string;
+	showNamesOnHover?: boolean;
+	pulseOpacity?: boolean;
+};
 
 /**
  * A custom edge that connects to the closest point on the node boundary
@@ -32,6 +43,7 @@ export function FloatingEdge({ id, source, target, selected, markerEnd, style, d
 	const targetNode = useInternalNode(target);
 	const { deleteElements } = useReactFlow();
 	const tooltipHandle = createTooltipHandle();
+	const edgeData = data as FloatingEdgeData | undefined;
 
 	if (!sourceNode || !targetNode) {
 		return null;
@@ -39,11 +51,12 @@ export function FloatingEdge({ id, source, target, selected, markerEnd, style, d
 
 	const { sx, sy, tx, ty } = getEdgeParams(sourceNode, targetNode);
 
-	const badge = data?.badge as string | undefined;
-	const curveOffset = (data?.curveOffset as number) ?? 0;
-	const badgeT = Math.max(0.2, Math.min(0.8, (data?.badgeT as number) ?? 0.5));
-	const useCurvedPath = Boolean(data?.useCurvedPath);
-	const createdByRaw = data?.createdBy as string | undefined;
+	const badge = edgeData?.badge;
+	const curveOffset = edgeData?.curveOffset ?? 0;
+	const badgeT = Math.max(0.2, Math.min(0.8, edgeData?.badgeT ?? 0.5));
+	const useCurvedPath = Boolean(edgeData?.useCurvedPath);
+	const pulseOpacity = Boolean(edgeData?.pulseOpacity);
+	const createdByRaw = edgeData?.createdBy;
 	const createdBy = createdByRaw
 		?.split("\n")
 		.reduce<string[]>((acc, name) => {
@@ -52,7 +65,7 @@ export function FloatingEdge({ id, source, target, selected, markerEnd, style, d
 			return acc;
 		}, [])
 		.join("\n");
-	const showNamesOnHover = Boolean(data?.showNamesOnHover);
+	const showNamesOnHover = Boolean(edgeData?.showNamesOnHover);
 
 	const [straightPath] = getStraightPath({
 		sourceX: sx,
@@ -75,7 +88,7 @@ export function FloatingEdge({ id, source, target, selected, markerEnd, style, d
 		: { x: (sx + tx) / 2, y: (sy + ty) / 2 };
 
 	return (
-		<>
+		<g className={cn(pulseOpacity && "edge-pulse")}>
 			<BaseEdge id={id} path={edgePath} markerEnd={markerEnd} style={style} />
 			{badge && (
 				<foreignObject
@@ -145,6 +158,6 @@ export function FloatingEdge({ id, source, target, selected, markerEnd, style, d
 					</button>
 				</foreignObject>
 			)}
-		</>
+		</g>
 	);
 }

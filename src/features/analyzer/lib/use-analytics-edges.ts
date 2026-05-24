@@ -140,7 +140,6 @@ export function useAnalyticsEdges({
 								target,
 								type: "floating",
 								style,
-								animated: type === "missing",
 								data: {
 									badge: data[type].count.toString(),
 									curveOffset: getSymmetricCurveOffset(
@@ -151,6 +150,7 @@ export function useAnalyticsEdges({
 									useCurvedPath: true,
 									createdBy: creatorList || undefined,
 									showNamesOnHover,
+									pulseOpacity: type === "missing",
 								},
 							});
 						}
@@ -174,16 +174,14 @@ export function useAnalyticsEdges({
 								id: `${key}-${index}`,
 								source: classification.edge.source,
 								target: classification.edge.target,
-								sourceHandle: "right",
-								targetHandle: "left",
 								type: "floating",
 								style,
-								animated: classification.type === "missing",
 								data: {
 									curveOffset: getSymmetricCurveOffset(index, group.length),
 									useCurvedPath: true,
 									createdBy: classification.createdBy || undefined,
 									showNamesOnHover,
+									pulseOpacity: classification.type === "missing",
 								},
 							});
 						}
@@ -194,17 +192,16 @@ export function useAnalyticsEdges({
 					if (!isTypeVisible(classification.type, visibility)) continue;
 
 					const style = getEdgeStyleByType(classification.type);
+					const { animated: _animated, ...edgeBase } = classification.edge;
 					edgesToDisplay.push({
-						...classification.edge,
-						sourceHandle: "right",
-						targetHandle: "left",
+						...edgeBase,
 						type: "floating",
 						style,
-						animated: classification.type === "missing",
 						data: {
 							...classification.edge.data,
 							createdBy: classification.createdBy ?? currentLearnerMaps[0]?.userName,
 							showNamesOnHover,
+							pulseOpacity: classification.type === "missing",
 						},
 					});
 				}
@@ -213,8 +210,6 @@ export function useAnalyticsEdges({
 			for (const edge of goalEdges) {
 				edgesToDisplay.push({
 					...edge,
-					sourceHandle: "right",
-					targetHandle: "left",
 					type: "floating",
 					style: {
 						stroke: "var(--edge-neutral)",
@@ -269,8 +264,6 @@ export function useAnalyticsEdges({
 								id: `${key}-${type}`,
 								source,
 								target,
-								sourceHandle: "right",
-								targetHandle: "left",
 								type: "floating",
 								style,
 								data: {
@@ -307,8 +300,6 @@ export function useAnalyticsEdges({
 								id: `${key}-${index}`,
 								source: classification.edge.source,
 								target: classification.edge.target,
-								sourceHandle: "right",
-								targetHandle: "left",
 								type: "floating",
 								style,
 								data: {
@@ -329,8 +320,6 @@ export function useAnalyticsEdges({
 					const style = getEdgeStyleByType(classification.type);
 					edgesToDisplay.push({
 						...classification.edge,
-						sourceHandle: "right",
-						targetHandle: "left",
 						type: "floating",
 						style,
 						data: {
