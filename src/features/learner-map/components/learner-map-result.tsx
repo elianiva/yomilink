@@ -182,26 +182,6 @@ export function LearnerMapResult() {
 					/>
 				</div>
 
-				{assignment.postTestFormId && !postTestCompleted && (
-					<div className="absolute top-12 left-0 right-0 z-20 pointer-events-auto bg-primary/5 border-b border-primary/20 px-4 py-2 flex flex-col sm:flex-row items-start sm:items-center gap-2 sm:gap-3">
-						<FileTextIcon className="size-4 text-primary shrink-0 hidden sm:inline" />
-						<p className="text-sm font-medium text-foreground flex-1">
-							Your map has been submitted. Complete the post-test to finish.
-						</p>
-						<Button asChild size="sm" className="shrink-0 gap-1.5 w-full sm:w-auto">
-							<Link
-								to="/dashboard/forms/take"
-								search={{
-									formId: assignment.postTestFormId,
-									redirectBack: `/dashboard/assignments/${assignmentId}`,
-								}}
-							>
-								Take Post-Test
-								<ArrowRightIcon className="size-4" />
-							</Link>
-						</Button>
-					</div>
-				)}
 				<div className="absolute inset-0 z-10 pointer-events-none">
 					<div className="border-b-[0.5px] pointer-events-auto bg-background/70 backdrop-blur supports-[backdrop-filter]:bg-background/50">
 						<div className="h-12 px-3 flex items-center gap-2">
