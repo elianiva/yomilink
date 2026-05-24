@@ -82,28 +82,38 @@ function FormTakerPage() {
 
 	const startTimeRef = useRef<number>(Date.now());
 
-	// Sync query result into machine
+	// Sync query result into machine on initial load or after submit.
+	// Must NOT depend on `snapshot` (changes every render = loop).
+	// Use derived booleans instead.
+	const isLoadingState = snapshot.matches("loading");
+	const isSubmittingState = snapshot.matches("submitting");
+
 	useEffect(() => {
 		if (!data) return;
-		if (
-			snapshot.matches("loading") ||
-			snapshot.matches("submitting") ||
-			snapshot.matches("submitted")
-		) {
+		if (isLoadingState) {
 			send({ type: "FORM.LOADED", data });
 		}
-	}, [data, snapshot]);
+	}, [data, isLoadingState, send]);
+
+	useEffect(() => {
+		if (!data) return;
+		if (isSubmittingState) {
+			send({ type: "FORM.LOADED", data });
+		}
+	}, [data, isSubmittingState, send]);
+
 	useEffect(() => {
 		const loadError = error || rpcError;
-		if (loadError && snapshot.matches("loading")) {
+		if (loadError && isLoadingState) {
 			send({
 				type: "FORM.LOAD_ERROR",
 				error: typeof loadError === "string" ? loadError : "Failed to load form",
 			});
 		}
-	}, [error, rpcError, snapshot]);
+	}, [error, rpcError, isLoadingState, send]);
 
 	// Track start time
+	const isSubmittedState = snapshot.matches("submitted");
 	useEffect(() => {
 		if (!formId || !userId) return;
 		const key = `form-start-${userId}-${formId}`;
@@ -114,10 +124,10 @@ function FormTakerPage() {
 			startTimeRef.current = Date.now();
 			localStorage.setItem(key, String(startTimeRef.current));
 		}
-		if (snapshot.matches("submitted")) {
+		if (isSubmittedState) {
 			localStorage.removeItem(key);
 		}
-	}, [formId, userId, snapshot]);
+	}, [formId, userId, isSubmittedState]);
 
 	const handleAnswer = (questionId: string, value: string | number) => {
 		send({ type: "ANSWER", questionId, value });

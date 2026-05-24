@@ -32,6 +32,8 @@ function AssignmentsPage() {
 			dueAt: a.dueAt,
 			createdAt: a.createdAt ?? Date.now(),
 			status: a.status as "not_started" | "draft" | "submitted",
+			preTestCompleted: a.preTestCompleted,
+			postTestCompleted: a.postTestCompleted,
 			attempt: a.attempt,
 			isLate: a.isLate,
 			lastUpdated: a.lastUpdated,

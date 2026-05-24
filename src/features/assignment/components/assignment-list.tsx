@@ -35,6 +35,8 @@ export interface AssignmentListItem {
 	tamSubmitted?: number | null;
 	// Student view fields
 	status?: "not_started" | "draft" | "submitted";
+	preTestCompleted?: boolean;
+	postTestCompleted?: boolean;
 	attempt?: number;
 	isLate?: boolean | null;
 	lastUpdated?: number;
@@ -57,12 +59,14 @@ interface AssignmentListProps {
 }
 
 type TeacherStatus = "upcoming" | "active" | "overdue" | "completed";
-type StudentStatus =
-	| "not_started"
-	| "in_progress"
-	| "submitted"
-	| "late_not_started"
-	| "late_in_progress";
+type StudentPhase =
+	| "preTest"
+	| "kitbuilding"
+	| "postTest"
+	| "done"
+	| "preTestLate"
+	| "kitbuildingLate"
+	| "postTestLate";
 
 function getTeacherStatus(assignment: AssignmentListItem): TeacherStatus {
 	if (assignment.allSubmitted) return "completed";
@@ -72,13 +76,19 @@ function getTeacherStatus(assignment: AssignmentListItem): TeacherStatus {
 	return "active";
 }
 
-function getStudentStatus(assignment: AssignmentListItem): StudentStatus {
-	const status = assignment.status ?? "not_started";
+function getStudentPhase(assignment: AssignmentListItem): StudentPhase {
 	const isLate = assignment.isLate ?? false;
+	const { status, preTestCompleted, postTestCompleted } = assignment;
 
-	if (status === "submitted") return "submitted";
-	if (status === "draft") return isLate ? "late_in_progress" : "in_progress";
-	return isLate ? "late_not_started" : "not_started";
+	if (status === "submitted" && postTestCompleted) return "done";
+	if (status === "submitted" && !postTestCompleted) return isLate ? "postTestLate" : "postTest";
+	if (status === "draft" || status === "in_progress") {
+		if (preTestCompleted) return isLate ? "kitbuildingLate" : "kitbuilding";
+		return isLate ? "preTestLate" : "preTest";
+	}
+	// not_started
+	if (preTestCompleted) return isLate ? "kitbuildingLate" : "kitbuilding";
+	return isLate ? "preTestLate" : "preTest";
 }
 
 function formatDueDate(dueAt: number | undefined): string {
@@ -113,29 +123,39 @@ const teacherStatusConfig: Record<TeacherStatus, { label: string; dot: string; b
 	},
 };
 
-const studentStatusConfig: Record<StudentStatus, { label: string; dot: string; badge: string }> = {
-	not_started: {
-		label: "Not Started",
+const studentPhaseConfig: Record<StudentPhase, { label: string; dot: string; badge: string }> = {
+	preTest: {
+		label: "Pre-Test",
 		dot: "bg-stone-400",
 		badge: "bg-stone-100 text-stone-700 border-stone-200",
 	},
-	in_progress: {
-		label: "In Progress",
+	kitbuilding: {
+		label: "Kitbuilding",
 		dot: "bg-primary",
 		badge: "bg-primary/10 text-primary border-primary/20",
 	},
-	submitted: {
-		label: "Submitted",
+	postTest: {
+		label: "Post-Test",
+		dot: "bg-amber-500",
+		badge: "bg-amber-50 text-amber-700 border-amber-200",
+	},
+	done: {
+		label: "Done",
 		dot: "bg-green-500",
 		badge: "bg-green-50 text-green-700 border-green-200",
 	},
-	late_not_started: {
-		label: "Late - Not Started",
+	preTestLate: {
+		label: "Late - Pre-Test",
 		dot: "bg-red-400",
 		badge: "bg-red-50 text-red-700 border-red-200",
 	},
-	late_in_progress: {
-		label: "Late - In Progress",
+	kitbuildingLate: {
+		label: "Late - Kitbuilding",
+		dot: "bg-red-400",
+		badge: "bg-red-50 text-red-700 border-red-200",
+	},
+	postTestLate: {
+		label: "Late - Post-Test",
 		dot: "bg-red-400",
 		badge: "bg-red-50 text-red-700 border-red-200",
 	},
@@ -362,8 +382,10 @@ function StudentCard({
 	assignment: AssignmentListItem;
 	onClick?: (a: AssignmentListItem) => void;
 }) {
-	const status = getStudentStatus(assignment);
-	const statusCfg = studentStatusConfig[status];
+	const phase = getStudentPhase(assignment);
+	const phaseCfg = studentPhaseConfig[phase];
+	const showResult = phase === "done";
+	const showResume = phase !== "done" && phase !== "preTest" && phase !== "preTestLate";
 
 	return (
 		<Card className="relative w-full border border-stone-200 bg-white py-4">
@@ -376,11 +398,11 @@ function StudentCard({
 						<span
 							className={cn(
 								"inline-flex items-center gap-1.5 px-2 py-0.5 rounded-full text-xs font-medium border shrink-0",
-								statusCfg.badge,
+								phaseCfg.badge,
 							)}
 						>
-							<span className={cn("size-1.5 rounded-full", statusCfg.dot)} />
-							{statusCfg.label}
+							<span className={cn("size-1.5 rounded-full", phaseCfg.dot)} />
+							{phaseCfg.label}
 						</span>
 					</div>
 
@@ -409,7 +431,7 @@ function StudentCard({
 				</div>
 
 				<div className="flex items-center shrink-0">
-					{status === "submitted" ? (
+					{showResult ? (
 						<Button
 							variant="outline"
 							size="sm"
@@ -427,7 +449,7 @@ function StudentCard({
 							className="w-full"
 						>
 							<PlayIcon className="size-3.5 mr-1" />
-							Start
+							{showResume ? "Resume" : "Start"}
 						</Button>
 					)}
 				</div>
