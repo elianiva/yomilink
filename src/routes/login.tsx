@@ -104,7 +104,7 @@ function LoginPage() {
 			<div className="w-full max-w-md rounded-2xl border border-border/60 bg-white shadow-sm p-6 md:p-8 space-y-6">
 				<div className="flex items-center gap-3">
 					<div className="size-9 rounded-lg bg-primary/90 ring-4 ring-primary/10 flex items-center justify-center text-primary-foreground font-bold">
-						Y
+						KB
 					</div>
 					<div>
 						<h1 className="text-2xl font-semibold">KitBuild</h1>
@@ -135,7 +135,7 @@ function LoginPage() {
 								<Input
 									id="studentId"
 									value={field.state.value}
-									placeholder=""
+									placeholder="Enter your student ID / email"
 									onChange={(e) => field.handleChange(e.target.value)}
 									onBlur={field.handleBlur}
 									autoComplete="username"
@@ -155,6 +155,7 @@ function LoginPage() {
 									onChange={(e) => field.handleChange(e.target.value)}
 									onBlur={field.handleBlur}
 									autoComplete="current-password"
+									placeholder="********"
 								/>
 								<FieldInfo field={field} />
 							</div>
