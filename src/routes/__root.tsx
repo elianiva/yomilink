@@ -9,7 +9,8 @@ import { NotFound } from "../components/not-found";
 import RouteProgress from "../components/progress/route-progress";
 
 import appCss from "../styles.css?url";
-import fredokaFont from "@fontsource-variable/fredoka/index.css?url";
+import spaceGroteskFont from "@fontsource-variable/space-grotesk/index.css?url";
+import geistFont from "@fontsource/geist/index.css?url";
 
 interface MyRouterContext {
 	queryClient: QueryClient;
@@ -27,7 +28,8 @@ export const Route = createRootRouteWithContext<MyRouterContext>()({
 		],
 		links: [
 			{ rel: "stylesheet", href: appCss },
-			{ rel: "stylesheet", href: fredokaFont },
+			{ rel: "stylesheet", href: spaceGroteskFont },
+			{ rel: "stylesheet", href: geistFont },
 		],
 		scripts:
 			isDev && !disableReactScan

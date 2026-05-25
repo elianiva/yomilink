@@ -1,5 +1,5 @@
 import { useForm } from "@tanstack/react-form";
-import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
+import { createFileRoute, Link, redirect, useNavigate } from "@tanstack/react-router";
 import { Schema } from "effect";
 
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
@@ -20,12 +20,14 @@ export const Route = createFileRoute("/dashboard/profile")({
 			<ProfilePage />
 		</Guard>
 	),
-	loader: async ({ context }) => {
+	beforeLoad: async () => {
 		const me = await getMe();
-		if (!me.success) {
-			return null;
-		}
-		context.queryClient.setQueryData(ProfileRpc.me(), me.data);
+		if (!me.success) throw redirect({ to: "/login" });
+
+		return { me };
+	},
+	loader: async ({ context }) => {
+		context.queryClient.setQueryData(ProfileRpc.me(), context.me);
 	},
 });
 
@@ -60,7 +62,7 @@ function ProfilePage() {
 	if (me === null || me === undefined) {
 		return (
 			<div className="flex flex-1 items-center justify-center p-6">
-				<div className="rounded-2xl border border-border/60 bg-white px-8 py-6 shadow-sm">
+				<div className="border border-border/60 bg-white px-8 py-6 shadow-sm">
 					<p className="text-sm text-muted-foreground">No profile found.</p>
 				</div>
 			</div>
@@ -72,14 +74,14 @@ function ProfilePage() {
 			<div className="max-w-6xl mx-auto">
 				<div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
 					<div className="lg:col-span-4 space-y-6">
-						<div className="rounded-2xl border border-border/60 bg-white shadow-sm p-6">
+						<div className="border border-border/60 bg-white shadow-sm p-6">
 							<div className="flex items-center gap-4">
-								<Avatar className="size-16 rounded-2xl ring-4 ring-primary/10">
+								<Avatar className="size-16 ring-4 ring-primary/10">
 									<AvatarImage
 										src={me.image ?? ""}
 										alt={me.name ?? me.email ?? "User"}
 									/>
-									<AvatarFallback className="rounded-2xl bg-primary/90 text-primary-foreground text-xl font-bold">
+									<AvatarFallback className="bg-primary/90 text-primary-foreground text-xl font-bold">
 										{((me.name ?? me.email ?? "U")[0] ?? "U").toUpperCase()}
 									</AvatarFallback>
 								</Avatar>
@@ -117,7 +119,7 @@ function ProfilePage() {
 							</div>
 						</div>
 
-						<div className="rounded-2xl border border-border/60 bg-white shadow-sm p-6">
+						<div className="border border-border/60 bg-white shadow-sm p-6">
 							<Button
 								variant="destructive"
 								className="w-full"
@@ -135,7 +137,7 @@ function ProfilePage() {
 					</div>
 
 					<div className="lg:col-span-8">
-						<div className="rounded-2xl border border-border/60 bg-white shadow-sm">
+						<div className="border border-border/60 bg-white shadow-sm">
 							<div className="p-6 border-b">
 								<h2 className="text-lg font-semibold">Edit Profile</h2>
 								<p className="text-sm text-muted-foreground">
@@ -208,7 +210,7 @@ function ProfilePage() {
 													<Label htmlFor="jlptLevel">JLPT Level</Label>
 													<select
 														id="jlptLevel"
-														className="w-full h-10 rounded-md border border-input bg-background px-3 py-2 text-sm"
+														className="w-full h-10 border border-input bg-background px-3 py-2 text-sm"
 														value={field.state.value ?? "None"}
 														onChange={(e) =>
 															field.handleChange(
