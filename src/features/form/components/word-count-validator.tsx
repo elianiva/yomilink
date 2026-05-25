@@ -37,8 +37,8 @@ export function WordCountValidator({
 		if (isBelowMinimum) {
 			return {
 				icon: AlertCircle,
-				iconClassName: "text-amber-500",
-				textClassName: "text-amber-500",
+				iconClassName: "text-warning",
+				textClassName: "text-warning",
 				message: minWordCount
 					? `${wordCount} / ${minWordCount} ${wordLabel} minimum`
 					: `${wordCount} ${wordLabel}`,
@@ -46,8 +46,8 @@ export function WordCountValidator({
 		}
 		return {
 			icon: CheckCircle2,
-			iconClassName: "text-green-500",
-			textClassName: "text-green-500",
+			iconClassName: "text-success",
+			textClassName: "text-success",
 			message: `${wordCount} ${wordLabel}`,
 		};
 	};

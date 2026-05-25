@@ -104,8 +104,8 @@ export function FormPreview({
 						className={cn(
 							"rounded-full px-3 py-1 text-xs font-medium",
 							form.status === "published"
-								? "bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200"
-								: "bg-yellow-100 text-yellow-800 dark:bg-yellow-900 dark:text-yellow-200",
+								? "bg-success/15 text-success dark:bg-success/20 dark:text-success-foreground"
+								: "bg-warning/15 text-warning dark:bg-warning/20 dark:text-warning-foreground",
 						)}
 					>
 						{form.status === "published" ? "Published" : "Draft"}

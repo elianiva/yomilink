@@ -17,14 +17,14 @@ export function PasswordStrength({ password }: PasswordStrengthProps) {
 	const strength = passed === 4 ? "strong" : passed >= 3 ? "medium" : "weak";
 	const strengthColor = {
 		weak: "bg-destructive",
-		medium: "bg-amber-500",
-		strong: "bg-emerald-500",
+		medium: "bg-warning",
+		strong: "bg-success",
 	};
 	const requirement = (label: string, met: boolean) => (
 		<div
 			className={cn(
 				"flex items-center gap-1.5 text-xs",
-				met ? "text-emerald-600" : "text-muted-foreground",
+				met ? "text-success" : "text-muted-foreground",
 			)}
 		>
 			{met ? <Check className="size-3" /> : <X className="size-3" />}

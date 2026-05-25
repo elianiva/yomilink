@@ -60,11 +60,11 @@ export function ControlSubmissionConfirmModal({
 
 				{isBelowMinimum && (
 					<div
-						className="flex items-start gap-2 rounded-lg border border-amber-200 bg-amber-50 p-3 dark:border-amber-900 dark:bg-amber-950"
+						className="flex items-start gap-2 rounded-lg border border-warning/30 bg-warning/5 p-3 dark:border-warning/40 dark:bg-warning/10"
 						data-testid="word-count-warning"
 					>
-						<AlertTriangle className="mt-0.5 size-4 shrink-0 text-amber-600 dark:text-amber-400" />
-						<div className="text-sm text-amber-800 dark:text-amber-200">
+						<AlertTriangle className="mt-0.5 size-4 shrink-0 text-warning" />
+						<div className="text-sm text-warning-foreground">
 							<p className="font-medium">Word count below minimum</p>
 							<p>
 								Your submission has {wordCount} words, but the minimum required is{" "}
@@ -93,7 +93,7 @@ export function ControlSubmissionConfirmModal({
 						<span
 							className={cn(
 								"font-medium",
-								isBelowMinimum ? "text-amber-500" : "text-green-600",
+								isBelowMinimum ? "text-warning" : "text-success",
 							)}
 							data-testid="preview-word-count"
 						>

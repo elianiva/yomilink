@@ -27,7 +27,7 @@ export function ConnectionModeIndicator({
 		<div
 			className={cn(
 				"absolute bottom-20 left-1/2 -translate-x-1/2 z-20",
-				"bg-blue-500 text-white border border-blue-600 rounded-lg px-3 py-1.5 shadow-lg text-sm",
+				"bg-info text-info-foreground border-info rounded-lg px-3 py-1.5 shadow-lg text-sm",
 				"flex items-center gap-2",
 				className,
 			)}

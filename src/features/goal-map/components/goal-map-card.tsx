@@ -63,7 +63,7 @@ export function GoalMapCard({
 					{edgeCount} link{edgeCount !== 1 ? "s" : ""}
 				</span>
 				{goalMap.kitId && (
-					<span className="inline-flex items-center gap-1 text-green-600">
+					<span className="inline-flex items-center gap-1 text-success">
 						<CheckCircle className="size-3" aria-hidden="true" />
 						Kit ready
 					</span>

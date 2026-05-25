@@ -158,15 +158,15 @@ export function WarningsPanel({
 	const tone =
 		variant === "error"
 			? {
-					border: "border-red-300",
-					bg: "bg-red-50",
-					text: "text-red-900",
+					border: "border-destructive/30",
+					bg: "bg-destructive/5",
+					text: "text-destructive",
 					title: "Errors",
 				}
 			: {
-					border: "border-amber-300",
-					bg: "bg-amber-50",
-					text: "text-amber-900",
+					border: "border-warning/30",
+					bg: "bg-warning/5",
+					text: "text-warning",
 					title: "Validation warnings",
 				};
 

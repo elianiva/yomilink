@@ -211,7 +211,7 @@ export function CreateAssignmentForm({ onSuccess, onCancel }: CreateAssignmentFo
 						required
 					/>
 					{ctx.procedure.preTestFormId === "" && (
-						<p className="text-xs text-amber-600">
+						<p className="text-xs text-warning">
 							Pre-test is required by default for all assignments.
 						</p>
 					)}
@@ -338,7 +338,7 @@ export function CreateAssignmentForm({ onSuccess, onCancel }: CreateAssignmentFo
 					</div>
 					{ctx.assignment.selectedCohorts.length === 0 &&
 						ctx.assignment.selectedUsers.length === 0 && (
-							<p className="text-sm text-amber-600">
+							<p className="text-sm text-warning">
 								Please select at least one cohort or user to assign this to.
 							</p>
 						)}

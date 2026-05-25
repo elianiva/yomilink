@@ -49,11 +49,11 @@ const formTypeLabels: Record<FormType, string> = {
 const formStatusConfig: Record<FormStatus, { label: string; dot: string }> = {
 	draft: {
 		label: "draft",
-		dot: "bg-yellow-500",
+		dot: "bg-warning",
 	},
 	published: {
 		label: "published",
-		dot: "bg-green-500",
+		dot: "bg-success",
 	},
 };
 
@@ -73,8 +73,8 @@ export function FormList({
 					className,
 				)}
 			>
-				<FileText className="size-12 text-stone-400 mb-3" />
-				<p className="text-stone-500">No forms found</p>
+				<FileText className="size-12 text-muted-foreground mb-3" />
+				<p className="text-muted-foreground">No forms found</p>
 			</div>
 		);
 	}
@@ -85,37 +85,34 @@ export function FormList({
 				const statusConfig = formStatusConfig[form.status];
 
 				return (
-					<Card
-						key={form.id}
-						className="group relative border border-stone-200 bg-white py-1"
-					>
+					<Card key={form.id} className="group relative border-border py-1">
 						<CardContent className="p-3">
 							<div className="flex items-start gap-3">
-								<div className="flex size-9 shrink-0 items-center justify-center rounded-md border border-stone-200 bg-stone-50 text-stone-500">
+								<div className="flex size-9 shrink-0 items-center justify-center rounded-md border-border bg-muted text-muted-foreground">
 									{formTypeIcons[form.type]}
 								</div>
 
 								<div className="min-w-0 flex-1">
 									<div className="flex items-center gap-2">
-										<h3 className="truncate font-medium text-stone-800">
+										<h3 className="truncate font-medium text-card-foreground">
 											{form.title}
 										</h3>
 									</div>
 
 									{form.description && (
-										<p className="truncate text-sm text-stone-500 mt-1">
+										<p className="truncate text-sm text-muted-foreground mt-1">
 											{form.description}
 										</p>
 									)}
 
 									<div className="mt-1 flex flex-wrap items-center gap-2">
-										<span className="text-xs text-stone-500">
+										<span className="text-xs text-muted-foreground">
 											{formTypeLabels[form.type]}
 										</span>
 
-										<span className="text-stone-300">·</span>
+										<span className="text-border/50">·</span>
 
-										<span className="flex items-center gap-1 text-xs text-stone-500">
+										<span className="flex items-center gap-1 text-xs text-muted-foreground">
 											<span
 												className={cn(
 													"size-1.5 rounded-full",
@@ -127,8 +124,8 @@ export function FormList({
 
 										{form.createdAt && (
 											<>
-												<span className="text-stone-300">·</span>
-												<span className="text-xs text-stone-400">
+												<span className="text-border/50">·</span>
+												<span className="text-xs text-muted-foreground">
 													Created: {formatRelativeTime(form.createdAt)}
 												</span>
 											</>
@@ -146,7 +143,7 @@ export function FormList({
 												onViewResults(form);
 											}}
 											title="View Results"
-											className="size-7 text-stone-400 hover:text-stone-600"
+											className="size-7 text-muted-foreground hover:text-foreground"
 										>
 											<BarChart3 className="size-4" />
 										</Button>
@@ -160,7 +157,7 @@ export function FormList({
 												onEdit(form);
 											}}
 											title="Edit"
-											className="size-7 text-stone-400 hover:text-stone-600"
+											className="size-7 text-muted-foreground hover:text-foreground"
 										>
 											<Pencil className="size-4" />
 										</Button>
@@ -174,7 +171,7 @@ export function FormList({
 												onDuplicate(form);
 											}}
 											title="Duplicate"
-											className="size-7 text-stone-400 hover:text-stone-600"
+											className="size-7 text-muted-foreground hover:text-foreground"
 										>
 											<Copy className="size-4" />
 										</Button>
@@ -188,7 +185,7 @@ export function FormList({
 												onDelete(form.id);
 											}}
 											title="Delete"
-											className="size-7 text-stone-400 hover:text-red-600"
+											className="size-7 text-muted-foreground hover:text-destructive"
 										>
 											<Trash2 className="size-4" />
 										</Button>

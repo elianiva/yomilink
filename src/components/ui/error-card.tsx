@@ -18,8 +18,8 @@ const errorCardVariants = cva("flex flex-col gap-3 rounded-lg border p-4 text-sm
 		variant: {
 			error: "border-destructive/50 bg-destructive/10 text-destructive dark:border-destructive/40 dark:bg-destructive/15",
 			warning:
-				"border-amber-500/50 bg-amber-500/10 text-amber-700 dark:border-amber-500/40 dark:bg-amber-500/15 dark:text-amber-400",
-			info: "border-blue-500/50 bg-blue-500/10 text-blue-700 dark:border-blue-500/40 dark:bg-blue-500/15 dark:text-blue-400",
+				"border-warning/50 bg-warning/10 text-warning dark:border-warning/40 dark:bg-warning/15",
+			info: "border-info/50 bg-info/10 text-info dark:border-info/40 dark:bg-info/15",
 		},
 	},
 	defaultVariants: {

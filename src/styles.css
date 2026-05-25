@@ -53,8 +53,16 @@ body {
 	--chart-4: oklch(0.6 0.1 45);
 	--chart-5: oklch(0.52 0.12 15);
 
+	/* Semantic feedback colors */
+	--success: oklch(0.65 0.08 145);
+	--success-foreground: oklch(1 0 0);
+	--warning: oklch(0.75 0.12 75);
+	--warning-foreground: oklch(0.2 0.01 65);
+	--info: oklch(0.6 0.09 220);
+	--info-foreground: oklch(1 0 0);
+
 	/* Edge colors - Soft semantic palette */
-	--edge-correct: oklch(0.65 0.08 145);
+	--edge-correct: var(--success);
 	--edge-excessive: oklch(0.6 0.06 230);
 	--edge-missing: oklch(0.58 0.12 25);
 	--edge-neutral: oklch(0.55 0.04 65);
@@ -140,8 +148,16 @@ body {
 	--chart-4: oklch(0.65 0.09 45);
 	--chart-5: oklch(0.58 0.11 15);
 
+	/* Semantic feedback colors */
+	--success: oklch(0.68 0.07 145);
+	--success-foreground: oklch(1 0 0);
+	--warning: oklch(0.7 0.12 75);
+	--warning-foreground: oklch(0.995 0.005 75);
+	--info: oklch(0.65 0.09 220);
+	--info-foreground: oklch(1 0 0);
+
 	/* Edge colors - Soft semantic palette */
-	--edge-correct: oklch(0.68 0.07 145);
+	--edge-correct: var(--success);
 	--edge-excessive: oklch(0.65 0.05 230);
 	--edge-missing: oklch(0.62 0.1 25);
 	--edge-neutral: oklch(0.6 0.03 65);
@@ -206,6 +222,13 @@ body {
 	--color-chart-3: var(--chart-3);
 	--color-chart-4: var(--chart-4);
 	--color-chart-5: var(--chart-5);
+
+	--color-success: var(--success);
+	--color-success-foreground: var(--success-foreground);
+	--color-warning: var(--warning);
+	--color-warning-foreground: var(--warning-foreground);
+	--color-info: var(--info);
+	--color-info-foreground: var(--info-foreground);
 
 	--color-edge-correct: var(--edge-correct);
 	--color-edge-excessive: var(--edge-excessive);

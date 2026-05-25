@@ -6,7 +6,7 @@ export function FieldInfo({ field }: { field: AnyFieldApi }) {
 	return (
 		<>
 			{hasTouched && !isValid ? (
-				<span className="text-xs text-red-500">
+				<span className="text-xs text-destructive">
 					{field.state.meta.errors.map((err) => err.message).join(",")}
 				</span>
 			) : null}

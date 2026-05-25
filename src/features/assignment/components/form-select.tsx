@@ -22,7 +22,7 @@ export function FormSelect({
 		<div className="space-y-2">
 			<Label htmlFor={id}>
 				{label}
-				{required && <span className="text-amber-600 ml-1">*</span>}
+				{required && <span className="text-destructive ml-1">*</span>}
 			</Label>
 			<SearchableSelect
 				value={value}

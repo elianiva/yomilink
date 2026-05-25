@@ -195,7 +195,7 @@ export function LearnerMapResult() {
 							<Badge variant="outline" className="text-[11px] h-5 px-1.5 shrink-0">
 								Attempt {learnerMap.attempt}
 							</Badge>
-							<Badge className="bg-emerald-600 text-white text-[11px] h-5 px-1.5 shrink-0">
+							<Badge className="bg-success text-primary-foreground text-[11px] h-5 px-1.5 shrink-0">
 								Submitted
 							</Badge>
 							<div className="ml-auto flex items-center gap-1.5 shrink-0">

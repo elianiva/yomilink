@@ -47,7 +47,7 @@ export function AnswerOptionCard({
 			}}
 			className={cn(
 				"flex items-start gap-2 rounded-xl border bg-card p-3 transition-colors",
-				isCorrect && "border-green-500/50 bg-green-50/25",
+				isCorrect && "border-success/50 bg-success/5",
 			)}
 			data-testid={`option-row-${index}`}
 		>
@@ -83,9 +83,7 @@ export function AnswerOptionCard({
 					onChange={(e) => onTextChange(e.target.value)}
 					placeholder={`Option ${index + 1}`}
 					disabled={disabled}
-					className={cn(
-						isCorrect && "border-green-500/50 focus-visible:ring-green-500/30",
-					)}
+					className={cn(isCorrect && "border-success/50 focus-visible:ring-success/30")}
 				/>
 
 				<button
@@ -95,7 +93,7 @@ export function AnswerOptionCard({
 					data-testid={`correct-toggle-${index}`}
 					className={cn(
 						"self-start flex items-center gap-1 text-xs font-medium transition-colors",
-						isCorrect ? "text-green-600" : "text-muted-foreground hover:text-green-600",
+						isCorrect ? "text-success" : "text-muted-foreground hover:text-success",
 					)}
 				>
 					{isCorrect ? (

@@ -197,13 +197,13 @@ export function FormMetadataEditor({
 					<SelectContent>
 						<SelectItem value="draft">
 							<div className="flex items-center gap-2">
-								<span className="size-2 rounded-full bg-yellow-500" />
+								<span className="size-2 rounded-full bg-warning" />
 								Draft
 							</div>
 						</SelectItem>
 						<SelectItem value="published">
 							<div className="flex items-center gap-2">
-								<span className="size-2 rounded-full bg-green-500" />
+								<span className="size-2 rounded-full bg-success" />
 								Published
 							</div>
 						</SelectItem>

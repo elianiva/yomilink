@@ -72,8 +72,8 @@ export function SubmissionReview({
 			<Card className="overflow-hidden py-0">
 				<CardHeader className="space-y-2 border-b bg-muted/30 pt-4">
 					<div className="flex items-center gap-2">
-						<CheckCircle2Icon className="size-5 text-emerald-600" />
-						<Badge className="bg-emerald-600 text-white">Completed</Badge>
+						<CheckCircle2Icon className="size-5 text-success" />
+						<Badge className="bg-success text-primary-foreground">Completed</Badge>
 					</div>
 					<CardTitle className="text-2xl">{title}</CardTitle>
 					<CardDescription>

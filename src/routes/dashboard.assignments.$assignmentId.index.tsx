@@ -294,7 +294,7 @@ function AssignmentFlowPage() {
 											{isCompleted && (
 												<Badge
 													variant="outline"
-													className="text-[11px] h-5 px-1.5 text-emerald-600 border-emerald-200 bg-emerald-50"
+													className="text-[11px] h-5 px-1.5 text-success border-success/20 bg-success/5"
 												>
 													Completed
 												</Badge>
@@ -333,9 +333,9 @@ function AssignmentFlowPage() {
 			</div>
 
 			{isComplete && (
-				<Card className="border-emerald-200 bg-emerald-50/50">
+				<Card className="border-success/20 bg-success/5">
 					<CardContent className="p-6 text-center space-y-3">
-						<CheckCircle2Icon className="size-10 text-emerald-600 mx-auto" />
+						<CheckCircle2Icon className="size-10 text-success mx-auto" />
 						<div>
 							<h3 className="font-semibold text-lg">All steps completed!</h3>
 							<p className="text-sm text-muted-foreground mt-1">

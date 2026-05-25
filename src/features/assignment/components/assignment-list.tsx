@@ -102,8 +102,8 @@ function formatDueDate(dueAt: number | undefined): string {
 const teacherStatusConfig: Record<TeacherStatus, { label: string; dot: string; badge: string }> = {
 	upcoming: {
 		label: "Upcoming",
-		dot: "bg-blue-400",
-		badge: "bg-blue-50 text-blue-700 border-blue-200",
+		dot: "bg-info",
+		badge: "bg-info/10 text-info border-info/20",
 	},
 	active: {
 		label: "Active",
@@ -112,21 +112,21 @@ const teacherStatusConfig: Record<TeacherStatus, { label: string; dot: string; b
 	},
 	overdue: {
 		label: "Overdue",
-		dot: "bg-red-400",
-		badge: "bg-red-50 text-red-700 border-red-200",
+		dot: "bg-destructive",
+		badge: "bg-destructive/10 text-destructive border-destructive/20",
 	},
 	completed: {
 		label: "Completed",
-		dot: "bg-green-500",
-		badge: "bg-green-50 text-green-700 border-green-200",
+		dot: "bg-success",
+		badge: "bg-success/10 text-success border-success/20",
 	},
 };
 
 const studentPhaseConfig: Record<StudentPhase, { label: string; dot: string; badge: string }> = {
 	preTest: {
 		label: "Pre-Test",
-		dot: "bg-stone-400",
-		badge: "bg-stone-100 text-stone-700 border-stone-200",
+		dot: "bg-muted-foreground",
+		badge: "bg-muted text-muted-foreground border-border",
 	},
 	kitbuilding: {
 		label: "Kitbuilding",
@@ -135,28 +135,28 @@ const studentPhaseConfig: Record<StudentPhase, { label: string; dot: string; bad
 	},
 	postTest: {
 		label: "Post-Test",
-		dot: "bg-amber-500",
-		badge: "bg-amber-50 text-amber-700 border-amber-200",
+		dot: "bg-warning",
+		badge: "bg-warning/10 text-warning border-warning/20",
 	},
 	done: {
 		label: "Done",
-		dot: "bg-green-500",
-		badge: "bg-green-50 text-green-700 border-green-200",
+		dot: "bg-success",
+		badge: "bg-success/10 text-success border-success/20",
 	},
 	preTestLate: {
 		label: "Late - Pre-Test",
-		dot: "bg-red-400",
-		badge: "bg-red-50 text-red-700 border-red-200",
+		dot: "bg-destructive",
+		badge: "bg-destructive/10 text-destructive border-destructive/20",
 	},
 	kitbuildingLate: {
 		label: "Late - Kitbuilding",
-		dot: "bg-red-400",
-		badge: "bg-red-50 text-red-700 border-red-200",
+		dot: "bg-destructive",
+		badge: "bg-destructive/10 text-destructive border-destructive/20",
 	},
 	postTestLate: {
 		label: "Late - Post-Test",
-		dot: "bg-red-400",
-		badge: "bg-red-50 text-red-700 border-red-200",
+		dot: "bg-destructive",
+		badge: "bg-destructive/10 text-destructive border-destructive/20",
 	},
 };
 
@@ -210,16 +210,16 @@ function ProgressBar({
 	const percentage = total > 0 ? Math.round((current / total) * 100) : 0;
 	return (
 		<div className={cn("flex items-center gap-2", className)}>
-			<div className="h-1.5 w-16 rounded-full bg-stone-200 overflow-hidden">
+			<div className="h-1.5 w-16 rounded-full bg-muted overflow-hidden">
 				<div
 					className={cn(
 						"h-full rounded-full transition-all",
-						percentage === 100 ? "bg-green-500" : "bg-primary",
+						percentage === 100 ? "bg-success" : "bg-primary",
 					)}
 					style={{ width: `${percentage}%` }}
 				/>
 			</div>
-			<span className="text-xs text-stone-500">{percentage}%</span>
+			<span className="text-xs text-muted-foreground">{percentage}%</span>
 		</div>
 	);
 }
@@ -247,17 +247,17 @@ function TeacherCard({
 	return (
 		<Card
 			className={cn(
-				"group relative w-full overflow-hidden border border-stone-200 shadow-none transition-all duration-200 py-4",
-				onClick &&
-					"interactive hover:border-primary/40 hover:shadow-sm hover:bg-stone-50/50",
-				"bg-white",
+				"group relative w-full overflow-hidden border-border shadow-none transition-all duration-200 py-4",
+				onClick && "interactive hover:border-primary/40 hover:shadow-sm hover:bg-muted/50",
 			)}
 			onClick={onClick ? handleClick : undefined}
 		>
 			<CardContent className="px-4 flex max-sm:flex-col md:items-start justify-between gap-4">
 				<div className="min-w-0 space-y-1">
 					<div className="flex items-center gap-2 flex-wrap">
-						<h3 className="truncate font-medium text-stone-800">{assignment.title}</h3>
+						<h3 className="truncate font-medium text-card-foreground">
+							{assignment.title}
+						</h3>
 						<span
 							className={cn(
 								"inline-flex items-center gap-1.5 px-2 py-0.5 rounded-full text-xs font-medium border shrink-0",
@@ -270,20 +270,22 @@ function TeacherCard({
 					</div>
 
 					{assignment.description && (
-						<p className="truncate text-sm text-stone-500">{assignment.description}</p>
+						<p className="truncate text-sm text-muted-foreground">
+							{assignment.description}
+						</p>
 					)}
 
 					<div className="flex flex-wrap items-center gap-x-2 gap-y-1 text-xs">
-						<span className="text-stone-600">
+						<span className="text-muted-foreground">
 							{assignment.goalMapTitle ?? "No goal map"}
 						</span>
-						<span className="text-stone-300">·</span>
-						<span className="flex items-center gap-1 text-stone-500">
+						<span className="text-border/50">·</span>
+						<span className="flex items-center gap-1 text-muted-foreground">
 							<CalendarIcon className="size-3" />
 							{formatDueDate(assignment.dueAt)}
 						</span>
-						<span className="text-stone-300">·</span>
-						<span className="text-stone-400">
+						<span className="text-border/50">·</span>
+						<span className="text-muted-foreground">
 							{(assignment.assignedCohortCount ?? 0) > 0 && (
 								<>
 									{assignment.assignedCohortCount} cohort
@@ -303,12 +305,12 @@ function TeacherCard({
 
 					<div className="flex flex-wrap items-center gap-x-3 gap-y-2">
 						<div className="flex items-center gap-2">
-							<UsersIcon className="size-3.5 shrink-0 text-stone-400" />
+							<UsersIcon className="size-3.5 shrink-0 text-muted-foreground" />
 							<div className="flex items-baseline gap-1">
-								<span className="text-sm font-medium text-stone-700">
+								<span className="text-sm font-medium text-card-foreground">
 									{assignment.submittedStudents ?? 0}
 								</span>
-								<span className="text-sm text-stone-400">
+								<span className="text-sm text-muted-foreground">
 									/{assignment.totalStudents ?? 0}
 								</span>
 							</div>
@@ -319,7 +321,7 @@ function TeacherCard({
 						</div>
 
 						{attachedForms.length > 0 && (
-							<div className="hidden sm:flex items-center gap-3 pl-3 border-l border-stone-200">
+							<div className="hidden sm:flex items-center gap-3 pl-3 border-l border-border">
 								{formConfigs.map((form) =>
 									form.hasForm ? (
 										<div
@@ -327,8 +329,10 @@ function TeacherCard({
 											className="flex items-center gap-1.5"
 											title={`${form.label}: ${form.submitted ?? 0}/${form.total ?? 0}`}
 										>
-											<span className="text-stone-400">{form.icon}</span>
-											<span className="text-xs text-stone-500">
+											<span className="text-muted-foreground">
+												{form.icon}
+											</span>
+											<span className="text-xs text-muted-foreground">
 												{form.submitted ?? 0}/{form.total ?? 0}
 											</span>
 										</div>
@@ -387,11 +391,11 @@ function StudentCard({
 	const showResume = phase !== "done" && phase !== "preTest" && phase !== "preTestLate";
 
 	return (
-		<Card className="relative w-full border border-stone-200 bg-white py-4">
+		<Card className="relative w-full border-border py-4">
 			<CardContent className="px-4 flex max-sm:flex-col md:items-start justify-between gap-4">
 				<div className="min-w-0 space-y-1">
 					<div className="flex items-center gap-2 flex-wrap">
-						<h3 className="truncate font-medium text-stone-800 leading-none">
+						<h3 className="truncate font-medium text-card-foreground leading-none">
 							{assignment.title}
 						</h3>
 						<span
@@ -406,24 +410,26 @@ function StudentCard({
 					</div>
 
 					{assignment.description && (
-						<p className="line-clamp-2 text-sm text-stone-500">
+						<p className="line-clamp-2 text-sm text-muted-foreground">
 							{assignment.description}
 						</p>
 					)}
 
 					<div className="flex flex-wrap items-center gap-x-2 gap-y-1 text-xs">
-						<span className="text-stone-600">
+						<span className="text-muted-foreground">
 							{assignment.goalMapTitle ?? "No goal map"}
 						</span>
-						<span className="text-stone-300">·</span>
-						<span className="flex items-center gap-1 text-stone-500">
+						<span className="text-border/50">·</span>
+						<span className="flex items-center gap-1 text-muted-foreground">
 							<CalendarIcon className="size-3" />
 							{formatDueDate(assignment.dueAt)}
 						</span>
 						{(assignment.attempt ?? 0) > 0 && (
 							<>
-								<span className="text-stone-300">·</span>
-								<span className="text-stone-400">Attempt {assignment.attempt}</span>
+								<span className="text-border/50">·</span>
+								<span className="text-muted-foreground">
+									Attempt {assignment.attempt}
+								</span>
 							</>
 						)}
 					</div>
@@ -469,15 +475,15 @@ export function AssignmentList({
 		return (
 			<div
 				className={cn(
-					"flex flex-col items-center justify-center py-12 text-center border border-stone-200 rounded-lg bg-card",
+					"flex flex-col items-center justify-center py-12 text-center border-border rounded-lg bg-card",
 					className,
 				)}
 			>
-				<MapIcon className="size-12 text-stone-400 mb-3" />
-				<h3 className="font-medium text-stone-700 mb-1">
+				<MapIcon className="size-12 text-muted-foreground mb-3" />
+				<h3 className="font-medium text-card-foreground mb-1">
 					{viewMode === "teacher" ? "No assignments yet" : "No assignments"}
 				</h3>
-				<p className="text-sm text-stone-500 mb-4">
+				<p className="text-sm text-muted-foreground mb-4">
 					{viewMode === "teacher"
 						? "Create your first assignment to get started"
 						: "You don't have any assignments yet"}

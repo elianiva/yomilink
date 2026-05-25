@@ -65,7 +65,7 @@ export function ResultSidePanel({
 								{postTestCompleted ? "Completed" : "Next step required"}
 							</p>
 							{postTestCompleted && (
-								<Badge className="bg-emerald-600 text-white">Done</Badge>
+								<Badge className="bg-success text-primary-foreground">Done</Badge>
 							)}
 						</div>
 						<p className="text-sm text-muted-foreground">{postTestDescription}</p>

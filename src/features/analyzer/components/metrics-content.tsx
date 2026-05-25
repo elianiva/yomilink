@@ -37,15 +37,15 @@ const chartConfig = {
 	},
 	correct: {
 		label: "Correct",
-		color: "#7eb87a",
+		color: "var(--edge-correct)",
 	},
 	missing: {
 		label: "Missing",
-		color: "#d47876",
+		color: "var(--edge-missing)",
 	},
 	excessive: {
 		label: "Excessive",
-		color: "#7ba9c9",
+		color: "var(--edge-excessive)",
 	},
 } satisfies ChartConfig;
 
@@ -116,17 +116,17 @@ export function MetricsContent({ assignmentId }: MetricsContentProps) {
 			{
 				name: "Correct",
 				value: Number.parseFloat(avgEdgeTypes.correct.toFixed(2)),
-				fill: "#7eb87a",
+				fill: "var(--edge-correct)",
 			},
 			{
 				name: "Missing",
 				value: Number.parseFloat(avgEdgeTypes.missing.toFixed(2)),
-				fill: "#d47876",
+				fill: "var(--edge-missing)",
 			},
 			{
 				name: "Excessive",
 				value: Number.parseFloat(avgEdgeTypes.excessive.toFixed(2)),
-				fill: "#7ba9c9",
+				fill: "var(--edge-excessive)",
 			},
 		];
 
@@ -472,13 +472,13 @@ function PerformanceList({ learners }: PerformanceListProps) {
 			{learners.map((learner, index) => (
 				<div
 					key={learner.learnerMapId}
-					className="flex items-center justify-between px-3 py-2 rounded-md border bg-[#F9F9F8] hover:bg-white transition-all duration-200"
+					className="flex items-center justify-between px-3 py-2 rounded-md border bg-muted/30 hover:bg-card transition-all duration-200"
 				>
 					<div className="flex items-center gap-2.5">
-						<span className="text-xs font-medium text-[#787774] tabular-nums w-4">
+						<span className="text-xs font-medium text-muted-foreground tabular-nums w-4">
 							{index + 1}
 						</span>
-						<span className="text-sm text-[#2F3437]">{learner.userName}</span>
+						<span className="text-sm text-card-foreground">{learner.userName}</span>
 					</div>
 					<span
 						className={cn(
@@ -495,9 +495,9 @@ function PerformanceList({ learners }: PerformanceListProps) {
 }
 
 function getScorePill(score: number | null) {
-	if (score === null) return "bg-[#F7F6F3] text-[#787774]";
-	if (score >= 90) return "bg-[#EDF3EC] text-[#346538]";
-	if (score >= 70) return "bg-[#E1F3FE] text-[#1F6C9F]";
-	if (score >= 50) return "bg-[#FBF3DB] text-[#956400]";
-	return "bg-[#FDEBEC] text-[#9F2F2D]";
+	if (score === null) return "bg-muted text-muted-foreground";
+	if (score >= 90) return "bg-success/10 text-success";
+	if (score >= 70) return "bg-info/10 text-info";
+	if (score >= 50) return "bg-warning/10 text-warning";
+	return "bg-destructive/10 text-destructive";
 }

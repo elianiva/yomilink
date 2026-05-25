@@ -77,7 +77,7 @@ function StudentFormsPage() {
 
 					{isCompleted ? (
 						<div className="flex items-center gap-2 shrink-0">
-							<CheckCircle2Icon className="size-4 text-green-600" />
+							<CheckCircle2Icon className="size-4 text-success" />
 							<Button
 								variant="outline"
 								size="sm"

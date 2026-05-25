@@ -68,7 +68,7 @@ export function CountdownTimer({
 	if (timeRemaining.total <= 0) {
 		return (
 			<div className={className}>
-				<span className="text-green-600 font-medium">Available now</span>
+				<span className="text-success font-medium">Available now</span>
 			</div>
 		);
 	}
