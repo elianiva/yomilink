@@ -4,6 +4,7 @@ import { resolve, dirname } from "node:path";
 import { fileURLToPath } from "node:url";
 
 import { createClient } from "@libsql/client";
+import { inArray, notInArray } from "drizzle-orm";
 import { Effect, Layer, Logger, Redacted } from "effect";
 
 import { ServerConfig } from "@/config";
@@ -73,12 +74,24 @@ function importAll() {
 			`  Mapped ${Object.keys(oldToNewCohortId).length} old cohort IDs to seed IDs`,
 		);
 
-		// 2. Users — replace all with prod user accounts
+		// 2. Users — replace student users with prod user accounts, keep admin/teacher
 		yield* Effect.log("\n=== Users ===");
 		const userRows = querySource("SELECT * FROM user") as Array<Record<string, unknown>>;
-		yield* db.delete(session);
-		yield* db.delete(account);
-		yield* db.delete(user);
+
+		const keepUsers = yield* db
+			.select({ id: user.id })
+			.from(user)
+			.where(inArray(user.role, ["admin", "teacher"]));
+		const keepIds = keepUsers.map((u) => u.id);
+		if (keepIds.length > 0) {
+			yield* db.delete(session).where(notInArray(session.userId, keepIds));
+			yield* db.delete(account).where(notInArray(account.userId, keepIds));
+			yield* db.delete(user).where(notInArray(user.id, keepIds));
+		} else {
+			yield* db.delete(session);
+			yield* db.delete(account);
+			yield* db.delete(user);
+		}
 
 		let uOk = 0;
 		let uSkip = 0;
