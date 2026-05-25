@@ -21,37 +21,37 @@ body {
 	--popover: oklch(1 0 0);
 	--popover-foreground: oklch(0.145 0.008 326);
 
-	/* Primary - Purple */
-	--primary: oklch(0.491 0.27 292.581);
-	--primary-foreground: oklch(0.969 0.016 293.756);
+	/* Primary - Near-black */
+	--primary: oklch(0.212 0.019 322.12);
+	--primary-foreground: oklch(0.985 0 0);
 
 	/* Secondary - Cool gray */
-	--secondary: oklch(0.967 0.001 286.375);
-	--secondary-foreground: oklch(0.21 0.006 285.885);
+	--secondary: oklch(0.96 0.003 325.6);
+	--secondary-foreground: oklch(0.212 0.019 322.12);
 
 	/* Muted surfaces */
 	--muted: oklch(0.96 0.003 325.6);
 	--muted-foreground: oklch(0.542 0.034 322.5);
 
-	/* Accent - Cool lavender */
+	/* Accent */
 	--accent: oklch(0.96 0.003 325.6);
 	--accent-foreground: oklch(0.212 0.019 322.12);
 
-	/* Destructive - Red */
+	/* Destructive */
 	--destructive: oklch(0.577 0.245 27.325);
-	--destructive-foreground: oklch(0.969 0.016 293.756);
+	--destructive-foreground: oklch(0.985 0 0);
 
 	/* Borders */
 	--border: oklch(0.922 0.005 325.62);
 	--input: oklch(0.922 0.005 325.62);
 	--ring: oklch(0.711 0.019 323.02);
 
-	/* Charts - Purple gradient */
-	--chart-1: oklch(0.811 0.111 293.571);
-	--chart-2: oklch(0.606 0.25 292.717);
-	--chart-3: oklch(0.541 0.281 293.009);
-	--chart-4: oklch(0.491 0.27 292.581);
-	--chart-5: oklch(0.432 0.232 292.759);
+	/* Charts - Monochrome purple-gray */
+	--chart-1: oklch(0.865 0.012 325.68);
+	--chart-2: oklch(0.542 0.034 322.5);
+	--chart-3: oklch(0.435 0.029 321.78);
+	--chart-4: oklch(0.364 0.029 323.89);
+	--chart-5: oklch(0.263 0.024 320.12);
 
 	/* Semantic feedback colors */
 	--success: oklch(0.62 0.14 150);
@@ -70,8 +70,8 @@ body {
 	/* Sidebar */
 	--sidebar: oklch(0.985 0 0);
 	--sidebar-foreground: oklch(0.145 0.008 326);
-	--sidebar-primary: oklch(0.541 0.281 293.009);
-	--sidebar-primary-foreground: oklch(0.969 0.016 293.756);
+	--sidebar-primary: oklch(0.212 0.019 322.12);
+	--sidebar-primary-foreground: oklch(0.985 0 0);
 	--sidebar-accent: oklch(0.96 0.003 325.6);
 	--sidebar-accent-foreground: oklch(0.212 0.019 322.12);
 	--sidebar-border: oklch(0.922 0.005 325.62);
@@ -83,7 +83,7 @@ body {
 	--font-mono: "IBM Plex Mono", ui-monospace, monospace;
 
 	/* Radius */
-	--radius: 0.625rem;
+	--radius: 0;
 
 	/* Shadows */
 	--shadow-x: 0px;
@@ -127,11 +127,11 @@ body {
 	--popover-foreground: oklch(0.985 0 0);
 
 	/* Primary */
-	--primary: oklch(0.432 0.232 292.759);
-	--primary-foreground: oklch(0.969 0.016 293.756);
+	--primary: oklch(0.922 0.005 325.62);
+	--primary-foreground: oklch(0.212 0.019 322.12);
 
 	/* Secondary */
-	--secondary: oklch(0.274 0.006 286.033);
+	--secondary: oklch(0.263 0.024 320.12);
 	--secondary-foreground: oklch(0.985 0 0);
 
 	/* Muted surfaces */
@@ -144,7 +144,7 @@ body {
 
 	/* Destructive */
 	--destructive: oklch(0.704 0.191 22.216);
-	--destructive-foreground: oklch(0.969 0.016 293.756);
+	--destructive-foreground: oklch(0.985 0 0);
 
 	/* Borders */
 	--border: oklch(1 0 0 / 10%);
@@ -152,11 +152,11 @@ body {
 	--ring: oklch(0.542 0.034 322.5);
 
 	/* Charts */
-	--chart-1: oklch(0.811 0.111 293.571);
-	--chart-2: oklch(0.606 0.25 292.717);
-	--chart-3: oklch(0.541 0.281 293.009);
-	--chart-4: oklch(0.491 0.27 292.581);
-	--chart-5: oklch(0.432 0.232 292.759);
+	--chart-1: oklch(0.865 0.012 325.68);
+	--chart-2: oklch(0.542 0.034 322.5);
+	--chart-3: oklch(0.435 0.029 321.78);
+	--chart-4: oklch(0.364 0.029 323.89);
+	--chart-5: oklch(0.263 0.024 320.12);
 
 	/* Semantic feedback colors */
 	--success: oklch(0.68 0.12 150);
@@ -175,8 +175,8 @@ body {
 	/* Sidebar */
 	--sidebar: oklch(0.212 0.019 322.12);
 	--sidebar-foreground: oklch(0.985 0 0);
-	--sidebar-primary: oklch(0.606 0.25 292.717);
-	--sidebar-primary-foreground: oklch(0.969 0.016 293.756);
+	--sidebar-primary: oklch(0.488 0.243 264.376);
+	--sidebar-primary-foreground: oklch(0.985 0 0);
 	--sidebar-accent: oklch(0.263 0.024 320.12);
 	--sidebar-accent-foreground: oklch(0.985 0 0);
 	--sidebar-border: oklch(1 0 0 / 10%);
@@ -188,7 +188,7 @@ body {
 	--font-mono: "IBM Plex Mono", ui-monospace, monospace;
 
 	/* Radius */
-	--radius: 0.625rem;
+	--radius: 0;
 
 	/* Shadows */
 	--shadow-x: 0px;
@@ -257,10 +257,10 @@ body {
 	--font-mono: var(--font-mono);
 	--font-serif: var(--font-serif);
 
-	--radius-sm: calc(var(--radius) - 4px);
-	--radius-md: calc(var(--radius) - 2px);
-	--radius-lg: var(--radius);
-	--radius-xl: calc(var(--radius) + 4px);
+	--radius-sm: 0;
+	--radius-md: 0;
+	--radius-lg: 0;
+	--radius-xl: 0;
 
 	--shadow-2xs: var(--shadow-2xs);
 	--shadow-xs: var(--shadow-xs);

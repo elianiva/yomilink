@@ -213,7 +213,7 @@ function FormsTakePage() {
 	}
 
 	return (
-		<div className="flex h-full min-h-0 flex-col -mx-4 md:-mx-6 overflow-hidden">
+		<div className="flex h-full min-h-0 flex-col -mx-4 overflow-hidden">
 			<FormHeaderBar
 				title={snapshot.context.form!.title}
 				description={snapshot.context.form!.description ?? undefined}

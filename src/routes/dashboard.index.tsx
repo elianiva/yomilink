@@ -69,7 +69,7 @@ function DashboardPage() {
 	};
 
 	return (
-		<div className="grid grid-cols-1 lg:grid-cols-[280px_1fr] gap-0 h-full overflow-hidden border-t-[0.5px] bg-card -mx-4 md:-mx-6">
+		<div className="grid grid-cols-1 lg:grid-cols-[280px_1fr] gap-0 h-full overflow-hidden border-t-[0.5px] bg-card -mx-4">
 			{/* Topic sidebar - desktop */}
 			<div className="hidden lg:block overflow-y-auto p-4 border-r border-border/50">
 				<div className="flex items-center justify-between mb-3">

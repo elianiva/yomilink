@@ -220,7 +220,7 @@ export function AssignmentDetailPage({ assignment }: AssignmentDetailPageProps) 
 
 			<Tabs defaultValue="overview" className="space-y-4">
 				<div className="overflow-x-auto -mx-4 md:mx-0">
-					<TabsList className="px-4 md:px-0 w-max md:w-auto">
+					<TabsList className="w-max md:w-auto">
 						<TabsTrigger value="overview">Overview</TabsTrigger>
 						<TabsTrigger value="forms">Forms</TabsTrigger>
 						<TabsTrigger value="students">Students</TabsTrigger>

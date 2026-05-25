@@ -164,7 +164,7 @@ export function LearnerMapResult() {
 
 	return (
 		<TooltipProvider delay={300}>
-			<section className="relative h-full overflow-hidden -mx-4 md:-mx-6">
+			<section className="relative h-full overflow-hidden -mx-4">
 				<div className="absolute inset-0 bg-[radial-gradient(circle_at_top,rgba(0,0,0,0.03),transparent_55%)]">
 					<AnalyticsCanvas
 						goalMap={{

@@ -380,7 +380,7 @@ export function LearnerMapEditor() {
 					</AlertDialogFooter>
 				</AlertDialogContent>
 			</AlertDialog>
-			<div className="bg-card relative h-full overflow-hidden -mx-6">
+			<div className="bg-card relative h-full overflow-hidden -mx-4">
 				<ConceptMapCanvas
 					nodes={nodes}
 					edges={edges}
