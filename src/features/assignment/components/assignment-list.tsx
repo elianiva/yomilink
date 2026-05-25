@@ -255,7 +255,7 @@ function TeacherCard({
 			<CardContent className="px-4 flex max-sm:flex-col md:items-start justify-between gap-4">
 				<div className="min-w-0 space-y-1">
 					<div className="flex items-center gap-2 flex-wrap">
-						<h3 className="truncate font-medium text-card-foreground">
+						<h3 className="truncate font-medium text-card-foreground font-heading">
 							{assignment.title}
 						</h3>
 						<span
@@ -395,7 +395,7 @@ function StudentCard({
 			<CardContent className="px-4 flex max-sm:flex-col md:items-start justify-between gap-4">
 				<div className="min-w-0 space-y-1">
 					<div className="flex items-center gap-2 flex-wrap">
-						<h3 className="truncate font-medium text-card-foreground leading-none">
+						<h3 className="truncate font-medium text-card-foreground leading-none font-heading">
 							{assignment.title}
 						</h3>
 						<span
@@ -416,17 +416,13 @@ function StudentCard({
 					)}
 
 					<div className="flex flex-wrap items-center gap-x-2 gap-y-1 text-xs">
-						<span className="text-muted-foreground">
-							{assignment.goalMapTitle ?? "No goal map"}
-						</span>
-						<span className="text-border/50">·</span>
 						<span className="flex items-center gap-1 text-muted-foreground">
 							<CalendarIcon className="size-3" />
 							{formatDueDate(assignment.dueAt)}
 						</span>
 						{(assignment.attempt ?? 0) > 0 && (
 							<>
-								<span className="text-border/50">·</span>
+								<span className="text-muted-foreground">·</span>
 								<span className="text-muted-foreground">
 									Attempt {assignment.attempt}
 								</span>
@@ -480,7 +476,7 @@ export function AssignmentList({
 				)}
 			>
 				<MapIcon className="size-12 text-muted-foreground mb-3" />
-				<h3 className="font-medium text-card-foreground mb-1">
+				<h3 className="font-medium text-card-foreground mb-1 font-heading">
 					{viewMode === "teacher" ? "No assignments yet" : "No assignments"}
 				</h3>
 				<p className="text-sm text-muted-foreground mb-4">

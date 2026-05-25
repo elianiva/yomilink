@@ -18,7 +18,7 @@ export function FormHeaderBar({
 	return (
 		<div className="flex flex-wrap shrink-0 items-center gap-4 border-b px-4 py-3">
 			<div className="min-w-0 flex-1">
-				<h1 className="truncate text-lg font-semibold">{title}</h1>
+				<h1 className="truncate text-lg font-semibold font-heading">{title}</h1>
 			</div>
 			<div className="flex shrink-0 items-center gap-4 text-sm text-muted-foreground">
 				<span>

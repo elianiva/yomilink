@@ -93,7 +93,7 @@ export function ReadingMaterialSidebar({
 		<div className="flex items-center justify-between shrink-0 p-6 pb-0">
 			<div className="flex items-center gap-2">
 				<BookOpen className="size-5 text-muted-foreground" />
-				<h2 className="font-semibold">Reading Material</h2>
+				<h2 className="font-semibold font-heading">Reading Material</h2>
 			</div>
 			{/* eslint-disable-next-line jsx-a11y/label-has-associated-control */}
 			<label className="flex items-center gap-2 text-xs text-muted-foreground cursor-pointer">

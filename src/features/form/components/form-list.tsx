@@ -94,7 +94,7 @@ export function FormList({
 
 								<div className="min-w-0 flex-1">
 									<div className="flex items-center gap-2">
-										<h3 className="truncate font-medium text-card-foreground">
+										<h3 className="truncate font-medium text-card-foreground font-heading">
 											{form.title}
 										</h3>
 									</div>

@@ -206,8 +206,7 @@ export const READING_COMPREHENSION_QUESTIONS: ReadingQuestion[] = [
 		targetInfo: "Inference from multiple shops/places nearby",
 	},
 	{
-		questionText:
-			"喫茶店（きっさてん）について正（ただ）しいものはどれですか。",
+		questionText: "喫茶店（きっさてん）について正（ただ）しいものはどれですか。",
 		options: createMcqOptions(7, [
 			"おいしいコーヒーがある",
 			"本（ほん）が借（か）りられる",

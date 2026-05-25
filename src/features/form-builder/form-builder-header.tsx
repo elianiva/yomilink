@@ -171,7 +171,7 @@ export function FormBuilderHeader({
 				<div className="flex items-center gap-3 min-w-0">
 					<FilePlusIcon className="size-6 text-primary shrink-0" />
 					<div className="min-w-0">
-						<h1 className="text-xl sm:text-2xl font-semibold truncate">
+						<h1 className="text-xl sm:text-2xl font-semibold truncate font-heading">
 							{isEditing ? "Edit Form" : "Create New Form"}
 						</h1>
 						<p className="text-muted-foreground text-sm truncate hidden sm:block">

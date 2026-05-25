@@ -145,7 +145,9 @@ export function AggregatedResponses({ responses, questions }: AggregatedResponse
 			{/* MCQ Stats */}
 			{mcqStats.length > 0 && (
 				<div className="space-y-6">
-					<h2 className="text-lg font-semibold">Multiple Choice Questions</h2>
+					<h2 className="text-lg font-semibold font-heading">
+						Multiple Choice Questions
+					</h2>
 					{mcqStats.map((stat) => (
 						<div key={stat.questionId} className="rounded-lg border p-4">
 							<h3 className="mb-4 font-medium">{stat.questionText}</h3>
@@ -188,7 +190,7 @@ export function AggregatedResponses({ responses, questions }: AggregatedResponse
 			{/* Likert Stats */}
 			{likertStats.length > 0 && (
 				<div className="space-y-6">
-					<h2 className="text-lg font-semibold">Likert Scale Questions</h2>
+					<h2 className="text-lg font-semibold font-heading">Likert Scale Questions</h2>
 					{likertStats.map((stat) => (
 						<div key={stat.questionId} className="rounded-lg border p-4">
 							<h3 className="mb-4 font-medium">{stat.questionText}</h3>

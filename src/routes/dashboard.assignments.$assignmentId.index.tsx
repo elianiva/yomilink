@@ -198,7 +198,7 @@ function AssignmentPage() {
 				</Link>
 			</Button>
 			<div>
-				<h1 className="text-xl font-medium">{assignment.title}</h1>
+				<h1 className="text-xl font-medium font-heading">{assignment.title}</h1>
 				{assignment.description && (
 					<p className="text-sm text-muted-foreground mt-1">{assignment.description}</p>
 				)}
@@ -288,7 +288,9 @@ function AssignmentPage() {
 									</div>
 									<div className="flex-1 min-w-0">
 										<div className="flex items-center gap-2">
-											<h3 className="font-medium">{phase.label}</h3>
+											<h3 className="font-medium font-heading">
+												{phase.label}
+											</h3>
 											{isCompleted && (
 												<Badge
 													variant="outline"
@@ -335,7 +337,9 @@ function AssignmentPage() {
 					<CardContent className="p-6 text-center space-y-3">
 						<CheckCircle2Icon className="size-10 text-success mx-auto" />
 						<div>
-							<h3 className="font-semibold text-lg">All steps completed!</h3>
+							<h3 className="font-semibold text-lg font-heading">
+								All steps completed!
+							</h3>
 							<p className="text-sm text-muted-foreground mt-1">
 								You&apos;ve completed all phases for this assignment.
 							</p>

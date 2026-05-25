@@ -60,7 +60,7 @@ export function Guard({ roles, children, fallback, redirectTo = "/dashboard" }: 
 				<div className="mx-auto size-16 rounded-full bg-destructive/10 flex items-center justify-center mb-4">
 					<ShieldAlert className="size-8 text-destructive" />
 				</div>
-				<h1 className="text-xl font-semibold mb-2">Access Restricted</h1>
+				<h1 className="text-xl font-semibold mb-2 font-heading">Access Restricted</h1>
 				<p className="text-sm text-muted-foreground mb-6">
 					You don&apos;t have permission to access this page.
 				</p>

@@ -73,7 +73,7 @@ function DashboardPage() {
 			{/* Topic sidebar - desktop */}
 			<div className="hidden lg:block overflow-y-auto p-4 border-r border-border/50">
 				<div className="flex items-center justify-between mb-3">
-					<h3 className="font-medium text-sm text-muted-foreground uppercase tracking-wider">
+					<h3 className="font-medium text-sm text-muted-foreground uppercase tracking-wider font-heading">
 						Topics
 					</h3>
 					<NewTopicDialog />

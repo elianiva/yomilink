@@ -382,7 +382,7 @@ function SignUpPage() {
 							KB
 						</div>
 						<div>
-							<h1 className="text-2xl font-semibold">KitBuild</h1>
+							<h1 className="text-2xl font-semibold font-heading">KitBuild</h1>
 							<p className="text-sm text-muted-foreground">
 								{currentStepMeta.description}
 							</p>

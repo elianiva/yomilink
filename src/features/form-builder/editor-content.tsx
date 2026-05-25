@@ -28,7 +28,7 @@ export function EditorContent({
 				{/* Form Content Card */}
 				<div className="rounded-lg border bg-card p-6">
 					<div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 mb-4">
-						<h2 className="text-lg font-medium">Questions</h2>
+						<h2 className="text-lg font-medium font-heading">Questions</h2>
 						{hasForm && (
 							<div className="flex items-center gap-2 w-full sm:w-auto">
 								<Button
@@ -88,7 +88,7 @@ export function EditorContent({
 				</div>
 
 				<div className="rounded-lg border bg-card p-6">
-					<h2 className="text-lg font-medium mb-1">Reading Materials</h2>
+					<h2 className="text-lg font-medium mb-1 font-heading">Reading Materials</h2>
 					<p className="text-sm text-muted-foreground mb-4">
 						Optional reference materials students can toggle while answering.
 					</p>
@@ -103,7 +103,7 @@ export function EditorContent({
 			{/* Sidebar */}
 			<div className="space-y-6">
 				<div className="rounded-lg border bg-card p-6">
-					<h2 className="text-lg font-medium mb-4">Form Settings</h2>
+					<h2 className="text-lg font-medium mb-4 font-heading">Form Settings</h2>
 					<FormMetadataEditor
 						metadata={metadata}
 						onChange={onMetadataChange}

@@ -107,7 +107,7 @@ function LoginPage() {
 						KB
 					</div>
 					<div>
-						<h1 className="text-2xl font-semibold">KitBuild</h1>
+						<h1 className="text-2xl font-semibold font-heading">KitBuild</h1>
 						<p className="text-sm text-muted-foreground">
 							Sign in with your student ID / email
 						</p>

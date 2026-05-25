@@ -78,9 +78,11 @@ body {
 	--sidebar-ring: oklch(0.711 0.019 323.02);
 
 	/* Typography */
-	--font-sans: "Geist", "Space Grotesk Variable", ui-sans-serif, sans-serif, system-ui;
+	--font-sans: "Geist", ui-sans-serif, sans-serif, system-ui;
 	--font-serif: Lora, ui-serif, serif;
 	--font-mono: "IBM Plex Mono", ui-monospace, monospace;
+	--font-heading: "Space Grotesk Variable", ui-sans-serif, sans-serif, system-ui;
+	--font-body: "Geist", ui-sans-serif, sans-serif, system-ui;
 
 	/* Radius */
 	--radius: 0;
@@ -183,9 +185,11 @@ body {
 	--sidebar-ring: oklch(0.542 0.034 322.5);
 
 	/* Typography */
-	--font-sans: "Geist", "Space Grotesk Variable", ui-sans-serif, sans-serif, system-ui;
+	--font-sans: "Geist", ui-sans-serif, sans-serif, system-ui;
 	--font-serif: Lora, ui-serif, serif;
 	--font-mono: "IBM Plex Mono", ui-monospace, monospace;
+	--font-heading: "Space Grotesk Variable", ui-sans-serif, sans-serif, system-ui;
+	--font-body: "Geist", ui-sans-serif, sans-serif, system-ui;
 
 	/* Radius */
 	--radius: 0;
@@ -256,6 +260,8 @@ body {
 	--font-sans: var(--font-sans);
 	--font-mono: var(--font-mono);
 	--font-serif: var(--font-serif);
+	--font-heading: var(--font-heading);
+	--font-body: var(--font-body);
 
 	--radius-sm: 0;
 	--radius-md: 0;

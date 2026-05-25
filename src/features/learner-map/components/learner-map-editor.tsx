@@ -484,7 +484,7 @@ function SummarizingEditor({
 	return (
 		<div className="h-full flex flex-col">
 			<div className="px-6 py-4 border-b">
-				<h1 className="font-medium text-lg">{assignmentTitle}</h1>
+				<h1 className="font-medium text-lg font-heading">{assignmentTitle}</h1>
 				{assignmentDescription && (
 					<p className="text-sm text-muted-foreground">{assignmentDescription}</p>
 				)}
@@ -492,7 +492,7 @@ function SummarizingEditor({
 			<div className="flex-1 flex overflow-hidden">
 				<div className="flex-1 flex flex-col min-w-0">
 					<div className="px-6 py-3 border-b bg-muted/30">
-						<h2 className="text-sm font-medium">Your Summary</h2>
+						<h2 className="text-sm font-medium font-heading">Your Summary</h2>
 					</div>
 					<div className="flex-1 overflow-y-auto">
 						{materialText && (
@@ -533,7 +533,7 @@ function SummarizingEditor({
 				<div className="w-[45%] min-w-[350px] flex flex-col border-l bg-muted/10">
 					<div className="px-6 py-3 border-b bg-muted/30 flex items-center gap-2">
 						<BookOpenIcon className="size-4" />
-						<h2 className="text-sm font-medium">Reading Material</h2>
+						<h2 className="text-sm font-medium font-heading">Reading Material</h2>
 					</div>
 					<div className="flex-1 overflow-y-auto p-6 space-y-4">
 						{materialText ? (

@@ -94,7 +94,9 @@ export function AssignmentDetailPage({ assignment }: AssignmentDetailPageProps) 
 						<div className="p-2 rounded-xl bg-primary shrink-0">
 							<ClipboardListIcon className="size-4 text-primary-foreground" />
 						</div>
-						<h1 className="text-2xl font-medium truncate">{assignment.title}</h1>
+						<h1 className="text-2xl font-medium truncate font-heading">
+							{assignment.title}
+						</h1>
 					</div>
 					{assignment.description && (
 						<p className="text-muted-foreground max-w-2xl">{assignment.description}</p>

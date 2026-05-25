@@ -86,7 +86,7 @@ function ProfilePage() {
 									</AvatarFallback>
 								</Avatar>
 								<div className="min-w-0">
-									<h1 className="text-lg font-semibold truncate">
+									<h1 className="text-lg font-semibold truncate font-heading">
 										{me.name ?? "User"}
 									</h1>
 									<p className="text-sm text-muted-foreground truncate">
@@ -133,7 +133,7 @@ function ProfilePage() {
 					<div className="lg:col-span-8">
 						<div className="border border-border/60 bg-white shadow-sm">
 							<div className="p-6 border-b">
-								<h2 className="text-lg font-semibold">Edit Profile</h2>
+								<h2 className="text-lg font-semibold font-heading">Edit Profile</h2>
 								<p className="text-sm text-muted-foreground">
 									Update your personal information and learning preferences
 								</p>

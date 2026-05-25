@@ -19,7 +19,7 @@ export function ErrorPage({ error, reset }: ErrorComponentProps) {
 					<div className="flex size-8 items-center justify-center rounded-lg bg-primary text-white font-bold text-sm">
 						KB
 					</div>
-					<h1 className="text-xl font-semibold">Something went wrong</h1>
+					<h1 className="text-xl font-semibold font-heading">Something went wrong</h1>
 				</div>
 				<p className="mt-3 text-sm text-neutral-600">
 					We hit a snag while loading this page. You can try again or head back home.

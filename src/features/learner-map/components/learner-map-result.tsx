@@ -189,7 +189,7 @@ export function LearnerMapResult() {
 					{/* Top toolbar */}
 					<div className="border-b-[0.5px] pointer-events-auto bg-background/70 backdrop-blur supports-backdrop-filter:bg-background/50">
 						<div className="h-12 px-3 flex items-center gap-2">
-							<h1 className="text-sm font-medium truncate">
+							<h1 className="text-sm font-medium truncate font-heading">
 								{assignment.title || "Assignment Results"}
 							</h1>
 							<Badge variant="outline" className="text-[11px] h-5 px-1.5 shrink-0">

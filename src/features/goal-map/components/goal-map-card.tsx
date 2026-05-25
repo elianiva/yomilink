@@ -44,7 +44,7 @@ export function GoalMapCard({
 		<div className="group relative flex flex-col p-4 bg-card border-[0.5px] rounded-xl hover:border-primary/30 hover:shadow-md transition-all duration-200">
 			{/* Card content */}
 			<div className="flex-1 min-w-0">
-				<h3 className="font-semibold truncate text-base">{goalMap.title}</h3>
+				<h3 className="font-semibold truncate text-base font-heading">{goalMap.title}</h3>
 				{goalMap.description && (
 					<p className="text-sm text-muted-foreground mt-1 line-clamp-2">
 						{goalMap.description}

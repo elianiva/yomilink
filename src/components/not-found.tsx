@@ -9,7 +9,7 @@ export function NotFound() {
 				<div className="inline-flex items-center justify-center rounded-full border px-3 py-1 text-xs font-medium text-muted-foreground">
 					404 – Page not found
 				</div>
-				<h1 className="text-5xl sm:text-6xl font-semibold tracking-tight">
+				<h1 className="text-5xl sm:text-6xl font-semibold tracking-tight font-heading">
 					<span className="text-primary">Lost in the links?</span>
 				</h1>
 				<p className="text-muted-foreground">

@@ -22,7 +22,7 @@ export function NotFoundCard({
 			<div className="mx-auto mb-4 flex size-16 items-center justify-center rounded-full bg-muted">
 				<FileQuestion className="size-8 text-muted-foreground" />
 			</div>
-			<h3 className="text-xl font-semibold">{resource} Not Found</h3>
+			<h3 className="text-xl font-semibold font-heading">{resource} Not Found</h3>
 			<p className="mt-2 text-sm text-muted-foreground">
 				The {resource.toLowerCase()} you&apos;re looking for doesn&apos;t exist or you
 				don&apos;t have access to it.

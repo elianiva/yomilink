@@ -221,7 +221,9 @@ export function MetricsContent({ assignmentId }: MetricsContentProps) {
 					Back
 				</Button>
 				<div>
-					<h1 className="text-2xl font-medium tracking-tight">Assignment Metrics</h1>
+					<h1 className="text-2xl font-medium tracking-tight font-heading">
+						Assignment Metrics
+					</h1>
 					<p className="text-sm text-muted-foreground">{metrics.data.assignment.title}</p>
 				</div>
 			</div>
