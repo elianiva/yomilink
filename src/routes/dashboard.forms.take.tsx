@@ -11,7 +11,6 @@ import {
 	FormNoFormSpecified,
 	FormNoQuestions,
 	FormProgressBar,
-	FormSubmittedSuccess,
 	QuestionList,
 	ReadingMaterialSidebar,
 	SubmissionReview,
@@ -54,10 +53,16 @@ function FormsTakePage() {
 	const submitMutation = useRpcMutation(
 		{
 			...FormRpc.submitFormResponse(),
-			onSuccess: () => {
+			onSuccess: (data) => {
+				if (!data.success) {
+					send({ type: "SUBMIT_ERROR" });
+					return;
+				}
 				void queryClient.invalidateQueries({ queryKey: FormRpc.forms() });
 				void queryClient.invalidateQueries({ queryKey: ["learner-maps"] });
-				send({ type: "SUBMIT_DONE" });
+			},
+			onError: () => {
+				send({ type: "SUBMIT_ERROR" });
 			},
 		},
 		{
@@ -71,6 +76,8 @@ function FormsTakePage() {
 	const readingMaterialSections = snapshot.context.form?.readingMaterialSections ?? [];
 	const materialImages = snapshot.context.materialImages;
 	const answers = snapshot.matches("submitted") ? {} : draftAnswers;
+
+	const isSubmitting = snapshot.matches("submitting");
 
 	const totalQuestions = questions.length;
 	const hasReadingMaterial =
@@ -142,7 +149,7 @@ function FormsTakePage() {
 	};
 
 	const handleSubmit = () => {
-		if (snapshot.matches("submitting") || !answeredRequired || !formId || !userId) return;
+		if (isSubmitting || !answeredRequired || !formId || !userId) return;
 		const timeSpentSeconds = Math.round((Date.now() - startTimeRef.current) / 1000);
 		clearDraft();
 		localStorage.removeItem(`form-start-${userId}-${formId}`);
@@ -205,11 +212,7 @@ function FormsTakePage() {
 		);
 	}
 
-	if (snapshot.matches("submitting")) {
-		return <FormSubmittedSuccess />;
-	}
-
-	if (totalQuestions === 0) {
+	if (!isSubmitting && totalQuestions === 0) {
 		const form = snapshot.context.form!;
 		return <FormNoQuestions title={form.title} description={form.description ?? undefined} />;
 	}
@@ -242,7 +245,8 @@ function FormsTakePage() {
 						onAnswerChange={handleAnswer}
 						requiredQuestions={requiredQuestions}
 						answeredRequired={answeredRequired}
-						isPending={snapshot.matches("submitting")}
+						isPending={isSubmitting}
+						disabled={isSubmitting}
 						onSubmit={handleSubmit}
 						centered={!hasReadingMaterial}
 					/>
@@ -264,7 +268,8 @@ function FormsTakePage() {
 					onAnswerChange={handleAnswer}
 					requiredQuestions={requiredQuestions}
 					answeredRequired={answeredRequired}
-					isPending={snapshot.matches("submitting")}
+					isPending={isSubmitting}
+					disabled={isSubmitting}
 					onSubmit={handleSubmit}
 					centered={!hasReadingMaterial}
 				/>

@@ -6,7 +6,6 @@ export type FormTakeEvent =
 	| { type: "FORM.LOADED"; data: GetStudentFormByIdOutput }
 	| { type: "FORM.LOAD_ERROR"; error: string }
 	| { type: "SUBMIT" }
-	| { type: "SUBMIT_DONE" }
 	| { type: "SUBMIT_ERROR" }
 	| { type: "ANSWER"; questionId: string; value: string | number };
 
@@ -95,9 +94,6 @@ export const formTakerMachine = setup({
 				"FORM.LOADED": {
 					target: "checkSubmission",
 					actions: "setFormData",
-				},
-				SUBMIT_DONE: {
-					target: "submitted",
 				},
 				SUBMIT_ERROR: {
 					target: "drafting",

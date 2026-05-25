@@ -15,6 +15,7 @@ interface QuestionListProps {
 	requiredQuestions: readonly Question[];
 	answeredRequired: boolean;
 	isPending: boolean;
+	disabled?: boolean;
 	onSubmit: () => void;
 	centered?: boolean;
 }
@@ -26,6 +27,7 @@ export function QuestionList({
 	requiredQuestions,
 	answeredRequired,
 	isPending,
+	disabled = false,
 	onSubmit,
 	centered,
 }: QuestionListProps) {
@@ -56,6 +58,7 @@ export function QuestionList({
 								question={question}
 								value={answers[question.id]}
 								onChange={onAnswerChange}
+								disabled={disabled}
 							/>
 						</div>
 					))}
@@ -66,7 +69,10 @@ export function QuestionList({
 								? "All required questions answered"
 								: `Answer all required questions (${remaining} remaining)`}
 						</p>
-						<Button onClick={onSubmit} disabled={!answeredRequired || isPending}>
+						<Button
+							onClick={onSubmit}
+							disabled={!answeredRequired || isPending || disabled}
+						>
 							<Send className="size-4" />
 							{isPending ? "Submitting..." : "Submit"}
 						</Button>
