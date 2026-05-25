@@ -223,7 +223,7 @@ export function seedForms(teacherId: string) {
 			READING_COMPREHENSION_QUESTIONS.length,
 		);
 		const preTestDescription =
-			"20 multiple-choice questions about the わたしのうち passage (4 options each) — Bloom's L1 to L6.";
+			"10 multiple-choice questions about the わたしのうち passage (4 options each) — Bloom's L1 to L2.";
 		const existingPreTestForm = yield* db
 			.select()
 			.from(forms)

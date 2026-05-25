@@ -24,7 +24,6 @@ export const LEARNER_MAP_CONFIGS: LearnerMapConfig[] = [
 			"e11",
 			"e12",
 			"e13",
-			"e14",
 		],
 		excessiveEdges: [],
 		expectedScore: 1.0,

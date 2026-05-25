@@ -71,7 +71,7 @@ export const TOPICS = [
 	{
 		title: "Places & Neighborhood",
 		description:
-			"N5 reading about a quiet neighborhood with parks, libraries, and nearby shops",
+			"N5 reading describing a quiet neighborhood and daily activities — places, actions, and attributes",
 		goalMapTitles: ["わたしのうち"],
 	},
 ];

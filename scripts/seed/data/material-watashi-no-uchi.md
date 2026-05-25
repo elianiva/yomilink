@@ -1,6 +1,6 @@
 ---
 title: "わたしのうち"
-description: "N5 reading about a quiet neighborhood with parks, libraries, and nearby shops"
+description: "N5 reading describing a quiet neighborhood and daily activities"
 nodes:
     - id: "uchi"
       type: "text"
@@ -10,67 +10,67 @@ nodes:
     - id: "conn-tonari"
       type: "connector"
       position: { x: 420, y: 130 }
-      data: { label: "の隣に" }
-
-    - id: "conn-chikaku"
-      type: "connector"
-      position: { x: 820, y: 130 }
-      data: { label: "の近くに" }
+      data: { label: "の隣（となり）に" }
 
     - id: "kouen"
       type: "text"
-      position: { x: 420, y: 250 }
+      position: { x: 320, y: 250 }
       data: { label: "公園（こうえん）" }
-
-    - id: "yuubinkyoku"
-      type: "text"
-      position: { x: 620, y: 250 }
-      data: { label: "郵便局（ゆうびんきょく）" }
-
-    - id: "ginkou"
-      type: "text"
-      position: { x: 820, y: 250 }
-      data: { label: "銀行（ぎんこう）" }
 
     - id: "conn-mae"
       type: "connector"
-      position: { x: 420, y: 340 }
-      data: { label: "の前に" }
-
-    - id: "conn-aida"
-      type: "connector"
-      position: { x: 720, y: 340 }
-      data: { label: "の間に" }
+      position: { x: 320, y: 340 }
+      data: { label: "の前（まえ）に" }
 
     - id: "toshokan"
       type: "text"
-      position: { x: 320, y: 460 }
+      position: { x: 200, y: 460 }
       data: { label: "図書館（としょかん）" }
 
     - id: "kissaten"
       type: "text"
-      position: { x: 520, y: 460 }
+      position: { x: 440, y: 460 }
       data: { label: "喫茶店（きっさてん）" }
 
-    - id: "suupaa"
-      type: "text"
-      position: { x: 720, y: 460 }
-      data: { label: "スーパー" }
-
-    - id: "conn-naka"
+    - id: "conn-de-kariru"
       type: "connector"
-      position: { x: 720, y: 550 }
-      data: { label: "の中に" }
+      position: { x: 80, y: 560 }
+      data: { label: "で" }
 
-    - id: "hanaya"
+    - id: "hon-kariru"
       type: "text"
-      position: { x: 620, y: 650 }
-      data: { label: "花屋（はなや）" }
+      position: { x: 80, y: 660 }
+      data: { label: "本（ほん）を借（か）りる" }
 
-    - id: "panya"
+    - id: "conn-de-yomu"
+      type: "connector"
+      position: { x: 320, y: 560 }
+      data: { label: "で" }
+
+    - id: "hon-yomu"
       type: "text"
-      position: { x: 820, y: 650 }
-      data: { label: "パン屋（ぱんや）" }
+      position: { x: 320, y: 660 }
+      data: { label: "本（ほん）を読（よ）む" }
+
+    - id: "conn-de-nomu"
+      type: "connector"
+      position: { x: 560, y: 560 }
+      data: { label: "で" }
+
+    - id: "coffee-nomu"
+      type: "text"
+      position: { x: 560, y: 660 }
+      data: { label: "コーヒーを飲（の）む" }
+
+    - id: "conn-wa"
+      type: "connector"
+      position: { x: 820, y: 130 }
+      data: { label: "は" }
+
+    - id: "benri"
+      type: "text"
+      position: { x: 820, y: 250 }
+      data: { label: "便利（べんり）" }
 
 edges:
     - id: "e1"
@@ -89,32 +89,29 @@ edges:
       source: "conn-mae"
       target: "kissaten"
     - id: "e6"
-      source: "uchi"
-      target: "conn-chikaku"
+      source: "toshokan"
+      target: "conn-de-kariru"
     - id: "e7"
-      source: "conn-chikaku"
-      target: "yuubinkyoku"
+      source: "conn-de-kariru"
+      target: "hon-kariru"
     - id: "e8"
-      source: "conn-chikaku"
-      target: "ginkou"
+      source: "kouen"
+      target: "conn-de-yomu"
     - id: "e9"
-      source: "yuubinkyoku"
-      target: "conn-aida"
+      source: "conn-de-yomu"
+      target: "hon-yomu"
     - id: "e10"
-      source: "ginkou"
-      target: "conn-aida"
+      source: "kissaten"
+      target: "conn-de-nomu"
     - id: "e11"
-      source: "conn-aida"
-      target: "suupaa"
+      source: "conn-de-nomu"
+      target: "coffee-nomu"
     - id: "e12"
-      source: "suupaa"
-      target: "conn-naka"
+      source: "uchi"
+      target: "conn-wa"
     - id: "e13"
-      source: "conn-naka"
-      target: "hanaya"
-    - id: "e14"
-      source: "conn-naka"
-      target: "panya"
+      source: "conn-wa"
+      target: "benri"
 ---
 
-わたしの新（あたら）しいうちは静（しず）かな所（ところ）にあります。うちの隣（となり）にきれいな公園（こうえん）があります。公園（こうえん）の前（まえ）に図書館（としょかん）と喫茶店（きっさてん）があります。わたしは図書館（としょかん）で本（ほん）を借（か）ります。そして、公園（こうえん）で読（よ）みます。時々（ときどき）喫茶店（きっさてん）で読（よ）みます。喫茶店（きっさてん）のコーヒーはおいしいです。うちの近（ちか）くに郵便局（ゆうびんきょく）と銀行（ぎんこう）があります。郵便局（ゆうびんきょく）と銀行（ぎんこう）の間（あいだ）にスーパーがあります。スーパーの中（なか）に花屋（はなや）やおいしいパン屋（ぱんや）があります。とても便利（べんり）です。
+わたしの新（あたら）しいうちは静（しず）かな所（ところ）にあります。うちの隣（となり）にきれいな公園（こうえん）があります。公園（こうえん）の前（まえ）に図書館（としょかん）と喫茶店（きっさてん）があります。わたしは図書館（としょかん）で本（ほん）を借（か）ります。そして、公園（こうえん）で読（よ）みます。時々（ときどき）喫茶店（きっさてん）で読（よ）みます。喫茶店（きっさてん）のコーヒーはおいしいです。とても便利（べんり）です。
