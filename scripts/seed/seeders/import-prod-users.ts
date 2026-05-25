@@ -148,7 +148,67 @@ function importAll() {
 		}
 		yield* Effect.log(`  ${uOk} inserted, ${uSkip} skipped (${userRows.length} total)`);
 
-		// 3. Cohort Members — remap cohortId to seed cohort IDs
+		// 3. Accounts — import so users can still login
+		yield* Effect.log("\n=== Accounts ===");
+		const acctCols = getSourceColumns("account");
+		const acctRows = querySource("SELECT * FROM account") as Array<
+			Record<string, unknown>
+		>;
+		yield* db.delete(account).where(
+			notInArray(account.userId, keepIds.length > 0 ? keepIds : [""]),
+		);
+
+		let aOk = 0;
+		let aSkip = 0;
+		for (const row of acctRows) {
+			const rowUserId = row.user_id as string;
+			// Skip accounts for admin/teacher — they kept their seed accounts
+			if (keepIds.includes(rowUserId)) {
+				aSkip++;
+				continue;
+			}
+			try {
+				const rowAccessTokenExpiresAt = acctCols.includes(
+					"access_token_expires_at",
+				)
+					? (row.access_token_expires_at as number | null)
+					: null;
+				const rowRefreshTokenExpiresAt = acctCols.includes(
+					"refresh_token_expires_at",
+				)
+					? (row.refresh_token_expires_at as number | null)
+					: null;
+
+				yield* db.insert(account).values({
+					id: row.id as string,
+					accountId: row.account_id as string,
+					providerId: row.provider_id as string,
+					userId: rowUserId,
+					accessToken: row.access_token as string | null,
+					refreshToken: row.refresh_token as string | null,
+					idToken: row.id_token as string | null,
+					accessTokenExpiresAt: rowAccessTokenExpiresAt
+						? new Date(rowAccessTokenExpiresAt)
+						: null,
+					refreshTokenExpiresAt: rowRefreshTokenExpiresAt
+						? new Date(rowRefreshTokenExpiresAt)
+						: null,
+					scope: row.scope as string | null,
+					password: row.password as string | null,
+					createdAt: new Date(row.created_at as number),
+					updatedAt: new Date(row.updated_at as number),
+				});
+				aOk++;
+			} catch (err) {
+				yield* Effect.logWarning(
+					`  Skipped account ${String(row.id)}: ${String(err)}`,
+				);
+				aSkip++;
+			}
+		}
+		yield* Effect.log(`  ${aOk} inserted, ${aSkip} skipped (${acctRows.length} total)`);
+
+		// 5. Cohort Members — remap cohortId to seed cohort IDs
 		yield* Effect.log("\n=== Cohort Members ===");
 		const cmCols = getSourceColumns("cohort_members");
 		const cmRows = querySource("SELECT * FROM cohort_members") as Array<
@@ -178,7 +238,7 @@ function importAll() {
 		}
 		yield* Effect.log(`  ${cm}/${cmRows.length}`);
 
-		// 4. Whitelist — remap cohortId to seed cohort IDs
+		// 6. Whitelist — remap cohortId to seed cohort IDs
 		yield* Effect.log("\n=== Whitelist Entries ===");
 		const wlCols = getSourceColumns("whitelist_entries");
 		const wlRows = querySource("SELECT * FROM whitelist_entries") as Array<
@@ -220,7 +280,7 @@ function importAll() {
 
 		client.close();
 
-		return { users: uOk, cohortMembers: cm, whitelist: wl };
+		return { users: uOk, accounts: aOk, cohortMembers: cm, whitelist: wl };
 	});
 }
 
