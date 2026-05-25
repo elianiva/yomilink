@@ -153,7 +153,6 @@ export function LearnerMapResult() {
 	const excessiveEdges = diagnosis.excessive ?? [];
 	const totalGoalEdges = correctEdges.length + missingEdges.length;
 	const hasEdgeDetails = totalGoalEdges > 0 || correctEdges.length + excessiveEdges.length > 0;
-	const scorePercentage = totalGoalEdges > 0 ? Math.round((diagnosis.score ?? 0) * 100) : 0;
 
 	const postTestLinkProps = {
 		to: "/dashboard/forms/take" as const,

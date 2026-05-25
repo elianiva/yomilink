@@ -50,8 +50,8 @@ function FormTakerPage() {
 		{
 			...FormRpc.submitFormResponse(),
 			onSuccess: () => {
-				queryClient.invalidateQueries({ queryKey: FormRpc.forms() });
-				queryClient.invalidateQueries({ queryKey: ["learner-maps"] });
+				void queryClient.invalidateQueries({ queryKey: FormRpc.forms() });
+				void queryClient.invalidateQueries({ queryKey: ["learner-maps"] });
 				send({ type: "SUBMIT_DONE" });
 			},
 		},

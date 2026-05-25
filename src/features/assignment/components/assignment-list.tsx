@@ -81,7 +81,7 @@ function getStudentPhase(assignment: AssignmentListItem): StudentPhase {
 
 	if (status === "submitted" && postTestCompleted) return "done";
 	if (status === "submitted" && !postTestCompleted) return isLate ? "postTestLate" : "postTest";
-	if (status === "draft" || status === "in_progress") {
+	if (status === "draft") {
 		if (preTestCompleted) return isLate ? "kitbuildingLate" : "kitbuilding";
 		return isLate ? "preTestLate" : "preTest";
 	}

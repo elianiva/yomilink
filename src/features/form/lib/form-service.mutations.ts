@@ -18,10 +18,13 @@ import {
 	QuestionNotFoundError,
 	ReorderQuestionsInput,
 	resolveFormAccessScope,
+	FormAudience,
+	FormNotAccessibleError,
+	FormType,
+	ReadingMaterialSection,
 	shouldExcludeForm,
 	SubmitFormResponseInput,
 	UpdateQuestionInput,
-	FormNotAccessibleError,
 } from "./form-service.shared";
 
 export const createForm = Effect.fn("createForm")(function* (
@@ -57,12 +60,10 @@ export const updateForm = Effect.fn("updateForm")(function* (
 	data: Partial<{
 		title: string;
 		description: string | null;
-		type: import("./form-service.shared").FormType;
-		audience: import("./form-service.shared").FormAudience;
+		type: FormType;
+		audience: FormAudience;
 		status: "draft" | "published";
-		readingMaterialSections: ReadonlyArray<
-			import("./form-service.shared").ReadingMaterialSection
-		> | null;
+		readingMaterialSections: ReadonlyArray<ReadingMaterialSection> | null;
 	}>,
 ) {
 	const db = yield* Database;

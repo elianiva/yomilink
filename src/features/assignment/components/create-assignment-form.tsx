@@ -104,7 +104,6 @@ export function CreateAssignmentForm({ onSuccess, onCancel }: CreateAssignmentFo
 	const pretestForms = formsWithDesc.filter((f) => f.type === "pre_test");
 	const posttestForms = formsWithDesc.filter((f) => f.type === "post_test");
 	const delayedtestForms = formsWithDesc.filter((f) => f.type === "delayed_test");
-	const questionnaireForms = formsWithDesc.filter((f) => f.type === "questionnaire");
 
 	return (
 		<form onSubmit={handleSubmit} className="space-y-4">

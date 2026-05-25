@@ -6,7 +6,7 @@ export class StorageError extends Schema.TaggedError<StorageError>()("StorageErr
 }) {}
 
 export class StorageService extends Effect.Service<StorageService>()("app/StorageService", {
-	effect: Effect.gen(function* () {
+	effect: Effect.sync(() => {
 		const getBucket = Effect.promise(() =>
 			import("cloudflare:workers").then(({ env }) => env.MATERIAL_IMAGES),
 		);

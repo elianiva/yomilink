@@ -60,7 +60,7 @@ export function SearchableSelect({
 				<Button
 					id={id}
 					variant="outline"
-					role="combobox"
+					aria-haspopup="listbox"
 					aria-expanded={open}
 					aria-controls={open ? "searchable-select-listbox" : undefined}
 					className={cn("w-full justify-between", !value && "text-muted-foreground")}

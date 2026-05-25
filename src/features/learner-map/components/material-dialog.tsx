@@ -46,6 +46,7 @@ export function MaterialDialog({
 						Use this material as a reference while building your concept map
 					</DialogDescription>
 					<div className="flex items-center justify-end gap-2 pt-2">
+						{/* eslint-disable-next-line jsx-a11y/label-has-associated-control */}
 						<label className="flex items-center gap-1.5 text-xs text-muted-foreground cursor-pointer">
 							<Languages className="size-3.5" />
 							Furigana

@@ -38,7 +38,7 @@ function StudentFormsPage() {
 		FormRpc.getStudentForms(),
 	);
 
-	const forms = rawForms.filter((f): f is StudentForm => f.type !== "tam") as StudentForm[];
+	const forms = rawForms.filter((f) => f.type !== "tam") as StudentForm[];
 
 	const compareTitles = (a: StudentForm, b: StudentForm) => a.title.localeCompare(b.title);
 

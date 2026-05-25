@@ -84,8 +84,8 @@ export function FormBuilderPage() {
 			setMetadata({
 				title: existingForm.form.title ?? "",
 				description: existingForm.form.description,
-				type: existingForm.form.type,
-				audience: existingForm.form.audience,
+				type: existingForm.form.type as FormMetadata["type"],
+				audience: existingForm.form.audience as FormMetadata["audience"],
 				status: existingForm.form.status,
 			});
 			setQuestions([...(existingForm.questions ?? [])] as unknown as QuestionWithOptions[]);

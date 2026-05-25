@@ -44,6 +44,7 @@ function UserCard({
 		<Card className="cursor-pointer" onClick={() => onUserClick(user)}>
 			<CardContent className="p-4">
 				<div className="flex items-start gap-3">
+					{/* eslint-disable-next-line jsx-a11y/no-static-element-interactions, jsx-a11y/click-events-have-key-events */}
 					<div onClick={(e) => e.stopPropagation()}>
 						<Checkbox
 							checked={selectedIds.includes(user.id)}

@@ -422,6 +422,7 @@ export const FormOutputSchema = Schema.Struct({
 		Schema.Literal("delayed_test"),
 		Schema.Literal("registration"),
 		Schema.Literal("questionnaire"),
+		Schema.Literal("tam"),
 	),
 	audience: FormAudienceSchema,
 	status: Schema.Union(Schema.Literal("draft"), Schema.Literal("published")),

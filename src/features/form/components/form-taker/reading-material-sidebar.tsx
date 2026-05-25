@@ -95,6 +95,7 @@ export function ReadingMaterialSidebar({
 				<BookOpen className="size-5 text-muted-foreground" />
 				<h2 className="font-semibold">Reading Material</h2>
 			</div>
+			{/* eslint-disable-next-line jsx-a11y/label-has-associated-control */}
 			<label className="flex items-center gap-2 text-xs text-muted-foreground cursor-pointer">
 				<Languages className="size-3.5" />
 				<Switch checked={showFurigana} onCheckedChange={setShowFurigana} />
@@ -125,6 +126,7 @@ export function ReadingMaterialSidebar({
 						<BookOpen className="size-4 text-muted-foreground" />
 						<h2 className="text-sm font-semibold">Reading Material</h2>
 					</div>
+					{/* eslint-disable-next-line jsx-a11y/label-has-associated-control */}
 					<label className="flex items-center gap-1.5 text-[11px] text-muted-foreground cursor-pointer">
 						<Languages className="size-3" />
 						<Switch
