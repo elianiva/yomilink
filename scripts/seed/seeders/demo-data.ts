@@ -209,8 +209,8 @@ export function seedDemoData(
 
 		const dailyLifeSet = yield* createDemoSet(
 			"わたしのうち",
-			"わたしのうち Demo Assignment",
-			"Demo assignment for the わたしのうち reading passage about a quiet neighborhood.",
+			"わたしのうち Assignment",
+			"Assignment for the わたしのうち reading passage about a quiet neighborhood.",
 			{
 				preTestFormId: testFormIds?.preTestFormId ?? null,
 				postTestFormId: testFormIds?.postTestFormId ?? null,

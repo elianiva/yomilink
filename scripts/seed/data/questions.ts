@@ -168,7 +168,7 @@ export const READING_COMPREHENSION_QUESTIONS: ReadingQuestion[] = [
 		targetInfo: "Triple: kissaten → de → coffee-nomu",
 	},
 	{
-		questionText: "著者（ちょしゃ）のうちはどんな所（ところ）ですか。",
+		questionText: "この人（ひと）のうちはどんな所（ところ）ですか。",
 		options: createMcqOptions(4, [
 			"静（しず）かで便利（べんり）な所（ところ）",
 			"広（ひろ）くて新（あたら）しい所（ところ）",
@@ -180,7 +180,7 @@ export const READING_COMPREHENSION_QUESTIONS: ReadingQuestion[] = [
 		targetInfo: "Triple: uchi → wa → benri; text: shizukana tokoro",
 	},
 	{
-		questionText: "著者（ちょしゃ）はどこで本（ほん）を読（よ）みますか。",
+		questionText: "この人（ひと）はどこで本（ほん）を読（よ）みますか。",
 		options: createMcqOptions(5, [
 			"公園（こうえん）と喫茶店（きっさてん）",
 			"図書館（としょかん）と公園（こうえん）",
@@ -196,7 +196,7 @@ export const READING_COMPREHENSION_QUESTIONS: ReadingQuestion[] = [
 	{
 		questionText: "なぜこの町（まち）は便利（べんり）ですか。",
 		options: createMcqOptions(6, [
-			"近（ちか）くにいろいろな施設（しせつ）があるから",
+			"近（ちか）くにいろいろなお店（みせ）や場所（ばしょ）があるから",
 			"駅（えき）が近（ちか）いから",
 			"公園（こうえん）が広（ひろ）いから",
 			"新（あたら）しい建物（たてもの）が多いから",
@@ -207,7 +207,7 @@ export const READING_COMPREHENSION_QUESTIONS: ReadingQuestion[] = [
 	},
 	{
 		questionText:
-			"喫茶店（きっさてん）の特徴（とくちょう）として正（ただ）しいものはどれですか。",
+			"喫茶店（きっさてん）について正（ただ）しいものはどれですか。",
 		options: createMcqOptions(7, [
 			"おいしいコーヒーがある",
 			"本（ほん）が借（か）りられる",
@@ -219,7 +219,7 @@ export const READING_COMPREHENSION_QUESTIONS: ReadingQuestion[] = [
 		targetInfo: "Text: kissaten no koohii wa oishii desu",
 	},
 	{
-		questionText: "この町（まち）の説明（せつめい）として正（ただ）しいものはどれですか。",
+		questionText: "この町（まち）について正（ただ）しいものはどれですか。",
 		options: createMcqOptions(8, [
 			"図書館（としょかん）で借（か）りた本（ほん）を公園（こうえん）で読（よ）める",
 			"うちの隣（となり）にスーパーがある",
@@ -231,9 +231,9 @@ export const READING_COMPREHENSION_QUESTIONS: ReadingQuestion[] = [
 		targetInfo: "Synthesis of toshokan→kariru + kouen→yomu propositions",
 	},
 	{
-		questionText: "この文章（ぶんしょう）の内容（ないよう）と合（あ）うものはどれですか。",
+		questionText: "この話（はなし）と合（あ）うものはどれですか。",
 		options: createMcqOptions(9, [
-			"静（しず）かな住宅地（じゅうたくち）で日常（にちじょう）生活（せいかつ）に便利（べんり）",
+			"静（しず）かで便利（べんり）な町（まち）",
 			"駅（えき）の近（ちか）くの賑（にぎ）やかな町（まち）",
 			"図書館（としょかん）と喫茶店（きっさてん）だけある小（ちい）さい町（まち）",
 			"すべての建物（たてもの）が新（あたら）しい町（まち）",

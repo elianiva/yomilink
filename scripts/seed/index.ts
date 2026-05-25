@@ -60,7 +60,7 @@ const program = Effect.gen(function* () {
 			"Created:\n" +
 			"  - Cohorts: 2A Marketing Management, 2B Marketing Management\n" +
 			"  - Kits: わたしのうち\n" +
-			"  - Assignments: 1 demo assignment\n" +
+			"  - Assignments: 1 assignment\n" +
 			"  - Forms: pre-test, post-test, delayed-test, questionnaire, feedback\n" +
 			"  - Submissions: 1 demo student account (tanaka)\n" +
 			"  - Whitelist: 47 reserved student IDs\n",

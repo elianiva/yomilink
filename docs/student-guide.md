@@ -153,7 +153,7 @@ This is the student's landing page after login. It shows all assigned Kit-Build 
 | Field           | Description                                        |
 | --------------- | -------------------------------------------------- |
 | **Status**      | "Submitted" (green) or "Not Started" (muted)       |
-| **Title**       | e.g., "わたしのうち Demo Assignment"               |
+| **Title**       | e.g., "わたしのうち Assignment"               |
 | **Description** | Reading passage summary                            |
 | **Topic**       | e.g., "わたしのうち"                               |
 | **Date**        | e.g., "May 17, 2026"                               |
@@ -314,7 +314,7 @@ Interactive concept map editor using React Flow. This is where experiment-group 
 
 | Component            | Description                          |
 | -------------------- | ------------------------------------ |
-| **Assignment title** | e.g., "わたしのうち Demo Assignment" |
+| **Assignment title** | e.g., "わたしのうち Assignment" |
 | **Progress**         | "X connections" counter              |
 | **Submit**           | `Button` — Submit map for diagnosis  |
 | **Toolbar buttons**  | Undo, redo, zoom, layout             |
