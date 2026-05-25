@@ -6,11 +6,16 @@ import { PageHeader } from "@/components/page-header";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Guard } from "@/features/auth/components/Guard";
 import { useRpcQuery } from "@/hooks/use-rpc-query";
 import { FormRpc } from "@/server/rpc/form";
 
 export const Route = createFileRoute("/dashboard/forms/student")({
-	component: StudentFormsPage,
+	component: () => (
+		<Guard roles={["student"]}>
+			<FormsStudentPage />
+		</Guard>
+	),
 });
 
 type StudentForm = {
@@ -32,7 +37,7 @@ type StudentForm = {
  *  Pre/post/delayed tests are accessed through the assignment flow. */
 const STANDALONE_TYPES = new Set(["questionnaire", "registration"]);
 
-function StudentFormsPage() {
+function FormsStudentPage() {
 	const navigate = useNavigate();
 	const { data: rawForms = [], isLoading: isLoadingForms } = useRpcQuery(
 		FormRpc.getStudentForms(),

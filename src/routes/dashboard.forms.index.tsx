@@ -22,12 +22,12 @@ import { FormRpc } from "@/server/rpc/form";
 export const Route = createFileRoute("/dashboard/forms/")({
 	component: () => (
 		<Guard roles={["teacher", "admin"]}>
-			<AdminFormsPage />
+			<FormsPage />
 		</Guard>
 	),
 });
 
-function AdminFormsPage() {
+function FormsPage() {
 	const navigate = useNavigate();
 	const queryClient = useQueryClient();
 	const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
@@ -107,7 +107,7 @@ function AdminFormsPage() {
 	const published = mappedForms.filter((f) => f.status === "published").sort(compareTitles);
 
 	return (
-		<div className="space-y-6">
+		<div className="space-y-6 pt-4">
 			<PageHeader
 				icon={FilePlusIcon}
 				title="Forms"

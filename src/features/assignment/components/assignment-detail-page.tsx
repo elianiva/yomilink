@@ -87,7 +87,7 @@ export function AssignmentDetailPage({ assignment }: AssignmentDetailPageProps) 
 			: 0;
 
 	return (
-		<div className="space-y-6">
+		<div className="space-y-6 pt-4">
 			<div className="flex items-start justify-between gap-4">
 				<div className="space-y-1 min-w-0">
 					<div className="flex items-center gap-2">

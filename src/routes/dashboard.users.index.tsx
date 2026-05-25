@@ -1,6 +1,6 @@
 import { useQueryClient } from "@tanstack/react-query";
 import { createFileRoute } from "@tanstack/react-router";
-import { UsersIcon } from "lucide-react";
+import { UsersIcon, UserCheckIcon } from "lucide-react";
 import { useState } from "react";
 
 import { PageHeader } from "@/components/page-header";
@@ -163,96 +163,99 @@ function UsersPage() {
 	};
 
 	return (
-		<Tabs defaultValue="users" className="space-y-6">
+		<Tabs defaultValue="users" className="pt-4">
 			<TabsList className="grid w-full max-w-sm grid-cols-2">
 				<TabsTrigger value="users">Users</TabsTrigger>
 				<TabsTrigger value="whitelist">Whitelist</TabsTrigger>
 			</TabsList>
-			<TabsContent value="users" className="space-y-6">
-				<div className="space-y-6">
-					<PageHeader
-						icon={UsersIcon}
-						title="Users"
-						description="Manage user accounts and permissions"
-					/>
+			<TabsContent value="users" className="space-y-4">
+				<PageHeader
+					icon={UsersIcon}
+					title="Users"
+					description="Manage user accounts and permissions"
+				/>
 
-					<UserFilterBar
-						cohorts={cohorts}
-						filters={filters}
-						onFiltersChange={setFilters}
-						onBulkAction={handleBulkAction}
-						selectedCount={selectedIds.length}
-						isAdmin={isAdmin}
-					/>
+				<UserFilterBar
+					cohorts={cohorts}
+					filters={filters}
+					onFiltersChange={setFilters}
+					onBulkAction={handleBulkAction}
+					selectedCount={selectedIds.length}
+					isAdmin={isAdmin}
+				/>
 
-					{isLoading ? (
-						<Skeleton className="h-96 w-full" />
-					) : (
-						<>
-							<UserTable
-								users={users}
-								selectedIds={selectedIds}
-								onSelectionChange={setSelectedIds}
-								onUserClick={handleUserClick}
-							/>
+				{isLoading ? (
+					<Skeleton className="h-96 w-full" />
+				) : (
+					<>
+						<UserTable
+							users={users}
+							selectedIds={selectedIds}
+							onSelectionChange={setSelectedIds}
+							onUserClick={handleUserClick}
+						/>
 
-							{totalPages > 1 && (
-								<div className="flex flex-col sm:flex-row items-center justify-between gap-2">
-									<p className="text-sm text-muted-foreground">
-										Showing {users.length} of {total} users
-									</p>
-									<div className="flex items-center gap-2">
-										<Button
-											variant="outline"
-											size="sm"
-											disabled={page <= 1}
-											onClick={() => handlePageChange(page - 1)}
-										>
-											Previous
-										</Button>
-										<span className="text-sm hidden sm:inline">
-											Page {page} of {totalPages}
-										</span>
-										<Button
-											variant="outline"
-											size="sm"
-											disabled={page >= totalPages}
-											onClick={() => handlePageChange(page + 1)}
-										>
-											Next
-										</Button>
-									</div>
+						{totalPages > 1 && (
+							<div className="flex flex-col sm:flex-row items-center justify-between gap-2">
+								<p className="text-sm text-muted-foreground">
+									Showing {users.length} of {total} users
+								</p>
+								<div className="flex items-center gap-2">
+									<Button
+										variant="outline"
+										size="sm"
+										disabled={page <= 1}
+										onClick={() => handlePageChange(page - 1)}
+									>
+										Previous
+									</Button>
+									<span className="text-sm hidden sm:inline">
+										Page {page} of {totalPages}
+									</span>
+									<Button
+										variant="outline"
+										size="sm"
+										disabled={page >= totalPages}
+										onClick={() => handlePageChange(page + 1)}
+									>
+										Next
+									</Button>
 								</div>
-							)}
-						</>
-					)}
+							</div>
+						)}
+					</>
+				)}
 
-					<UserDetailSheet
-						user={selectedUser}
-						open={sheetOpen}
-						onOpenChange={setSheetOpen}
-						onSave={handleSave}
-						onBan={handleBan}
-						onUnban={handleUnban}
-						onRoleChange={handleRoleChange}
-						onDelete={handleDelete}
-						isAdmin={isAdmin}
-						currentUserId={currentUserId}
-						isSaving={updateMutation.isPending}
-						isDeleting={deleteUserMutation.isPending}
-					/>
+				<UserDetailSheet
+					user={selectedUser}
+					open={sheetOpen}
+					onOpenChange={setSheetOpen}
+					onSave={handleSave}
+					onBan={handleBan}
+					onUnban={handleUnban}
+					onRoleChange={handleRoleChange}
+					onDelete={handleDelete}
+					isAdmin={isAdmin}
+					currentUserId={currentUserId}
+					isSaving={updateMutation.isPending}
+					isDeleting={deleteUserMutation.isPending}
+				/>
 
-					<BulkCohortDialog
-						open={bulkDialogOpen && bulkAction === "assign"}
-						onOpenChange={setBulkDialogOpen}
-						cohorts={cohorts}
-						selectedCount={selectedIds.length}
-						onConfirm={handleBulkCohortConfirm}
-						isLoading={bulkCohortMutation.isPending}
-					/>
-				</div>
+				<BulkCohortDialog
+					open={bulkDialogOpen && bulkAction === "assign"}
+					onOpenChange={setBulkDialogOpen}
+					cohorts={cohorts}
+					selectedCount={selectedIds.length}
+					onConfirm={handleBulkCohortConfirm}
+					isLoading={bulkCohortMutation.isPending}
+				/>
 			</TabsContent>
-			<TabsContent value="whitelist">
+			<TabsContent value="whitelist" className="space-y-4">
+				<PageHeader
+					icon={UserCheckIcon}
+					title="Whitelist"
+					description="Manage pre-registered accounts that can sign up without an invite"
+				/>
 				<WhitelistPanel />
 			</TabsContent>
 		</Tabs>

@@ -114,7 +114,7 @@ function AnalyticsPage() {
 
 	return (
 		<TooltipProvider delay={300}>
-			<section className="relative h-full overflow-hidden -mx-6 border-t-[0.5px]">
+			<section className="relative h-full overflow-hidden -mx-6">
 				{/* Background layer — canvas/summary fills everything */}
 				<div className="absolute inset-0">
 					{activeLearnerTab === "conceptMap" ? (

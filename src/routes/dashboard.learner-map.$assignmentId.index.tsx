@@ -1,4 +1,4 @@
-import { createFileRoute, useParams } from "@tanstack/react-router";
+import { createFileRoute } from "@tanstack/react-router";
 import { lazy, Suspense } from "react";
 
 import { Skeleton } from "@/components/ui/skeleton";
@@ -31,27 +31,25 @@ function LearnerMapSkeleton() {
 }
 
 function LearnerMapPage() {
-	const { assignmentId } = useParams({ from: "/dashboard/learner-map/$assignmentId/" });
+	const { assignmentId } = Route.useParams();
 
 	const { isLoading } = useRpcQuery(LearnerMapRpc.getAssignmentForStudent({ assignmentId }));
 
 	if (isLoading) {
-		return (
-			<Guard roles={["student"]}>
-				<LearnerMapSkeleton />
-			</Guard>
-		);
+		return <LearnerMapSkeleton />;
 	}
 
 	return (
-		<Guard roles={["student"]}>
-			<Suspense fallback={<LearnerMapSkeleton />}>
-				<LearnerMapEditorWrapper />
-			</Suspense>
-		</Guard>
+		<Suspense fallback={<LearnerMapSkeleton />}>
+			<LearnerMapEditorWrapper />
+		</Suspense>
 	);
 }
 
 export const Route = createFileRoute("/dashboard/learner-map/$assignmentId/")({
-	component: LearnerMapPage,
+	component: () => (
+		<Guard roles={["student"]}>
+			<LearnerMapPage />
+		</Guard>
+	),
 });

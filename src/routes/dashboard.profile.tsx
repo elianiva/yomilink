@@ -8,13 +8,18 @@ import { FieldInfo } from "@/components/ui/field-info";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
+import { Guard } from "@/features/auth/components/Guard";
 import { JlptLevel, ProfileSchema } from "@/features/profile/lib/profile-service";
 import { useRpcMutation, useRpcQuery } from "@/hooks/use-rpc-query";
 import { authClient } from "@/lib/auth-client";
 import { getMe, ProfileRpc } from "@/server/rpc/profile";
 
 export const Route = createFileRoute("/dashboard/profile")({
-	component: ProfilePage,
+	component: () => (
+		<Guard roles={["student", "teacher", "admin"]}>
+			<ProfilePage />
+		</Guard>
+	),
 	loader: async ({ context }) => {
 		const me = await getMe();
 		if (!me.success) {

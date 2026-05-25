@@ -60,14 +60,11 @@ export function WhitelistPanel() {
 	};
 
 	return (
-		<div className="space-y-6">
-			<div className="rounded-xl border bg-card p-4 space-y-4">
-				<div>
-					<h2 className="text-lg font-semibold">Whitelist</h2>
-					<p className="text-sm text-muted-foreground">
-						Import CSV. Columns: studentId, name, cohortId.
-					</p>
-				</div>
+		<div className="space-y-4">
+			<div className="flex flex-col gap-3">
+				<p className="text-sm text-muted-foreground">
+					Import CSV. Columns: studentId, name, cohortId.
+				</p>
 				<div className="grid gap-3 md:grid-cols-[1fr_auto] md:items-start">
 					<div className="space-y-1.5">
 						<Input
@@ -88,63 +85,61 @@ export function WhitelistPanel() {
 				</div>
 			</div>
 
-			<div className="rounded-xl border bg-card">
-				<Table>
-					<TableHeader>
+			<Table>
+				<TableHeader>
+					<TableRow>
+						<TableHead>Student ID</TableHead>
+						<TableHead>Name</TableHead>
+						<TableHead>Cohort</TableHead>
+						<TableHead>Status</TableHead>
+						<TableHead>Added</TableHead>
+						<TableHead className="w-12" />
+					</TableRow>
+				</TableHeader>
+				<TableBody>
+					{isLoading ? (
 						<TableRow>
-							<TableHead>Student ID</TableHead>
-							<TableHead>Name</TableHead>
-							<TableHead>Cohort</TableHead>
-							<TableHead>Status</TableHead>
-							<TableHead>Added</TableHead>
-							<TableHead className="w-12" />
+							<TableCell
+								colSpan={6}
+								className="py-8 text-center text-muted-foreground"
+							>
+								Loading whitelist…
+							</TableCell>
 						</TableRow>
-					</TableHeader>
-					<TableBody>
-						{isLoading ? (
-							<TableRow>
-								<TableCell
-									colSpan={6}
-									className="py-8 text-center text-muted-foreground"
-								>
-									Loading whitelist…
+					) : entries.length === 0 ? (
+						<TableRow>
+							<TableCell
+								colSpan={6}
+								className="py-8 text-center text-muted-foreground"
+							>
+								No unregistered whitelist entries
+							</TableCell>
+						</TableRow>
+					) : (
+						entries.map((entry) => (
+							<TableRow key={entry.id}>
+								<TableCell className="font-medium">{entry.studentId}</TableCell>
+								<TableCell>{entry.name}</TableCell>
+								<TableCell>{entry.cohortName ?? "—"}</TableCell>
+								<TableCell>
+									<Badge variant="secondary">Pending</Badge>
+								</TableCell>
+								<TableCell>{formatDate(entry.createdAt.getTime())}</TableCell>
+								<TableCell>
+									<Button
+										variant="ghost"
+										size="icon"
+										className="size-8 text-destructive hover:text-destructive hover:bg-destructive/10"
+										onClick={() => setDeleteId(entry.id)}
+									>
+										<Trash2 className="size-4" />
+									</Button>
 								</TableCell>
 							</TableRow>
-						) : entries.length === 0 ? (
-							<TableRow>
-								<TableCell
-									colSpan={6}
-									className="py-8 text-center text-muted-foreground"
-								>
-									No unregistered whitelist entries
-								</TableCell>
-							</TableRow>
-						) : (
-							entries.map((entry) => (
-								<TableRow key={entry.id}>
-									<TableCell className="font-medium">{entry.studentId}</TableCell>
-									<TableCell>{entry.name}</TableCell>
-									<TableCell>{entry.cohortName ?? "—"}</TableCell>
-									<TableCell>
-										<Badge variant="secondary">Pending</Badge>
-									</TableCell>
-									<TableCell>{formatDate(entry.createdAt.getTime())}</TableCell>
-									<TableCell>
-										<Button
-											variant="ghost"
-											size="icon"
-											className="size-8 text-destructive hover:text-destructive hover:bg-destructive/10"
-											onClick={() => setDeleteId(entry.id)}
-										>
-											<Trash2 className="size-4" />
-										</Button>
-									</TableCell>
-								</TableRow>
-							))
-						)}
-					</TableBody>
-				</Table>
-			</div>
+						))
+					)}
+				</TableBody>
+			</Table>
 
 			<Dialog open={deleteId !== null} onOpenChange={(v) => !v && setDeleteId(null)}>
 				<DialogContent>

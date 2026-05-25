@@ -17,12 +17,12 @@ import { TopicRpc } from "@/server/rpc/topic";
 export const Route = createFileRoute("/dashboard/")({
 	component: () => (
 		<Guard roles={["teacher", "admin"]} redirectTo="/dashboard/assignments">
-			<DashboardHome />
+			<DashboardPage />
 		</Guard>
 	),
 });
 
-function DashboardHome() {
+function DashboardPage() {
 	const [deleteConfirmOpen, setDeleteConfirmOpen] = useState(false);
 	const [goalMapToDelete, setGoalMapToDelete] = useState<string | null>(null);
 	const [selectedTopic, setSelectedTopic] = useState<Topic | null>(null);

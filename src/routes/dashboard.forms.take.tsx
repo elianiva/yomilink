@@ -4,6 +4,7 @@ import { useMachine } from "@xstate/react";
 import { Loader2 } from "lucide-react";
 import { useEffect, useRef } from "react";
 
+import { Guard } from "@/features/auth/components/Guard";
 import {
 	FormHeaderBar,
 	FormLoadingError,
@@ -22,7 +23,11 @@ import { FormRpc } from "@/server/rpc/form";
 import { ProfileRpc } from "@/server/rpc/profile";
 
 export const Route = createFileRoute("/dashboard/forms/take")({
-	component: FormTakerPage,
+	component: () => (
+		<Guard roles={["student"]}>
+			<FormsTakePage />
+		</Guard>
+	),
 });
 
 type FormTakeSearch = {
@@ -30,7 +35,7 @@ type FormTakeSearch = {
 	redirectBack?: string;
 };
 
-function FormTakerPage() {
+function FormsTakePage() {
 	const queryClient = useQueryClient();
 	const { formId, redirectBack } = useSearch({ from: "/dashboard/forms/take" }) as FormTakeSearch;
 	const { data: me } = useRpcQuery(ProfileRpc.getMe());

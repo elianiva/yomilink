@@ -1,4 +1,4 @@
-import { createFileRoute, Link, useNavigate, getRouteApi } from "@tanstack/react-router";
+import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import {
 	ArrowLeftIcon,
 	CheckCircle2Icon,
@@ -17,12 +17,10 @@ import { useRpcQuery } from "@/hooks/use-rpc-query";
 import { cn } from "@/lib/utils";
 import { LearnerMapRpc } from "@/server/rpc/learner-map";
 
-const routeApi = getRouteApi("/dashboard/assignments/$assignmentId/");
-
 export const Route = createFileRoute("/dashboard/assignments/$assignmentId/")({
 	component: () => (
 		<Guard roles={["student"]}>
-			<AssignmentFlowPage />
+			<AssignmentPage />
 		</Guard>
 	),
 });
@@ -159,8 +157,8 @@ function getPhases(
 	];
 }
 
-function AssignmentFlowPage() {
-	const { assignmentId } = routeApi.useParams();
+function AssignmentPage() {
+	const { assignmentId } = Route.useParams();
 	const navigate = useNavigate();
 
 	const { data: assignments, isLoading } = useRpcQuery(LearnerMapRpc.listStudentAssignments());

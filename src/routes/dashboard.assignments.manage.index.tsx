@@ -25,12 +25,12 @@ import { AssignmentRpc } from "@/server/rpc/assignment";
 export const Route = createFileRoute("/dashboard/assignments/manage/")({
 	component: () => (
 		<Guard roles={["teacher", "admin"]}>
-			<ManageAssignmentsPage />
+			<AssignmentsManagePage />
 		</Guard>
 	),
 });
 
-function ManageAssignmentsPage() {
+function AssignmentsManagePage() {
 	const navigate = useNavigate();
 	const queryClient = useQueryClient();
 	const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
@@ -95,7 +95,7 @@ function ManageAssignmentsPage() {
 	};
 
 	return (
-		<div className="space-y-6">
+		<div className="space-y-6 pt-4">
 			<PageHeader
 				icon={ClipboardListIcon}
 				title="Manage Assignments"
