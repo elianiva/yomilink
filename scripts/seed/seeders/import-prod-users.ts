@@ -151,12 +151,10 @@ function importAll() {
 		// 3. Accounts — import so users can still login
 		yield* Effect.log("\n=== Accounts ===");
 		const acctCols = getSourceColumns("account");
-		const acctRows = querySource("SELECT * FROM account") as Array<
-			Record<string, unknown>
-		>;
-		yield* db.delete(account).where(
-			notInArray(account.userId, keepIds.length > 0 ? keepIds : [""]),
-		);
+		const acctRows = querySource("SELECT * FROM account") as Array<Record<string, unknown>>;
+		yield* db
+			.delete(account)
+			.where(notInArray(account.userId, keepIds.length > 0 ? keepIds : [""]));
 
 		let aOk = 0;
 		let aSkip = 0;
@@ -168,14 +166,10 @@ function importAll() {
 				continue;
 			}
 			try {
-				const rowAccessTokenExpiresAt = acctCols.includes(
-					"access_token_expires_at",
-				)
+				const rowAccessTokenExpiresAt = acctCols.includes("access_token_expires_at")
 					? (row.access_token_expires_at as number | null)
 					: null;
-				const rowRefreshTokenExpiresAt = acctCols.includes(
-					"refresh_token_expires_at",
-				)
+				const rowRefreshTokenExpiresAt = acctCols.includes("refresh_token_expires_at")
 					? (row.refresh_token_expires_at as number | null)
 					: null;
 
@@ -200,9 +194,7 @@ function importAll() {
 				});
 				aOk++;
 			} catch (err) {
-				yield* Effect.logWarning(
-					`  Skipped account ${String(row.id)}: ${String(err)}`,
-				);
+				yield* Effect.logWarning(`  Skipped account ${String(row.id)}: ${String(err)}`);
 				aSkip++;
 			}
 		}
