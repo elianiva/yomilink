@@ -19,7 +19,7 @@ import {
 	whitelistEntries,
 } from "@/server/db/schema/auth-schema";
 
-const ROOT = resolve(dirname(fileURLToPath(import.meta.url)), "../../..");
+const ROOT = resolve(dirname(fileURLToPath(import.meta.url)), "../../../../data/");
 const SOURCE_DB = process.env.SOURCE_DB ?? resolve(ROOT, "yomilink-prod.db");
 
 function querySource(sqlQuery: string): unknown[] {
@@ -54,18 +54,25 @@ function importAll() {
 		const seedCohorts = yield* db.select({ id: cohorts.id, name: cohorts.name }).from(cohorts);
 		const seedCohortIdByName: Record<string, string> = {};
 		for (const sc of seedCohorts) {
-			seedCohortIdByName[sc.name] = sc.id;
+			seedCohortIdByName[sc.name.toLowerCase()] = sc.id;
 		}
 		yield* Effect.log(`  Found ${Object.keys(seedCohortIdByName).length} seed cohorts`);
 
-		// Build old prod cohort ID → new seed cohort ID map by matching names
+		// Cohort renames — old prod cohort names → new seed cohort names
+		const cohortRename: Record<string, string> = {
+			"2a business administration": "2a marketing management",
+			"2b business administration": "2b marketing management",
+		};
+
+		// Build old prod cohort ID → new seed cohort ID map by matching names (with renames)
 		const prodCohortRows = querySource("SELECT * FROM cohorts") as Array<
 			Record<string, unknown>
 		>;
 		const oldToNewCohortId: Record<string, string> = {};
 		for (const row of prodCohortRows) {
-			const name = row.name as string;
-			const newId = seedCohortIdByName[name];
+			const name = (row.name as string).toLowerCase();
+			const mappedName = (cohortRename[name] ?? name).toLowerCase();
+			const newId = seedCohortIdByName[mappedName];
 			if (newId) {
 				oldToNewCohortId[row.id as string] = newId;
 			}
@@ -96,6 +103,11 @@ function importAll() {
 		let uOk = 0;
 		let uSkip = 0;
 		for (const row of userRows) {
+			const rowRole = row.role as string | null;
+			if (rowRole === "admin" || rowRole === "teacher") {
+				uSkip++;
+				continue;
+			}
 			try {
 				yield* db.insert(user).values({
 					id: row.id as string,
