@@ -55,7 +55,7 @@ export function TextRenderer({
 			/>
 
 			<div className="flex items-center justify-between text-sm">
-				<div className="flex gap-4">
+				<div className="flex items-center gap-4">
 					{minLength > 0 && (
 						<span
 							className={cn(
