@@ -72,8 +72,8 @@ function ProfilePage() {
 	return (
 		<div className="flex flex-1 p-4 lg:p-6">
 			<div className="max-w-6xl mx-auto">
-				<div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
-					<div className="lg:col-span-4 space-y-6">
+				<div className="grid grid-cols-1 lg:grid-cols-12 gap-4">
+					<div className="lg:col-span-4 space-y-4">
 						<div className="border border-border/60 bg-white shadow-sm p-6">
 							<div className="flex items-center gap-4">
 								<Avatar className="size-16 ring-4 ring-primary/10">
@@ -119,15 +119,9 @@ function ProfilePage() {
 							</div>
 						</div>
 
-						<div className="border border-border/60 bg-white shadow-sm p-6">
-							<Button
-								variant="destructive"
-								className="w-full"
-								onClick={handleSignOut}
-							>
-								Sign out
-							</Button>
-						</div>
+						<Button variant="destructive" className="w-full" onClick={handleSignOut}>
+							Sign out
+						</Button>
 
 						<Button asChild variant="outline" className="w-full">
 							<Link to="/dashboard" preload="intent">
