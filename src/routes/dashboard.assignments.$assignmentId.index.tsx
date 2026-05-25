@@ -270,7 +270,7 @@ function AssignmentPage() {
 								isLocked && "opacity-50",
 							)}
 						>
-							<CardContent className="p-4 py-0 flex max-sm:flex-col md:items-start justify-between gap-4">
+							<CardContent className="p-4 py-0 flex max-sm:flex-col md:items-center justify-between gap-4">
 								<div className="flex gap-4">
 									<div
 										className={cn(

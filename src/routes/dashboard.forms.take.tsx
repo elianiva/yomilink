@@ -92,6 +92,7 @@ function FormsTakePage() {
 	// Use derived booleans instead.
 	const isLoadingState = snapshot.matches("loading");
 	const isSubmittingState = snapshot.matches("submitting");
+	const isSubmittedState = snapshot.matches("submitted");
 
 	useEffect(() => {
 		if (!data) return;
@@ -100,12 +101,13 @@ function FormsTakePage() {
 		}
 	}, [data, isLoadingState, send]);
 
+	// Only send FORM.LOADED when refetched data has a submission (avoids resetting during submit)
 	useEffect(() => {
-		if (!data) return;
-		if (isSubmittingState) {
+		if (!data?.submission) return;
+		if (isSubmittingState || isSubmittedState) {
 			send({ type: "FORM.LOADED", data });
 		}
-	}, [data, isSubmittingState, send]);
+	}, [data, isSubmittingState, isSubmittedState, send]);
 
 	useEffect(() => {
 		const loadError = error || rpcError;
@@ -118,7 +120,7 @@ function FormsTakePage() {
 	}, [error, rpcError, isLoadingState, send]);
 
 	// Track start time
-	const isSubmittedState = snapshot.matches("submitted");
+
 	useEffect(() => {
 		if (!formId || !userId) return;
 		const key = `form-start-${userId}-${formId}`;
@@ -140,7 +142,7 @@ function FormsTakePage() {
 	};
 
 	const handleSubmit = () => {
-		if (!answeredRequired || !formId || !userId) return;
+		if (snapshot.matches("submitting") || !answeredRequired || !formId || !userId) return;
 		const timeSpentSeconds = Math.round((Date.now() - startTimeRef.current) / 1000);
 		clearDraft();
 		localStorage.removeItem(`form-start-${userId}-${formId}`);
