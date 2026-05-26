@@ -20,7 +20,7 @@ export const exportAnalyticsData = Effect.fn("exportAnalyticsData")(function* (
 				"Correct",
 				"Missing",
 				"Excessive",
-				"TotalGoalEdges",
+				"TotalGoalPropositions",
 				"SubmittedAt",
 				"AssignmentTitle",
 			],
@@ -37,7 +37,7 @@ export const exportAnalyticsData = Effect.fn("exportAnalyticsData")(function* (
 				learner.correct.toString(),
 				learner.missing.toString(),
 				learner.excessive.toString(),
-				learner.totalGoalEdges.toString(),
+				learner.totalGoalPropositions.toString(),
 				learner.submittedAt ? new Date(learner.submittedAt).toISOString() : "",
 				input.analytics.assignment.title,
 			]);
