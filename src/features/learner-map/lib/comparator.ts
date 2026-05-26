@@ -82,8 +82,19 @@ function composePropositionTriples(
 	return triples;
 }
 
-function tripleKey(t: PropositionTriple): string {
-	return `${t.sourceId}|${t.linkId}|${t.targetId}`;
+function getNodeLabel(node: Node): string {
+	const data = node.data as Record<string, unknown> | undefined;
+	if (data && typeof data === "object" && "label" in data) return String(data.label);
+	if (data && typeof data === "object" && "caption" in data) return String(data.caption);
+	return node.id;
+}
+
+function buildLabelMap(nodes: Readonly<Node[]>): Map<string, string> {
+	return new Map(nodes.map((n) => [n.id, getNodeLabel(n)]));
+}
+
+function labelKey(t: PropositionTriple, labelMap: Map<string, string>): string {
+	return `${labelMap.get(t.sourceId)}|${labelMap.get(t.linkId)}|${labelMap.get(t.targetId)}`;
 }
 
 export function compareMaps(
@@ -95,12 +106,22 @@ export function compareMaps(
 	const goalPropositions = composePropositionTriples(goalNodes, goalEdges);
 	const learnerPropositions = composePropositionTriples(learnerNodes, learnerEdges);
 
-	const learnerSet = new Set(learnerPropositions.map(tripleKey));
-	const goalSet = new Set(goalPropositions.map(tripleKey));
+	const goalLabelMap = buildLabelMap(goalNodes);
+	const learnerLabelMap = buildLabelMap(learnerNodes);
 
-	const correct = goalPropositions.filter((p) => learnerSet.has(tripleKey(p)));
-	const missing = goalPropositions.filter((p) => !learnerSet.has(tripleKey(p)));
-	const excessive = learnerPropositions.filter((p) => !goalSet.has(tripleKey(p)));
+	function gKey(t: PropositionTriple) {
+		return labelKey(t, goalLabelMap);
+	}
+	function lKey(t: PropositionTriple) {
+		return labelKey(t, learnerLabelMap);
+	}
+
+	const learnerSet = new Set(learnerPropositions.map(lKey));
+	const goalSet = new Set(goalPropositions.map(gKey));
+
+	const correct = goalPropositions.filter((p) => learnerSet.has(gKey(p)));
+	const missing = goalPropositions.filter((p) => !learnerSet.has(gKey(p)));
+	const excessive = learnerPropositions.filter((p) => !goalSet.has(lKey(p)));
 
 	const score =
 		goalPropositions.length > 0

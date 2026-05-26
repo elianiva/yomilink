@@ -90,6 +90,74 @@ describe("compareMaps", () => {
 		const r = result(compareMaps(nodes, edges, learnerNodes, learnerEdges));
 		expect(r).toEqual(props(1, 0, 1, 1, 1));
 	});
+
+	it("duplicate connector labels — learner uses one connector for both propositions", () => {
+		const goalNodes: Node[] = [
+			{ id: "c1", type: "text", position: { x: 0, y: 0 }, data: { label: "kouen" } },
+			{ id: "c2", type: "text", position: { x: 200, y: 0 }, data: { label: "hon wo yomu" } },
+			{ id: "c3", type: "text", position: { x: 0, y: 100 }, data: { label: "toshokan" } },
+			{ id: "c4", type: "text", position: { x: 200, y: 100 }, data: { label: "hon wo kariru" } },
+			{ id: "l1", type: "connector", position: { x: 100, y: 50 }, data: { label: "de" } },
+			{ id: "l2", type: "connector", position: { x: 100, y: 150 }, data: { label: "de" } },
+		];
+		const goalEdges: Edge[] = [
+			{ id: "e1", source: "c1", target: "l1" },
+			{ id: "e2", source: "l1", target: "c2" },
+			{ id: "e3", source: "c3", target: "l2" },
+			{ id: "e4", source: "l2", target: "c4" },
+		];
+		// Learner swaps — uses l1 for both, leaving l2 unused
+		const learnerNodes: Node[] = [
+			{ id: "c1", type: "text", position: { x: 0, y: 0 }, data: { label: "kouen" } },
+			{ id: "c2", type: "text", position: { x: 200, y: 0 }, data: { label: "hon wo yomu" } },
+			{ id: "c3", type: "text", position: { x: 0, y: 100 }, data: { label: "toshokan" } },
+			{ id: "c4", type: "text", position: { x: 200, y: 100 }, data: { label: "hon wo kariru" } },
+			{ id: "l1", type: "connector", position: { x: 100, y: 50 }, data: { label: "de" } },
+		];
+		const learnerEdges: Edge[] = [
+			{ id: "e1", source: "c1", target: "l1" },
+			{ id: "e2", source: "l1", target: "c2" },
+			{ id: "e3", source: "c3", target: "l1" },
+			{ id: "e4", source: "l1", target: "c4" },
+		];
+		const r = result(compareMaps(goalNodes, goalEdges, learnerNodes, learnerEdges));
+		// Single connector linking 4 concepts creates 2 extra cross-pair propositions
+		expect(r).toEqual(props(2, 0, 2, 2, 1));
+	});
+
+	it("duplicate connector labels — learner swaps connector IDs", () => {
+		const goalNodes: Node[] = [
+			{ id: "c1", type: "text", position: { x: 0, y: 0 }, data: { label: "kouen" } },
+			{ id: "c2", type: "text", position: { x: 200, y: 0 }, data: { label: "hon wo yomu" } },
+			{ id: "c3", type: "text", position: { x: 0, y: 100 }, data: { label: "toshokan" } },
+			{ id: "c4", type: "text", position: { x: 200, y: 100 }, data: { label: "hon wo kariru" } },
+			{ id: "l1", type: "connector", position: { x: 100, y: 50 }, data: { label: "de" } },
+			{ id: "l2", type: "connector", position: { x: 100, y: 150 }, data: { label: "de" } },
+		];
+		const goalEdges: Edge[] = [
+			{ id: "e1", source: "c1", target: "l1" },
+			{ id: "e2", source: "l1", target: "c2" },
+			{ id: "e3", source: "c3", target: "l2" },
+			{ id: "e4", source: "l2", target: "c4" },
+		];
+		// Learner uses same two connectors but swapped which pair they serve
+		const learnerNodes: Node[] = [
+			{ id: "c1", type: "text", position: { x: 0, y: 0 }, data: { label: "kouen" } },
+			{ id: "c2", type: "text", position: { x: 200, y: 0 }, data: { label: "hon wo yomu" } },
+			{ id: "c3", type: "text", position: { x: 0, y: 100 }, data: { label: "toshokan" } },
+			{ id: "c4", type: "text", position: { x: 200, y: 100 }, data: { label: "hon wo kariru" } },
+			{ id: "l1", type: "connector", position: { x: 100, y: 50 }, data: { label: "de" } },
+			{ id: "l2", type: "connector", position: { x: 100, y: 150 }, data: { label: "de" } },
+		];
+		const learnerEdges: Edge[] = [
+			{ id: "e1", source: "c1", target: "l2" },
+			{ id: "e2", source: "l2", target: "c2" },
+			{ id: "e3", source: "c3", target: "l1" },
+			{ id: "e4", source: "l1", target: "c4" },
+		];
+		const r = result(compareMaps(goalNodes, goalEdges, learnerNodes, learnerEdges));
+		expect(r).toEqual(props(2, 0, 0, 2, 1));
+	});
 });
 
 describe("classifyEdges", () => {
