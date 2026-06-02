@@ -1,5 +1,5 @@
-import { createActor } from "xstate";
 import { describe, expect, it } from "vite-plus/test";
+import { createActor } from "xstate";
 
 import { assignmentWizardMachine } from "./assignment-wizard.machine";
 

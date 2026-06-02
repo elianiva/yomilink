@@ -1,5 +1,6 @@
-import { createClient } from "@libsql/client";
 import * as fs from "fs";
+
+import { createClient } from "@libsql/client";
 
 const db = createClient({
 	url: process.env.TURSO_DATABASE_URL!,
@@ -11,7 +12,9 @@ async function main() {
 	const forms = await db.execute("SELECT id, title, type, status, audience FROM forms");
 	console.log("=== ALL FORMS ===");
 	for (const row of forms.rows) {
-		console.log(`  ${row.id}: ${row.title} (type=${row.type}, status=${row.status}, audience=${row.audience})`);
+		console.log(
+			`  ${row.id}: ${row.title} (type=${row.type}, status=${row.status}, audience=${row.audience})`,
+		);
 	}
 
 	// Get all users

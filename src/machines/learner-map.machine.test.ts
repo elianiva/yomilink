@@ -1,12 +1,10 @@
-import { createActor } from "xstate";
 import { describe, expect, it } from "vite-plus/test";
+import { createActor } from "xstate";
 
 import { learnerMapMachine } from "./learner-map.machine";
 import type { AssignmentSummaryData, Condition } from "./learner-map.machine";
 
-function mockAssignment(
-	overrides?: Partial<AssignmentSummaryData>,
-): AssignmentSummaryData {
+function mockAssignment(overrides?: Partial<AssignmentSummaryData>): AssignmentSummaryData {
 	return {
 		assignment: {
 			id: "a1",
@@ -69,9 +67,24 @@ describe("learnerMapMachine", () => {
 	});
 
 	describe("conceptMap", () => {
-		const startConceptMap = () => startMachine("concept_map", mockAssignment({
-			kit: { id: "k-1", nodes: [{ id: "a", type: "text", position: { x: 0, y: 0 }, data: { label: "A" } }], edges: [] },
-		}));
+		const startConceptMap = () =>
+			startMachine(
+				"concept_map",
+				mockAssignment({
+					kit: {
+						id: "k-1",
+						nodes: [
+							{
+								id: "a",
+								type: "text",
+								position: { x: 0, y: 0 },
+								data: { label: "A" },
+							},
+						],
+						edges: [],
+					},
+				}),
+			);
 
 		it("should set nodes from kit initially", () => {
 			const actor = startConceptMap();
@@ -85,7 +98,14 @@ describe("learnerMapMachine", () => {
 				data: mockAssignment({
 					learnerMap: {
 						id: "lm-1",
-						nodes: [{ id: "x", type: "text", position: { x: 0, y: 0 }, data: { label: "X" } }],
+						nodes: [
+							{
+								id: "x",
+								type: "text",
+								position: { x: 0, y: 0 },
+								data: { label: "X" },
+							},
+						],
 						edges: [],
 						status: "draft",
 						attempt: 1,
@@ -101,7 +121,12 @@ describe("learnerMapMachine", () => {
 		it("should update nodes on SET_NODES and record history", () => {
 			const actor = startConceptMap();
 			const newNodes = [
-				{ id: "b", type: "text" as const, position: { x: 100, y: 0 }, data: { label: "B" } },
+				{
+					id: "b",
+					type: "text" as const,
+					position: { x: 100, y: 0 },
+					data: { label: "B" },
+				},
 			];
 			actor.send({ type: "SET_NODES", nodes: newNodes });
 			expect(actor.getSnapshot().context.nodes).toEqual(newNodes);
@@ -111,7 +136,12 @@ describe("learnerMapMachine", () => {
 		it("should allow undo/redo", () => {
 			const actor = startConceptMap();
 			const newNodes = [
-				{ id: "b", type: "text" as const, position: { x: 100, y: 0 }, data: { label: "B" } },
+				{
+					id: "b",
+					type: "text" as const,
+					position: { x: 100, y: 0 },
+					data: { label: "B" },
+				},
 			];
 			actor.send({ type: "SET_NODES", nodes: newNodes });
 			actor.send({ type: "UNDO" });

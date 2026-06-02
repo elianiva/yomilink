@@ -79,9 +79,7 @@ describe("exportAnalyticsData", () => {
 			learners: [mockAnalytics.learners[0]],
 			summary: { ...mockAnalytics.summary, totalLearners: 1 },
 		};
-		const result = Effect.runSync(
-			exportAnalyticsData({ analytics: single, format: "json" }),
-		);
+		const result = Effect.runSync(exportAnalyticsData({ analytics: single, format: "json" }));
 		const parsed = JSON.parse(result.data);
 		expect(parsed.learners).toHaveLength(1);
 	});
@@ -92,9 +90,7 @@ describe("exportAnalyticsData", () => {
 			learners: [],
 			summary: { ...mockAnalytics.summary, totalLearners: 0, submittedCount: 0 },
 		};
-		const csvResult = Effect.runSync(
-			exportAnalyticsData({ analytics: empty, format: "csv" }),
-		);
+		const csvResult = Effect.runSync(exportAnalyticsData({ analytics: empty, format: "csv" }));
 		expect(csvResult.data).toBeDefined();
 
 		const jsonResult = Effect.runSync(

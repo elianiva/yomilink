@@ -79,6 +79,7 @@ export type TeacherAssignment = typeof TeacherAssignmentSchema.Type;
 export const LearnerAnalyticsSchema = Schema.Struct({
 	userId: Schema.String,
 	userName: Schema.String,
+	userEmail: Schema.String,
 	learnerMapId: Schema.String,
 	condition: Schema.optional(
 		Schema.Union(Schema.Literal("concept_map"), Schema.Literal("summarizing")),
@@ -91,6 +92,14 @@ export const LearnerAnalyticsSchema = Schema.Struct({
 	missing: Schema.Number,
 	excessive: Schema.Number,
 	totalGoalPropositions: Schema.Number,
+	preTestRaw: Schema.NullOr(Schema.Number),
+	preTestTotal: Schema.NullOr(Schema.Number),
+	preTestScore: Schema.NullOr(Schema.Number),
+	preTestDurationSeconds: Schema.NullOr(Schema.Number),
+	postTestRaw: Schema.NullOr(Schema.Number),
+	postTestTotal: Schema.NullOr(Schema.Number),
+	postTestScore: Schema.NullOr(Schema.Number),
+	postTestDurationSeconds: Schema.NullOr(Schema.Number),
 });
 
 export type LearnerAnalytics = typeof LearnerAnalyticsSchema.Type;

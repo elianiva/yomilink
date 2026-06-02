@@ -59,9 +59,7 @@ describe("RateLimiter", () => {
 			const r3 = yield* rl.check("key5", 1, Duration.millis(10));
 			return [r1, r2, r3] as const;
 		});
-		const results = await Effect.runPromise(
-			program.pipe(Effect.provide(RateLimiter.Default)),
-		);
+		const results = await Effect.runPromise(program.pipe(Effect.provide(RateLimiter.Default)));
 		expect(results[0]).toBe(true);
 		expect(results[1]).toBe(false);
 		expect(results[2]).toBe(true);

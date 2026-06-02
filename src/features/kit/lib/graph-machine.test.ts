@@ -1,9 +1,10 @@
 import type { NodeChange } from "@xyflow/react";
 import { describe, expect, it } from "vite-plus/test";
 
+import type { Node, Edge } from "@/features/learner-map/lib/comparator";
+
 import { canRedo, canUndo, filterSelectChanges, recordSnapshot } from "./graph-machine";
 import type { GraphContext } from "./graph-machine";
-import type { Node, Edge } from "@/features/learner-map/lib/comparator";
 
 const nodeA: Node = { id: "a", type: "text", position: { x: 0, y: 0 }, data: { label: "A" } };
 const nodeB: Node = { id: "b", type: "text", position: { x: 100, y: 0 }, data: { label: "B" } };
@@ -22,7 +23,10 @@ function ctx(overrides?: Partial<GraphContext>): GraphContext {
 describe("recordSnapshot", () => {
 	it("should append snapshot after pointer", () => {
 		const c = ctx({
-			history: [{ nodes: [nodeA], edges: [] }, { nodes: [nodeA, nodeB], edges: [] }],
+			history: [
+				{ nodes: [nodeA], edges: [] },
+				{ nodes: [nodeA, nodeB], edges: [] },
+			],
 			pointer: 0,
 		});
 		const next = { nodes: [nodeB], edges: [] };
@@ -48,7 +52,10 @@ describe("recordSnapshot", () => {
 		expect(result[1]).toEqual({ nodes: [nodeA, nodeB], edges: [] });
 		expect(result[2]).toEqual(next);
 		// Future history (index 2) should NOT be in result
-		expect(result).not.toContainEqual({ nodes: [nodeA, nodeB, { ...nodeB, id: "c" }], edges: [] });
+		expect(result).not.toContainEqual({
+			nodes: [nodeA, nodeB, { ...nodeB, id: "c" }],
+			edges: [],
+		});
 	});
 
 	it("should handle empty history", () => {
@@ -80,7 +87,10 @@ describe("canRedo", () => {
 
 	it("should return true when pointer < history.length - 1", () => {
 		const c = ctx({
-			history: [{ nodes: [], edges: [] }, { nodes: [nodeA], edges: [] }],
+			history: [
+				{ nodes: [], edges: [] },
+				{ nodes: [nodeA], edges: [] },
+			],
 			pointer: 0,
 		});
 		expect(canRedo(c)).toBe(true);

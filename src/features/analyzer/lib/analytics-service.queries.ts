@@ -1,6 +1,8 @@
-import { and, avg, count, desc, eq, isNull } from "drizzle-orm";
+import { and, avg, count, desc, eq, inArray, isNull } from "drizzle-orm";
 import { Effect, Schema } from "effect";
 
+import { isCorrectMcqAnswer } from "@/features/form/lib/form-scoring";
+import { QuestionOptions } from "@/features/form/lib/form-service.shared";
 import {
 	classifyEdges,
 	compareMaps,
@@ -9,7 +11,15 @@ import {
 } from "@/features/learner-map/lib/comparator";
 import { safeParseJson } from "@/lib/utils";
 import { Database } from "@/server/db/client";
-import { assignments, diagnoses, goalMaps, kits, learnerMaps } from "@/server/db/schema/app-schema";
+import {
+	assignments,
+	diagnoses,
+	formResponses,
+	goalMaps,
+	kits,
+	learnerMaps,
+	questions,
+} from "@/server/db/schema/app-schema";
 import { user } from "@/server/db/schema/auth-schema";
 
 import {
@@ -82,6 +92,8 @@ export const getAnalyticsForAssignment = Effect.fn("getAnalyticsForAssignment")(
 			title: assignments.title,
 			goalMapId: assignments.goalMapId,
 			kitId: assignments.kitId,
+			preTestFormId: assignments.preTestFormId,
+			postTestFormId: assignments.postTestFormId,
 			createdAt: assignments.createdAt,
 			dueAt: assignments.dueAt,
 		})
@@ -139,6 +151,7 @@ export const getAnalyticsForAssignment = Effect.fn("getAnalyticsForAssignment")(
 			score: diagnoses.score,
 			perLink: diagnoses.perLink,
 			userName: user.name,
+			userEmail: user.email,
 			studyGroup: user.studyGroup,
 		})
 		.from(learnerMaps)
@@ -147,9 +160,87 @@ export const getAnalyticsForAssignment = Effect.fn("getAnalyticsForAssignment")(
 		.where(and(eq(learnerMaps.assignmentId, input.assignmentId), isNull(learnerMaps.deletedAt)))
 		.orderBy(desc(learnerMaps.attempt), desc(learnerMaps.updatedAt));
 
+	const testFormIds = [assignment.preTestFormId, assignment.postTestFormId].filter(
+		(formId): formId is string => formId !== null,
+	);
+	const questionRows = testFormIds.length
+		? yield* db
+				.select({ id: questions.id, formId: questions.formId, options: questions.options })
+				.from(questions)
+				.where(and(inArray(questions.formId, testFormIds), isNull(questions.deletedAt)))
+		: [];
+	const responseRows = testFormIds.length
+		? yield* db
+				.select({
+					formId: formResponses.formId,
+					userId: formResponses.userId,
+					answers: formResponses.answers,
+					timeSpentSeconds: formResponses.timeSpentSeconds,
+				})
+				.from(formResponses)
+				.where(
+					and(
+						inArray(formResponses.formId, testFormIds),
+						isNull(formResponses.deletedAt),
+					),
+				)
+		: [];
+
+	const questionsByForm = new Map<string, typeof questionRows>();
+	for (const question of questionRows) {
+		const list = questionsByForm.get(question.formId) ?? [];
+		list.push(question);
+		questionsByForm.set(question.formId, list);
+	}
+	const responsesByFormAndUser = new Map<string, (typeof responseRows)[number]>();
+	for (const response of responseRows) {
+		responsesByFormAndUser.set(`${response.formId}:${response.userId}`, response);
+	}
+
+	const scoreTestResponse = (formId: string | null, userId: string) =>
+		Effect.gen(function* () {
+			if (!formId) return null;
+			const response = responsesByFormAndUser.get(`${formId}:${userId}`);
+			if (!response) return null;
+			const answers = yield* safeParseJson(
+				response.answers,
+				{},
+				Schema.Record({ key: Schema.String, value: Schema.Unknown }),
+			);
+			let correct = 0;
+			let total = 0;
+			for (const question of questionsByForm.get(formId) ?? []) {
+				const options = yield* safeParseJson(
+					question.options,
+					null,
+					Schema.NullOr(QuestionOptions),
+				);
+				const isCorrect = isCorrectMcqAnswer(
+					options?.type === "mcq"
+						? { type: "mcq", correctOptionIds: options.correctOptionIds }
+						: null,
+					answers[question.id],
+				);
+				if (isCorrect !== null) {
+					total += 1;
+					if (isCorrect) correct += 1;
+				}
+			}
+			return {
+				raw: correct,
+				total,
+				score: total > 0 ? (correct / total) * 100 : null,
+				durationSeconds: response.timeSpentSeconds,
+			};
+		});
+
 	const finalLearners = yield* Effect.all(
 		learnerMapsData.map((lm) =>
 			Effect.gen(function* () {
+				const [preTest, postTest] = yield* Effect.all([
+					scoreTestResponse(assignment.preTestFormId, lm.userId),
+					scoreTestResponse(assignment.postTestFormId, lm.userId),
+				]);
 				let correct = 0;
 				let missing = 0;
 				let excessive = 0;
@@ -166,6 +257,7 @@ export const getAnalyticsForAssignment = Effect.fn("getAnalyticsForAssignment")(
 				return yield* Schema.encode(LearnerAnalyticsSchema)({
 					userId: lm.userId,
 					userName: lm.userName,
+					userEmail: lm.userEmail,
 					learnerMapId: lm.id,
 					condition:
 						lm.studyGroup === "experiment"
@@ -181,6 +273,14 @@ export const getAnalyticsForAssignment = Effect.fn("getAnalyticsForAssignment")(
 					missing,
 					excessive,
 					totalGoalPropositions,
+					preTestRaw: preTest?.raw ?? null,
+					preTestTotal: preTest?.total ?? null,
+					preTestScore: preTest?.score ?? null,
+					preTestDurationSeconds: preTest?.durationSeconds ?? null,
+					postTestRaw: postTest?.raw ?? null,
+					postTestTotal: postTest?.total ?? null,
+					postTestScore: postTest?.score ?? null,
+					postTestDurationSeconds: postTest?.durationSeconds ?? null,
 				});
 			}),
 		),

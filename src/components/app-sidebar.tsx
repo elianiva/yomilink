@@ -5,6 +5,7 @@ import {
 	LayoutPanelLeftIcon,
 	type LucideIcon,
 	ScanSearchIcon,
+	Table2,
 	UsersIcon,
 } from "lucide-react";
 import { useMemo } from "react";
@@ -48,6 +49,12 @@ const NAVBAR_ITEMS: NavItemWithRoles[] = [
 		title: "Static Analyzer",
 		url: "/dashboard/analytics",
 		icon: ScanSearchIcon,
+		roles: ["teacher", "admin"],
+	},
+	{
+		title: "Sheet Analytics",
+		url: "/dashboard/sheet-analytics",
+		icon: Table2,
 		roles: ["teacher", "admin"],
 	},
 	{

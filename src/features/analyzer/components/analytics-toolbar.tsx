@@ -1,5 +1,5 @@
 import { useNavigate } from "@tanstack/react-router";
-import { Activity, Download, RefreshCw } from "lucide-react";
+import { Activity, Download, RefreshCw, Table2 } from "lucide-react";
 import { useCallback } from "react";
 
 import { ToolbarButton } from "@/components/toolbar/toolbar-button";
@@ -70,6 +70,17 @@ export function AnalyticsToolbar({
 		});
 	};
 
+	const handleSheet = () => {
+		if (!selectedAssignmentId) {
+			toast.warning("Please select an assignment first");
+			return;
+		}
+		void navigate({
+			to: "/dashboard/analytics/$assignmentId/sheet",
+			params: { assignmentId: selectedAssignmentId },
+		});
+	};
+
 	return (
 		<div className="border-b-[0.5px] pointer-events-auto bg-background/70 backdrop-blur supports-[backdrop-filter]:bg-background/50 z-20">
 			<div className="h-12 px-3 flex items-center gap-2">
@@ -105,6 +116,13 @@ export function AnalyticsToolbar({
 						<span className="hidden sm:inline">Export JSON</span>
 					</Button>
 
+					<ToolbarButton
+						icon={Table2}
+						label="Sheet analytics"
+						onClick={handleSheet}
+						disabled={!selectedAssignmentId}
+						handle={tooltipHandle}
+					/>
 					<ToolbarButton
 						icon={Activity}
 						label="Metrics"

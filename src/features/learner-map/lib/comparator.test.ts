@@ -96,7 +96,12 @@ describe("compareMaps", () => {
 			{ id: "c1", type: "text", position: { x: 0, y: 0 }, data: { label: "kouen" } },
 			{ id: "c2", type: "text", position: { x: 200, y: 0 }, data: { label: "hon wo yomu" } },
 			{ id: "c3", type: "text", position: { x: 0, y: 100 }, data: { label: "toshokan" } },
-			{ id: "c4", type: "text", position: { x: 200, y: 100 }, data: { label: "hon wo kariru" } },
+			{
+				id: "c4",
+				type: "text",
+				position: { x: 200, y: 100 },
+				data: { label: "hon wo kariru" },
+			},
 			{ id: "l1", type: "connector", position: { x: 100, y: 50 }, data: { label: "de" } },
 			{ id: "l2", type: "connector", position: { x: 100, y: 150 }, data: { label: "de" } },
 		];
@@ -111,7 +116,12 @@ describe("compareMaps", () => {
 			{ id: "c1", type: "text", position: { x: 0, y: 0 }, data: { label: "kouen" } },
 			{ id: "c2", type: "text", position: { x: 200, y: 0 }, data: { label: "hon wo yomu" } },
 			{ id: "c3", type: "text", position: { x: 0, y: 100 }, data: { label: "toshokan" } },
-			{ id: "c4", type: "text", position: { x: 200, y: 100 }, data: { label: "hon wo kariru" } },
+			{
+				id: "c4",
+				type: "text",
+				position: { x: 200, y: 100 },
+				data: { label: "hon wo kariru" },
+			},
 			{ id: "l1", type: "connector", position: { x: 100, y: 50 }, data: { label: "de" } },
 		];
 		const learnerEdges: Edge[] = [
@@ -130,7 +140,12 @@ describe("compareMaps", () => {
 			{ id: "c1", type: "text", position: { x: 0, y: 0 }, data: { label: "kouen" } },
 			{ id: "c2", type: "text", position: { x: 200, y: 0 }, data: { label: "hon wo yomu" } },
 			{ id: "c3", type: "text", position: { x: 0, y: 100 }, data: { label: "toshokan" } },
-			{ id: "c4", type: "text", position: { x: 200, y: 100 }, data: { label: "hon wo kariru" } },
+			{
+				id: "c4",
+				type: "text",
+				position: { x: 200, y: 100 },
+				data: { label: "hon wo kariru" },
+			},
 			{ id: "l1", type: "connector", position: { x: 100, y: 50 }, data: { label: "de" } },
 			{ id: "l2", type: "connector", position: { x: 100, y: 150 }, data: { label: "de" } },
 		];
@@ -145,7 +160,12 @@ describe("compareMaps", () => {
 			{ id: "c1", type: "text", position: { x: 0, y: 0 }, data: { label: "kouen" } },
 			{ id: "c2", type: "text", position: { x: 200, y: 0 }, data: { label: "hon wo yomu" } },
 			{ id: "c3", type: "text", position: { x: 0, y: 100 }, data: { label: "toshokan" } },
-			{ id: "c4", type: "text", position: { x: 200, y: 100 }, data: { label: "hon wo kariru" } },
+			{
+				id: "c4",
+				type: "text",
+				position: { x: 200, y: 100 },
+				data: { label: "hon wo kariru" },
+			},
 			{ id: "l1", type: "connector", position: { x: 100, y: 50 }, data: { label: "de" } },
 			{ id: "l2", type: "connector", position: { x: 100, y: 150 }, data: { label: "de" } },
 		];

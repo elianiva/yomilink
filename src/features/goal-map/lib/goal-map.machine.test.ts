@@ -1,5 +1,5 @@
-import { createActor } from "xstate";
 import { describe, expect, it } from "vite-plus/test";
+import { createActor } from "xstate";
 
 import { goalMapMachine } from "./goal-map.machine";
 
@@ -16,9 +16,7 @@ describe("goalMapMachine", () => {
 		actor.send({
 			type: "LOADED",
 			data: {
-				nodes: [
-					{ id: "a", type: "text", position: { x: 0, y: 0 }, data: { label: "A" } },
-				],
+				nodes: [{ id: "a", type: "text", position: { x: 0, y: 0 }, data: { label: "A" } }],
 				edges: [],
 			},
 		});
@@ -52,9 +50,7 @@ describe("goalMapMachine", () => {
 			type: "LOADED",
 			data: { nodes: [], edges: [] },
 		});
-		const newEdges = [
-			{ id: "e1", source: "a", target: "b" },
-		];
+		const newEdges = [{ id: "e1", source: "a", target: "b" }];
 		actor.send({ type: "SET_EDGES", edges: newEdges });
 		expect(actor.getSnapshot().context.edges).toEqual(newEdges);
 		expect(actor.getSnapshot().context.history).toHaveLength(2);
@@ -66,9 +62,7 @@ describe("goalMapMachine", () => {
 			type: "LOADED",
 			data: { nodes: [], edges: [] },
 		});
-		const nodesA = [
-			{ id: "a", type: "text", position: { x: 0, y: 0 }, data: { label: "A" } },
-		];
+		const nodesA = [{ id: "a", type: "text", position: { x: 0, y: 0 }, data: { label: "A" } }];
 		const nodesB = [
 			{ id: "a", type: "text", position: { x: 0, y: 0 }, data: { label: "A" } },
 			{ id: "b", type: "text", position: { x: 100, y: 0 }, data: { label: "B" } },

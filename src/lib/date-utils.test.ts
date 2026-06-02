@@ -1,6 +1,12 @@
 import { describe, expect, it } from "vite-plus/test";
 
-import { formatDate, formatDateTime, formatDuration, formatRelativeTime, parseDateInput } from "./date-utils";
+import {
+	formatDate,
+	formatDateTime,
+	formatDuration,
+	formatRelativeTime,
+	parseDateInput,
+} from "./date-utils";
 
 describe("formatDate", () => {
 	it("should format a timestamp", () => {
