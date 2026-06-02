@@ -21,6 +21,8 @@
 		"db:reset": "tsx --env-file=.env scripts/seed/reset.ts",
 		"db:reset:full": "tsx --env-file=.env scripts/seed/reset.ts full",
 		"db:wipe": "tsx --env-file=.env scripts/db/wipe.ts",
+		"db:export:csv": "tsx --env-file=.env scripts/export-data.ts",
+		"db:export:questions": "tsx --env-file=.env scripts/export-questions.ts",
 		"coverage": "vp test run --coverage",
 		"coverage:ui": "vp test run --coverage --coverage.ui",
 		"format": "vp fmt --write ./src/**/*",
