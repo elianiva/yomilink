@@ -33,21 +33,21 @@ async function main() {
 
 	// ── 2. Forms ─────────────────────────────────────────────────────────────
 	const { rows: forms } = await db.execute("SELECT id, title, type FROM forms");
-	const tamForm = forms.find((f: any) => f.type === "tam");
+	const tamForm = forms.find((f: any) => f.type === "questionnaire" && (f.title as string).toLowerCase().includes("tam"));
 	const preForm = forms.find((f: any) => f.type === "pre_test");
 	const postForm = forms.find((f: any) => f.type === "post_test");
 	const delayedForm = forms.find((f: any) => f.type === "delayed_test");
-	const feedbackForm = forms.find((f: any) => f.type === "questionnaire");
+	const feedbackForm = forms.find((f: any) => f.type === "questionnaire" && (f.title as string).toLowerCase().includes("feedback"));
 	const tamForm2 = forms.find((f: any) => f.type === "tam" && f.id !== tamForm?.id);
 
 	// ── 3. Questions per form ────────────────────────────────────────────────
 	async function getQuestions(formId: string) {
 		if (!formId) return [];
 		const { rows } = await db.execute({
-			sql: "SELECT id, order_index FROM questions WHERE form_id = ? ORDER BY order_index",
+			sql: "SELECT id, order_index, question_text, type FROM questions WHERE form_id = ? ORDER BY order_index",
 			args: [formId],
 		});
-		return rows as { id: string; order_index: number }[];
+		return rows as { id: string; order_index: number; question_text: string; type: string }[];
 	}
 
 	const tamQs = await getQuestions(tamForm?.id);
@@ -105,7 +105,10 @@ async function main() {
 		lmByUser.get(r.user_id)!.push(r);
 	}
 
-	// ── 6. Build rows ────────────────────────────────────────────────────────
+	// ── 6. Feedback questions (for denormalization) ────────────────────────
+	const fbQs = feedbackForm ? await getQuestions(feedbackForm.id) : [];
+
+	// ── 7. Build rows ────────────────────────────────────────────────────────
 	type Row = Record<string, unknown>;
 	const rows: Row[] = [];
 
@@ -186,8 +189,11 @@ async function main() {
 			r.delayedScore = r.delayedTotal ? (r.delayedCorrect as number) / (r.delayedTotal as number) : null;
 		}
 
-		// Feedback (open-ended — just flag existence)
-		r.hasFeedback = feedbackAns.has(s.id) ? 1 : 0;
+		// Feedback (denormalized)
+		const fb = feedbackAns.get(s.id);
+		for (let i = 0; i < fbQs.length; i++) {
+			r[`fb${i + 1}`] = fb ? (fb[fbQs[i].id] ?? null) : null;
+		}
 
 		// Learner map scores
 		const lms = lmByUser.get(s.id) || [];
@@ -211,8 +217,10 @@ async function main() {
 		rows.push(r);
 	}
 
-	// ── 7. Write CSV ────────────────────────────────────────────────────────
-	const headers = Object.keys(rows[0]);
+	// ── 8. Write CSV ────────────────────────────────────────────────────────
+	const headerSet = new Set<string>();
+	for (const r of rows) Object.keys(r).forEach((k) => headerSet.add(k));
+	const headers = [...headerSet];
 	const lines = rows.map((r) => headers.map((h) => esc(r[h])).join(","));
 	const csv = [headers.join(","), ...lines].join("\n");
 
