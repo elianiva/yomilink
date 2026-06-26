@@ -1,5 +1,5 @@
 {
-	"name": "yomilink",
+	"name": "kitbuild",
 	"private": true,
 	"type": "module",
 	"scripts": {

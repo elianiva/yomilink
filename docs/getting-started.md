@@ -11,7 +11,7 @@
 ```bash
 # Clone
 git clone <repo>
-cd yomilink
+cd kitbuild
 
 # Install dependencies
 pnpm install

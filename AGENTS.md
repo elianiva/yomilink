@@ -1,6 +1,6 @@
-# Yomilink
+# KitBuild
 
-Japanese learning path platform. Stack: TanStack Start + Effect-TS + Cloudflare. Tooling: Vite+ (`vp` CLI).
+Modern reimplementation of the KitBuild Concept Map platform. Stack: TanStack Start + Effect-TS + Cloudflare. Tooling: Vite+ (`vp` CLI).
 
 ## Commands
 

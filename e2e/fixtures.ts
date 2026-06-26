@@ -1,7 +1,7 @@
 import { test as base, expect, type Page } from "@playwright/test";
 
 /**
- * Custom test fixtures for Yomilink authentication.
+ * Custom test fixtures for KitBuild authentication.
  * Provides convenient access to pre-authenticated contexts.
  */
 type AppFixtures = {

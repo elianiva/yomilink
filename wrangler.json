@@ -1,6 +1,6 @@
 {
 	"$schema": "node_modules/wrangler/config-schema.json",
-	"name": "yomilink",
+	"name": "kitbuild",
 	"compatibility_date": "2026-01-01",
 	"compatibility_flags": ["nodejs_compat"],
 	"workers_dev": true,
@@ -17,12 +17,12 @@
 		"VITE_APP_URL": "https://kb.elianiva.com",
 		"BETTER_AUTH_URL": "https://kb.elianiva.com",
 		"SITE_URL": "https://kb.elianiva.com",
-		"TURSO_DATABASE_URL": "libsql://yomilink-prod-elianiva.aws-ap-northeast-1.turso.io"
+		"TURSO_DATABASE_URL": "libsql://kitbuild-prod-elianiva.aws-ap-northeast-1.turso.io"
 	},
 	"r2_buckets": [
 		{
 			"binding": "MATERIAL_IMAGES",
-			"bucket_name": "yomilink-materials"
+			"bucket_name": "kitbuild-materials"
 		}
 	]
 }

@@ -1,6 +1,6 @@
 # Ubiquitous Language
 
-Domain terms used throughout Yomilink (Kit-Build Concept Map platform). Use these terms consistently in code, UI, and documentation.
+Domain terms used throughout KitBuild (Kit-Build Concept Map platform). Use these terms consistently in code, UI, and documentation.
 
 ---
 

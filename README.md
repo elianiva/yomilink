@@ -1,19 +1,19 @@
-# Yomilink
+# KitBuild
 
-A modern reimplementation of the **KitBuild Concept Map** system for educational research. This was made as part of my bachelor thesis.
+A modern reimplementation of the [KitBuild Concept Map](https://collab.kit-build.net/) platform using contemporary web technologies. Originally built as part of a bachelor thesis.
 
 ---
 
-## What is Yomilink?
+## What is KitBuild?
 
-Yomilink is a modern, researcher-friendly rebuild of the [KitBuild Concept Map](https://collab.kit-build.net/) platform originally developed by the [Learning Engineering Laboratory at Hiroshima University](https://lel.main.jp/kb/).
+KitBuild is a modern, researcher-friendly reimplementation of the KitBuild Concept Map platform originally developed by the [Learning Engineering Laboratory at Hiroshima University](https://lel.main.jp/kb/).
 
-The original KitBuild system (operational since 2009) pioneered automatic diagnosis of concept maps for formative assessment. Yomilink aims to:
+The original system (operational since 2009) pioneered automatic diagnosis of concept maps for formative assessment. This reimplementation aims to:
 
-- Provide a cleaner, more accessible interface for researchers and educators. Everything is managed in a single place: pre-test, post-test, delayed-test, questionnaires, so there's no need for an external platform like google forms needed anymore.
-- Run on modern web infrastructure. The system is deployed on Cloudflare Workers and uses Turso as the database. This makes it easy for anyone to deploy without needing to have a VPS.
+- Provide a cleaner, more accessible interface for researchers and educators. Everything is managed in a single place: pre-test, post-test, delayed-test, questionnaires — no external platforms like Google Forms needed.
+- Run on modern web infrastructure (Cloudflare Workers + Turso/LibSQL). No VPS required to deploy.
 
-All core assessment methods like automatic map diagnosis, kit generation algorithms, and feedback frameworks come directly from the original KitBuild research. Yomilink **does not** introduce new pedagogical approaches; it reimplements the proven ones in a more maintainable, extensible form. All credits belongs to the original researchers.
+All core assessment methods — automatic map diagnosis, kit generation algorithms, feedback frameworks — come directly from the original KitBuild research. This reimplementation **does not** introduce new pedagogical approaches; it reimplements the proven ones in a more maintainable, extensible form. All credits belong to the original researchers.
 
 ---
 
@@ -58,7 +58,7 @@ This approach reduces cognitive load on students (no need to invent terminology)
 
 ## Features
 
-Yomilink reimplements the core KitBuild workflow with modern tooling:
+KitBuild reimplements the core KitBuild workflow with modern tooling:
 
 | Feature                  | Description                                                                 |
 | ------------------------ | --------------------------------------------------------------------------- |
@@ -117,11 +117,11 @@ curl -sSfL https://get.tur.so/install.sh | bash
 turso auth login
 
 # Create database
-turso db create yomilink
+turso db create kitbuild
 
 # Get connection details
-turso db show yomilink --url
-turso db tokens create yomilink
+turso db show kitbuild --url
+turso db tokens create kitbuild
 ```
 
 ### 2. Configure Environment
@@ -144,14 +144,14 @@ Edit `wrangler.json`:
 
 ```json
 {
-	"name": "yomilink",
+	"name": "kitbuild",
 	"compatibility_date": "2025-09-02",
 	"compatibility_flags": ["nodejs_compat"],
 	"main": "@tanstack/react-start/server-entry",
 	"r2_buckets": [
 		{
 			"binding": "MATERIAL_IMAGES",
-			"bucket_name": "yomilink-materials"
+			"bucket_name": "kitbuild-materials"
 		}
 	]
 }
@@ -161,7 +161,7 @@ Edit `wrangler.json`:
 
 ```bash
 # Create storage bucket
-wrangler r2 bucket create yomilink-materials
+wrangler r2 bucket create kitbuild-materials
 
 # Wipe local SQLite db file, then rerun migrations
 vp run db:wipe
@@ -200,7 +200,7 @@ vp run deploy
 - Original research and algorithms: Tsukasa Hirashima and colleagues
 - Original system: [collab.kit-build.net](https://collab.kit-build.net/)
 
-If you use Yomilink for research, please cite the original KitBuild papers to acknowledge the foundational work.
+If you use KitBuild for research, please cite the original KitBuild papers to acknowledge the foundational work.
 
 ## License
 

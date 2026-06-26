@@ -20,7 +20,7 @@ import {
 } from "@/server/db/schema/auth-schema";
 
 const ROOT = resolve(dirname(fileURLToPath(import.meta.url)), "../../../../data/");
-const SOURCE_DB = process.env.SOURCE_DB ?? resolve(ROOT, "yomilink-prod.db");
+const SOURCE_DB = process.env.SOURCE_DB ?? resolve(ROOT, "kitbuild-prod.db");
 
 function querySource(sqlQuery: string): unknown[] {
 	const source = new BunSqliteDatabase(SOURCE_DB);
